@@ -1,7 +1,7 @@
 #+feature using-stmt
 package base
 import "core:fmt"
-import os "core:os/os2"
+import os "core:os"
 
 /*
 Cache :: struct {

@@ -10,3 +10,10 @@ run:
 release:
 	make -C ./build
 	./build.exe -release
+
+test:
+	odin test engine/tests -all-packages -define:ODIN_TEST_THREADS=1
+
+doc:
+	mdbook serve engine\doc
+

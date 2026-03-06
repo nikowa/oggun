@@ -11,25 +11,96 @@ import "core:math/rand"
 import "core:mem"
 import "shared:ranked_mutex"
 import sl "core:slice"
+import h6 "core:crypto/hash"
+import ts "../container/two_stack"
 
 
 
-/* ~~~~~~~~~~~~~~~~
-    CAGE ALLOCATOR
-   ~~~~~~~~~~~~~~~~ */
+Entry_Point :: #type proc(data: ^Thread_Data)
 
+MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
+Thread_Data :: struct {
+	magic_number: u32,
+	entry_point: Entry_Point,
+	index: u32,
+	locks: ts.Two_Stack(^Arena_Lock) }
+
+make_thread_data :: proc(entry_point: Entry_Point, index: u32) -> (thread_data: ^Thread_Data) {
+	thread_data = new(Thread_Data)
+	thread_data.magic_number = MAGIC_NUMBER
+	thread_data.entry_point = entry_point
+	thread_data.index = index
+	ts.init(&thread_data.locks)
+	return thread_data }
+
+get_thread_data :: #force_inline proc() -> (thread_data: ^Thread_Data) {
+	thread_data = cast(^Thread_Data)context.user_ptr
+	assert(thread_data.magic_number == MAGIC_NUMBER)
+	return thread_data }
+
+
+
+//////////
+// LOCK //
+Lock :: sn.Ticket_Mutex
+
+Arena_Lock :: struct {
+	lock: Lock,
+	size: u32 }
+
+lock_acquire :: sn.ticket_mutex_lock
+lock_release :: sn.ticket_mutex_unlock
+lock_guard :: sn.ticket_mutex_guard
+
+arena_lock_acquire_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
+	lock_acquire(&arena_lock.lock) }
+
+arena_lock_release_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
+	lock_release(&arena_lock.lock) }
+
+@(deferred_in=arena_lock_release_unsafe)
+arena_lock_guard_unsafe :: proc "contextless" (arena_lock: ^Arena_Lock) -> bool {
+	arena_lock_acquire_unsafe(arena_lock)
+	return true }
+
+arena_locks_ordered :: #force_inline proc "contextless" (arena_lock_a, arena_lock_b: ^Arena_Lock) -> bool {
+	return cast(uintptr)arena_lock_a < cast(uintptr)arena_lock_b }
+
+// Acquire the lock and push it onto the thread's locks stack. //
+arena_lock_push :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+	thread_data := get_thread_data()
+	top_lock := ts.peek(&thread_data.locks)
+	ok = ts.push(&thread_data.locks, arena_lock)
+	if ! ok do return false
+	if top_lock == nil || arena_locks_ordered(top_lock, arena_lock) do arena_lock_acquire_unsafe(arena_lock)
+	else {
+		arena_lock_release_unsafe(top_lock)
+		arena_lock_acquire_unsafe(arena_lock)
+		arena_lock_acquire_unsafe(top_lock) }
+	return true }
+
+
+
+////////////////////
+// CAGE ALLOCATOR //
 Cage :: struct {
-	range: [2]uintptr,
-	lock: Lock }
+	size: uintptr,
+	lock: Lock,
+	hash: u32,
+	readonly: bool }
 
+CAGES_CAP :: 32
 Cage_Allocator :: struct {
 	cages: [dynamic]Cage,
-	backing: mem.Allocator }
+	size: uintptr,
+	arena: mem.Arena,
+	backing_allocator: rt.Allocator }
 
 @(no_sanitize_address)
-cage_allocator_init :: proc(allocator: ^Cage_Allocator, backing_allocator: mem.Allocator) {
-	allocator.backing = backing_allocator
-	allocator.cages = make_dynamic_array_len_cap([dynamic]Cage, 0, 256, backing_allocator) }
+cage_allocator_init :: proc(allocator: ^Cage_Allocator, buffer: []u8) {
+	mem.arena_init(&allocator.arena, buffer)
+	allocator.backing_allocator = mem.arena_allocator(&allocator.arena)
+	allocator.cages = make_dynamic_array_len_cap([dynamic]Cage, 0, 256, context.allocator) }
 
 @(require_results, no_sanitize_address)
 cage_allocator :: proc(data: ^Cage_Allocator) -> mem.Allocator {
@@ -40,14 +111,16 @@ cage_allocator :: proc(data: ^Cage_Allocator) -> mem.Allocator {
 current_cage_allocator :: proc() -> (allocator: ^Cage_Allocator) {
 	return cast(^Cage_Allocator)context.allocator.data }
 
-// cage_allocator_new_cage :: proc(cage: ^Cage_Allocator, )
+cage_allocator_new_cage :: proc(cage_allocator: ^Cage_Allocator, size: uintptr, readonly: bool) {
+	assert(cage_allocator.size + size <= cast(uintptr)len(cage_allocator.arena.data))
+	append(&cage_allocator.cages, Cage{ size = size, readonly = readonly }) }
 
 @(no_sanitize_address)
 cage_allocator_proc :: proc(allocator_data: rawptr, mode: mem.Allocator_Mode, size, alignment: int, old_memory: rawptr, old_size: int, loc := #caller_location) -> ([]byte, rt.Allocator_Error) {
 	cage_allocator: ^Cage_Allocator = cast(^Cage_Allocator)allocator_data
 	switch mode {
 	case .Alloc, .Alloc_Non_Zeroed:
-		ptr, error := mem.alloc(size, alignment, cage_allocator.backing)
+		ptr, error := mem.alloc(size, alignment, cage_allocator.backing_allocator)
 		if ptr != nil do return sl.bytes_from_ptr(ptr, size), nil
 		else do return nil, error
 	case .Free:
@@ -55,7 +128,7 @@ cage_allocator_proc :: proc(allocator_data: rawptr, mode: mem.Allocator_Mode, si
 	case .Free_All:
 		return nil, .Mode_Not_Implemented
 	case .Resize, .Resize_Non_Zeroed:
-		ptr, error := mem.resize(old_memory, old_size, size, alignment, cage_allocator.backing)
+		ptr, error := mem.resize(old_memory, old_size, size, alignment, cage_allocator.backing_allocator)
 		if ptr != nil do return sl.bytes_from_ptr(ptr, size), nil
 		else do return sl.bytes_from_ptr(old_memory, old_size), error
 	case .Query_Features:
@@ -67,78 +140,20 @@ cage_allocator_proc :: proc(allocator_data: rawptr, mode: mem.Allocator_Mode, si
 		return nil, .Mode_Not_Implemented }
 	return nil, nil }
 
+// cage_allocator_readonly_seal :: proc(cage_allocator: ^Cage_Allocator, cage: ^Cage) {
+// 	bytes: []u8 = cage_allocator.arena.data[]
+// 	hash
+// 	h6.hash_byte(.BLAKE2B, )
+// }
 
 
-/* ~~~~~~
-    LOCK
-   ~~~~~~ */
 
-Lock :: struct {
-	_mutex: sn.Ticket_Mutex,
-	id: u32 }
-
-lock_acquire :: #force_inline proc "contextless" (lock: ^Lock) {
-	sn.ticket_mutex_lock(&lock._mutex) }
-
-lock_release :: #force_inline proc "contextless" (lock: ^Lock) {
-	sn.ticket_mutex_unlock(&lock._mutex) }
-
-@(deferred_in=lock_release)
-lock_guard :: proc "contextless" (lock: ^Lock) -> bool {
-	lock_acquire(lock)
-	return true }
+// acquire_cage_by_ptr
+// release_cage_by_ptr
+// swap_cage_by_ptr
 
 
-Keeper :: struct {
-	locks: [2]^Lock,
-	len: u32 }
 
-
-keeper_acquire_lock_unsafe :: #force_inline proc "contextless" (keeper: ^Keeper, lock: ^Lock) -> bool {
-	if keeper.len >= 2 do return false
-	lock_acquire(lock)
-	keeper.locks[keeper.len] = lock
-	keeper.len += 1
-	return true }
-
-
-keeper_acquire_lock :: #force_inline proc "contextless" (keeper: ^Keeper, lock: ^Lock, to_replace: ^Lock) -> bool {
-	switch len(keeper.locks) {
-	case 0:
-		keeper_acquire_lock_unsafe(keeper, lock)
-	case 1:
-		other_lock: ^Lock = keeper.locks[0]
-		if other_lock.id == lock.id do return false
-		if other_lock.id < lock.id {
-			keeper_acquire_lock_unsafe(keeper, lock) }
-		else {
-			keeper_release_lock(keeper, other_lock)
-			keeper_acquire_lock_unsafe(keeper, lock)
-			keeper_acquire_lock_unsafe(keeper, other_lock) }
-	case 2:
-		if to_replace == nil do return false
-		keeper_release_lock(keeper, to_replace)
-		other_lock: ^Lock = keeper.locks[0]
-		if other_lock.id == lock.id do return false
-		if other_lock.id < lock.id {
-			keeper_acquire_lock_unsafe(keeper, lock) }
-		else {
-			keeper_release_lock(keeper, other_lock)
-			keeper_acquire_lock_unsafe(keeper, lock)
-			keeper_acquire_lock_unsafe(keeper, other_lock) } }
-	return true }
-
-
-keeper_release_lock :: #force_inline proc "contextless" (keeper: ^Keeper, lock: ^Lock) -> bool {
-	if keeper.len == 0 do return false
-	if keeper.locks[0] == lock {
-		keeper.locks[0] = keeper.locks[1]
-		keeper.locks[1] = nil }
-	else if keeper.locks[1] == lock {
-		keeper.locks[1] = nil }
-	else do return false
-	keeper.len -= 1
-	return true }
 
 
 // lock_trade_1_for_1 :: proc(owned: ^Lock, desired: ^Lock) {
@@ -196,16 +211,16 @@ Thread_Filters :: bit_set[Thread_Filter]
 
 // job_proc_is_valid :: proc(job_proc: $T) -> bool {
 // 	when ODIN_DEBUG {
-// 		type_info: runtime.Type_Info_Procedure = type_info_of().variant.(runtime.Type_Info_Procedure)
-// 		params: runtime.Type_Info_Parameters = type_info.(runtime.Type_Info_Parameters)
+// 		type_info: rt.Type_Info_Procedure = type_info_of().variant.(rt.Type_Info_Procedure)
+// 		params: rt.Type_Info_Parameters = type_info.(rt.Type_Info_Parameters)
 // 		for type in params.types {
-// 			pointer: runtime.Type_Info_Pointer
+// 			pointer: rt.Type_Info_Pointer
 // 			ok: bool
-// 			pointer, ok := type.variant.(runtime.Type_Info_Pointer)
+// 			pointer, ok := type.variant.(rt.Type_Info_Pointer)
 // 			if ok {
-// 				named: runtime.Type_Info_Named
+// 				named: rt.Type_Info_Named
 // 				elem_type := pointer.elem
-// 				named, ok = elem_type.variant.(runtime.Type_Info_Named)
+// 				named, ok = elem_type.variant.(rt.Type_Info_Named)
 // 				if named.name != "Locked_Struct" do return false } }
 // 		return true
 // 	} else {
@@ -314,7 +329,7 @@ sync_init :: proc(sync: ^Sync) {
 		thread.filters = {}
 		thread.handle = tr.create(procedure=thread_proc, priority=.Normal)
 		thread.handle.data = cast(rawptr)thread.data
-		thread.handle.init_context = runtime.default_context()
+		thread.handle.init_context = rt.default_context()
 		append(&sn.threads, thread) } }
 
 
@@ -343,7 +358,7 @@ Job_Queue :: struct {
 Locked_Struct :: struct($T: typeid) {
 	using _:    T,
 	using lock: Lock,
-	allocator:  runtime.Allocator }
+	allocator:  rt.Allocator }
 
 
 Locked_Object :: struct($T: typeid) {
