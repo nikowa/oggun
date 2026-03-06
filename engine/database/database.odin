@@ -1,4 +1,5 @@
 package database
+import rt "base:runtime"
 import t "core:time"
 import os "core:os"
 import b "core:bytes"
@@ -22,7 +23,8 @@ Database_Binary_Header :: struct {
 
 Database :: struct {
 	relpath: string,
-	entries: [dynamic]Entry }
+	entries: [dynamic]Entry,
+	entries_map: map[string]^Entry }
 
 Entry :: struct {
 	url: string,
@@ -39,14 +41,49 @@ Entry :: struct {
 // [^]u8  | data
 
 make_database :: proc(relpath: string, allocator := context.allocator) -> (database: Database) {
-	return Database{ relpath = relpath, entries = make_dynamic_array_len_cap([dynamic]Entry, 0, 64, allocator) } }
+	return Database{
+		relpath = relpath,
+		entries = make_dynamic_array_len_cap([dynamic]Entry, 0, 64, allocator),
+		entries_map = make_map(map[string]^Entry, allocator) } }
 
 make_entry :: proc(url: string, data: []u8, modification_time: t.Time = { }, compressed: b8 = false) -> (entry: Entry) {
 	return Entry{ url = url, data = data, modification_time = modification_time, compressed = compressed } }
 
+entry_from_url :: proc(database: ^Database, url: string) -> (entry: ^Entry, ok: bool) {
+	return database.entries_map[url] }
+
+add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry) {
+	_, err := append_elem(&database.entries, entry); assert(err == nil)
+	index := len(database.entries) - 1
+	entry := &database.entries[index]
+	return map_insert(&database.entries_map, entry.url, entry)^ }
+
+remove_entry :: proc(database: ^Database, entry: ^Entry) {
+	index: int = -1
+	for &this_entry, i in database.entries do if &this_entry == entry {
+		index = i
+		break }
+	if index == -1 do return
+	entry := database.entries[index]
+	delete_key(&database.entries_map, entry.url)
+	unordered_remove(&database.entries, index)
+	update_entries_map(database) }
+
+update_entries_map :: proc(database: ^Database) {
+	for &entry, i in database.entries {
+		database.entries_map[entry.url] = &database.entries[i] } }
+
+clone_entry :: proc(entry: ^Entry, allocator := context.allocator) -> (entry_clone: Entry) {
+	entry_clone = entry^
+	entry_clone.url = str.clone(entry.url, allocator)
+	entry_clone.data = sl.clone(entry.data, allocator)
+	return entry_clone }
+
 clone :: proc(database: ^Database, allocator := context.allocator) -> (database_clone: Database) {
 	database_clone = database^
-	database_clone.entries = sl.clone_to_dynamic(database.entries[:], allocator)
+	for &entry, i in database.entries {
+		database_clone.entries[i] = clone_entry(&entry)
+		database_clone.entries_map[entry.url] = &database_clone.entries[i] }
 	return database_clone }
 
 equiv :: proc(database_a, database_b: ^Database) -> bool {
@@ -92,7 +129,7 @@ read :: proc(relpath: string, allocator := context.allocator) -> (database: Data
 		_, err = b.reader_read_ptr(&reader, &data_len, size_of(data_len)); assert(err == nil)
 		entry.data = make([]u8, data_len)
 		_, err = b.reader_read_slice(&reader, entry.data); assert(err == nil)
-		append(&database.entries, entry) }
+		add_entry(&database, entry) }
 	return database }
 
 read_and_decompress :: proc(relpath: string, allocator := context.allocator) -> (database: Database) {
