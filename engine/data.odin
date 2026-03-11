@@ -19,12 +19,6 @@ PRINT_LOGS:             bool   : #config(PRINT_LOGS,true)
 PRINT_BADS:             bool   : #config(PRINT_BADS,true)
 PRINT_WARNS:            bool   : #config(PRINT_WARNS,true)
 PRINT_DATES:            bool   : #config(PRINT_DATES,true)
-BLACK:                  [4]f32 : {0,0,0,1}
-WHITE:                  [4]f32 : {1,1,1,1}
-RED:                    [4]f32 : {1,0,0,1}
-GREEN:                  [4]f32 : {0,1,0,1}
-BLUE:                   [4]f32 : {0,0,1,1}
-CYAN:                   [4]f32 : {0,1,1,1}
 AUX_BUF_FMT:            i32    : gl.RGB12
 RB_RAW:                 u8     : 0
 RB_QOI:                 u8     : 1

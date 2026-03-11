@@ -6,6 +6,9 @@ import gl "vendor:OpenGL"
 import str "core:strings"
 import os "core:os"
 import db "../database"
+import la "core:math/linalg"
+import fmt "core:fmt"
+import base "../base"
 
 
 
@@ -17,13 +20,21 @@ import db "../database"
 
 
 
+BLACK:                  [4]f32 : {0,0,0,1}
+WHITE:                  [4]f32 : {1,1,1,1}
+RED:                    [4]f32 : {1,0,0,1}
+GREEN:                  [4]f32 : {0,1,0,1}
+BLUE:                   [4]f32 : {0,0,1,1}
+CYAN:                   [4]f32 : {0,1,1,1}
+
+
 
 Graphics_Context :: struct {
 	window: glfw.WindowHandle,
 	window_size: [2]u32,
 	window_closed: bool,
 // 	fullscreen:                      bool,
-// 	active_resolution:               [2]int,
+	active_resolution:               [2]u32,
 // 	resolution:                      [2]int,
 // 	resolution_scale:                f32,
 // 	last_models_write_time:          os.File_Time,
@@ -103,7 +114,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	case .PERCENT_100: draw.resolution_scale = 1.0
 // 	case .PERCENT_200: draw.resolution_scale = 2.0
 // 	case .PERCENT_400: draw.resolution_scale = 4.0 }
-// 	draw.resolution = linalg.array_cast(draw.resolution_scale * linalg.array_cast(draw.window_size, f32), int)
+// 	draw.resolution = la.array_cast(draw.resolution_scale * la.array_cast(draw.window_size, f32), int)
 // 	draw.active_resolution = draw.window_size
 // 	draw.generic_textures = make_dynamic_array_len_cap([dynamic]Texture, len=0, cap=64)
 // 	draw.textures_map = make(map[string]^Texture)
@@ -140,6 +151,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
 	width, height := glfw.GetFramebufferSize(graphics_context.window)
 	graphics_context.window_size = { cast(u32)width, cast(u32)height }
+	graphics_context.active_resolution = graphics_context.window_size
 	gl.Viewport(0, 0, cast(i32)graphics_context.window_size.x, cast(i32)graphics_context.window_size.y)
 	gl.GenVertexArrays(1, &graphics_context.vertex_array)
 	gl.BindVertexArray(graphics_context.vertex_array)
@@ -210,7 +222,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	random_colors = make_dynamic_array_len_cap([dynamic][3]f32, 0, 32)
 // 	for r in 0 ..= 4 do for g in 0 ..= 4 do for b in 0 ..= 4 {
 // 		color: [3]f32 = { (cast(f32)r) / 4, (cast(f32)g) / 4, (cast(f32)b) / 4 }
-// 		if linalg.length(color) > 0.1 do append(&random_colors, color) }
+// 		if la.length(color) > 0.1 do append(&random_colors, color) }
 // 	draw.random_colors = random_colors[:]
 // 	load_models_from_gltf(draw, working_directory_path, "beach")
 // 	bake_models(draw, cache) // TEMP
@@ -218,6 +230,8 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 
 	graphics_context.shaders = make([dynamic]^Shader, 0, 16)
 	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "shader:vrect", frag_url = "shader:frect" }) or_return
+	fmt.println(base.LOG, "Program handle:", graphics_context.rect_shader.handle)
+	// gl.ValidateProgram(graphics_context.rect_shader.handle)
 	// graphics_context.texture_shader              = make_shader(draw, working_directory_path, "texture",              Texture_Shader,              "vrect",    "ftexture")
 	// graphics_context.buffer_shader               = make_shader(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// graphics_context.upscale_pass1_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
@@ -250,10 +264,10 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	gl.Clear(gl.DEPTH_BUFFER_BIT) }
 
 
-// select_frame_buffer :: proc(draw: ^Draw, frame_buffer_handle: u32) {
-// 	draw.active_resolution = draw.window_size
-// 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
-// 	gl.Viewport(0, 0, cast(i32)draw.window_size.x, cast(i32)draw.window_size.y) }
+select_frame_buffer :: proc(graphics_context: ^Graphics_Context, frame_buffer_handle: u32) {
+	graphics_context.active_resolution = graphics_context.window_size
+	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
+	gl.Viewport(0, 0, cast(i32)graphics_context.window_size.x, cast(i32)graphics_context.window_size.y) }
 
 
 clear_frame_buffer :: proc(frame_buffer_handle: u32) {
@@ -388,167 +402,167 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	gl.GetTexImage(gl.TEXTURE_2D, 0, gl.RGBA, gl.UNSIGNED_BYTE, texture) }
 
 
-// get_shader_param_handle :: proc(shader_handle: u32, param_name: string) -> (handle: i32) {
-// 	cstr: cstring
+get_shader_param_handle :: proc(shader_handle: u32, param_name: string) -> (handle: i32) {
+	cstr: cstring
 
-// 	cstr = str.clone_to_cstring(param_name)
-// 	handle = gl.GetUniformLocation(shader_handle, cstr)
-// 	delete(cstr)
-// 	return handle }
+	cstr = str.clone_to_cstring(param_name)
+	handle = gl.GetUniformLocation(shader_handle, cstr)
+	delete(cstr)
+	return handle }
 
 
-// uniform_1f :: #force_inline proc(shader: u32, name: cstring, param: f32) {
-// 	gl.Uniform1f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param) }
+uniform_1f :: #force_inline proc(shader: u32, name: cstring, param: f32) {
+	gl.Uniform1f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param) }
 
 
-// set_shader_param_1f32 :: #force_inline proc(param_handle: i32, value: f32) {
-// 	gl.Uniform1f(param_handle, value) }
+set_shader_param_1f32 :: #force_inline proc(param_handle: i32, value: f32) {
+	gl.Uniform1f(param_handle, value) }
 
 
-// uniform_2f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param_y: f32) {
-// 	gl.Uniform2f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y) }
+uniform_2f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param_y: f32) {
+	gl.Uniform2f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y) }
 
 
-// set_shader_param_2f32 :: #force_inline proc(param_handle: i32, value: [2]f32) {
-// 	gl.Uniform2f(param_handle, value.x, value.y) }
+set_shader_param_2f32 :: #force_inline proc(param_handle: i32, value: [2]f32) {
+	gl.Uniform2f(param_handle, value.x, value.y) }
 
 
-// uniform_3f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param_y: f32, param_z: f32) {
-// 	gl.Uniform3f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y, cast(f32)param_z) }
+uniform_3f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param_y: f32, param_z: f32) {
+	gl.Uniform3f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y, cast(f32)param_z) }
 
 
-// set_shader_param_3f32 :: #force_inline proc(param_handle: i32, value: [3]f32) {
-// 	gl.Uniform3f(param_handle, value.x, value.y, value.z) }
+set_shader_param_3f32 :: #force_inline proc(param_handle: i32, value: [3]f32) {
+	gl.Uniform3f(param_handle, value.x, value.y, value.z) }
 
 
-// uniform_4f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param_y: f32, param_z: f32, param_w: f32) {
-// 	gl.Uniform4f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y, cast(f32)param_z, cast(f32)param_w) }
+uniform_4f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param_y: f32, param_z: f32, param_w: f32) {
+	gl.Uniform4f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y, cast(f32)param_z, cast(f32)param_w) }
 
 
-// set_shader_param_4f32 :: #force_inline proc(param_handle: i32, value: [4]f32) {
-// 	gl.Uniform4f(param_handle, cast(f32)value.x, cast(f32)value.y, cast(f32)value.z, cast(f32)value.w) }
+set_shader_param_4f32 :: #force_inline proc(param_handle: i32, value: [4]f32) {
+	gl.Uniform4f(param_handle, cast(f32)value.x, cast(f32)value.y, cast(f32)value.z, cast(f32)value.w) }
 
 
-// uniform_1i :: #force_inline proc(shader: u32, name: cstring, #any_int param: int) {
-// 	gl.Uniform1i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param) }
+uniform_1i :: #force_inline proc(shader: u32, name: cstring, #any_int param: int) {
+	gl.Uniform1i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param) }
 
 
-// set_shader_param_1i32 :: #force_inline proc(param_handle: i32, value: i32) {
-// 	gl.Uniform1i(param_handle, value) }
+set_shader_param_1i32 :: #force_inline proc(param_handle: i32, value: i32) {
+	gl.Uniform1i(param_handle, value) }
 
 
-// set_shader_param_1i16 :: #force_inline proc(param_handle: i32, value: i16) {
-// 	gl.Uniform1i(param_handle, cast(i32)value) }
+set_shader_param_1i16 :: #force_inline proc(param_handle: i32, value: i16) {
+	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-// set_shader_param_1i8 :: #force_inline proc(param_handle: i32, value: i8) {
-// 	gl.Uniform1i(param_handle, cast(i32)value) }
+set_shader_param_1i8 :: #force_inline proc(param_handle: i32, value: i8) {
+	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-// set_shader_param_1u32 :: #force_inline proc(param_handle: i32, value: u32) {
-// 	gl.Uniform1i(param_handle, cast(i32)value) }
+set_shader_param_1u32 :: #force_inline proc(param_handle: i32, value: u32) {
+	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-// set_shader_param_1u16 :: #force_inline proc(param_handle: i32, value: u16) {
-// 	gl.Uniform1i(param_handle, cast(i32)value) }
+set_shader_param_1u16 :: #force_inline proc(param_handle: i32, value: u16) {
+	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-// set_shader_param_1u8 :: #force_inline proc(param_handle: i32, value: u8) {
-// 	gl.Uniform1i(param_handle, cast(i32)value) }
+set_shader_param_1u8 :: #force_inline proc(param_handle: i32, value: u8) {
+	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-// uniform_2i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int) {
-// 	gl.Uniform2i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y) }
+uniform_2i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int) {
+	gl.Uniform2i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y) }
 
 
-// set_shader_param_2i32 :: #force_inline proc(param_handle: i32, value: [2]i32) {
-// 	gl.Uniform2i(param_handle, value.x, value.y) }
+set_shader_param_2i32 :: #force_inline proc(param_handle: i32, value: [2]i32) {
+	gl.Uniform2i(param_handle, value.x, value.y) }
 
 
-// set_shader_param_2i16 :: #force_inline proc(param_handle: i32, value: [2]i16) {
-// 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
+set_shader_param_2i16 :: #force_inline proc(param_handle: i32, value: [2]i16) {
+	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-// set_shader_param_2i8 :: #force_inline proc(param_handle: i32, value: [2]i8) {
-// 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
+set_shader_param_2i8 :: #force_inline proc(param_handle: i32, value: [2]i8) {
+	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-// set_shader_param_2u32 :: #force_inline proc(param_handle: i32, value: [2]u32) {
-// 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
+set_shader_param_2u32 :: #force_inline proc(param_handle: i32, value: [2]u32) {
+	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-// set_shader_param_2u16 :: #force_inline proc(param_handle: i32, value: [2]u16) {
-// 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
+set_shader_param_2u16 :: #force_inline proc(param_handle: i32, value: [2]u16) {
+	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-// set_shader_param_2u8 :: #force_inline proc(param_handle: i32, value: [2]u8) {
-// 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
+set_shader_param_2u8 :: #force_inline proc(param_handle: i32, value: [2]u8) {
+	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-// uniform_3i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int, #any_int param_z: int) {
-// 	gl.Uniform3i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y, cast(i32)param_z) }
+uniform_3i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int, #any_int param_z: int) {
+	gl.Uniform3i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y, cast(i32)param_z) }
 
 
-// set_shader_param_3i32 :: #force_inline proc(param_handle: i32, value: [3]i32) {
-// 	gl.Uniform3i(param_handle, value.x, value.y, value.z) }
+set_shader_param_3i32 :: #force_inline proc(param_handle: i32, value: [3]i32) {
+	gl.Uniform3i(param_handle, value.x, value.y, value.z) }
 
 
-// set_shader_param_3i16 :: #force_inline proc(param_handle: i32, value: [3]i16) {
-// 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
+set_shader_param_3i16 :: #force_inline proc(param_handle: i32, value: [3]i16) {
+	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-// set_shader_param_3i8 :: #force_inline proc(param_handle: i32, value: [3]i8) {
-// 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
+set_shader_param_3i8 :: #force_inline proc(param_handle: i32, value: [3]i8) {
+	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-// set_shader_param_3u32 :: #force_inline proc(param_handle: i32, value: [3]u32) {
-// 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
+set_shader_param_3u32 :: #force_inline proc(param_handle: i32, value: [3]u32) {
+	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-// set_shader_param_3u16 :: #force_inline proc(param_handle: i32, value: [3]u16) {
-// 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
+set_shader_param_3u16 :: #force_inline proc(param_handle: i32, value: [3]u16) {
+	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-// set_shader_param_3u8 :: #force_inline proc(param_handle: i32, value: [3]u8) {
-// 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
+set_shader_param_3u8 :: #force_inline proc(param_handle: i32, value: [3]u8) {
+	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-// uniform_4i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int, #any_int param_z: int, #any_int param_w: int) {
-// 	gl.Uniform4i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y, cast(i32)param_z, cast(i32)param_w) }
+uniform_4i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int, #any_int param_z: int, #any_int param_w: int) {
+	gl.Uniform4i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y, cast(i32)param_z, cast(i32)param_w) }
 
 
-// uniform_matrix_4f :: #force_inline proc(shader: u32, name: cstring, value: [^]f32) {
-// 	gl.UniformMatrix4fv(gl.GetUniformLocation(cast(u32)shader, name), 1, false, value) }
+uniform_matrix_4f :: #force_inline proc(shader: u32, name: cstring, value: [^]f32) {
+	gl.UniformMatrix4fv(gl.GetUniformLocation(cast(u32)shader, name), 1, false, value) }
 
 
-// set_shader_param_matrix_4f :: #force_inline proc(param_handle: i32, value: ^matrix[4, 4]f32) {
-// 	gl.UniformMatrix4fv(param_handle, 1, false, &value[0][0]) }
+set_shader_param_matrix_4f :: #force_inline proc(param_handle: i32, value: ^matrix[4, 4]f32) {
+	gl.UniformMatrix4fv(param_handle, 1, false, &value[0][0]) }
 
 
-// set_shader_param :: proc {
-// 	set_shader_param_1f32,
-// 	set_shader_param_2f32,
-// 	set_shader_param_3f32,
-// 	set_shader_param_4f32,
-// 	set_shader_param_1i32,
-// 	set_shader_param_1i16,
-// 	set_shader_param_1i8,
-// 	set_shader_param_1u32,
-// 	set_shader_param_1u16,
-// 	set_shader_param_1u8,
-// 	set_shader_param_2i32,
-// 	set_shader_param_2i16,
-// 	set_shader_param_2i8,
-// 	set_shader_param_2u32,
-// 	set_shader_param_2u16,
-// 	set_shader_param_2u8,
-// 	set_shader_param_3i32,
-// 	set_shader_param_3i16,
-// 	set_shader_param_3i8,
-// 	set_shader_param_3u32,
-// 	set_shader_param_3u16,
-// 	set_shader_param_3u8,
-// 	set_shader_param_matrix_4f }
+set_shader_param :: proc {
+	set_shader_param_1f32,
+	set_shader_param_2f32,
+	set_shader_param_3f32,
+	set_shader_param_4f32,
+	set_shader_param_1i32,
+	set_shader_param_1i16,
+	set_shader_param_1i8,
+	set_shader_param_1u32,
+	set_shader_param_1u16,
+	set_shader_param_1u8,
+	set_shader_param_2i32,
+	set_shader_param_2i16,
+	set_shader_param_2i8,
+	set_shader_param_2u32,
+	set_shader_param_2u16,
+	set_shader_param_2u8,
+	set_shader_param_3i32,
+	set_shader_param_3i16,
+	set_shader_param_3i8,
+	set_shader_param_3u32,
+	set_shader_param_3u16,
+	set_shader_param_3u8,
+	set_shader_param_matrix_4f }
 
 
 // bind_texture :: proc(binding_index: u32, handle: u32) {
@@ -556,22 +570,22 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	gl.BindTexture(gl.TEXTURE_2D, cast(u32)handle) }
 
 
-// draw_triangles :: proc(count: i32) {
-//     gl.DrawArrays(gl.TRIANGLES, 0, count) }
+draw_triangles :: proc(count: i32) {
+    gl.DrawArrays(gl.TRIANGLES, 0, count) }
 
 
-// draw_lines :: proc(count: i32) {
-//     gl.DrawArrays(gl.LINES, 0, count) }
+draw_lines :: proc(count: i32) {
+    gl.DrawArrays(gl.LINES, 0, count) }
 
 
-// draw_points :: proc(count: i32) {
-//     gl.DrawArrays(gl.POINTS, 0, count) }
+draw_points :: proc(count: i32) {
+    gl.DrawArrays(gl.POINTS, 0, count) }
 
 
-// use_shader :: proc(shader: ^$T, loc := #caller_location) -> (^T) {
-// 	assert(shader != nil, loc = loc); assert(shader.handle != 0, loc = loc)
-// 	gl.UseProgram(cast(u32)shader.handle)
-// 	return shader }
+use_shader :: proc(shader: ^$T, loc := #caller_location) -> (^T) {
+	assert(shader != nil, loc = loc); assert(shader.handle != 0, loc = loc)
+	gl.UseProgram(cast(u32)shader.handle)
+	return shader }
 
 
 // set_blend :: proc(value: bool) {
@@ -614,22 +628,20 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	render_rect_outlined(draw, pos = pos + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
 // 	render_rect_outlined(draw, pos = pos + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-
-// render_rect :: proc(draw: ^Draw, pos: [2]f32, size: [2]f32, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
-// 	shader := use_shader(draw.rect_shader)
-// 	set_shader_param(shader.pos, pos)
-// 	set_shader_param(shader.size, size)
-// 	set_shader_param(shader.fill_color, fill_color)
-// 	set_shader_param(shader.rounding, rounding)
-// 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
-// 	draw_triangles(6) }
-
+render_rect :: proc(graphics_context: ^Graphics_Context, pos: [2]f32, size: [2]f32, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
+	shader := use_shader(graphics_context.rect_shader)
+	set_shader_param(shader.pos, pos)
+	set_shader_param(shader.size, size)
+	set_shader_param(shader.fill_color, fill_color)
+	set_shader_param(shader.rounding, rounding)
+	set_shader_param(shader.res, la.array_cast(graphics_context.active_resolution, f32))
+	draw_triangles(6) }
 
 // render_panel :: proc(draw: ^Draw, background: ^Render_Buffer, pos: [2]f32, size: [2]f32) {
 // 	shader := use_shader(draw.panel_shader)
 // 	set_shader_param(shader.pos, pos)
 // 	set_shader_param(shader.size, size)
-// 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
+// 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
 // 	bind_texture(0, background.texture_handles[0])
 // 	texture_filtering(gl.LINEAR)
 // 	bind_texture(1, draw.textures_map["normal-corner-pack"].handle)
@@ -641,7 +653,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	set_shader_param(shader.pos, pos)
 // 	set_shader_param(shader.size, size)
 // 	set_shader_param(shader.fill_color, fill_color)
-// 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
+// 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
 // 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 // 	draw_triangles(6)
 // 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL) }
@@ -652,7 +664,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	set_shader_param(shader.pos, pos)
 // 	set_shader_param(shader.size, size + { 2, 2 })
 // 	set_shader_param(shader.fill_color, outline_color)
-// 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
+// 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
 // 	draw_triangles(6)
 // 	set_shader_param(shader.fill_color, fill_color)
 // 	set_shader_param(shader.size, size)
@@ -685,7 +697,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	shader := use_shader(draw.line_shader)
 // 	gl.LineWidth(thickness)
 // 	set_shader_param(shader.line, [4]f32{ source.x, source.y, target.x, target.y})
-// 	set_shader_param(shader.this_buffer_res, linalg.array_cast(draw.active_resolution, f32))
+// 	set_shader_param(shader.this_buffer_res, la.array_cast(draw.active_resolution, f32))
 // 	set_shader_param(shader.line_color, color)
 // 	set_shader_param(shader.dashed, cast(i32)dashed)
 // 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
@@ -718,7 +730,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	gl.BindBuffer(gl.ARRAY_BUFFER, draw.vertex_buffer)
 // 	set_shader_param(shader.pos, pos)
 // 	set_shader_param(shader.size, size)
-// 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
+// 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
 // 	bind_texture(0, handle)
 // 	texture_filtering(gl.NEAREST)
 // 	draw_triangles(6) }
@@ -742,8 +754,8 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	select_render_buffer(draw, &draw.upscale_sb)
 // 	gl.Viewport(0, 0, cast(i32)draw.window_size.x, cast(i32)draw.window_size.y)
 // 	shader := use_shader(draw.upscale_pass1_shader)
-// 	set_shader_param(shader.resolution, linalg.array_cast(draw.resolution, f32))
-// 	set_shader_param(shader.window_size, linalg.array_cast(draw.window_size, f32))
+// 	set_shader_param(shader.resolution, la.array_cast(draw.resolution, f32))
+// 	set_shader_param(shader.window_size, la.array_cast(draw.window_size, f32))
 // 	bind_texture(0, render_buffer.texture_handles[channel])
 // 	texture_filtering(gl.NEAREST)
 // 	draw_triangles(6)
@@ -752,7 +764,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	gl.Viewport(0, 0, cast(i32)draw.window_size.x, cast(i32)draw.window_size.y)
 // 	use_shader(draw.upscale_pass2_shader)
 // 	//gl.Viewport(0,0,i32(draw.window_size.x),i32(draw.window_size.y))
-// 	set_shader_param(draw.upscale_pass2_shader.window_size, linalg.array_cast(draw.window_size, f32))
+// 	set_shader_param(draw.upscale_pass2_shader.window_size, la.array_cast(draw.window_size, f32))
 // 	bind_texture(0, draw.upscale_sb.texture_handles[0])
 // 	texture_filtering(gl.NEAREST)
 // 	draw_triangles(6) }
@@ -760,7 +772,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 
 // set_effect_shader_params :: proc(draw: ^Draw, camera: ^Camera, net_time: f32, shader: $T) {
 // 	set_shader_param(shader.time, net_time)
-// 	set_shader_param(shader.res,  linalg.array_cast(draw.resolution, f32))
+// 	set_shader_param(shader.res,  la.array_cast(draw.resolution, f32))
 // 	set_shader_param(shader.camera_far_clip, camera.far_clip)
 // 	set_shader_param(shader.camera_position, camera.position)
 // 	set_shader_param(shader.camera_direction, camera.direction)
@@ -768,7 +780,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	set_shader_param(shader.camera_side_direction, camera.side_direction)
 // 	set_shader_param(shader.camera_focal_length, camera.focal_length)
 // 	set_shader_param(shader.camera_sensor_size, camera.sensor_size)
-// 	set_shader_param(shader.sun_dir, linalg.normalize([3]f32{3,-2,3}))
+// 	set_shader_param(shader.sun_dir, la.normalize([3]f32{3,-2,3}))
 // 	set_shader_param(shader.camera_zoom, camera.zoom)
 // 	set_shader_param(shader.haze_color, draw.haze_color) }
 
@@ -863,7 +875,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 
 // 	select_render_buffer(draw, &draw.default_sb)
 // 	gl.ReadBuffer(gl.COLOR_ATTACHMENT4)
-// 	pos = linalg.array_cast(draw.resolution, f32) / 2 + input.cursor
+// 	pos = la.array_cast(draw.resolution, f32) / 2 + input.cursor
 // 	gl.ReadPixels(
 // 		x = cast(i32)pos.x,
 // 		y = cast(i32)pos.y,
@@ -1040,7 +1052,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	if .NORTH in pivot do pos.y -= 0.5 * height
 // 	if .SOUTH in pivot do pos.y += 0.5 * height
 // 	shader = use_shader(draw.font_shader)
-// 	set_shader_param(shader.this_buffer_res, linalg.array_cast(draw.resolution, f32))
+// 	set_shader_param(shader.this_buffer_res, la.array_cast(draw.resolution, f32))
 // 	set_shader_param(shader.symbol_size, font.symbol_size)
 // 	sym_pos = pos
 // 	for c, i in text {
@@ -1088,7 +1100,7 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	COVER_RATIO :: 440.0 / 568.0
 // 	N_FRAMES :: 16
 // 	SPEED :: 10.0
-// 	t = linalg.fract(net_time/f32(N_FRAMES)*SPEED)
+// 	t = la.fract(net_time/f32(N_FRAMES)*SPEED)
 // 	i = min(int(t*16),15)
 // 	name = fmt.tprintf("cover_%4d",i)
 // 	render_texture(draw, name = name, pos = { 0, 0 }, size_override = { COVER_RATIO * 180, 180 }) }
@@ -1108,6 +1120,9 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	draw.fonts_map[font.name] = ptr
 // 	return ptr }
 
+@(deferred_in=graphics_tick_end)
+graphics_tick :: proc(graphics_context: ^Graphics_Context) {
+	graphics_tick_begin(graphics_context) }
 
 // // TODO: Make sure that whenever this job is created, these filters are applied. //
 // // TODO: Create "Draw_Tick_Args" cast to "rawptr" as argument instead of array of "any"s.
@@ -1121,22 +1136,16 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	working_directory_path: string }
 // draw_tick_filters: Thread_Filters : { .MAIN_THREAD }
 // @(tag = "job")
-graphics_tick :: proc(graphics_context: ^Graphics_Context) {
-// 	data:      ^Draw_Tick_Data
-// 	flare_pos: [3]f32
-// 	pos:       [2]f32
-
-// 	data = auto_cast data_ptr
-// 	defer free(data)
-// 	using data
-// 	lock_guard(&camera.lock)
-// 	lock_guard(&clock.lock)
-// 	lock_guard(&draw.lock)
+graphics_tick_begin :: proc(graphics_context: ^Graphics_Context) {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	clear_frame_buffer(0)
+	select_frame_buffer(graphics_context, 0)
 // 	clear_render_buffer(&draw.default_sb)
 // 	select_render_buffer(draw, &draw.default_sb)
 // 	set_depth_test(true)
+}
+
+graphics_tick_end :: proc(graphics_context: ^Graphics_Context) {
 // 	if .MODELS in draw.draw_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.draw_mask {
 // 		// TODO: Separate skybox renderer from water effect renderer.
@@ -1159,7 +1168,7 @@ graphics_tick :: proc(graphics_context: ^Graphics_Context) {
 // 	// @(static) flare_pos: [3]f32
 // 	// if n == 1 do flare_pos = camera_inverse_project(camera, { 0, 0 })
 // 	flare_pos = apply_transform(flare_pos, camera.local_matrix)
-// 	flare_pos.xy = flare_pos.xy * linalg.array_cast(draw.window_size, f32) / 2
+// 	flare_pos.xy = flare_pos.xy * la.array_cast(draw.window_size, f32) / 2
 // 	if flare_pos.z >= 0 do render_line(draw, flare_pos.xy - { 4, 0 }, flare_pos.xy + { 4, 0 }, RED, false, 4)
 // 	// render_rect(draw, flare_pos, { 32, 32 }, RED)
 // 	// if draw.frame_count == 0 do find_glare_spots(draw)
@@ -1282,16 +1291,16 @@ graphics_tick :: proc(graphics_context: ^Graphics_Context) {
 // texture_space_to_normal_space :: proc(pixel_index: [2]int, texture_size: [2]int) -> (normal: [2]f32) {
 // 	pixel_size: [2]f32
 
-// 	pixel_size = [2]f32{ 1.0, 1.0 } / linalg.array_cast(texture_size, f32)
-// 	normal = pixel_size / 2 + pixel_size * linalg.array_cast(pixel_index, f32)
+// 	pixel_size = [2]f32{ 1.0, 1.0 } / la.array_cast(texture_size, f32)
+// 	normal = pixel_size / 2 + pixel_size * la.array_cast(pixel_index, f32)
 // 	return { normal.x, 1 - normal.y } }
 
 
 // pixel_contains_point :: proc(pixel: [2]int, point: [2]f32, texture_size: [2]int) -> bool {
 // 	pixel_rect: Rect
 
-// 	pixel_rect.size = [2]f32{ 1.0, 1.0 } / linalg.array_cast(texture_size, f32)
-// 	pixel_rect.pos = linalg.array_cast(pixel, f32) * pixel_rect.size + pixel_rect.size / 2
+// 	pixel_rect.size = [2]f32{ 1.0, 1.0 } / la.array_cast(texture_size, f32)
+// 	pixel_rect.pos = la.array_cast(pixel, f32) * pixel_rect.size + pixel_rect.size / 2
 // 	return rect_contains_point(pixel_rect, point) }
 
 
@@ -1303,5 +1312,5 @@ graphics_tick :: proc(graphics_context: ^Graphics_Context) {
 // 	for i in 0 ..< cast(int)draw.window_size.x do for j in 0 ..< cast(int)draw.window_size.y {
 // 		pixel := read_pixel_rgba(draw, [2]int{ cast(int)draw.window_size.x, cast(int)draw.window_size.y } / 2).rgb
 // 		br := brightness(pixel)
-// 		if br > THRESHOLD do append_elem(&draw.glare_spots, [2]int{ i, j } - linalg.array_cast(draw.window_size, int) / 2) } }
+// 		if br > THRESHOLD do append_elem(&draw.glare_spots, [2]int{ i, j } - la.array_cast(draw.window_size, int) / 2) } }
 

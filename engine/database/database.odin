@@ -194,7 +194,6 @@ decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (by
 		bytes_buffer: []u8 = make([]u8, cast(int)decompress_bound, allocator)
 		decompressed_size: i32 = lz4.decompress_safe(&compressed_bytes[0], &bytes_buffer[0], cast(i32)len(compressed_bytes), decompress_bound)
 		if decompressed_size < 0 {
-			// log.info("Decompress bound", decompress_bound, "not sufficient.")
 			fmt.println(base.WARN, "Decompress bound", decompress_bound, "not sufficient.")
 			estimated_compression_ratio /= 2.0
 			delete(bytes_buffer, allocator)

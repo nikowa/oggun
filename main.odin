@@ -42,7 +42,9 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	ipt.input_init(&input_context)
 	for ! graphics_context.window_closed {
 		ipt.input_tick(&input_context)
-		gx.graphics_tick(&graphics_context) }
+		gx.graphics_tick(&graphics_context)
+		gx.render_rect(&graphics_context, { 0, 0 }, { 400, 20 }, gx.RED, 0.0)
+		}
 	db.write(&database, context.allocator)
 	return }
 

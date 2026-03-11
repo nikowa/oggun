@@ -267,7 +267,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 		else {
 			fmt.println(base.LOG, "Reading shader source from database.")
 			sources[i] = cast(string)entry.data } }
-	fmt.println(base.LOG, "Sources:", sources[0], sources[1])
+	// fmt.println(base.LOG, "Sources:", sources[0], sources[1])
 	shader.handle, ok = gl.load_shaders_source(sources[0], sources[1])
 	compile_message, compile_message_type, link_message, link_message_type = gl.get_last_error_messages()
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) {
@@ -278,19 +278,19 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	return nil }
 
 init_shader_params :: proc($Type: typeid, shader: ^Type) {
-// 	fields: #soa[]reflect.Struct_Field
+	fields: #soa[]rl.Struct_Field
 
-// 	fields = reflect.struct_fields_zipped(Type)
-// 	for _, i in fields {
-// 		if fields[i].name == "shader" do continue
-// 		#partial switch v in fields[i].type.variant {
-// 		case rt.Type_Info_Integer:
-// 			(cast(^i32)(cast(uintptr)shader + fields[i].offset))^ = get_shader_param_handle(cast(u32)shader.handle, fields[i].name)
-// 		case rt.Type_Info_Named:
-// 			using_struct := v.base.variant.(rt.Type_Info_Struct)
-// 			for j in 0 ..< using_struct.field_count {
-// 				(cast(^i32)(cast(uintptr)shader + fields[i].offset + using_struct.offsets[j]))^ = get_shader_param_handle(cast(u32)shader.handle, using_struct.names[j]) }
-// 		case: continue } }
+	fields = rl.struct_fields_zipped(Type)
+	for _, i in fields {
+		if fields[i].name == "shader" do continue
+		#partial switch v in fields[i].type.variant {
+		case rt.Type_Info_Integer:
+			(cast(^i32)(cast(uintptr)shader + fields[i].offset))^ = get_shader_param_handle(cast(u32)shader.handle, fields[i].name)
+		case rt.Type_Info_Named:
+			using_struct := v.base.variant.(rt.Type_Info_Struct)
+			for j in 0 ..< using_struct.field_count {
+				(cast(^i32)(cast(uintptr)shader + fields[i].offset + using_struct.offsets[j]))^ = get_shader_param_handle(cast(u32)shader.handle, using_struct.names[j]) }
+		case: continue } }
 }
 
 print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader, vert_string: string, frag_string: string) {

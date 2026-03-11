@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-cf724d01.js";
+            window.path_to_searchindex_js = "searchindex-71b6c205.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-5408b35e.js"></script>
@@ -191,6 +191,9 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 </code></pre>
 <p>The basic premise of the multi-threading architecture is that the memory is split into <em>cages</em>, where each cage is an interval with a lock. Each thread has a <em>keeper</em> and a keeper can own no more than 2 cages at a time. To acquire a cage call <code>base.acquire_cage</code> and give it some point from the interval of that cage. If you attempt to acquire more than 2 cages, it will return <code>false</code> and an error will be printed. You can release a cage by <code>base.acquire_cage</code> with a pointer from the interval of that cage. The helper function <code>keeper_swap_by_lock</code> can be used to release one cage and acquire another in one sweeping motion.</p>
 <p><img src="cages-and-keepers.png" alt="cage"></p>
+<h2 id="the-lock-system"><a class="header" href="#the-lock-system">The Lock System</a></h2>
+<p><img src="lock-system.png" alt="cage"></p>
+<p>Every thread is able to own at most 2 locks at a time. This is the bare minimum number of locks necessary for any algorithm. The containers for these two locks are called the <em>lock registers</em>. In addition, every thread has a <em>lock stack</em>. This allows for lock pairs to be managed in larger, nested scopes, as opposed to small disjoint scopes. If a procedure that has acquired lock A and B wants to call a procedure that depends on locks B and C, normally it would call a sync function to acquire lock C at the start and then call a sync function to release it at the end, but in my system, it can call a sync function at the start to acquire lock C and hint that lock A is no longer needed, and then call a sync function to release it at the end. And what happens in the background is, A is released and push into the lock stack, then B and C are acquired in order, and at the end C is released and A is popped from the stack and A and B are acquired in order. The stack is necessary so that the callee can remember what locks were owned by the caller and restore them.</p>
 <h2 id="start"><a class="header" href="#start">Start</a></h2>
 
                     </main>
