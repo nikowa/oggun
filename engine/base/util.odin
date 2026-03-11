@@ -13,6 +13,10 @@ import "core:slice"
 import "core:strings"
 import "core:sys/windows"
 
+DATE: string : "\e[0;34m date | \e[0m"
+LOG: string : "\e[0;36m log  | \e[0m"
+BAD: string : "\e[0;31m bad  | \e[0m"
+WARN: string : "\e[0;33m warn | \e[0m"
 
 /*
 print_log :: proc(args: ..any, sep := " ", flush := true) -> int{
@@ -126,7 +130,7 @@ get_executable_path :: proc() -> string {
 	path, _ := windows.wstring_to_utf8_alloc(cast(cstring16)buffer, int(res_length), context.allocator)
 	return path }
 // TODO There is an odin macro for this. Employ that instead. And make sure it works. //
-
+*/
 
 nth_line::proc(text:string,target_line:int)->(res:string) {
 	curr_line:=0
@@ -137,7 +141,7 @@ nth_line::proc(text:string,target_line:int)->(res:string) {
 			return text[i:i+cap+1] } }
 	return "" }
 
-
+/*
 write_slice::proc(handle:os.Handle,ptr:^[]$T)->(n:int,error:os.Error) {
 	size:i32=i32(len(ptr))
 	n,error=os.write_ptr(handle,rawptr(&size),4)
@@ -151,7 +155,7 @@ read_slice::proc(handle:os.Handle,ptr:^[]$T,allocator:=context.allocator)->(n:in
 	ptr^=make([]T,size)
 	n,error=os.read_ptr(handle,rawptr(&ptr[0]),int(size))
 	return n,error }
-
+*/
 
 starts_with_any::proc(s:string,prefixes:[]string)->(result:bool) {
 	for prefix in prefixes {
@@ -159,7 +163,7 @@ starts_with_any::proc(s:string,prefixes:[]string)->(result:bool) {
 			return true } }
 	return false }
 
-
+/*
 name_from_path::proc(path:string)->string {
 	return filepath.stem(filepath.base(path)) }
 

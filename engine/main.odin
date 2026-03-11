@@ -68,7 +68,7 @@ main :: proc() {
 	cache_init(unwrap(&cache))
 	clock_init(unwrap(&clock), .LIMITED_60_FPS)
 	audio_init(unwrap(&audio))
-	draw_init(unwrap(&draw), unwrap(&cache), working_directory_path, &settings.graphics)
+	graphics_init(unwrap(&draw), unwrap(&cache), working_directory_path, &settings.graphics)
 	input_init(unwrap(&input), draw.window)
 	shaders_init(unwrap(&draw), working_directory_path)
 	physics_init(unwrap(&physics), &draw.model_instances)

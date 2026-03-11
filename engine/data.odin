@@ -19,10 +19,6 @@ PRINT_LOGS:             bool   : #config(PRINT_LOGS,true)
 PRINT_BADS:             bool   : #config(PRINT_BADS,true)
 PRINT_WARNS:            bool   : #config(PRINT_WARNS,true)
 PRINT_DATES:            bool   : #config(PRINT_DATES,true)
-DATE:                   string : "\e[0;34m date | \e[0m"
-LOG:                    string : "\e[0;36m log  | \e[0m"
-BAD:                    string : "\e[0;31m bad  | \e[0m"
-WARN:                   string : "\e[0;33m warn | \e[0m"
 BLACK:                  [4]f32 : {0,0,0,1}
 WHITE:                  [4]f32 : {1,1,1,1}
 RED:                    [4]f32 : {1,0,0,1}
@@ -39,7 +35,6 @@ MODELS_PATH_RELATIVE:   string : "data/models"
 SAVES_PATH_RELATIVE:    string : "data/saves"
 DATA_PATH_RELATIVE:     string : "data"
 TEMP_PATH_RELATIVE:     string : "temp"
-GLSL_VERSION_STRING:    string : "#version 460 core"
 COLOR_CHANNEL:          int    : 0
 POSITION_CHANNEL:       int    : 1
 NORMAL_CHANNEL:         int    : 2
@@ -69,12 +64,6 @@ Compass :: enum {
 	WEST,
 	NORTH,
 	SOUTH }
-
-
-Mouse_Button :: enum { MOUSE_LEFT, MOUSE_RIGHT }
-
-
-Key :: enum { A, D, W, S, E, Q, J, LEFT, RIGHT, UP, DOWN, ENTER, ESCAPE, Z }
 
 
 Surfer_State :: enum {

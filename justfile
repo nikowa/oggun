@@ -3,8 +3,10 @@ set shell := ["powershell.exe", "-c"]
 
 default: run
 
-run:
+build:
 	odin build . -out:main.exe -subsystem:console -debug -max-error-count:8
+
+run:
 	odin run . -out:main.exe -subsystem:console -debug -max-error-count:8
 
 release:

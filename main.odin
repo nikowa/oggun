@@ -3,22 +3,19 @@ import base "engine/base"
 import fmt "core:fmt"
 import mem "core:mem"
 import db "engine/database"
+import gx "engine/graphics"
+import ipt "engine/input"
 
 
 RO_State :: struct {
 	_: u8 }
 
+database: db.Database
+graphics_context: gx.Graphics_Context
+input_context: ipt.Input_Context
 
 main :: proc() {
 	fmt.println("Welcome to Willow!")
-
-	path: string = `C:\Code\willow\assets\grass-tile.jpg`
-	relpath: string = `assets\grass-tile.jpg`
-	fmt.println(db.relpath_to_path(relpath))
-	fmt.println(db.path_to_relpath(path))
-	assert(db.relpath_to_path(relpath) == path)
-	assert(db.path_to_relpath(path) == relpath)
-
 
 	// Allocate some array of data for cage 1 then some for cage 2.
 	//  * How would threads use these?
@@ -40,5 +37,12 @@ main :: proc() {
 
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	fmt.println(thread_data.index)
+	database = db.make_or_read_database({ "Data.bin", "data" }, context.allocator)
+	gx.graphics_init(&graphics_context, &database, "Willow")
+	ipt.input_init(&input_context)
+	for ! graphics_context.window_closed {
+		ipt.input_tick(&input_context)
+		gx.graphics_tick(&graphics_context) }
+	db.write(&database, context.allocator)
 	return }
 

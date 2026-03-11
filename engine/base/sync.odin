@@ -16,8 +16,15 @@ import ts "../container/two_stack"
 
 
 
+// Components:
+// - Locks stack
+// - 2-array of active locks
+
+
+
 Entry_Point :: #type proc(data: ^Thread_Data)
 
+@(private="file")
 MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
 Thread_Data :: struct {
 	magic_number: u32,
@@ -44,13 +51,18 @@ get_thread_data :: #force_inline proc() -> (thread_data: ^Thread_Data) {
 // LOCK //
 Lock :: sn.Ticket_Mutex
 
-Arena_Lock :: struct {
-	lock: Lock,
-	size: u32 }
-
 lock_acquire :: sn.ticket_mutex_lock
 lock_release :: sn.ticket_mutex_unlock
 lock_guard :: sn.ticket_mutex_guard
+
+
+
+
+////////////////
+// ARENA LOCK //
+Arena_Lock :: struct {
+	lock: Lock,
+	size: u32 }
 
 arena_lock_acquire_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
 	lock_acquire(&arena_lock.lock) }
@@ -66,17 +78,45 @@ arena_lock_guard_unsafe :: proc "contextless" (arena_lock: ^Arena_Lock) -> bool 
 arena_locks_ordered :: #force_inline proc "contextless" (arena_lock_a, arena_lock_b: ^Arena_Lock) -> bool {
 	return cast(uintptr)arena_lock_a < cast(uintptr)arena_lock_b }
 
+arena_lock_acquire :: arena_lock_push
+
+arena_lock_release :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+	thread_data := get_thread_data()
+	i := ts.index(&thread_data.locks, arena_lock)
+	switch i {
+	case -1: return false
+	case 0:
+		_, ok = ts.pop_bottom(&thread_data.locks)
+		return ok
+	case 1:
+		_, ok = ts.pop_top(&thread_data.locks)
+		return ok }
+	return false }
+
 // Acquire the lock and push it onto the thread's locks stack. //
 arena_lock_push :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+	ok = false
 	thread_data := get_thread_data()
-	top_lock := ts.peek(&thread_data.locks)
-	ok = ts.push(&thread_data.locks, arena_lock)
-	if ! ok do return false
+	top_lock := ts.peek(&thread_data.locks) or_return
+	ts.push(&thread_data.locks, arena_lock) or_return
 	if top_lock == nil || arena_locks_ordered(top_lock, arena_lock) do arena_lock_acquire_unsafe(arena_lock)
 	else {
 		arena_lock_release_unsafe(top_lock)
 		arena_lock_acquire_unsafe(arena_lock)
 		arena_lock_acquire_unsafe(top_lock) }
+	return true }
+
+// Pop the top lock from the thread's locks stack and release it. //
+arena_lock_pop :: #force_inline proc() -> (ok: bool) {
+	ok = false
+	thread_data := get_thread_data()
+	top_lock := ts.pop(&thread_data.locks) or_return
+	arena_lock_release_unsafe(top_lock)
+	return true }
+
+@(deferred_none=arena_lock_pop)
+arena_lock_scope :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+	arena_lock_push(arena_lock)
 	return true }
 
 

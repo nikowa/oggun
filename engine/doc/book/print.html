@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-24ff66de.js";
+            window.path_to_searchindex_js = "searchindex-cf724d01.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-a4120199.js"></script>
+        <script src="toc-5408b35e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -197,19 +197,97 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 <h1 id="api"><a class="header" href="#api">API</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="base"><a class="header" href="#base">Base</a></h1>
-<p>This is the base layer.</p>
-<h3 id="lock"><a class="header" href="#lock"><code>Lock</code></a></h3>
-<pre><code class="language-c">Lock :: struct { ... }
+<p>This is the base layer, responsible mainly for initialization, synchronization, and configuration.</p>
+<h3 id="thread_data"><a class="header" href="#thread_data"><code>Thread_Data</code></a></h3>
+<pre><code class="language-c">Thread_Data :: struct {
+	magic_number: u32,
+	entry_point: Entry_Point,
+	index: u32,
+	locks: ts.Two_Stack(^Arena_Lock) }
 </code></pre>
-<p>An ordered mutex type. Acquisition succeeds only if the last mutex acquired by the same thread was of a lower rank.</p>
+<h4 id="make_thread_data"><a class="header" href="#make_thread_data"><code>make_thread_data</code></a></h4>
+<pre><code class="language-c">make_thread_data :: proc(entry_point: Entry_Point, index: u32) -&gt; (thread_data: ^Thread_Data)
+</code></pre>
+<h4 id="get_thread_data"><a class="header" href="#get_thread_data"><code>get_thread_data</code></a></h4>
+<pre><code class="language-c">get_thread_data :: proc() -&gt; (thread_data: ^Thread_Data)
+</code></pre>
+<h3 id="lock"><a class="header" href="#lock"><code>Lock</code></a></h3>
+<pre><code class="language-c">Lock :: ...
+</code></pre>
+<p>The default mutex type.</p>
 <h4 id="lock_acquire"><a class="header" href="#lock_acquire"><code>lock_acquire</code></a></h4>
-<pre><code class="language-c">lock_acquire :: #force_inline proc "contextless" (lock: ^Lock)
+<pre><code class="language-c">lock_acquire :: ...
 </code></pre>
 <h4 id="lock_release"><a class="header" href="#lock_release"><code>lock_release</code></a></h4>
-<pre><code class="language-c">lock_release :: #force_inline proc "contextless" (lock: ^Lock)
+<pre><code class="language-c">lock_release :: ...
 </code></pre>
 <h4 id="lock_guard"><a class="header" href="#lock_guard"><code>lock_guard</code></a></h4>
-<pre><code class="language-c">lock_guard :: proc "contextless" (lock: ^Lock) -&gt; bool
+<pre><code class="language-c">lock_guard :: ...
+</code></pre>
+<h3 id="arena_lock"><a class="header" href="#arena_lock"><code>Arena_Lock</code></a></h3>
+<pre><code class="language-c">Arena_Lock :: struct {
+	lock: Lock,
+	size: u32 }
+</code></pre>
+<!---An ordered mutex type. Acquisition succeeds only if the last mutex acquired by the same thread was of a lower rank.--->
+<h4 id="arena_lock_acquire_unsafe"><a class="header" href="#arena_lock_acquire_unsafe"><code>arena_lock_acquire_unsafe</code></a></h4>
+<pre><code class="language-c">arena_lock_acquire_unsafe :: proc(arena_lock: ^Arena_Lock)
+</code></pre>
+<h4 id="arena_lock_release_unsafe"><a class="header" href="#arena_lock_release_unsafe"><code>arena_lock_release_unsafe</code></a></h4>
+<pre><code class="language-c">arena_lock_release_unsafe :: proc(arena_lock: ^Arena_Lock)
+</code></pre>
+<h4 id="arena_lock_guard_unsafe"><a class="header" href="#arena_lock_guard_unsafe"><code>arena_lock_guard_unsafe</code></a></h4>
+<pre><code class="language-c">arena_lock_guard_unsafe :: proc(arena_lock: ^Arena_Lock) -&gt; bool
+</code></pre>
+<h4 id="arena_locks_ordered"><a class="header" href="#arena_locks_ordered"><code>arena_locks_ordered</code></a></h4>
+<pre><code class="language-c">arena_locks_ordered :: proc(arena_lock_a, arena_lock_b: ^Arena_Lock) -&gt; bool
+</code></pre>
+<h4 id="arena_lock_push"><a class="header" href="#arena_lock_push"><code>arena_lock_push</code></a></h4>
+<pre><code class="language-c">arena_lock_push :: proc(arena_lock: ^Arena_Lock) -&gt; (ok: bool)
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="container"><a class="header" href="#container">Container</a></h1>
+<p>Various containers used throughout Willow.</p>
+<h3 id="two_stack"><a class="header" href="#two_stack"><code>Two_Stack</code></a></h3>
+<pre><code class="language-c">Two_Stack :: struct($T: typeid) {
+	buffer: [2]T,
+	len: u8 }
+</code></pre>
+<h4 id="init"><a class="header" href="#init"><code>init</code></a></h4>
+<pre><code class="language-c">init :: proc(two_stack: ^Two_Stack($T))
+</code></pre>
+<h4 id="len"><a class="header" href="#len"><code>len</code></a></h4>
+<pre><code class="language-c">len :: proc(two_stack: ^Two_Stack($T)) -&gt; int
+</code></pre>
+<h4 id="push"><a class="header" href="#push"><code>push</code></a></h4>
+<pre><code class="language-c">push :: push_top
+</code></pre>
+<h4 id="push_top"><a class="header" href="#push_top"><code>push_top</code></a></h4>
+<pre><code class="language-c">push_top :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; bool
+</code></pre>
+<h4 id="push_bottom"><a class="header" href="#push_bottom"><code>push_bottom</code></a></h4>
+<pre><code class="language-c">push_bottom :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; bool
+</code></pre>
+<h4 id="pop"><a class="header" href="#pop"><code>pop</code></a></h4>
+<pre><code class="language-c">pop :: pop_top
+</code></pre>
+<h4 id="pop_top"><a class="header" href="#pop_top"><code>pop_top</code></a></h4>
+<pre><code class="language-c">pop_top :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
+</code></pre>
+<h4 id="pop_bottom"><a class="header" href="#pop_bottom"><code>pop_bottom</code></a></h4>
+<pre><code class="language-c">pop_bottom :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
+</code></pre>
+<h4 id="peek"><a class="header" href="#peek"><code>peek</code></a></h4>
+<pre><code class="language-c">peek :: peek_top
+</code></pre>
+<h4 id="peek_top"><a class="header" href="#peek_top"><code>peek_top</code></a></h4>
+<pre><code class="language-c">peek_top :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
+</code></pre>
+<h4 id="peek_bottom"><a class="header" href="#peek_bottom"><code>peek_bottom</code></a></h4>
+<pre><code class="language-c">peek_bottom :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
+</code></pre>
+<h4 id="contains"><a class="header" href="#contains"><code>contains</code></a></h4>
+<pre><code class="language-c">contains :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; (ok: bool)
 </code></pre>
 
                     </main>
