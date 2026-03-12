@@ -33,7 +33,7 @@ GLSL_VERSION_STRING:    string : "#version 460 core"
 
 Shader_Config :: struct #all_or_none {
 	name: string,
-	vert_url, frag_url: string }
+	vert_url, frag_url: db.URL }
 
 
 Shader :: struct {
@@ -226,28 +226,10 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	bytes: []u8
 	builder: GLSL_Builder
 	working_directory_path: string
-	// vert_source: string; frag_source: string;
-	// extended_vert_name: string
-	// extended_frag_name: string
-	// path: string
-	// file_handle: os.File
 	loc: rt.Source_Code_Location
-	// vert_string: string
-	// temp_filepath: string
-	// frag_string: string
-	// handle: u32
-	// success: bool
-
-	// Entry :: struct {
-	// 	url: string,
-	// 	modification_time: t.Time,
-	// 	compressed: b8,
-	// 	data: []u8 }
-	// vert_path = path_from_url(shader.vert_url, allocator)
-	// frag_path = path_from_url(shader.frag_url, allocator)
 
 	working_directory_path, _ = os.get_working_directory(allocator = allocator)
-	urls: [2]string = { shader.vert_url, shader.frag_url }
+	urls: [2]db.URL = { shader.vert_url, shader.frag_url }
 	sources: [2]string = { "", "" }
 	for url, i in urls {
 		entry, ok = db.entry_from_url(database, urls[i])

@@ -41,8 +41,8 @@ Graphics_Context :: struct {
 // 	models:                          [dynamic]Model,
 // 	model_instances:                 [dynamic]Model_Instance,
 	shaders: [dynamic]^Shader,
-// 	generic_textures:                [dynamic]Texture,
-// 	textures_map:                    map[string]^Texture,
+	// textures:                [dynamic]Texture,
+	// textures_map:                    map[string]^Texture,
 // 	materials:                       [dynamic]Material,
 // 	models_map:                      map[string]^Model,
 // 	fonts:                           [dynamic]Font,
@@ -116,7 +116,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	case .PERCENT_400: draw.resolution_scale = 4.0 }
 // 	draw.resolution = la.array_cast(draw.resolution_scale * la.array_cast(draw.window_size, f32), int)
 // 	draw.active_resolution = draw.window_size
-// 	draw.generic_textures = make_dynamic_array_len_cap([dynamic]Texture, len=0, cap=64)
+// 	draw.textures = make_dynamic_array_len_cap([dynamic]Texture, len=0, cap=64)
 // 	draw.textures_map = make(map[string]^Texture)
 // 	draw.materials = make_dynamic_array_len_cap([dynamic]Material, len=0, cap=32)
 // 	draw.models = make_dynamic_array_len_cap([dynamic]Model, len=0, cap=32)
@@ -211,8 +211,8 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	new_generic_texture(draw, "cover_0014")
 // 	new_generic_texture(draw, "cover_0015")
 // 	new_generic_texture(draw, "normal-corner-pack")
-// 	for _, i in draw.generic_textures {
-// 		texture = &draw.generic_textures[i]
+// 	for _, i in draw.textures {
+// 		texture = &draw.textures[i]
 // 		init_texture_from_data(draw, texture, filepath.join({ working_directory_path, IMAGES_PATH_RELATIVE }), texture.name)
 // 		load_texture(draw, texture) }
 // 	textures_init_all_from_qoi_data(draw)
@@ -247,6 +247,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	// graphics_context.water_effect_shader         = make_shader(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
 	// graphics_context.sdf_shader                  = make_shader(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 	// graphics_context.chromatic_aberration_shader = make_shader(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
+
 	return nil }
 
 

@@ -5,6 +5,8 @@ import mem "core:mem"
 import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
+// import mdl "engine/model"
+
 
 
 RO_State :: struct {
@@ -36,15 +38,18 @@ main :: proc() {
 
 
 entry_point :: proc(thread_data: ^base.Thread_Data) {
+	entry: ^db.Entry
+	ok: bool
+
 	fmt.println(thread_data.index)
 	database = db.make_or_read_database({ "Data.bin", "data" }, context.allocator)
 	gx.graphics_init(&graphics_context, &database, "Willow")
+	// gx.init_texture_from_url(&graphics_context, &database, "image-png:dev-grid")
 	ipt.input_init(&input_context)
 	for ! graphics_context.window_closed {
 		ipt.input_tick(&input_context)
 		gx.graphics_tick(&graphics_context)
-		gx.render_rect(&graphics_context, { 0, 0 }, { 400, 20 }, gx.RED, 0.0)
-		}
+		gx.render_rect(&graphics_context, { 0, 0 }, { 400, 20 }, gx.RED, 0.0) }
 	db.write(&database, context.allocator)
 	return }
 

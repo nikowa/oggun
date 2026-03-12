@@ -1,35 +1,34 @@
 #+feature using-stmt
 package model
-import "base:runtime"
-import "core:fmt"
-import "core:os"
-import "core:slice"
-import "core:math"
-import "core:math/linalg"
-import "core:io"
-import "core:mem"
-import "core:path/filepath"
-import "vendor:glfw"
+import rt "base:runtime"
+import fmt "core:fmt"
+import os "core:os"
+import sl "core:slice"
+import m "core:math"
+import la "core:math/linalg"
+import mem "core:mem"
+import fp "core:path/filepath"
 import gl "vendor:OpenGL"
-import "vendor:cgltf"
-import "shared:gltf2"
+import gltf "shared:gltf2"
+
 
 
 Model :: struct {
-	arena:                     mem.Arena,
-	name:                      string,
-	visible:                   bool,
-	positions_handle:          u32,
-	normals_handle:            u32,
-	texcoords_handle:          u32,
+	arena: mem.Arena,
+	name: string,
+	visible: bool,
+	positions_handle: u32,
+	normals_handle: u32,
+	texcoords_handle: u32,
 	lightmap_texcoords_handle: u32,
-	positions:                 [dynamic]f32,
-	normals:                   [dynamic]f32,
-	texcoords:                 [dynamic]f32,
-	lightmap_texcoords:        [dynamic]f32,
-	material:                  ^Material,
-	triangles_map:             Texture,
-	thickness_map:             Texture }
+	positions: [dynamic]f32,
+	normals: [dynamic]f32,
+	texcoords: [dynamic]f32,
+	lightmap_texcoords: [dynamic]f32,
+	material: ^Material,
+	triangles_map: Texture,
+	thickness_map: Texture }
+
 
 
 model_position :: proc(model: ^Model, point_index: int) -> (position: [3]f32) {
@@ -44,7 +43,7 @@ model_texcoord :: proc(model: ^Model, point_index: int) -> (texcoord: [2]f32) {
 	STRIDE :: 2; return { model.texcoords[point_index * STRIDE + 0], model.texcoords[point_index * STRIDE + 1] } }
 
 
-MODEL_MEMORY_CAP :: 16 * runtime.Megabyte
+MODEL_MEMORY_CAP :: 16 * rt.Megabyte
 
 
 new_model :: proc() -> Model {
@@ -56,16 +55,16 @@ new_model :: proc() -> Model {
 
 // Before QOI: 2.5 sec. //
 load_models_from_gltf :: proc(draw: ^Draw, working_directory_path: string, name: string) {
-	filename := filepath.join({ working_directory_path, MODELS_PATH_RELATIVE, fmt.aprintf("%s.glb", name) })
+	filename := fp.join({ working_directory_path, MODELS_PATH_RELATIVE, fmt.aprintf("%s.glb", name) })
 	os_error: os.Error
 	if ! os.exists(filename) { panic(fmt.tprintf("Couldn't find %s.", filename)) }
 	draw.last_models_write_time, os_error = os.last_write_time_by_name(filename)
 	assert(os_error == nil)
-	data, error := gltf2.load_from_file(filename)
+	data, error := gltf.load_from_file(filename)
 	instances_counter: map[string]int = make_map(map[string]int, context.allocator)
 	switch err in error {
-	case gltf2.JSON_Error: if err.type != .None do panic(fmt.aprint(err))
-	case gltf2.GLTF_Error: panic(fmt.aprint(err)) }
+	case gltf.JSON_Error: if err.type != .None do panic(fmt.aprint(err))
+	case gltf.GLTF_Error: panic(fmt.aprint(err)) }
 	for node in data.nodes {
 		node_name := node.name.?
 		mesh := data.meshes[node.mesh.?]
@@ -109,12 +108,12 @@ load_models_from_gltf :: proc(draw: ^Draw, working_directory_path: string, name:
 			texcoords_data: [][2]f32
 			lightmap_texcoords_data: [][2]f32
 			indices_data: []u16
-			positions_data, ok = gltf2.buffer_slice(data,position_accessor).([][3]f32); assert(ok)
+			positions_data, ok = gltf.buffer_slice(data,position_accessor).([][3]f32); assert(ok)
 			fmt.println(LOG, "Vertex data address:", cast(rawptr)&positions_data[0])
-			normals_data, ok = gltf2.buffer_slice(data,normal_accessor).([][3]f32); assert(ok)
-			texcoords_data, ok = gltf2.buffer_slice(data,texcoord_accessor).([][2]f32); assert(ok)
-			lightmap_texcoords_data, ok = gltf2.buffer_slice(data, lightmap_texcoord_accessor).([][2]f32); fmt.assertf(ok, "Mesh %s has no lightmap texcoords.", mesh_name)
-			indices_data, ok = gltf2.buffer_slice(data, indices_accessor).([]u16); fmt.assertf(ok, "Mesh %s has no indices.", mesh_name)
+			normals_data, ok = gltf.buffer_slice(data,normal_accessor).([][3]f32); assert(ok)
+			texcoords_data, ok = gltf.buffer_slice(data,texcoord_accessor).([][2]f32); assert(ok)
+			lightmap_texcoords_data, ok = gltf.buffer_slice(data, lightmap_texcoord_accessor).([][2]f32); fmt.assertf(ok, "Mesh %s has no lightmap texcoords.", mesh_name)
+			indices_data, ok = gltf.buffer_slice(data, indices_accessor).([]u16); fmt.assertf(ok, "Mesh %s has no indices.", mesh_name)
 			for i in indices_data {
 				append_elems(&model.positions, positions_data[i].x, positions_data[i].y, positions_data[i].z)
 				append_elems(&model.normals, normals_data[i].x, normals_data[i].y, normals_data[i].z)
@@ -172,9 +171,9 @@ load_models_from_gltf :: proc(draw: ^Draw, working_directory_path: string, name:
 		mesh_rotation: quaternion128 = cast(quaternion128)node.rotation
 		mesh_scale: [3]f32 = node.scale
 		mesh_translation: [3]f32 = node.translation
-		mesh_rotation_matrix: matrix[4,4]f32 = linalg.matrix4_from_quaternion_f32(mesh_rotation)
-		mesh_scale_matrix: matrix[4,4]f32 = linalg.matrix4_scale_f32(mesh_scale)
-		mesh_translation_matrix: matrix[4,4]f32 = linalg.matrix4_translate_f32(mesh_translation)
+		mesh_rotation_matrix: matrix[4,4]f32 = la.matrix4_from_quaternion_f32(mesh_rotation)
+		mesh_scale_matrix: matrix[4,4]f32 = la.matrix4_scale_f32(mesh_scale)
+		mesh_translation_matrix: matrix[4,4]f32 = la.matrix4_translate_f32(mesh_translation)
 		model_instance.transform_translate = mesh_translation_matrix
 		model_instance.transform_rotate = mesh_rotation_matrix
 		model_instance.transform_scale = mesh_scale_matrix
@@ -204,7 +203,7 @@ matrix4_perspective_f32 :: proc(fovy, aspect, near, far: f32) -> (m: matrix[4, 4
 	Y :: 1
 	Z :: 2
 	W :: 3
-	tan_half_fovy := math.tan(0.5 * fovy)
+	tan_half_fovy := m.tan(0.5 * fovy)
 	m[X, X] = 1 / (aspect * tan_half_fovy)
 	m[Y, Z] = 1 / (tan_half_fovy)
 	m[Z, Y] = + (far + near) / (far - near)
@@ -241,20 +240,20 @@ print_models :: proc(draw: ^Draw) {
 
 
 uv_triangle_area :: proc(triangle: UV_Triangle) -> (area: f32) {
-	a, b, c := linalg.distance(triangle.x, triangle.y), linalg.distance(triangle.y, triangle.z), linalg.distance(triangle.z, triangle.x)
+	a, b, c := la.distance(triangle.x, triangle.y), la.distance(triangle.y, triangle.z), la.distance(triangle.z, triangle.x)
 	s := (a + b + c) / 2
-	return math.sqrt_f32(s * (s - a) * (s - b) * (s - c)) }
+	return m.sqrt_f32(s * (s - a) * (s - b) * (s - c)) }
 
 
 // (DESC): Find the nearest UV-triangle to the given point in UV-space. //
 texcoords_nearest_uv_triangle :: proc(texcoords: []f32, point: [2]f32) -> (nearest_triangle: UV_Triangle, nearest_index: int) {
-	uv_triangles := slice.reinterpret([][3][2]f32, texcoords)
-	nearest_distance: f32 = math.F32_MAX
+	uv_triangles := sl.reinterpret([][3][2]f32, texcoords)
+	nearest_distance: f32 = m.F32_MAX
 	nearest_index = -1
 	for triangle, index in uv_triangles {
 		bary: Bary = bary_from_point2(point, triangle)
 		if bary_inside(bary) do return triangle, index
-		distance := linalg.max(linalg.abs(bary - { 0.5, 0.5, 0.5 }) - { 0.5, 0.5, 0.5 })
+		distance := la.max(la.abs(bary - { 0.5, 0.5, 0.5 }) - { 0.5, 0.5, 0.5 })
 		if distance < nearest_distance {
 			nearest_distance = distance
 			nearest_triangle = triangle
@@ -264,9 +263,9 @@ texcoords_nearest_uv_triangle :: proc(texcoords: []f32, point: [2]f32) -> (neare
 
 // (NOTE): Should be "thickness" instead of "thinness" because then we can add them up.
 two_point_thickness :: proc(points: [2][3]f32, normals: [2][3]f32, offset: f32) -> f32 {
-	return clamp(- linalg.dot(normals[0], normals[1]), 0, 1) }
+	return clamp(- la.dot(normals[0], normals[1]), 0, 1) }
 	// if points[0] == points[1] do return 0
-	// return linalg.distance(points[0] + normals[0] * offset, points[1] + normals[1] * offset) / (linalg.distance(points[0], points[1]) * offset) }
+	// return la.distance(points[0] + normals[0] * offset, points[1] + normals[1] * offset) / (la.distance(points[0], points[1]) * offset) }
 
 
 model_bake_scattered_light_map :: proc(draw: ^Draw, model: ^Model, override: bool = false) {
@@ -287,7 +286,7 @@ model_bake_triangles_map :: proc(draw: ^Draw, model: ^Model, size: [2]int) {
 		for triangle in uv_triangle_iterate_next(&triangle_iterator) {
 			if point2_inside_triangle(texture_space_to_normal_space(pixel_position, iterator.size), triangle) {
 				n := len(draw.random_colors)
-				pixel^ = linalg.array_cast(draw.random_colors[triangle_iterator.index % n] * 255, u8)
+				pixel^ = la.array_cast(draw.random_colors[triangle_iterator.index % n] * 255, u8)
 				break } } }
 	load_texture(draw, &model.triangles_map) }
 
@@ -295,7 +294,7 @@ model_bake_triangles_map :: proc(draw: ^Draw, model: ^Model, size: [2]int) {
 // (TODO): Thickness should be baked per model rather than per instance, but this must ensure the models are scaled beforehand. //
 model_bake_thickness_map_point_method :: proc(draw: ^Draw, model: ^Model, size: [2]int) {
 	init_texture_from_description(draw, &model.thickness_map, fmt.aprintf("%s-%s", model.name, "thickness"), size, 1, 8)
-	iterator := make_texel_iterator(model, linalg.MATRIX4F32_IDENTITY, { model.thickness_map.width, model.thickness_map.height })
+	iterator := make_texel_iterator(model, la.MATRIX4F32_IDENTITY, { model.thickness_map.width, model.thickness_map.height })
 	for texel in texel_iterate_next(&iterator) {
 		// Texel :: struct {
 		// 	position: [2]int,
@@ -340,19 +339,19 @@ render_model_uv :: proc(draw: ^Draw, model: ^Model, rect: Rect = { pos = { 0, 0 
 
 
 model_triangle_positions :: proc(model: ^Model, triangle_index: int) -> (triangle_positions: [3][3]f32) {
-	triangles := slice.reinterpret([][3][3]f32, model.positions[:])
+	triangles := sl.reinterpret([][3][3]f32, model.positions[:])
 	if triangle_index < len(triangles) do return triangles[triangle_index]
 	else do return {} }
 
 
 model_triangle_normals :: proc(model: ^Model, triangle_index: int) -> (triangle_normals: [3][3]f32) {
-	triangles := slice.reinterpret([][3][3]f32, model.normals[:])
+	triangles := sl.reinterpret([][3][3]f32, model.normals[:])
 	if triangle_index < len(triangles) do return triangles[triangle_index]
 	else do return {} }
 
 
 model_triangle_texcoords :: proc(model: ^Model, triangle_index: int) -> (triangle_texcoords: [3][2]f32) {
-	triangles := slice.reinterpret([][3][2]f32, model.texcoords[:])
+	triangles := sl.reinterpret([][3][2]f32, model.texcoords[:])
 	if triangle_index < len(triangles) do return triangles[triangle_index]
 	else do return {} }
 
@@ -364,7 +363,7 @@ Point_Radius_Filter_Data :: struct {
 
 point_radius_filter :: proc(point: [3]f32, data: rawptr) -> bool {
 	filter_data := cast(^Point_Radius_Filter_Data)data
-	return linalg.distance(filter_data.center, point) <= filter_data.radius }
+	return la.distance(filter_data.center, point) <= filter_data.radius }
 
 
 

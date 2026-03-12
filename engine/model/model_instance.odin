@@ -1,28 +1,20 @@
 #+feature using-stmt
 package model
-import "base:runtime"
-import "core:fmt"
-import os "core:os/os2"
-import "core:slice"
-import "core:math"
-import "core:math/linalg"
-import "core:io"
-import "core:mem"
-import "core:path/filepath"
-import "vendor:glfw"
+import fmt "core:fmt"
+import os "core:os"
 import gl "vendor:OpenGL"
-import "vendor:cgltf"
-import "shared:gltf2"
+
 
 
 Model_Instance :: struct {
-	name:                string,
-	model:               ^Model,
-	world_position_map:  Texture,
+	name: string,
+	model: ^Model,
+	world_position_map: Texture,
 	transform_translate: matrix[4, 4]f32,
-	transform_rotate:    matrix[4, 4]f32,
-	transform_scale:     matrix[4, 4]f32,
-	transform:           matrix[4, 4]f32 }
+	transform_rotate: matrix[4, 4]f32,
+	transform_scale: matrix[4, 4]f32,
+	transform: matrix[4, 4]f32 }
+
 
 
 model_instance_position :: proc(model_instance: ^Model_Instance, point_index: int) -> (position: [3]f32) {

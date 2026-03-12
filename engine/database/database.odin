@@ -14,6 +14,10 @@ import base "../base"
 
 
 
+URL :: distinct string
+
+
+
 MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
 Database_Binary_Header :: struct {
 	magic_number: u32,
@@ -30,37 +34,42 @@ Database_Config :: struct {
 Database :: struct {
 	using config: Database_Config,
 	entries: [dynamic]Entry,
-	entries_map: map[string]^Entry }
+	entries_map: map[URL]^Entry }
 
 Entry :: struct {
-	url: string,
+	url: URL,
 	modification_time: tm.Time,
 	compressed: b8,
 	data: []u8 }
 
+// TODO: Add a *compression kind* field, which selects between LZ4 and QOI.
+
 // Entry binary:
-// u8     | url_len
-// [^]u8  | url
+// u8      | url_len
+// [^]u8   | url
 // tm.Time | modification_time
-// b8     | compressed
-// u32    | data_len
-// [^]u8  | data
+// b8      | compressed
+// u32     | data_len
+// [^]u8   | data
 
 make_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
 	return Database{
 		config = config,
 		entries = make_dynamic_array_len_cap([dynamic]Entry, 0, 64, allocator),
-		entries_map = make_map(map[string]^Entry, allocator) } }
+		entries_map = make_map(map[URL]^Entry, allocator) } }
 
 delete_database :: proc(database: Database, allocator: rt.Allocator) {
 	rt.delete_dynamic_array(database.entries)
 	rt.delete_map(database.entries_map) }
 
-make_entry :: proc(url: string, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -> (entry: Entry) {
+make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -> (entry: Entry) {
 	return Entry{ url = url, data = data, modification_time = modification_time, compressed = compressed } }
 
-entry_from_url :: proc(database: ^Database, url: string) -> (entry: ^Entry, ok: bool) {
+entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: bool) {
 	return database.entries_map[url] }
+
+contains_entry :: proc(database: ^Database, url: URL) -> bool {
+	return url in database.entries_map }
 
 add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry) {
 	_, err := append_elem(&database.entries, entry); assert(err == nil)
@@ -85,7 +94,7 @@ update_entries_map :: proc(database: ^Database) {
 
 clone_entry :: proc(entry: ^Entry, allocator: rt.Allocator) -> (entry_clone: Entry) {
 	entry_clone = entry^
-	entry_clone.url = str.clone(entry.url, allocator)
+	entry_clone.url = cast(URL)str.clone(cast(string)entry.url, allocator)
 	entry_clone.data = sl.clone(entry.data, allocator)
 	return entry_clone }
 
@@ -140,7 +149,7 @@ read_without_decompressing :: proc(relpath: string, allocator: rt.Allocator) -> 
 		_, err = b.reader_read_ptr(&reader, &url_len, size_of(url_len)); assert(err == nil)
 		url: []u8 = make([]u8, url_len, allocator)
 		_, err = b.reader_read_slice(&reader, url); assert(err == nil)
-		entry.url = cast(string)url
+		entry.url = cast(URL)url
 		_, err = b.reader_read_ptr(&reader, &entry.modification_time, size_of(entry.modification_time)); assert(err == nil)
 		_, err = b.reader_read_ptr(&reader, &entry.compressed, size_of(entry.compressed)); assert(err == nil)
 		data_len: u32
@@ -170,7 +179,7 @@ write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) 
 	for &entry, i in database.entries {
 		url_len: u8 = cast(u8)len(entry.url)
 		_, err = b.buffer_write_ptr(&buffer, &url_len, size_of(url_len)); assert(err == nil)
-		_, err = b.buffer_write_string(&buffer, entry.url); assert(err == nil)
+		_, err = b.buffer_write_string(&buffer, cast(string)entry.url); assert(err == nil)
 		_, err = b.buffer_write_ptr(&buffer, &entry.modification_time, size_of(entry.modification_time)); assert(err == nil)
 		_, err = b.buffer_write_ptr(&buffer, &entry.compressed, size_of(entry.compressed)); assert(err == nil)
 		data_len: u32 = cast(u32)len(entry.data)
@@ -216,20 +225,19 @@ decompress :: proc(database: ^Database, allocator: rt.Allocator) {
 		entry.data = data
 		entry.compressed = false } }
 
-url_join :: proc(urls: []string, allocator: rt.Allocator) -> string {
-	return str.join(urls, sep = ":", allocator = allocator) }
+url_join :: proc(urls: []URL, allocator: rt.Allocator) -> URL {
+	return cast(URL)str.join(transmute([]string)urls, sep = ":", allocator = allocator) }
 
-url_split :: proc(url: string, allocator: rt.Allocator) -> (res: []string) {
-	res, _ = str.split(url, ":")
+url_split :: proc(url: URL, allocator: rt.Allocator) -> (res: []string) {
+	res, _ = str.split(cast(string)url, ":")
 	return res }
 
 URL_TYPE_EXTENSIONS :: [?][2]string {
 	{ "shader", "glsl" },
-	{ "image-png", "png" },
-	{ "image-jpeg", "jpg" },
+	{ "image", "png" },
 	{ "audio-mp3", "mp3" } }
 
-path_from_url :: proc(database: ^Database, url: string, allocator: rt.Allocator) -> (path: string) {
+relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string) {
 	source_directory: string
 
 	url_components: []string = url_split(url, allocator)
@@ -240,9 +248,12 @@ path_from_url :: proc(database: ^Database, url: string, allocator: rt.Allocator)
 		break }
 	if extension == "" do return ""
 	filename, _ := os.join_filename(url_components[1], extension, allocator)
-	source_directory = relpath_to_path(database.source_directory_relpath, allocator)
-	path, _ = os.join_path({ source_directory, filename }, allocator)
+	path, _ = os.join_path({ database.source_directory_relpath, filename }, allocator)
 	return path }
+
+path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string) {
+	relpath: string = relpath_from_url(database, url, allocator)
+	return relpath_to_path(relpath, allocator) }
 
 entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	if entry == nil do return true
@@ -251,12 +262,6 @@ entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	modification_time, err := os.modification_time_by_path(path)
 	if err != nil do return false
 	return tm.diff(entry.modification_time, modification_time) > 0 }
-
-// Entry :: struct {
-// 	url: string,
-// 	modification_time: tm.Time,
-// 	compressed: b8,
-// 	data: []u8 }
 
 entry_update :: proc(entry: ^Entry, data: []u8, modification_time: tm.Time) {
 	if entry.data != nil do delete(entry.data)
