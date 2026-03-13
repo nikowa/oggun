@@ -4,11 +4,15 @@ import sl "core:slice"
 import tst "core:testing"
 import im "core:image"
 import jpg "core:image/jpeg"
-import db "../database"
 import log "core:log"
 import sp "core:path/slashpath"
 import str "core:strings"
+import os "core:os"
+import ref "core:reflect"
+import b "core:bytes"
 import ts "../container/two_stack"
+import gx "../graphics"
+import db "../database"
 
 
 
@@ -115,3 +119,28 @@ two_stack_test :: proc(t_context: ^tst.T) {
 	tst.expect(t_context, ! ok && (elem == {}))
 	elem, ok = ts.pop(&stack)
 	tst.expect(t_context, ! ok && (elem == {})) }
+
+@(test)
+image_test :: proc(t_context: ^tst.T) {
+	allocator: rt.Allocator
+	image: gx.Image
+	deserialized_image: gx.Image
+	relpath: string
+	path: string
+	url: db.URL
+	err: os.Error
+	bytes: []u8
+
+	allocator = context.temp_allocator
+	relpath = "data/dev-colors.png"
+	url = "image:dev-colors"
+	path = db.relpath_to_path(relpath, allocator)
+	image, err = gx.load_from_path(path, url, allocator)
+	tst.expect(t_context, err == nil)
+	bytes, err = gx.serialize(&image, allocator)
+	tst.expect(t_context, err == nil)
+	deserialized_image, err = gx.deserialize(bytes, allocator)
+	tst.expect(t_context, err == nil)
+	tst.expect(t_context, gx.image_equal(&image, &deserialized_image))
+	tst.expect(t_context, b.equal(image.pixels.buf[:], deserialized_image.pixels.buf[:]))
+	free_all(allocator) }

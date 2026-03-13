@@ -11,6 +11,7 @@ import lz4 "vendor:compress/lz4"
 import log "core:log"
 import str "core:strings"
 import base "../base"
+import sp "core:path/slashpath"
 
 
 
@@ -267,3 +268,15 @@ entry_update :: proc(entry: ^Entry, data: []u8, modification_time: tm.Time) {
 	if entry.data != nil do delete(entry.data)
 	entry.data = data
 	entry.modification_time = modification_time }
+
+@(require_results)
+url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string, err: os.Error) {
+	url_name: string
+	source_directory_path: string
+	file_infos: []os.File_Info
+
+	url_name = url_split(url, context.temp_allocator)[1]
+	source_directory_path = relpath_to_path(database.source_directory_relpath, allocator)
+	file_infos = os.read_directory_by_path(source_directory_path, -1, context.temp_allocator) or_return
+	for file_info in file_infos do if sp.name(file_info.name, false, context.temp_allocator) == url_name do return str.clone(file_info.fullpath, allocator), os.General_Error.None
+	return "", os.General_Error.Not_Exist }
