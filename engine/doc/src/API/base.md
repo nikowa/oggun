@@ -2,7 +2,9 @@
 
 This is the base layer, responsible mainly for initialization, synchronization, and configuration.
 
-### `Thread_Data`
+### Types
+
+#### `Thread_Data`
 
 ```c
 Thread_Data :: struct {
@@ -11,6 +13,26 @@ Thread_Data :: struct {
 	index: u32,
 	locks: ts.Two_Stack(^Arena_Lock) }
 ```
+
+#### `Lock`
+
+```c
+Lock :: ...
+```
+
+The default mutex type.
+
+#### `Arena_Lock`
+
+```c
+Arena_Lock :: struct {
+	lock: Lock,
+	size: u32 }
+```
+
+<!---An ordered mutex type. Acquisition succeeds only if the last mutex acquired by the same thread was of a lower rank.--->
+
+### Procedures
 
 #### `make_thread_data`
 
@@ -23,14 +45,6 @@ make_thread_data :: proc(entry_point: Entry_Point, index: u32) -> (thread_data: 
 ```c
 get_thread_data :: proc() -> (thread_data: ^Thread_Data)
 ```
-
-### `Lock`
-
-```c
-Lock :: ...
-```
-
-The default mutex type.
 
 #### `lock_acquire`
 
@@ -49,16 +63,6 @@ lock_release :: ...
 ```c
 lock_guard :: ...
 ```
-
-### `Arena_Lock`
-
-```c
-Arena_Lock :: struct {
-	lock: Lock,
-	size: u32 }
-```
-
-<!---An ordered mutex type. Acquisition succeeds only if the last mutex acquired by the same thread was of a lower rank.--->
 
 #### `arena_lock_acquire_unsafe`
 

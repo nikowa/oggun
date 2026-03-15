@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>API - Willow</title>
+        <title>Database - Willow</title>
 
 
         <!-- Custom HTML head -->
@@ -12,33 +12,33 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon-de23e50b.svg">
-        <link rel="shortcut icon" href="favicon-8114d1fc.png">
-        <link rel="stylesheet" href="css/variables-8adf115d.css">
-        <link rel="stylesheet" href="css/general-2459343d.css">
-        <link rel="stylesheet" href="css/chrome-ae938929.css">
-        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
-        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
-        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
 
 
         <!-- Provide site root and default themes to javascript -->
         <script>
-            const path_to_root = "";
+            const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b934d0d0.js";
+            window.path_to_searchindex_js = "../searchindex-b934d0d0.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-df99db9d.js"></script>
+        <script src="../toc-df99db9d.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -105,7 +105,7 @@
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
-                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
             <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -140,7 +140,7 @@
                     <h1 class="menu-title">Willow</h1>
 
                     <div class="right-buttons">
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
                         </a>
 
@@ -174,17 +174,141 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="api"><a class="header" href="#api">API</a></h1>
+                        <h1 id="database"><a class="header" href="#database">Database</a></h1>
+<p>A database is a collection of bite slices, accessed by a string URL.</p>
+<h3 id="types"><a class="header" href="#types">Types</a></h3>
+<h4 id="url"><a class="header" href="#url"><code>URL</code></a></h4>
+<pre><code class="language-c">URL :: distinct string
+</code></pre>
+<h4 id="database_config"><a class="header" href="#database_config"><code>Database_Config</code></a></h4>
+<pre><code class="language-c">Database_Config :: struct {
+	relpath: string,
+	source_directory_relpath: string }
+</code></pre>
+<h4 id="database-1"><a class="header" href="#database-1"><code>Database</code></a></h4>
+<pre><code class="language-c">Database :: struct {
+	using config: Database_Config,
+	entries: [dynamic]Entry,
+	entries_map: map[URL]^Entry }
+</code></pre>
+<h4 id="entry"><a class="header" href="#entry"><code>Entry</code></a></h4>
+<pre><code class="language-c">Entry :: struct {
+	url: URL,
+	modification_time: tm.Time,
+	compressed: b8,
+	data: []u8 }
+</code></pre>
+<h4 id="make_database"><a class="header" href="#make_database"><code>make_database</code></a></h4>
+<p>Database constructor.</p>
+<pre><code class="language-c">make_database :: proc(config: Database_Config, allocator: rt.Allocator) -&gt; (database: Database)
+</code></pre>
+<h4 id="delete_database"><a class="header" href="#delete_database"><code>delete_database</code></a></h4>
+<p>Database destructor.</p>
+<pre><code class="language-c">delete_database :: proc(database: Database, allocator: rt.Allocator)
+</code></pre>
+<h4 id="make_entry"><a class="header" href="#make_entry"><code>make_entry</code></a></h4>
+<p>Entry constructor.</p>
+<pre><code class="language-c">make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -&gt; (entry: Entry)
+</code></pre>
+<h4 id="delete_entry"><a class="header" href="#delete_entry"><code>delete_entry</code></a></h4>
+<p>Entry destructor.</p>
+<pre><code class="language-c">delete_entry :: proc(entry: Entry, allocator: rt.Allocator)
+</code></pre>
+<h4 id="entry_equiv"><a class="header" href="#entry_equiv"><code>entry_equiv</code></a></h4>
+<p>Check if two entries are equivalent (equivalent URL, equivalent data, equivalent compressedness state).</p>
+<pre><code class="language-c">entry_equiv :: proc(entry_a: ^Entry, entry_b: ^Entry)
+</code></pre>
+<h4 id="entry_from_url"><a class="header" href="#entry_from_url"><code>entry_from_url</code></a></h4>
+<p>Retreive entry from database by URL.</p>
+<pre><code class="language-c">entry_from_url :: proc(database: ^Database, url: URL) -&gt; (entry: ^Entry, ok: bool)
+</code></pre>
+<h4 id="contains_entry"><a class="header" href="#contains_entry"><code>contains_entry</code></a></h4>
+<p>Check if database contains entry with given URL.</p>
+<pre><code class="language-c">contains_entry :: proc(database: ^Database, url: URL) -&gt; bool
+</code></pre>
+<h4 id="add_entry"><a class="header" href="#add_entry"><code>add_entry</code></a></h4>
+<p>Add entry to database.</p>
+<pre><code class="language-c">add_entry :: proc(database: ^Database, entry: Entry) -&gt; (entry_ptr: ^Entry, err: os.Error)
+</code></pre>
+<h4 id="remove_entry"><a class="header" href="#remove_entry"><code>remove_entry</code></a></h4>
+<p>Remove entry from database.</p>
+<pre><code class="language-c">remove_entry :: proc(database: ^Database, entry: ^Entry)
+</code></pre>
+<h4 id="clone_entry"><a class="header" href="#clone_entry"><code>clone_entry</code></a></h4>
+<p>Clone an entry.</p>
+<pre><code class="language-c">clone_entry :: proc(entry: ^Entry, allocator: rt.Allocator) -&gt; (entry_clone: Entry)
+</code></pre>
+<h4 id="clone"><a class="header" href="#clone"><code>clone</code></a></h4>
+<p>Clone a database.</p>
+<pre><code class="language-c">clone :: proc(database: ^Database, allocator: rt.Allocator) -&gt; (database_clone: Database)
+</code></pre>
+<h4 id="equiv"><a class="header" href="#equiv"><code>equiv</code></a></h4>
+<p>Check if two databases are equivalent (have equivalent entries).</p>
+<pre><code class="language-c">equiv :: proc(database_a, database_b: ^Database) -&gt; bool
+</code></pre>
+<h4 id="relpath_to_path"><a class="header" href="#relpath_to_path"><code>relpath_to_path</code></a></h4>
+<p>Convert a relative path string (relative to the directory of the executable) to an absolute path string.</p>
+<pre><code class="language-c">relpath_to_path :: proc(relpath: string, allocator: rt.Allocator) -&gt; (path: string)
+</code></pre>
+<h4 id="relpath_to_source_path"><a class="header" href="#relpath_to_source_path"><code>relpath_to_source_path</code></a></h4>
+<p>Convert a relative path string (relative to the source directory of the database) to an absolute path string.</p>
+<pre><code class="language-c">relpath_to_source_path :: proc(database: ^Database, relpath: string, allocator: rt.Allocator) -&gt; (path: string)
+</code></pre>
+<h4 id="path_to_relpath"><a class="header" href="#path_to_relpath"><code>path_to_relpath</code></a></h4>
+<p>Convert an absolute path string to a relative path string (relative to the directory of the executable).</p>
+<pre><code class="language-c">path_to_relpath :: proc(path: string, allocator: rt.Allocator) -&gt; (relpath: string)
+</code></pre>
+<h4 id="make_or_read_database"><a class="header" href="#make_or_read_database"><code>make_or_read_database</code></a></h4>
+<p>Check if a database exists at the given relative path. If it exists, read it; If it does not exist, construct a new one.</p>
+<pre><code class="language-c">make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) -&gt; (database: Database)
+</code></pre>
+<h4 id="read"><a class="header" href="#read"><code>read</code></a></h4>
+<p>Read the database at the given relative path.</p>
+<pre><code class="language-c">read :: proc(relpath: string, allocator: rt.Allocator) -&gt; (database: Database)
+</code></pre>
+<h4 id="write"><a class="header" href="#write"><code>write</code></a></h4>
+<pre><code class="language-c">compress_and_write :: proc(database: ^Database, allocator: rt.Allocator)
+</code></pre>
+<h4 id="remove_database"><a class="header" href="#remove_database"><code>remove_database</code></a></h4>
+<p>Remove the database file from disk.</p>
+<pre><code class="language-c">remove_database :: proc(database: ^Database) -&gt; (err: os.Error)
+</code></pre>
+<h4 id="url_join"><a class="header" href="#url_join"><code>url_join</code></a></h4>
+<pre><code class="language-c">url_join :: proc(urls: []URL, allocator: rt.Allocator) -&gt; URL
+</code></pre>
+<h4 id="url_split"><a class="header" href="#url_split"><code>url_split</code></a></h4>
+<pre><code class="language-c">url_split :: proc(url: URL, allocator: rt.Allocator) -&gt; (res: []string)
+</code></pre>
+<h4 id="relpath_from_url"><a class="header" href="#relpath_from_url"><code>relpath_from_url</code></a></h4>
+<p>Get the relative path (relative to the source directory of the database) of the source of the entry with the given URL.</p>
+<pre><code class="language-c">relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -&gt; (path: string)
+</code></pre>
+<h4 id="path_from_url"><a class="header" href="#path_from_url"><code>path_from_url</code></a></h4>
+<p>Get the absolute path of the source of the entry with the given URL.</p>
+<pre><code class="language-c">path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -&gt; (path: string)
+</code></pre>
+<h4 id="entry_outdated"><a class="header" href="#entry_outdated"><code>entry_outdated</code></a></h4>
+<p>Check if the source of the given entry has been updated since the entry was imported to the database.</p>
+<pre><code class="language-c">entry_outdated :: proc(database: ^Database, entry: ^Entry) -&gt; (outdated: bool)
+</code></pre>
+<h4 id="entry_update"><a class="header" href="#entry_update"><code>entry_update</code></a></h4>
+<p>Update the contents of an entry.</p>
+<pre><code class="language-c">entry_update :: proc(entry: ^Entry, data: []u8, modification_time: tm.Time)
+</code></pre>
+<h4 id="url_search_source"><a class="header" href="#url_search_source"><code>url_search_source</code></a></h4>
+<p>Get the path of the first file in the database’s source directory that has the a name matching the given URL.</p>
+<pre><code class="language-c">url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -&gt; (path: string, err: os.Error)
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="overview.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../API/base.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="API/base.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../API/container.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -194,11 +318,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="overview.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../API/base.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="API/base.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../API/container.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
@@ -234,13 +358,13 @@
         </script>
 
 
-        <script src="elasticlunr-ef4e11c1.min.js"></script>
-        <script src="mark-09e88c2c.min.js"></script>
-        <script src="searcher-c2a407aa.js"></script>
+        <script src="../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../mark-09e88c2c.min.js"></script>
+        <script src="../searcher-c2a407aa.js"></script>
 
-        <script src="clipboard-1626706a.min.js"></script>
-        <script src="highlight-abc7f01d.js"></script>
-        <script src="book-a0b12cfe.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

@@ -27,22 +27,22 @@ Entry_Point :: #type proc(data: ^Thread_Data)
 @(private="file")
 MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
 Thread_Data :: struct {
-	magic_number: u32,
-	entry_point: Entry_Point,
 	index: u32,
-	locks: ts.Two_Stack(^Arena_Lock) }
+	_magic_number: u32,
+	_entry_point: Entry_Point,
+	_locks: ts.Two_Stack(^Arena_Lock) }
 
 make_thread_data :: proc(entry_point: Entry_Point, index: u32) -> (thread_data: ^Thread_Data) {
 	thread_data = new(Thread_Data)
-	thread_data.magic_number = MAGIC_NUMBER
-	thread_data.entry_point = entry_point
+	thread_data._magic_number = MAGIC_NUMBER
+	thread_data._entry_point = entry_point
 	thread_data.index = index
-	ts.init(&thread_data.locks)
+	ts.init(&thread_data._locks)
 	return thread_data }
 
 get_thread_data :: #force_inline proc() -> (thread_data: ^Thread_Data) {
 	thread_data = cast(^Thread_Data)context.user_ptr
-	assert(thread_data.magic_number == MAGIC_NUMBER)
+	assert(thread_data._magic_number == MAGIC_NUMBER)
 	return thread_data }
 
 
@@ -82,14 +82,14 @@ arena_lock_acquire :: arena_lock_push
 
 arena_lock_release :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
 	thread_data := get_thread_data()
-	i := ts.index(&thread_data.locks, arena_lock)
+	i := ts.index(&thread_data._locks, arena_lock)
 	switch i {
 	case -1: return false
 	case 0:
-		_, ok = ts.pop_bottom(&thread_data.locks)
+		_, ok = ts.pop_bottom(&thread_data._locks)
 		return ok
 	case 1:
-		_, ok = ts.pop_top(&thread_data.locks)
+		_, ok = ts.pop_top(&thread_data._locks)
 		return ok }
 	return false }
 
@@ -97,8 +97,8 @@ arena_lock_release :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) 
 arena_lock_push :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
 	ok = false
 	thread_data := get_thread_data()
-	top_lock := ts.peek(&thread_data.locks) or_return
-	ts.push(&thread_data.locks, arena_lock) or_return
+	top_lock := ts.peek(&thread_data._locks) or_return
+	ts.push(&thread_data._locks, arena_lock) or_return
 	if top_lock == nil || arena_locks_ordered(top_lock, arena_lock) do arena_lock_acquire_unsafe(arena_lock)
 	else {
 		arena_lock_release_unsafe(top_lock)
@@ -110,7 +110,7 @@ arena_lock_push :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
 arena_lock_pop :: #force_inline proc() -> (ok: bool) {
 	ok = false
 	thread_data := get_thread_data()
-	top_lock := ts.pop(&thread_data.locks) or_return
+	top_lock := ts.pop(&thread_data._locks) or_return
 	arena_lock_release_unsafe(top_lock)
 	return true }
 

@@ -22,35 +22,39 @@ database_compression_test :: proc(t_context: ^tst.T) {
 	img, err = jpg.load_from_file("assets/test.jpg", allocator = context.temp_allocator)
 	if ! tst.expect(t_context, err == nil) do return
 	bytes: []u8 = img.pixels.buf[:]
-	compressed_bytes: []u8 = db.compress_bytes(bytes, context.temp_allocator)
-	decompressed_bytes: []u8 = db.decompress_bytes(compressed_bytes, context.temp_allocator)
+	compressed_bytes: []u8 = db._compress_bytes(bytes, context.temp_allocator)
+	decompressed_bytes: []u8 = db._decompress_bytes(compressed_bytes, context.temp_allocator)
 	tst.expect(t_context, sl.equal(bytes, decompressed_bytes))
 	free_all(context.temp_allocator) }
 
 @(test)
 database_test :: proc(t_context: ^tst.T) {
+	err: os.Error
+	img: ^im.Image
+	img_err: im.Error
+	entries: [2]^db.Entry
+
 	// context.allocator = rt.panic_allocator()
 	test_images := [2]string{ "assets/cardboard-tile-4.jpg", "assets/test.jpg" }
-	entries: [2]^db.Entry
 	database_0 := db.make_database({ "Test-Data.bin", "data" }, context.temp_allocator)
+	db.remove_database(&database_0)
 	defer db.delete_database(database_0, context.temp_allocator)
 	for test_image, i in test_images {
-		img: ^im.Image; err: im.Error
 		path := db.relpath_to_path(test_image, context.temp_allocator)
 		log.infof("Loading %s.", path)
-		img, err = jpg.load_from_file(path, allocator = context.temp_allocator)
-		log.info(err)
-		assert(err == nil)
+		img, img_err = jpg.load_from_file(path, allocator = context.temp_allocator)
+		tst.expect(t_context, img_err == nil)
 		bytes: []u8 = img.pixels.buf[:]
 		url: db.URL = db.url_join({ "image", cast(db.URL)sp.name(test_image, true, context.temp_allocator) }, context.temp_allocator)
 		entry := db.make_entry(url, bytes)
-		entries[i] = db.add_entry(&database_0, entry) }
+		entries[i], err = db.add_entry(&database_0, entry)
+		tst.expect(t_context, err == nil) }
 	entry_0, _ := db.entry_from_url(&database_0, "image:cardboard-tile-4")
 	entry_1, _ := db.entry_from_url(&database_0, "image:test")
 	tst.expect(t_context, entries[0] == entry_0)
 	tst.expect(t_context, entries[1] == entry_1)
-	db.write_without_compressing(&database_0, context.temp_allocator)
-	database_1 := db.read_without_decompressing(database_0.relpath, context.temp_allocator)
+	db._write_without_compressing(&database_0, context.temp_allocator)
+	database_1 := db._read_without_decompressing(database_0.relpath, context.temp_allocator)
 	defer db.delete_database(database_1, context.temp_allocator)
 	// ident ~ (write -> read)
 	tst.expect(t_context, db.equiv(&database_0, &database_1))
@@ -62,12 +66,12 @@ database_test :: proc(t_context: ^tst.T) {
 	db.decompress(&database_0_decompressed, context.temp_allocator)
 	// ident ~ (compress -> decompress)
 	tst.expect(t_context, db.equiv(&database_0, &database_0_decompressed))
-	db.write_without_compressing(&database_0_compressed, context.temp_allocator)
+	db._write_without_compressing(&database_0_compressed, context.temp_allocator)
 	database_1_decompressed := db.read_and_decompress(database_0.relpath, context.temp_allocator)
 	defer db.delete_database(database_1_decompressed, context.temp_allocator)
 	// ident ~ (compress -> write -> read -> decompress)
 	tst.expect(t_context, db.equiv(&database_0, &database_1_decompressed))
-	database_1_compressed := db.read_without_decompressing(database_0.relpath, context.temp_allocator)
+	database_1_compressed := db._read_without_decompressing(database_0.relpath, context.temp_allocator)
 	defer db.delete_database(database_1_compressed, context.temp_allocator)
 	// compress ~ (compress -> write -> read)
 	tst.expect(t_context, db.equiv(&database_0_compressed, &database_1_compressed))
@@ -132,6 +136,8 @@ image_test :: proc(t_context: ^tst.T) {
 	bytes: []u8
 
 	allocator = context.temp_allocator
+
+	// serialize/deserialize test //
 	relpath = "data/dev-colors.png"
 	url = "image:dev-colors"
 	path = db.relpath_to_path(relpath, allocator)
@@ -141,6 +147,16 @@ image_test :: proc(t_context: ^tst.T) {
 	tst.expect(t_context, err == nil)
 	deserialized_image, err = gx.deserialize(bytes, allocator)
 	tst.expect(t_context, err == nil)
-	tst.expect(t_context, gx.image_equal(&image, &deserialized_image))
+	tst.expect(t_context, gx.image_equiv(&image, &deserialized_image))
 	tst.expect(t_context, b.equal(image.pixels.buf[:], deserialized_image.pixels.buf[:]))
+
+	// database test //
+	url = "image:dev-oriented-grid"
+	database := db.make_database({ "Test-Data.bin", "data" }, context.temp_allocator)
+	db.remove_database(&database)
+	tst.expect(t_context, ! db.contains_entry(&database, url))
+	image, err = gx.import_or_retreive_image(&database, url, context.temp_allocator)
+	tst.expect(t_context, db.contains_entry(&database, url))
+	tst.expect(t_context, err == nil)
+
 	free_all(allocator) }

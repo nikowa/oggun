@@ -10,6 +10,7 @@ import b "core:bytes"
 import slc "core:slice"
 import fmt "core:fmt"
 import log "core:log"
+import t "core:time"
 
 
 
@@ -17,7 +18,7 @@ Image :: struct {
 	url: db.URL,
 	using image: im.Image }
 
-image_equal :: proc(a: ^Image, b: ^Image) -> bool {
+image_equiv :: proc(a: ^Image, b: ^Image) -> bool {
 	return (a.url == b.url) &&
 		(a.width == b.width) &&
 		(a.channels == b.channels) &&
@@ -26,17 +27,21 @@ image_equal :: proc(a: ^Image, b: ^Image) -> bool {
 		(a.metadata == b.metadata) &&
 		(a.which == b.which) }
 
-// Get an image from the database by URL. If no such image exists, load it from file and add to the database. //
 import_or_retreive_image :: proc(database: ^db.Database, url: db.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
 	entry: ^db.Entry
 	ok: bool
 	path: string
+	modification_time: t.Time
+	bytes: []u8
 
 	entry, ok = db.entry_from_url(database, url)
 	if ok do image = deserialize(entry.data, allocator) or_return
 	else {
 		path = db.url_search_source(database, url, allocator) or_return
-		image = load_from_path(path, url, allocator) or_return }
+		image = load_from_path(path, url, allocator) or_return
+		modification_time = os.modification_time_by_path(path) or_return
+		bytes = serialize(&image, allocator) or_return
+		db.add_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
 	return image, os.General_Error.None }
 
 @(require_results)

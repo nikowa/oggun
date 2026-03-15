@@ -66,17 +66,25 @@ delete_database :: proc(database: Database, allocator: rt.Allocator) {
 make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -> (entry: Entry) {
 	return Entry{ url = url, data = data, modification_time = modification_time, compressed = compressed } }
 
+delete_entry :: proc(entry: Entry, allocator: rt.Allocator) {
+	delete_slice(entry.data, allocator) }
+
+entry_equiv :: proc(entry_a: ^Entry, entry_b: ^Entry) -> bool {
+	return (entry_a.url == entry_b.url) &&
+		(entry_a.compressed == entry_b.compressed) &&
+		sl.equal(entry_a.data, entry_b.data) }
+
 entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: bool) {
 	return database.entries_map[url] }
 
 contains_entry :: proc(database: ^Database, url: URL) -> bool {
 	return url in database.entries_map }
 
-add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry) {
-	_, err := append_elem(&database.entries, entry); assert(err == nil)
+add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry, err: os.Error) {
+	append_elem(&database.entries, entry) or_return
 	index := len(database.entries) - 1
 	entry := &database.entries[index]
-	return map_insert(&database.entries_map, entry.url, entry)^ }
+	return map_insert(&database.entries_map, entry.url, entry)^, os.General_Error.None }
 
 remove_entry :: proc(database: ^Database, entry: ^Entry) {
 	index: int = -1
@@ -89,6 +97,7 @@ remove_entry :: proc(database: ^Database, entry: ^Entry) {
 	unordered_remove(&database.entries, index)
 	update_entries_map(database) }
 
+@(private="file")
 update_entries_map :: proc(database: ^Database) {
 	for &entry, i in database.entries {
 		database.entries_map[entry.url] = &database.entries[i] } }
@@ -132,7 +141,7 @@ make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) 
 	if os.exists(relpath_to_path(config.relpath, allocator)) do return read(config.relpath, allocator)
 	else do return make_database(config, allocator) }
 
-read_without_decompressing :: proc(relpath: string, allocator: rt.Allocator) -> (database: Database) {
+_read_without_decompressing :: proc(relpath: string, allocator: rt.Allocator) -> (database: Database) {
 	data: []u8
 	err: os.Error
 	database.relpath = relpath
@@ -162,16 +171,16 @@ read_without_decompressing :: proc(relpath: string, allocator: rt.Allocator) -> 
 
 read :: read_and_decompress
 read_and_decompress :: proc(relpath: string, allocator: rt.Allocator) -> (database: Database) {
-	database = read_without_decompressing(relpath, allocator = allocator)
+	database = _read_without_decompressing(relpath, allocator = allocator)
 	decompress(&database, allocator = allocator)
 	return database }
 
 write :: compress_and_write
 compress_and_write :: proc(database: ^Database, allocator: rt.Allocator) {
 	compress(database, allocator = allocator)
-	write_without_compressing(database, allocator = allocator) }
+	_write_without_compressing(database, allocator = allocator) }
 
-write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) {
+_write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) {
 	err: io.Error
 	buffer: b.Buffer
 	b.buffer_init_allocator(&buffer, 0, 32 * mem.Megabyte, allocator = allocator)
@@ -186,9 +195,12 @@ write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) 
 		data_len: u32 = cast(u32)len(entry.data)
 		_, err = b.buffer_write_ptr(&buffer, &data_len, size_of(data_len)); assert(err == nil)
 		_, err = b.buffer_write_slice(&buffer, entry.data); assert(err == nil) }
-	assert(os.write_entire_file_from_bytes(relpath_to_path(database.relpath, allocator), buffer.buf[:]) == nil) }
+	assert(os.write_entire_file_from_bytes(relpath_to_path(database.relpath, context.temp_allocator), buffer.buf[:]) == nil) }
 
-compress_bytes :: proc(bytes: []u8, allocator: rt.Allocator) -> (compressed_bytes: []u8) {
+remove_database :: proc(database: ^Database) -> (err: os.Error) {
+	return os.remove(relpath_to_path(database.relpath, context.temp_allocator)) }
+
+_compress_bytes :: proc(bytes: []u8, allocator: rt.Allocator) -> (compressed_bytes: []u8) {
 	compress_bound: i32 = lz4.compressBound(cast(i32)len(bytes))
 	compressed_bytes_buffer: []u8 = make([]u8, cast(int)compress_bound, allocator)
 	compressed_size: i32 = lz4.compress_default(&bytes[0], &compressed_bytes_buffer[0], cast(i32)len(bytes), compress_bound)
@@ -197,7 +209,7 @@ compress_bytes :: proc(bytes: []u8, allocator: rt.Allocator) -> (compressed_byte
 	delete(compressed_bytes_buffer, allocator)
 	return compressed_bytes }
 
-decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (bytes: []u8) {
+_decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (bytes: []u8) {
 	estimated_compression_ratio: f32 = 0.5
 	for {
 		decompress_bound: i32 = cast(i32)(cast(f32)len(compressed_bytes) / estimated_compression_ratio)
@@ -214,14 +226,14 @@ decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (by
 
 compress :: proc(database: ^Database, allocator: rt.Allocator) {
 	for &entry in database.entries do if ! entry.compressed {
-		compress_data: []u8 = compress_bytes(entry.data, allocator = allocator)
+		compress_data: []u8 = _compress_bytes(entry.data, allocator = allocator)
 		delete(entry.data, allocator = allocator)
 		entry.data = compress_data
 		entry.compressed = true } }
 
 decompress :: proc(database: ^Database, allocator: rt.Allocator) {
 	for &entry in database.entries do if entry.compressed {
-		data: []u8 = decompress_bytes(entry.data, allocator = allocator)
+		data: []u8 = _decompress_bytes(entry.data, allocator = allocator)
 		delete(entry.data, allocator = allocator)
 		entry.data = data
 		entry.compressed = false } }

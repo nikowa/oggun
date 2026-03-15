@@ -2,7 +2,9 @@
 
 Various containers used throughout Willow.
 
-### `Two_Stack`
+### Types
+
+#### `Two_Stack`
 
 
 ```c
@@ -10,6 +12,8 @@ Two_Stack :: struct($T: typeid) {
 	buffer: [2]T,
 	len: u8 }
 ```
+
+### Procedures
 
 #### `init`
 

@@ -14,7 +14,7 @@ import ts "../container/two_stack"
 
 worker_proc :: proc(data: rawptr) {
 	thread_data: ^Thread_Data = cast(^Thread_Data)data
-	thread_data.entry_point(thread_data) }
+	thread_data._entry_point(thread_data) }
 
 
 start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {

@@ -235,7 +235,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 		entry, ok = db.entry_from_url(database, urls[i])
 		if db.entry_outdated(database, entry) {
 			fmt.println(base.LOG, "Updating entry.")
-			if ! ok do entry = db.add_entry(database, db.make_entry(urls[i], {}))
+			if ! ok do entry = db.add_entry(database, db.make_entry(urls[i], {})) or_return
 			path = db.path_from_url(database, urls[i], allocator)
 			bytes, err = os.read_entire_file_from_path(path, context.allocator)
 			sources[i] = cast(string)bytes
