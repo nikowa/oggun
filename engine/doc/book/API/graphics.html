@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-b934d0d0.js";
+            window.path_to_searchindex_js = "../searchindex-32722ce7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-df99db9d.js"></script>
@@ -181,11 +181,6 @@
 	url: db.URL,
 	using image: im.Image }
 </code></pre>
-<h4 id="thread_data"><a class="header" href="#thread_data"><code>Thread_Data</code></a></h4>
-<pre><code class="language-c">Thread_Data :: struct {
-	index: u32,
-	... }
-</code></pre>
 <h4 id="image_equiv"><a class="header" href="#image_equiv"><code>image_equiv</code></a></h4>
 <pre><code class="language-c">image_equiv :: proc(
 	a: ^Image,
@@ -215,6 +210,22 @@
 	path: string,
 	url: db.URL,
 	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
+</code></pre>
+<h4 id="upload_image"><a class="header" href="#upload_image"><code>upload_image</code></a></h4>
+<p>Upload image to GPU memory.</p>
+<pre><code class="language-c">upload_image :: proc(
+	graphics_context: ^Graphics_Context,
+	image: ^Image) -&gt; bool
+</code></pre>
+<h4 id="download_image"><a class="header" href="#download_image"><code>download_image</code></a></h4>
+<p>Release the GPU memory associated with the image.</p>
+<pre><code class="language-c">download_image :: proc(
+	image: ^Image)
+</code></pre>
+<h4 id="image_loaded"><a class="header" href="#image_loaded"><code>image_loaded</code></a></h4>
+<p>Check if the image has been uploaded to the GPU.</p>
+<pre><code class="language-c">image_loaded :: proc(
+	image: ^Image) -&gt; bool
 </code></pre>
 
                     </main>

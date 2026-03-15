@@ -29,4 +29,24 @@ The basic premise of the multi-threading architecture is that the memory is spli
 
 Every thread is able to own at most 2 locks at a time. This is the bare minimum number of locks necessary for any algorithm. The containers for these two locks are called the *lock registers*. In addition, every thread has a *lock stack*. This allows for lock pairs to be managed in larger, nested scopes, as opposed to small disjoint scopes. If a procedure that has acquired lock A and B wants to call a procedure that depends on locks B and C, normally it would call a sync function to acquire lock C at the start and then call a sync function to release it at the end, but in my system, it can call a sync function at the start to acquire lock C and hint that lock A is no longer needed, and then call a sync function to release it at the end. And what happens in the background is, A is released and push into the lock stack, then B and C are acquired in order, and at the end C is released and A is popped from the stack and A and B are acquired in order. The stack is necessary so that the callee can remember what locks were owned by the caller and restore them.
 
+## Multi-Threading
+
+For Willow's thread synchronization to work without errors, your package needs to follow a set of rules. To check if it does, you can run the willow checker on your package, like this:
+
+```
+willow check <package_dir>
+```
+
+Informally, the rules are:
+
+- Every *sync-safe* function must declare which locks it's going to own immediately at its beginning, by calling one of Willow's lock methods. A *sync-safe* function is a function with the `@(tag="sync_safe")` tag.
+- Willow's lock methods should not be used anywhere else except at the immediate beginning of a *sync-safe* function.
+- A *sync-safe* function must return immediately if the lock method in it returned false.
+- A *sync-safe* function must not access any global variables.
+- A *sync-safe* function must not have any arguments of pointer type or arguments of types that contain pointers.
+
+```c
+
+```
+
 ## Start

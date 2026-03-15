@@ -13,11 +13,6 @@ import "core:slice"
 import "core:strings"
 import "core:sys/windows"
 
-DATE: string : "\e[0;34m date | \e[0m"
-LOG: string : "\e[0;36m log  | \e[0m"
-BAD: string : "\e[0;31m bad  | \e[0m"
-WARN: string : "\e[0;33m warn | \e[0m"
-
 /*
 print_log :: proc(args: ..any, sep := " ", flush := true) -> int{
 	when PRINT_LOGS { fmt.print(LOG); return fmt.println(..args, sep = sep, flush = flush) } else { return 0 } }

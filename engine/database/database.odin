@@ -81,6 +81,9 @@ contains_entry :: proc(database: ^Database, url: URL) -> bool {
 	return url in database.entries_map }
 
 add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry, err: os.Error) {
+	if len(entry.data) == 0 {
+		log.errorf("Attempt to add entry %s with no data.", entry.url)
+		return nil, os.General_Error.Not_Exist }
 	append_elem(&database.entries, entry) or_return
 	index := len(database.entries) - 1
 	entry := &database.entries[index]
@@ -138,14 +141,14 @@ path_to_relpath :: proc(path: string, allocator: rt.Allocator) -> (relpath: stri
 	return relpath }
 
 make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
-	if os.exists(relpath_to_path(config.relpath, allocator)) do return read(config.relpath, allocator)
+	if os.exists(relpath_to_path(config.relpath, allocator)) do return read(config, allocator)
 	else do return make_database(config, allocator) }
 
-_read_without_decompressing :: proc(relpath: string, allocator: rt.Allocator) -> (database: Database) {
+_read_without_decompressing :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
 	data: []u8
 	err: os.Error
-	database.relpath = relpath
-	data, err = os.read_entire_file_from_path(relpath_to_path(relpath, allocator), allocator = allocator)
+	database.config = config
+	data, err = os.read_entire_file_from_path(relpath_to_path(config.relpath, allocator), allocator = allocator)
 	assert(err == nil)
 	reader: b.Reader
 	b.reader_init(&reader, data)
@@ -170,8 +173,8 @@ _read_without_decompressing :: proc(relpath: string, allocator: rt.Allocator) ->
 	return database }
 
 read :: read_and_decompress
-read_and_decompress :: proc(relpath: string, allocator: rt.Allocator) -> (database: Database) {
-	database = _read_without_decompressing(relpath, allocator = allocator)
+read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
+	database = _read_without_decompressing(config, allocator = allocator)
 	decompress(&database, allocator = allocator)
 	return database }
 
@@ -216,7 +219,7 @@ _decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (b
 		bytes_buffer: []u8 = make([]u8, cast(int)decompress_bound, allocator)
 		decompressed_size: i32 = lz4.decompress_safe(&compressed_bytes[0], &bytes_buffer[0], cast(i32)len(compressed_bytes), decompress_bound)
 		if decompressed_size < 0 {
-			fmt.println(base.WARN, "Decompress bound", decompress_bound, "not sufficient.")
+			log.warn("Decompress bound", decompress_bound, "not sufficient.")
 			estimated_compression_ratio /= 2.0
 			delete(bytes_buffer, allocator)
 			continue }
@@ -226,6 +229,7 @@ _decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (b
 
 compress :: proc(database: ^Database, allocator: rt.Allocator) {
 	for &entry in database.entries do if ! entry.compressed {
+		if len(entry.data) == 0 do log.warnf("Entry %s has no data.", entry.url)
 		compress_data: []u8 = _compress_bytes(entry.data, allocator = allocator)
 		delete(entry.data, allocator = allocator)
 		entry.data = compress_data

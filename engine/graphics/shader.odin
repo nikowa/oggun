@@ -1,5 +1,6 @@
 #+feature using-stmt
 package graphics
+import log "core:log"
 import rt "base:runtime"
 import glfw "vendor:glfw"
 import gl "vendor:OpenGL"
@@ -99,11 +100,11 @@ Rect_Shader :: struct {
 // 	mask:            i32 }
 
 
-// Texture_Shader :: struct {
-// 	using shader: Shader,
-// 	pos:          i32,
-// 	size:         i32,
-// 	res:          i32 }
+Image_Shader :: struct {
+	using shader: Shader,
+	pos: i32,
+	size: i32,
+	res: i32 }
 
 
 // Chromatic_Aberration_Shader :: struct {
@@ -234,8 +235,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	for url, i in urls {
 		entry, ok = db.entry_from_url(database, urls[i])
 		if db.entry_outdated(database, entry) {
-			fmt.println(base.LOG, "Updating entry.")
-			if ! ok do entry = db.add_entry(database, db.make_entry(urls[i], {})) or_return
+			log.info("Updating entry.")
 			path = db.path_from_url(database, urls[i], allocator)
 			bytes, err = os.read_entire_file_from_path(path, context.allocator)
 			sources[i] = cast(string)bytes
@@ -245,9 +245,9 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 			sources[i] = str.clone(glsl_builder_to_string(&builder))
 			destroy_glsl_builder(&builder)
 			modification_time = os.modification_time_by_path(path) or_return
-			db.entry_update(entry, transmute([]u8)sources[i], modification_time) }
+			db.add_entry(database, db.make_entry(urls[i], transmute([]u8)sources[i], modification_time)) or_return }
 		else {
-			fmt.println(base.LOG, "Reading shader source from database.")
+			log.info("Reading shader source from database.")
 			sources[i] = cast(string)entry.data } }
 	// fmt.println(base.LOG, "Sources:", sources[0], sources[1])
 	shader.handle, ok = gl.load_shaders_source(sources[0], sources[1])
@@ -285,12 +285,12 @@ print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: 
 	#partial switch message_type {
 	case gl.Shader_Type.VERTEX_SHADER: content=vert_string
 	case gl.Shader_Type.FRAGMENT_SHADER: content=frag_string
-	case: fmt.println(base.BAD, "Shader compilation error:", shader.name, ": ", message_type, ": ", message, ": ?", sep = "") }
+	case: log.error("Shader compilation error:", shader.name, ": ", message_type, ": ", message, ": ?", sep = "") }
 	bl = str.index_rune(message, '(')
 	br = str.index_rune(message, ')')
 	line_n = sc.parse_int(message[bl + 1 : br]) or_else -1
 	line = base.nth_line(content, line_n - 1)
-	fmt.println(base.BAD, "Shader linking error:", message_type, "/", shader.name, "(", line_n, ")", ": ", ":\n", message, ": \n", line, sep = "") }
+	log.error("Shader linking error:", message_type, "/", shader.name, "(", line_n, ")", ": ", ":\n", message, ": \n", line, sep = "") }
 
 init_glsl_builder :: proc(glsl_builder: ^GLSL_Builder) -> (res: ^str.Builder, err: rt.Allocator_Error) {
 	res, err = str.builder_init(&glsl_builder.string_builder)

@@ -10,14 +10,6 @@ Image :: struct {
 	using image: im.Image }
 ```
 
-#### `Thread_Data`
-
-```c
-Thread_Data :: struct {
-	index: u32,
-	... }
-```
-
 #### `image_equiv`
 
 ```c
@@ -64,4 +56,32 @@ load_from_path :: proc(
 	path: string,
 	url: db.URL,
 	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
+#### `upload_image`
+
+Upload image to GPU memory.
+
+```c
+upload_image :: proc(
+	graphics_context: ^Graphics_Context,
+	image: ^Image) -> bool
+```
+
+#### `download_image`
+
+Release the GPU memory associated with the image.
+
+```c
+download_image :: proc(
+	image: ^Image)
+```
+
+#### `image_loaded`
+
+Check if the image has been uploaded to the GPU.
+
+```c
+image_loaded :: proc(
+	image: ^Image) -> bool
 ```

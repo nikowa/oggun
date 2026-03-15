@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-b934d0d0.js";
+            window.path_to_searchindex_js = "../searchindex-32722ce7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-df99db9d.js"></script>
@@ -179,51 +179,70 @@
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
 <h4 id="thread_data"><a class="header" href="#thread_data"><code>Thread_Data</code></a></h4>
 <pre><code class="language-c">Thread_Data :: struct {
-	magic_number: u32,
-	entry_point: Entry_Point,
 	index: u32,
-	locks: ts.Two_Stack(^Arena_Lock) }
+	... }
 </code></pre>
 <h4 id="lock"><a class="header" href="#lock"><code>Lock</code></a></h4>
 <pre><code class="language-c">Lock :: ...
 </code></pre>
 <p>The default mutex type.</p>
-<h4 id="arena_lock"><a class="header" href="#arena_lock"><code>Arena_Lock</code></a></h4>
-<pre><code class="language-c">Arena_Lock :: struct {
-	lock: Lock,
-	size: u32 }
-</code></pre>
-<!---An ordered mutex type. Acquisition succeeds only if the last mutex acquired by the same thread was of a lower rank.--->
 <h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
 <h4 id="make_thread_data"><a class="header" href="#make_thread_data"><code>make_thread_data</code></a></h4>
-<pre><code class="language-c">make_thread_data :: proc(entry_point: Entry_Point, index: u32) -&gt; (thread_data: ^Thread_Data)
+<pre><code class="language-c">make_thread_data :: proc(
+	entry_point: Entry_Point,
+	index: u32) -&gt; (thread_data: ^Thread_Data)
 </code></pre>
 <h4 id="get_thread_data"><a class="header" href="#get_thread_data"><code>get_thread_data</code></a></h4>
 <pre><code class="language-c">get_thread_data :: proc() -&gt; (thread_data: ^Thread_Data)
 </code></pre>
+<h4 id="lock_acquire_unmanaged"><a class="header" href="#lock_acquire_unmanaged"><code>lock_acquire_unmanaged</code></a></h4>
+<pre><code class="language-c">lock_acquire_unmanaged :: proc(
+	lock: ^Lock)
+</code></pre>
+<h4 id="lock_release_unmanaged"><a class="header" href="#lock_release_unmanaged"><code>lock_release_unmanaged</code></a></h4>
+<pre><code class="language-c">lock_release_unmanaged :: proc(
+	lock: ^Lock)
+</code></pre>
+<h4 id="lock_guard_unmanaged"><a class="header" href="#lock_guard_unmanaged"><code>lock_guard_unmanaged</code></a></h4>
+<pre><code class="language-c">lock_guard_unmanaged :: proc(
+	lock: ^Lock)
+</code></pre>
 <h4 id="lock_acquire"><a class="header" href="#lock_acquire"><code>lock_acquire</code></a></h4>
-<pre><code class="language-c">lock_acquire :: ...
+<p>If there is a free lock register in the current thread context, acquire the given lock and add it to a register. Return <code>false</code> if there is no free lock register.</p>
+<pre><code class="language-c">lock_acquire :: proc(
+	lock: ^Lock) -&gt; bool
 </code></pre>
 <h4 id="lock_release"><a class="header" href="#lock_release"><code>lock_release</code></a></h4>
-<pre><code class="language-c">lock_release :: ...
+<p>If the given lock is in a lock register in the current thread context, release it and remove it from the register. Return <code>false</code> if the given lock wasn’t in a lock register.</p>
+<pre><code class="language-c">lock_release :: proc(
+	lock: ^Lock) -&gt; bool
 </code></pre>
-<h4 id="lock_guard"><a class="header" href="#lock_guard"><code>lock_guard</code></a></h4>
-<pre><code class="language-c">lock_guard :: ...
+<h4 id="lock_acquire_release"><a class="header" href="#lock_acquire_release"><code>lock_acquire_release</code></a></h4>
+<p>Call <code>lock_acquire</code> on the given lock. At the end of scope, call <code>lock_release</code> on the same lock.</p>
+<pre><code class="language-c">@(deferred_in=lock_release)
+lock_acquire_release :: proc(
+	lock: ^Lock) -&gt; bool
 </code></pre>
-<h4 id="arena_lock_acquire_unsafe"><a class="header" href="#arena_lock_acquire_unsafe"><code>arena_lock_acquire_unsafe</code></a></h4>
-<pre><code class="language-c">arena_lock_acquire_unsafe :: proc(arena_lock: ^Arena_Lock)
+<h4 id="lock_release_acquire"><a class="header" href="#lock_release_acquire"><code>lock_release_acquire</code></a></h4>
+<p>Call <code>lock_release</code> on the given lock. At the end of scope, call <code>lock_acquire</code> on the same lock.</p>
+<pre><code class="language-c">@(deferred_in=lock_acquire)
+lock_release_acquire :: proc(
+	lock: ^Lock) -&gt; bool
 </code></pre>
-<h4 id="arena_lock_release_unsafe"><a class="header" href="#arena_lock_release_unsafe"><code>arena_lock_release_unsafe</code></a></h4>
-<pre><code class="language-c">arena_lock_release_unsafe :: proc(arena_lock: ^Arena_Lock)
+<h4 id="lock_push"><a class="header" href="#lock_push"><code>lock_push</code></a></h4>
+<p>If the given lock is in a lock register in the current thread context, release it, remove it from the register, and push it to the lock stack. If the lock isn’t in a lock register, do nothing and return <code>false</code>.</p>
+<pre><code class="language-c">lock_push :: proc(
+	lock: ^Lock) -&gt; bool
 </code></pre>
-<h4 id="arena_lock_guard_unsafe"><a class="header" href="#arena_lock_guard_unsafe"><code>arena_lock_guard_unsafe</code></a></h4>
-<pre><code class="language-c">arena_lock_guard_unsafe :: proc(arena_lock: ^Arena_Lock) -&gt; bool
+<h4 id="lock_pop"><a class="header" href="#lock_pop"><code>lock_pop</code></a></h4>
+<pre><code class="language-c">lock_pop :: proc() -&gt; bool
 </code></pre>
-<h4 id="arena_locks_ordered"><a class="header" href="#arena_locks_ordered"><code>arena_locks_ordered</code></a></h4>
-<pre><code class="language-c">arena_locks_ordered :: proc(arena_lock_a, arena_lock_b: ^Arena_Lock) -&gt; bool
-</code></pre>
-<h4 id="arena_lock_push"><a class="header" href="#arena_lock_push"><code>arena_lock_push</code></a></h4>
-<pre><code class="language-c">arena_lock_push :: proc(arena_lock: ^Arena_Lock) -&gt; (ok: bool)
+<p>If the lock stack in the current thread context is not empty and there is an empty register in the current thread context, pop the top lock from it, acquire it, and</p>
+<h4 id="lock_push_pop"><a class="header" href="#lock_push_pop"><code>lock_push_pop</code></a></h4>
+<p>Call <code>lock_push</code> on the given lock. At the end of scope, call <code>lock_pop</code>.</p>
+<pre><code class="language-c">@(deferred_in=lock_pop)
+lock_push_pop :: proc(
+	lock: ^Lock) -&gt; bool
 </code></pre>
 
                     </main>

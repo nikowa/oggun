@@ -9,6 +9,7 @@ import db "../database"
 import la "core:math/linalg"
 import fmt "core:fmt"
 import base "../base"
+import r "../container/rect"
 
 
 
@@ -47,7 +48,7 @@ Graphics_Context :: struct {
 // 	models_map:                      map[string]^Model,
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
-// 	texture_shader:                  ^Texture_Shader,
+	image_shader: ^Image_Shader,
 // 	buffer_shader:                   ^Buffer_Shader,
 // 	upscale_pass1_shader:            ^Upscale_Pass1_Shader,
 // 	upscale_pass2_shader:            ^Upscale_Pass2_Shader,
@@ -230,9 +231,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 
 	graphics_context.shaders = make([dynamic]^Shader, 0, 16)
 	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "shader:vrect", frag_url = "shader:frect" }) or_return
-	fmt.println(base.LOG, "Program handle:", graphics_context.rect_shader.handle)
-	// gl.ValidateProgram(graphics_context.rect_shader.handle)
-	// graphics_context.texture_shader              = make_shader(draw, working_directory_path, "texture",              Texture_Shader,              "vrect",    "ftexture")
+	graphics_context.image_shader = make_shader(graphics_context, database, Image_Shader, { name = "image", vert_url = "shader:vrect", frag_url = "shader:fimage" }) or_return
 	// graphics_context.buffer_shader               = make_shader(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// graphics_context.upscale_pass1_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
 	// graphics_context.upscale_pass2_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass2_Shader,        "vfill",    "fupscale-pass2")
@@ -566,9 +565,9 @@ set_shader_param :: proc {
 	set_shader_param_matrix_4f }
 
 
-// bind_texture :: proc(binding_index: u32, handle: u32) {
-// 	gl.ActiveTexture(gl.TEXTURE0+binding_index)
-// 	gl.BindTexture(gl.TEXTURE_2D, cast(u32)handle) }
+bind_texture :: proc(binding_index: u32, handle: u32) {
+	gl.ActiveTexture(gl.TEXTURE0 + binding_index)
+	gl.BindTexture(gl.TEXTURE_2D, cast(u32)handle) }
 
 
 draw_triangles :: proc(count: i32) {
@@ -629,13 +628,25 @@ use_shader :: proc(shader: ^$T, loc := #caller_location) -> (^T) {
 // 	render_rect_outlined(draw, pos = pos + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
 // 	render_rect_outlined(draw, pos = pos + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-render_rect :: proc(graphics_context: ^Graphics_Context, pos: [2]f32, size: [2]f32, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
+render_rect :: proc(graphics_context: ^Graphics_Context, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
 	shader := use_shader(graphics_context.rect_shader)
-	set_shader_param(shader.pos, pos)
-	set_shader_param(shader.size, size)
+	set_shader_param(shader.pos, rect.pos)
+	set_shader_param(shader.size, rect.size)
 	set_shader_param(shader.fill_color, fill_color)
 	set_shader_param(shader.rounding, rounding)
 	set_shader_param(shader.res, la.array_cast(graphics_context.active_resolution, f32))
+	draw_triangles(6) }
+
+render_image :: proc(graphics_context: ^Graphics_Context, image: ^Image, rect: r.Rect, depth: f32 = 0.0) {
+	if ! image_loaded(image) do upload_image(graphics_context, image)
+	shader := use_shader(graphics_context.image_shader)
+	gl.BindVertexArray(graphics_context.vertex_array)
+	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_context.vertex_buffer)
+	set_shader_param(shader.pos, rect.pos)
+	set_shader_param(shader.size, rect.size)
+	set_shader_param(shader.res, la.array_cast(graphics_context.active_resolution, f32))
+	bind_texture(0, image.handle)
+	texture_filtering(gl.NEAREST)
 	draw_triangles(6) }
 
 // render_panel :: proc(draw: ^Draw, background: ^Render_Buffer, pos: [2]f32, size: [2]f32) {
@@ -723,18 +734,6 @@ render_rect :: proc(graphics_context: ^Graphics_Context, pos: [2]f32, size: [2]f
 // 		pos = pos,
 // 		size = size_override != { -1, -1 } ? size_override : [2]f32{ cast(f32)texture.width, cast(f32)texture.height },
 // 		depth = depth) }
-
-
-// render_texture_by_handle :: proc(draw: ^Draw, handle: u32, pos: [2]f32, size: [2]f32, depth: f32 = 0.0) {
-// 	shader := use_shader(draw.texture_shader)
-// 	gl.BindVertexArray(draw.vertex_array)
-// 	gl.BindBuffer(gl.ARRAY_BUFFER, draw.vertex_buffer)
-// 	set_shader_param(shader.pos, pos)
-// 	set_shader_param(shader.size, size)
-// 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
-// 	bind_texture(0, handle)
-// 	texture_filtering(gl.NEAREST)
-// 	draw_triangles(6) }
 
 
 // render_chromatic_aberration :: proc(draw: ^Draw, texture_handle: u32) {
@@ -973,15 +972,13 @@ render_rect :: proc(graphics_context: ^Graphics_Context, pos: [2]f32, size: [2]f
 // 				if draw.shaders[i].name == name {
 // 					recompile_shader(draw, working_directory_path, draw.shaders[i]) } } } } }
 
+texture_filtering :: proc(mode: i32) {
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mode)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, mode) }
 
-// texture_filtering :: proc(mode: i32) {
-// 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mode)
-// 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, mode) }
-
-
-// texture_wrapping :: proc(mode: i32) {
-// 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, mode)
-// 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, mode) }
+texture_wrapping :: proc(mode: i32) {
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, mode)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, mode) }
 
 
 // resolution_callback :: proc "c" (window: glfw.WindowHandle, width, height: i32) {

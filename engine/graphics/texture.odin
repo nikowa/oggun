@@ -158,54 +158,6 @@ import im "core:image"
 // 	bytes: []u8 = make([]u8, im.compute_buffer_size(size.x, size.y, channels, depth))
 // 	return init_texture_from_bytes(draw, texture, name, bytes, size, channels, depth) }
 
-
-// load_texture :: proc(draw: ^Draw, texture: ^Texture) -> bool {
-// 	if texture.handle != 0 do unload_texture(texture)
-// 	gl.GenTextures(1, &texture.handle)
-// 	gl.BindTexture(gl.TEXTURE_2D, texture.handle)
-// 	internal_format: i32
-// 	data_format: u32
-// 	data_format_type: u32
-// 	switch texture.im.channels {
-// 	case 1:
-// 		switch texture.im.depth {
-// 		case 8:
-// 			internal_format = gl.R8
-// 			data_format = gl.RED
-// 		case:
-// 			fmt.printfln(BAD + "Unsupported data format for texture %s.", texture.name)
-// 			return false }
-// 	case 3:
-// 		switch texture.im.depth {
-// 		case 8:
-// 			internal_format = gl.RGB8
-// 			data_format = gl.RGB
-// 		case:
-// 			fmt.printfln(BAD + "Unsupported data format for texture %s.", texture.name)
-// 			return false }
-// 	case 4:
-// 		switch texture.im.depth {
-// 		case 8:
-// 			internal_format = gl.RGBA8
-// 			data_format = gl.RGBA
-// 		case:
-// 			fmt.printfln(BAD + "Unsupported internal format for texture %s.", texture.name)
-// 			return false }
-// 	case:
-// 		fmt.println(BAD + "Unsupported channel count for texture %s.", texture.name)
-// 		return false }
-// 	data_format_type = gl.UNSIGNED_BYTE
-// 	gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)texture.width, cast(i32)texture.height, 0, data_format, data_format_type, &texture.im.pixels.buf[0])
-// 	texture_wrapping(gl.REPEAT)
-// 	texture_filtering(gl.NEAREST)
-// 	return true }
-
-
-// unload_texture :: proc(texture: ^Texture) {
-// 	gl.DeleteTextures(1, &texture.handle)
-// 	texture.handle = 0 }
-
-
 // init_texture_from_image :: proc(draw: ^Draw, texture: ^Texture, im: im.Image) -> bool {
 // 	texture.image = im
 // 	return true }

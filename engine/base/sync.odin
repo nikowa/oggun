@@ -30,14 +30,15 @@ Thread_Data :: struct {
 	index: u32,
 	_magic_number: u32,
 	_entry_point: Entry_Point,
-	_locks: ts.Two_Stack(^Arena_Lock) }
+	_locks_stack: [dynamic]Lock,
+	_locks_registers: ts.Two_Stack(^Lock) }
 
 make_thread_data :: proc(entry_point: Entry_Point, index: u32) -> (thread_data: ^Thread_Data) {
 	thread_data = new(Thread_Data)
 	thread_data._magic_number = MAGIC_NUMBER
 	thread_data._entry_point = entry_point
 	thread_data.index = index
-	ts.init(&thread_data._locks)
+	ts.init(&thread_data._locks_registers)
 	return thread_data }
 
 get_thread_data :: #force_inline proc() -> (thread_data: ^Thread_Data) {
@@ -51,134 +52,134 @@ get_thread_data :: #force_inline proc() -> (thread_data: ^Thread_Data) {
 // LOCK //
 Lock :: sn.Ticket_Mutex
 
-lock_acquire :: sn.ticket_mutex_lock
-lock_release :: sn.ticket_mutex_unlock
-lock_guard :: sn.ticket_mutex_guard
+lock_acquire_unmanaged :: sn.ticket_mutex_lock
+lock_release_unmanaged :: sn.ticket_mutex_unlock
+lock_guard_unmanaged :: sn.ticket_mutex_guard
 
 
 
 
 ////////////////
 // ARENA LOCK //
-Arena_Lock :: struct {
-	lock: Lock,
-	size: u32 }
+// Arena_Lock :: struct {
+// 	lock: Lock,
+// 	size: u32 }
 
-arena_lock_acquire_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
-	lock_acquire(&arena_lock.lock) }
+// arena_lock_acquire_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
+// 	lock_acquire(&arena_lock.lock) }
 
-arena_lock_release_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
-	lock_release(&arena_lock.lock) }
+// arena_lock_release_unsafe :: #force_inline proc "contextless" (arena_lock: ^Arena_Lock) {
+// 	lock_release(&arena_lock.lock) }
 
-@(deferred_in=arena_lock_release_unsafe)
-arena_lock_guard_unsafe :: proc "contextless" (arena_lock: ^Arena_Lock) -> bool {
-	arena_lock_acquire_unsafe(arena_lock)
-	return true }
+// @(deferred_in=arena_lock_release_unsafe)
+// arena_lock_guard_unsafe :: proc "contextless" (arena_lock: ^Arena_Lock) -> bool {
+// 	arena_lock_acquire_unsafe(arena_lock)
+// 	return true }
 
-arena_locks_ordered :: #force_inline proc "contextless" (arena_lock_a, arena_lock_b: ^Arena_Lock) -> bool {
-	return cast(uintptr)arena_lock_a < cast(uintptr)arena_lock_b }
+// arena_locks_ordered :: #force_inline proc "contextless" (arena_lock_a, arena_lock_b: ^Arena_Lock) -> bool {
+// 	return cast(uintptr)arena_lock_a < cast(uintptr)arena_lock_b }
 
-arena_lock_acquire :: arena_lock_push
+// arena_lock_acquire :: arena_lock_push
 
-arena_lock_release :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
-	thread_data := get_thread_data()
-	i := ts.index(&thread_data._locks, arena_lock)
-	switch i {
-	case -1: return false
-	case 0:
-		_, ok = ts.pop_bottom(&thread_data._locks)
-		return ok
-	case 1:
-		_, ok = ts.pop_top(&thread_data._locks)
-		return ok }
-	return false }
+// arena_lock_release :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+// 	thread_data := get_thread_data()
+// 	i := ts.index(&thread_data._locks_registers, arena_lock)
+// 	switch i {
+// 	case -1: return false
+// 	case 0:
+// 		_, ok = ts.pop_bottom(&thread_data._locks_registers)
+// 		return ok
+// 	case 1:
+// 		_, ok = ts.pop_top(&thread_data._locks_registers)
+// 		return ok }
+// 	return false }
 
-// Acquire the lock and push it onto the thread's locks stack. //
-arena_lock_push :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
-	ok = false
-	thread_data := get_thread_data()
-	top_lock := ts.peek(&thread_data._locks) or_return
-	ts.push(&thread_data._locks, arena_lock) or_return
-	if top_lock == nil || arena_locks_ordered(top_lock, arena_lock) do arena_lock_acquire_unsafe(arena_lock)
-	else {
-		arena_lock_release_unsafe(top_lock)
-		arena_lock_acquire_unsafe(arena_lock)
-		arena_lock_acquire_unsafe(top_lock) }
-	return true }
+// // Acquire the lock and push it onto the thread's locks stack. //
+// arena_lock_push :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+// 	ok = false
+// 	thread_data := get_thread_data()
+// 	top_lock := ts.peek(&thread_data._locks_registers) or_return
+// 	ts.push(&thread_data._locks_registers, arena_lock) or_return
+// 	if top_lock == nil || arena_locks_ordered(top_lock, arena_lock) do arena_lock_acquire_unsafe(arena_lock)
+// 	else {
+// 		arena_lock_release_unsafe(top_lock)
+// 		arena_lock_acquire_unsafe(arena_lock)
+// 		arena_lock_acquire_unsafe(top_lock) }
+// 	return true }
 
-// Pop the top lock from the thread's locks stack and release it. //
-arena_lock_pop :: #force_inline proc() -> (ok: bool) {
-	ok = false
-	thread_data := get_thread_data()
-	top_lock := ts.pop(&thread_data._locks) or_return
-	arena_lock_release_unsafe(top_lock)
-	return true }
+// // Pop the top lock from the thread's locks stack and release it. //
+// arena_lock_pop :: #force_inline proc() -> (ok: bool) {
+// 	ok = false
+// 	thread_data := get_thread_data()
+// 	top_lock := ts.pop(&thread_data._locks_registers) or_return
+// 	arena_lock_release_unsafe(top_lock)
+// 	return true }
 
-@(deferred_none=arena_lock_pop)
-arena_lock_scope :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
-	arena_lock_push(arena_lock)
-	return true }
+// @(deferred_none=arena_lock_pop)
+// arena_lock_scope :: #force_inline proc(arena_lock: ^Arena_Lock) -> (ok: bool) {
+// 	arena_lock_push(arena_lock)
+// 	return true }
 
 
 
 ////////////////////
 // CAGE ALLOCATOR //
-Cage :: struct {
-	size: uintptr,
-	lock: Lock,
-	hash: u32,
-	readonly: bool }
+// Cage :: struct {
+// 	size: uintptr,
+// 	lock: Lock,
+// 	hash: u32,
+// 	readonly: bool }
 
-CAGES_CAP :: 32
-Cage_Allocator :: struct {
-	cages: [dynamic]Cage,
-	size: uintptr,
-	arena: mem.Arena,
-	backing_allocator: rt.Allocator }
+// CAGES_CAP :: 32
+// Cage_Allocator :: struct {
+// 	cages: [dynamic]Cage,
+// 	size: uintptr,
+// 	arena: mem.Arena,
+// 	backing_allocator: rt.Allocator }
 
-@(no_sanitize_address)
-cage_allocator_init :: proc(allocator: ^Cage_Allocator, buffer: []u8) {
-	mem.arena_init(&allocator.arena, buffer)
-	allocator.backing_allocator = mem.arena_allocator(&allocator.arena)
-	allocator.cages = make_dynamic_array_len_cap([dynamic]Cage, 0, 256, context.allocator) }
+// @(no_sanitize_address)
+// cage_allocator_init :: proc(allocator: ^Cage_Allocator, buffer: []u8) {
+// 	mem.arena_init(&allocator.arena, buffer)
+// 	allocator.backing_allocator = mem.arena_allocator(&allocator.arena)
+// 	allocator.cages = make_dynamic_array_len_cap([dynamic]Cage, 0, 256, context.allocator) }
 
-@(require_results, no_sanitize_address)
-cage_allocator :: proc(data: ^Cage_Allocator) -> mem.Allocator {
-	return mem.Allocator{
-		data = data,
-		procedure = cage_allocator_proc } }
+// @(require_results, no_sanitize_address)
+// cage_allocator :: proc(data: ^Cage_Allocator) -> mem.Allocator {
+// 	return mem.Allocator{
+// 		data = data,
+// 		procedure = cage_allocator_proc } }
 
-current_cage_allocator :: proc() -> (allocator: ^Cage_Allocator) {
-	return cast(^Cage_Allocator)context.allocator.data }
+// current_cage_allocator :: proc() -> (allocator: ^Cage_Allocator) {
+// 	return cast(^Cage_Allocator)context.allocator.data }
 
-cage_allocator_new_cage :: proc(cage_allocator: ^Cage_Allocator, size: uintptr, readonly: bool) {
-	assert(cage_allocator.size + size <= cast(uintptr)len(cage_allocator.arena.data))
-	append(&cage_allocator.cages, Cage{ size = size, readonly = readonly }) }
+// cage_allocator_new_cage :: proc(cage_allocator: ^Cage_Allocator, size: uintptr, readonly: bool) {
+// 	assert(cage_allocator.size + size <= cast(uintptr)len(cage_allocator.arena.data))
+// 	append(&cage_allocator.cages, Cage{ size = size, readonly = readonly }) }
 
-@(no_sanitize_address)
-cage_allocator_proc :: proc(allocator_data: rawptr, mode: mem.Allocator_Mode, size, alignment: int, old_memory: rawptr, old_size: int, loc := #caller_location) -> ([]byte, rt.Allocator_Error) {
-	cage_allocator: ^Cage_Allocator = cast(^Cage_Allocator)allocator_data
-	switch mode {
-	case .Alloc, .Alloc_Non_Zeroed:
-		ptr, error := mem.alloc(size, alignment, cage_allocator.backing_allocator)
-		if ptr != nil do return sl.bytes_from_ptr(ptr, size), nil
-		else do return nil, error
-	case .Free:
-		return nil, mem.free(old_memory)
-	case .Free_All:
-		return nil, .Mode_Not_Implemented
-	case .Resize, .Resize_Non_Zeroed:
-		ptr, error := mem.resize(old_memory, old_size, size, alignment, cage_allocator.backing_allocator)
-		if ptr != nil do return sl.bytes_from_ptr(ptr, size), nil
-		else do return sl.bytes_from_ptr(old_memory, old_size), error
-	case .Query_Features:
-		set := (^mem.Allocator_Mode_Set)(old_memory)
-		if set != nil {
-			set^ = {.Alloc, .Alloc_Non_Zeroed, .Free, .Resize, .Resize_Non_Zeroed, .Query_Features} }
-		return nil, nil
-	case .Query_Info:
-		return nil, .Mode_Not_Implemented }
-	return nil, nil }
+// @(no_sanitize_address)
+// cage_allocator_proc :: proc(allocator_data: rawptr, mode: mem.Allocator_Mode, size, alignment: int, old_memory: rawptr, old_size: int, loc := #caller_location) -> ([]byte, rt.Allocator_Error) {
+// 	cage_allocator: ^Cage_Allocator = cast(^Cage_Allocator)allocator_data
+// 	switch mode {
+// 	case .Alloc, .Alloc_Non_Zeroed:
+// 		ptr, error := mem.alloc(size, alignment, cage_allocator.backing_allocator)
+// 		if ptr != nil do return sl.bytes_from_ptr(ptr, size), nil
+// 		else do return nil, error
+// 	case .Free:
+// 		return nil, mem.free(old_memory)
+// 	case .Free_All:
+// 		return nil, .Mode_Not_Implemented
+// 	case .Resize, .Resize_Non_Zeroed:
+// 		ptr, error := mem.resize(old_memory, old_size, size, alignment, cage_allocator.backing_allocator)
+// 		if ptr != nil do return sl.bytes_from_ptr(ptr, size), nil
+// 		else do return sl.bytes_from_ptr(old_memory, old_size), error
+// 	case .Query_Features:
+// 		set := (^mem.Allocator_Mode_Set)(old_memory)
+// 		if set != nil {
+// 			set^ = {.Alloc, .Alloc_Non_Zeroed, .Free, .Resize, .Resize_Non_Zeroed, .Query_Features} }
+// 		return nil, nil
+// 	case .Query_Info:
+// 		return nil, .Mode_Not_Implemented }
+// 	return nil, nil }
 
 // cage_allocator_readonly_seal :: proc(cage_allocator: ^Cage_Allocator, cage: ^Cage) {
 // 	bytes: []u8 = cage_allocator.arena.data[]

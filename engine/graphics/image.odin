@@ -11,12 +11,14 @@ import slc "core:slice"
 import fmt "core:fmt"
 import log "core:log"
 import t "core:time"
+import gl "vendor:OpenGL"
 
 
 
 Image :: struct {
 	url: db.URL,
-	using image: im.Image }
+	using image: im.Image,
+	handle: u32 } // TODO: Add procedures to load the image to the GPU.
 
 image_equiv :: proc(a: ^Image, b: ^Image) -> bool {
 	return (a.url == b.url) &&
@@ -91,3 +93,51 @@ load_from_path :: proc(path: string, url: db.URL, allocator: rt.Allocator) -> (i
 	image.url = url
 	free(image_temp)
 	return image, os.General_Error.None }
+
+upload_image :: proc(graphics_context: ^Graphics_Context, image: ^Image) -> bool {
+	if image.handle != 0 do download_image(image)
+	gl.GenTextures(1, &image.handle)
+	gl.BindTexture(gl.TEXTURE_2D, image.handle)
+	internal_format: i32
+	data_format: u32
+	data_format_type: u32
+	switch image.channels {
+	case 1:
+		switch image.depth {
+		case 8:
+			internal_format = gl.R8
+			data_format = gl.RED
+		case:
+			log.errorf("Unsupported data format for texture %s.", image.url)
+			return false }
+	case 3:
+		switch image.depth {
+		case 8:
+			internal_format = gl.RGB8
+			data_format = gl.RGB
+		case:
+			log.errorf("Unsupported data format for texture %s.", image.url)
+			return false }
+	case 4:
+		switch image.depth {
+		case 8:
+			internal_format = gl.RGBA8
+			data_format = gl.RGBA
+		case:
+			log.errorf("Unsupported internal format for texture %s.", image.url)
+			return false }
+	case:
+		log.errorf("Unsupported channel count for texture %s.", image.url)
+		return false }
+	data_format_type = gl.UNSIGNED_BYTE
+	gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)image.width, cast(i32)image.height, 0, data_format, data_format_type, &image.pixels.buf[0])
+	texture_wrapping(gl.REPEAT)
+	texture_filtering(gl.NEAREST)
+	return true }
+
+download_image :: proc(image: ^Image) {
+	gl.DeleteTextures(1, &image.handle)
+	image.handle = 0 }
+
+image_loaded :: proc(image: ^Image) -> bool {
+	return image.handle != 0 }

@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b934d0d0.js";
+            window.path_to_searchindex_js = "searchindex-32722ce7.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-df99db9d.js"></script>
@@ -194,6 +194,20 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 <h2 id="the-lock-system"><a class="header" href="#the-lock-system">The Lock System</a></h2>
 <p><img src="lock-system.png" alt="cage"></p>
 <p>Every thread is able to own at most 2 locks at a time. This is the bare minimum number of locks necessary for any algorithm. The containers for these two locks are called the <em>lock registers</em>. In addition, every thread has a <em>lock stack</em>. This allows for lock pairs to be managed in larger, nested scopes, as opposed to small disjoint scopes. If a procedure that has acquired lock A and B wants to call a procedure that depends on locks B and C, normally it would call a sync function to acquire lock C at the start and then call a sync function to release it at the end, but in my system, it can call a sync function at the start to acquire lock C and hint that lock A is no longer needed, and then call a sync function to release it at the end. And what happens in the background is, A is released and push into the lock stack, then B and C are acquired in order, and at the end C is released and A is popped from the stack and A and B are acquired in order. The stack is necessary so that the callee can remember what locks were owned by the caller and restore them.</p>
+<h2 id="multi-threading"><a class="header" href="#multi-threading">Multi-Threading</a></h2>
+<p>For Willow’s thread synchronization to work without errors, your package needs to follow a set of rules. To check if it does, you can run the willow checker on your package, like this:</p>
+<pre><code>willow check &lt;package_dir&gt;
+</code></pre>
+<p>Informally, the rules are:</p>
+<ul>
+<li>Every <em>sync-safe</em> function must declare which locks it’s going to own immediately at its beginning, by calling one of Willow’s lock methods. A <em>sync-safe</em> function is a function with the <code>@(tag="sync_safe")</code> tag.</li>
+<li>Willow’s lock methods should not be used anywhere else except at the immediate beginning of a <em>sync-safe</em> function.</li>
+<li>A <em>sync-safe</em> function must return immediately if the lock method in it returned false.</li>
+<li>A <em>sync-safe</em> function must not access any global variables.</li>
+<li>A <em>sync-safe</em> function must not have any arguments of pointer type or arguments of types that contain pointers.</li>
+</ul>
+<pre><code class="language-c">
+</code></pre>
 <h2 id="start"><a class="header" href="#start">Start</a></h2>
 
                     </main>

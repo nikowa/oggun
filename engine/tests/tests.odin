@@ -13,6 +13,7 @@ import b "core:bytes"
 import ts "../container/two_stack"
 import gx "../graphics"
 import db "../database"
+import mp "../container/micro_pair"
 
 
 
@@ -54,7 +55,7 @@ database_test :: proc(t_context: ^tst.T) {
 	tst.expect(t_context, entries[0] == entry_0)
 	tst.expect(t_context, entries[1] == entry_1)
 	db._write_without_compressing(&database_0, context.temp_allocator)
-	database_1 := db._read_without_decompressing(database_0.relpath, context.temp_allocator)
+	database_1 := db._read_without_decompressing(database_0.config, context.temp_allocator)
 	defer db.delete_database(database_1, context.temp_allocator)
 	// ident ~ (write -> read)
 	tst.expect(t_context, db.equiv(&database_0, &database_1))
@@ -67,11 +68,11 @@ database_test :: proc(t_context: ^tst.T) {
 	// ident ~ (compress -> decompress)
 	tst.expect(t_context, db.equiv(&database_0, &database_0_decompressed))
 	db._write_without_compressing(&database_0_compressed, context.temp_allocator)
-	database_1_decompressed := db.read_and_decompress(database_0.relpath, context.temp_allocator)
+	database_1_decompressed := db.read_and_decompress(database_0.config, context.temp_allocator)
 	defer db.delete_database(database_1_decompressed, context.temp_allocator)
 	// ident ~ (compress -> write -> read -> decompress)
 	tst.expect(t_context, db.equiv(&database_0, &database_1_decompressed))
-	database_1_compressed := db._read_without_decompressing(database_0.relpath, context.temp_allocator)
+	database_1_compressed := db._read_without_decompressing(database_0.config, context.temp_allocator)
 	defer db.delete_database(database_1_compressed, context.temp_allocator)
 	// compress ~ (compress -> write -> read)
 	tst.expect(t_context, db.equiv(&database_0_compressed, &database_1_compressed))
@@ -160,3 +161,15 @@ image_test :: proc(t_context: ^tst.T) {
 	tst.expect(t_context, err == nil)
 
 	free_all(allocator) }
+
+@(test)
+micro_pair_test :: proc(t_context: ^tst.T) {
+	micro_pair: ^mp.Micro_Pair
+
+	context.user_ptr = mp.to_rawptr(mp.make_micro_pair())
+	tst.expect(t_context, mp.is_empty(mp.from_rawptr(context.user_ptr)))
+	context.user_ptr = mp.to_rawptr(mp.add_by_index(mp.from_rawptr(context.user_ptr), 0))
+	context.user_ptr = mp.to_rawptr(mp.add_by_index(mp.from_rawptr(context.user_ptr), 1))
+	tst.expect(t_context, ! mp.is_empty(mp.from_rawptr(context.user_ptr)))
+	tst.expect(t_context, mp.from_rawptr(context.user_ptr)[0] == 0)
+	tst.expect(t_context, mp.from_rawptr(context.user_ptr)[1] == 1) }
