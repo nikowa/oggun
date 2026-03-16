@@ -1,6 +1,6 @@
 # Database
 
-A database is a collection of bite slices, accessed by a string URL.
+A basic key-value database. Entries are slices of bytes, accessed by a string URL. The URL has the form `<kind>:<name>`.
 
 ### Types
 
@@ -27,14 +27,21 @@ Database :: struct {
 	entries_map: map[URL]^Entry }
 ```
 
-#### `Entry`
+#### `Entry_Config`
 
 ```c
-Entry :: struct {
+Entry_Config :: struct {
 	url: URL,
 	modification_time: tm.Time,
 	compressed: b8,
 	data: []u8 }
+```
+
+#### `Entry`
+
+```c
+Entry :: struct {
+	using config: Entry_Config }
 ```
 
 #### `make_database`
@@ -42,7 +49,9 @@ Entry :: struct {
 Database constructor.
 
 ```c
-make_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database)
+make_database :: proc(
+	config: Database_Config,
+	allocator: rt.Allocator) -> (database: Database)
 ```
 
 #### `delete_database`
@@ -50,7 +59,9 @@ make_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (data
 Database destructor.
 
 ```c
-delete_database :: proc(database: Database, allocator: rt.Allocator)
+delete_database :: proc(
+	database: Database,
+	allocator: rt.Allocator)
 ```
 
 #### `make_entry`
@@ -58,7 +69,11 @@ delete_database :: proc(database: Database, allocator: rt.Allocator)
 Entry constructor.
 
 ```c
-make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -> (entry: Entry)
+make_entry :: proc(
+	url: URL,
+	data: []u8,
+	modification_time: tm.Time = { },
+	compressed: b8 = false) -> (entry: Entry)
 ```
 
 #### `delete_entry`
@@ -66,7 +81,9 @@ make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compr
 Entry destructor.
 
 ```c
-delete_entry :: proc(entry: Entry, allocator: rt.Allocator)
+delete_entry :: proc(
+	entry: Entry,
+	allocator: rt.Allocator)
 ```
 
 #### `entry_equiv`
@@ -74,7 +91,9 @@ delete_entry :: proc(entry: Entry, allocator: rt.Allocator)
 Check if two entries are equivalent (equivalent URL, equivalent data, equivalent compressedness state).
 
 ```c
-entry_equiv :: proc(entry_a: ^Entry, entry_b: ^Entry)
+entry_equiv :: proc(
+	entry_a: ^Entry,
+	entry_b: ^Entry)
 ```
 
 #### `entry_from_url`
@@ -82,7 +101,9 @@ entry_equiv :: proc(entry_a: ^Entry, entry_b: ^Entry)
 Retreive entry from database by URL.
 
 ```c
-entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: bool)
+entry_from_url :: proc(
+	database: ^Database,
+	url: URL) -> (entry: ^Entry, ok: bool)
 ```
 
 #### `contains_entry`
@@ -90,7 +111,9 @@ entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: boo
 Check if database contains entry with given URL.
 
 ```c
-contains_entry :: proc(database: ^Database, url: URL) -> bool
+contains_entry :: proc(
+	database: ^Database,
+	url: URL) -> bool
 ```
 
 #### `add_entry`
@@ -98,7 +121,19 @@ contains_entry :: proc(database: ^Database, url: URL) -> bool
 Add entry to database.
 
 ```c
-add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry, err: os.Error)
+add_entry :: proc(
+	database: ^Database,
+	entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error)
+```
+
+#### `add_or_update_entry`
+
+Add entry to database; If exists, update it.
+
+```c
+add_or_update_entry :: proc(
+	database: ^Database,
+	entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error)
 ```
 
 #### `remove_entry`
@@ -106,7 +141,9 @@ add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry, err:
 Remove entry from database.
 
 ```c
-remove_entry :: proc(database: ^Database, entry: ^Entry)
+remove_entry :: proc(
+	database: ^Database,
+	entry: ^Entry)
 ```
 
 #### `clone_entry`
@@ -114,7 +151,9 @@ remove_entry :: proc(database: ^Database, entry: ^Entry)
 Clone an entry.
 
 ```c
-clone_entry :: proc(entry: ^Entry, allocator: rt.Allocator) -> (entry_clone: Entry)
+clone_entry :: proc(
+	entry: ^Entry,
+	allocator: rt.Allocator) -> (entry_clone: Entry)
 ```
 
 #### `clone`
@@ -122,7 +161,9 @@ clone_entry :: proc(entry: ^Entry, allocator: rt.Allocator) -> (entry_clone: Ent
 Clone a database.
 
 ```c
-clone :: proc(database: ^Database, allocator: rt.Allocator) -> (database_clone: Database)
+clone :: proc(
+	database: ^Database,
+	allocator: rt.Allocator) -> (database_clone: Database)
 ```
 
 #### `equiv`
@@ -130,7 +171,9 @@ clone :: proc(database: ^Database, allocator: rt.Allocator) -> (database_clone: 
 Check if two databases are equivalent (have equivalent entries).
 
 ```c
-equiv :: proc(database_a, database_b: ^Database) -> bool
+equiv :: proc(
+	database_a,
+	database_b: ^Database) -> bool
 ```
 
 #### `relpath_to_path`
@@ -138,7 +181,9 @@ equiv :: proc(database_a, database_b: ^Database) -> bool
 Convert a relative path string (relative to the directory of the executable) to an absolute path string.
 
 ```c
-relpath_to_path :: proc(relpath: string, allocator: rt.Allocator) -> (path: string)
+relpath_to_path :: proc(
+	relpath: string,
+	allocator: rt.Allocator) -> (path: string)
 ```
 
 #### `relpath_to_source_path`
@@ -146,7 +191,10 @@ relpath_to_path :: proc(relpath: string, allocator: rt.Allocator) -> (path: stri
 Convert a relative path string (relative to the source directory of the database) to an absolute path string.
 
 ```c
-relpath_to_source_path :: proc(database: ^Database, relpath: string, allocator: rt.Allocator) -> (path: string)
+relpath_to_source_path :: proc(
+	database: ^Database,
+	relpath: string,
+	allocator: rt.Allocator) -> (path: string)
 ```
 
 #### `path_to_relpath`
@@ -154,7 +202,9 @@ relpath_to_source_path :: proc(database: ^Database, relpath: string, allocator: 
 Convert an absolute path string to a relative path string (relative to the directory of the executable).
 
 ```c
-path_to_relpath :: proc(path: string, allocator: rt.Allocator) -> (relpath: string)
+path_to_relpath :: proc(
+	path: string,
+	allocator: rt.Allocator) -> (relpath: string)
 ```
 
 #### `make_or_read_database`
@@ -162,7 +212,9 @@ path_to_relpath :: proc(path: string, allocator: rt.Allocator) -> (relpath: stri
 Check if a database exists at the given relative path. If it exists, read it; If it does not exist, construct a new one.
 
 ```c
-make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database)
+make_or_read_database :: proc(
+	config: Database_Config,
+	allocator: rt.Allocator) -> (database: Database)
 ```
 
 #### `read`
@@ -170,13 +222,17 @@ make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) 
 Read the database at the given relative path.
 
 ```c
-read :: proc(relpath: string, allocator: rt.Allocator) -> (database: Database)
+read :: proc(
+	relpath: string,
+	allocator: rt.Allocator) -> (database: Database)
 ```
 
 #### `write`
 
 ```c
-compress_and_write :: proc(database: ^Database, allocator: rt.Allocator)
+compress_and_write :: proc(
+	database: ^Database,
+	allocator: rt.Allocator)
 ```
 
 #### `remove_database`
@@ -184,19 +240,24 @@ compress_and_write :: proc(database: ^Database, allocator: rt.Allocator)
 Remove the database file from disk.
 
 ```c
-remove_database :: proc(database: ^Database) -> (err: os.Error)
+remove_database :: proc(
+	database: ^Database) -> (err: os.Error)
 ```
 
 #### `url_join`
 
 ```c
-url_join :: proc(urls: []URL, allocator: rt.Allocator) -> URL
+url_join :: proc(
+	urls: []URL,
+	allocator: rt.Allocator) -> URL
 ```
 
 #### `url_split`
 
 ```c
-url_split :: proc(url: URL, allocator: rt.Allocator) -> (res: []string)
+url_split :: proc(
+	url: URL,
+	allocator: rt.Allocator) -> (res: []string)
 ```
 
 #### `relpath_from_url`
@@ -204,7 +265,10 @@ url_split :: proc(url: URL, allocator: rt.Allocator) -> (res: []string)
 Get the relative path (relative to the source directory of the database) of the source of the entry with the given URL.
 
 ```c
-relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string)
+relpath_from_url :: proc(
+	database: ^Database,
+	url: URL,
+	allocator: rt.Allocator) -> (path: string)
 ```
 
 #### `path_from_url`
@@ -212,7 +276,10 @@ relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator)
 Get the absolute path of the source of the entry with the given URL.
 
 ```c
-path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string)
+path_from_url :: proc(
+	database: ^Database,
+	url: URL,
+	allocator: rt.Allocator) -> (path: string)
 ```
 
 #### `entry_outdated`
@@ -220,7 +287,9 @@ path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) ->
 Check if the source of the given entry has been updated since the entry was imported to the database.
 
 ```c
-entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool)
+entry_outdated :: proc(
+	database: ^Database,
+	entry: ^Entry) -> (outdated: bool)
 ```
 
 #### `entry_update`
@@ -228,7 +297,9 @@ entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool)
 Update the contents of an entry.
 
 ```c
-entry_update :: proc(entry: ^Entry, data: []u8, modification_time: tm.Time)
+entry_update :: proc(
+	entry: ^Entry,
+	config: Entry_Config)
 ```
 
 #### `url_search_source`
@@ -236,5 +307,8 @@ entry_update :: proc(entry: ^Entry, data: []u8, modification_time: tm.Time)
 Get the path of the first file in the database's source directory that has the a name matching the given URL.
 
 ```c
-url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string, err: os.Error)
+url_search_source :: proc(
+	database: ^Database,
+	url: URL,
+	allocator: rt.Allocator) -> (path: string, err: os.Error)
 ```

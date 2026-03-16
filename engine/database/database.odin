@@ -22,6 +22,7 @@ URL :: distinct string
 MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
 Database_Binary_Header :: struct {
 	magic_number: u32,
+	// spec_modification_time: tm.Time,
 	n_entries: u32 }
 
 // Database binary:
@@ -34,14 +35,19 @@ Database_Config :: struct {
 
 Database :: struct {
 	using config: Database_Config,
+	// spec_modification_time: tm.Time,
 	entries: [dynamic]Entry,
-	entries_map: map[URL]^Entry }
+	entries_map: map[URL]^Entry,
+	spec_updated: bool }
 
-Entry :: struct {
+Entry_Config :: struct {
 	url: URL,
 	modification_time: tm.Time,
 	compressed: b8,
 	data: []u8 }
+
+Entry :: struct {
+	using config: Entry_Config }
 
 // TODO: Add a *compression kind* field, which selects between LZ4 and QOI.
 
@@ -80,14 +86,23 @@ entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: boo
 contains_entry :: proc(database: ^Database, url: URL) -> bool {
 	return url in database.entries_map }
 
-add_entry :: proc(database: ^Database, entry: Entry) -> (entry_ptr: ^Entry, err: os.Error) {
-	if len(entry.data) == 0 {
-		log.errorf("Attempt to add entry %s with no data.", entry.url)
+add_entry :: proc(database: ^Database, entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error) {
+	if len(entry_config.data) == 0 {
+		log.errorf("Attempt to add entry %s with no data.", entry_config.url)
 		return nil, os.General_Error.Not_Exist }
-	append_elem(&database.entries, entry) or_return
+	if contains_entry(database, entry_config.url) {
+		log.errorf("Cannot add entry %s to database. Already exists", entry_config.url)
+		return nil, os.General_Error.Exist }
+	append_elem(&database.entries, Entry{ config = entry_config }) or_return
 	index := len(database.entries) - 1
 	entry := &database.entries[index]
 	return map_insert(&database.entries_map, entry.url, entry)^, os.General_Error.None }
+
+add_or_update_entry :: proc(database: ^Database, entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error) {
+	if contains_entry(database, entry_config.url) {
+		entry_update(database.entries_map[entry_config.url], entry_config)
+		return database.entries_map[entry_config.url], os.General_Error.None }
+	else do return add_entry(database, entry_config) }
 
 remove_entry :: proc(database: ^Database, entry: ^Entry) {
 	index: int = -1
@@ -175,12 +190,12 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 read :: read_and_decompress
 read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
 	database = _read_without_decompressing(config, allocator = allocator)
-	decompress(&database, allocator = allocator)
+	_decompress(&database, allocator = allocator)
 	return database }
 
 write :: compress_and_write
 compress_and_write :: proc(database: ^Database, allocator: rt.Allocator) {
-	compress(database, allocator = allocator)
+	_compress(database, allocator = allocator)
 	_write_without_compressing(database, allocator = allocator) }
 
 _write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) {
@@ -213,7 +228,7 @@ _compress_bytes :: proc(bytes: []u8, allocator: rt.Allocator) -> (compressed_byt
 	return compressed_bytes }
 
 _decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (bytes: []u8) {
-	estimated_compression_ratio: f32 = 0.5
+	estimated_compression_ratio: f32 = 0.35
 	for {
 		decompress_bound: i32 = cast(i32)(cast(f32)len(compressed_bytes) / estimated_compression_ratio)
 		bytes_buffer: []u8 = make([]u8, cast(int)decompress_bound, allocator)
@@ -227,7 +242,7 @@ _decompress_bytes :: proc(compressed_bytes: []u8, allocator: rt.Allocator) -> (b
 		delete(bytes_buffer, allocator)
 		return bytes } }
 
-compress :: proc(database: ^Database, allocator: rt.Allocator) {
+_compress :: proc(database: ^Database, allocator: rt.Allocator) {
 	for &entry in database.entries do if ! entry.compressed {
 		if len(entry.data) == 0 do log.warnf("Entry %s has no data.", entry.url)
 		compress_data: []u8 = _compress_bytes(entry.data, allocator = allocator)
@@ -235,7 +250,7 @@ compress :: proc(database: ^Database, allocator: rt.Allocator) {
 		entry.data = compress_data
 		entry.compressed = true } }
 
-decompress :: proc(database: ^Database, allocator: rt.Allocator) {
+_decompress :: proc(database: ^Database, allocator: rt.Allocator) {
 	for &entry in database.entries do if entry.compressed {
 		data: []u8 = _decompress_bytes(entry.data, allocator = allocator)
 		delete(entry.data, allocator = allocator)
@@ -280,10 +295,9 @@ entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	if err != nil do return false
 	return tm.diff(entry.modification_time, modification_time) > 0 }
 
-entry_update :: proc(entry: ^Entry, data: []u8, modification_time: tm.Time) {
+entry_update :: proc(entry: ^Entry, config: Entry_Config) {
 	if entry.data != nil do delete(entry.data)
-	entry.data = data
-	entry.modification_time = modification_time }
+	entry.config = config }
 
 @(require_results)
 url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string, err: os.Error) {

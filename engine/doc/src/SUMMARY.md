@@ -6,3 +6,4 @@
   - [Database](./API/database.md)
   - [Container](./API/container.md)
   - [Graphics](./API/graphics.md)
+  - [Model](./API/model.md)

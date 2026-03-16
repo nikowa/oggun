@@ -37,17 +37,19 @@ import_or_retreive_image :: proc(database: ^db.Database, url: db.URL, allocator:
 	bytes: []u8
 
 	entry, ok = db.entry_from_url(database, url)
-	if ok do image = deserialize(entry.data, allocator) or_return
+	if ok do if db.entry_outdated(database, entry) do ok = false
+	if ok do image = image_deserialize(entry.data, allocator) or_return
 	else {
+		log.infof("Reading image %s from source.", url)
 		path = db.url_search_source(database, url, allocator) or_return
 		image = load_from_path(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
-		bytes = serialize(&image, allocator) or_return
-		db.add_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
+		bytes = image_serialize(&image, allocator) or_return
+		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
 	return image, os.General_Error.None }
 
 @(require_results)
-serialize :: proc(image: ^Image, allocator: rt.Allocator) -> (bytes: []u8, err: os.Error) {
+image_serialize :: proc(image: ^Image, allocator: rt.Allocator) -> (bytes: []u8, err: os.Error) {
 	buffer: b.Buffer
 	n: int
 
@@ -57,7 +59,7 @@ serialize :: proc(image: ^Image, allocator: rt.Allocator) -> (bytes: []u8, err: 
 	return slc.clone(b.buffer_to_bytes(&buffer), allocator), os.General_Error.None }
 
 @(require_results)
-deserialize :: proc(bytes: []u8, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
+image_deserialize :: proc(bytes: []u8, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
 	reader: b.Reader
 	n: int
 

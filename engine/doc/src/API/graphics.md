@@ -10,6 +10,8 @@ Image :: struct {
 	using image: im.Image }
 ```
 
+### Procedures
+
 #### `image_equiv`
 
 ```c
@@ -29,22 +31,22 @@ import_or_retreive_image :: proc(
 	allocator: rt.Allocator) -> (image: Image, err: os.Error)
 ```
 
-#### `serialize`
+#### `image_serialize`
 
 Serialize an `Image` object.
 
 ```c
-serialize :: proc(
+image_serialize :: proc(
 	image: ^Image,
 	allocator: rt.Allocator) -> (bytes: []u8, err: os.Error)
 ```
 
-#### `deserialize`
+#### `image_deserialize`
 
 Deserialize an `Image` object.
 
 ```c
-deserialize :: proc(
+image_deserialize :: proc(
 	bytes: []u8,
 	allocator: rt.Allocator) -> (image: Image, err: os.Error)
 ```

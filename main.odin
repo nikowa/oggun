@@ -1,5 +1,6 @@
 package game
 import base "engine/base"
+import os "core:os"
 import fmt "core:fmt"
 import mem "core:mem"
 import log "core:log"
@@ -7,6 +8,7 @@ import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
 import r "engine/container/rect"
+import mdl "engine/model"
 // import mdl "engine/model"
 
 
@@ -35,20 +37,22 @@ main :: proc() {
 	// y0: ^u32 = new(u32)
 	// y1: ^u32 = new(u32)
 
-	base.start(entry_point, n_workers_override = 1)
-}
-
+	base.start(entry_point, n_workers_override = 1) }
 
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	entry: ^db.Entry
 	ok: bool
 	image: gx.Image
+	model: mdl.Model
+	err: os.Error
 
 	context.logger = log.create_console_logger()
 	fmt.println(thread_data.index)
 	database = db.make_or_read_database({ "Data.bin", "data" }, context.allocator)
 	gx.graphics_init(&graphics_context, &database, "Willow")
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
+	model, err = mdl.load_from_path(db.relpath_to_path("data/castle.glb", context.allocator), context.allocator)
+	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	for ! graphics_context.window_closed {
 		ipt.input_tick(&input_context)
