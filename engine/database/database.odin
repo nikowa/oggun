@@ -22,7 +22,7 @@ URL :: distinct string
 MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
 Database_Binary_Header :: struct {
 	magic_number: u32,
-	// spec_modification_time: tm.Time,
+	spec_modification_time: tm.Time,
 	n_entries: u32 }
 
 // Database binary:
@@ -35,7 +35,7 @@ Database_Config :: struct {
 
 Database :: struct {
 	using config: Database_Config,
-	// spec_modification_time: tm.Time,
+	spec_modification_time: tm.Time,
 	entries: [dynamic]Entry,
 	entries_map: map[URL]^Entry,
 	spec_updated: bool }
@@ -162,6 +162,7 @@ make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) 
 _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
 	data: []u8
 	err: os.Error
+
 	database.config = config
 	data, err = os.read_entire_file_from_path(relpath_to_path(config.relpath, allocator), allocator = allocator)
 	assert(err == nil)
@@ -170,6 +171,8 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	binary_header: Database_Binary_Header
 	b.reader_read_ptr(&reader, &binary_header, size_of(binary_header))
 	assert(binary_header.magic_number == MAGIC_NUMBER)
+	database.spec_modification_time = binary_header.spec_modification_time
+	_check_spec_modification_time(&database)
 	database.entries = make_dynamic_array([dynamic]Entry, allocator = allocator)
 	for i in 0 ..< binary_header.n_entries {
 		entry: Entry
@@ -201,8 +204,10 @@ compress_and_write :: proc(database: ^Database, allocator: rt.Allocator) {
 _write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) {
 	err: io.Error
 	buffer: b.Buffer
+
+	if database.spec_updated do database.spec_updated = false
 	b.buffer_init_allocator(&buffer, 0, 32 * mem.Megabyte, allocator = allocator)
-	binary_header: Database_Binary_Header = { magic_number = MAGIC_NUMBER, n_entries = cast(u32)len(database.entries) }
+	binary_header: Database_Binary_Header = { magic_number = MAGIC_NUMBER, spec_modification_time = database.spec_modification_time, n_entries = cast(u32)len(database.entries) }
 	_, err = b.buffer_write_ptr(&buffer, &binary_header, size_of(binary_header)); assert(err == nil)
 	for &entry, i in database.entries {
 		url_len: u8 = cast(u8)len(entry.url)
@@ -267,6 +272,7 @@ url_split :: proc(url: URL, allocator: rt.Allocator) -> (res: []string) {
 URL_TYPE_EXTENSIONS :: [?][2]string {
 	{ "shader", "glsl" },
 	{ "image", "png" },
+	{ "model", "glb" },
 	{ "audio-mp3", "mp3" } }
 
 relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string) {
@@ -289,7 +295,7 @@ path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) ->
 
 entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	if entry == nil do return true
-	assert(entry.url != "")
+	if database.spec_updated do return true
 	path := path_from_url(database, entry.url, context.temp_allocator)
 	modification_time, err := os.modification_time_by_path(path)
 	if err != nil do return false
@@ -310,3 +316,27 @@ url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator
 	file_infos = os.read_directory_by_path(source_directory_path, -1, context.temp_allocator) or_return
 	for file_info in file_infos do if sp.name(file_info.name, false, context.temp_allocator) == url_name do return str.clone(file_info.fullpath, allocator), os.General_Error.None
 	return "", os.General_Error.Not_Exist }
+
+@(private="file")
+_check_spec_modification_time :: proc(database: ^Database) -> (err: os.Error) {
+	engine_path, source_path: string
+	latest_modification_time, modification_time: tm.Time
+	source_paths: [2]string
+
+	latest_modification_time = database.spec_modification_time
+	engine_path = sp.dir(sp.dir(#file, context.temp_allocator), context.temp_allocator)
+	source_paths = {
+		os.join_path({ engine_path, "graphics" }, context.temp_allocator) or_return,
+		os.join_path({ engine_path, "model" }, context.temp_allocator) or_return }
+	source_paths = {
+		os.join_path({ source_paths[0], "image.odin" }, context.temp_allocator) or_return,
+		os.join_path({ source_paths[1], "model.odin" }, context.temp_allocator) or_return }
+	for source_path in source_paths {
+		modification_time = os.modification_time_by_path(source_path) or_return
+		if tm.diff(latest_modification_time, modification_time) > 0 {
+			latest_modification_time = modification_time } }
+	if tm.diff(database.spec_modification_time, latest_modification_time) > 0 {
+		database.spec_updated = true
+		log.info("Engine spec updated. Forcing re-import of all assets.") }
+	database.spec_modification_time = latest_modification_time
+	return os.General_Error.None }
