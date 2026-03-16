@@ -1,5 +1,5 @@
-#include <types.glsl>
-#include <sdf.glsl>
+#include <types>
+#include <sdf>
 
 
 

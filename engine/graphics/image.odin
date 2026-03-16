@@ -42,7 +42,7 @@ import_or_retreive_image :: proc(database: ^db.Database, url: db.URL, allocator:
 	else {
 		log.infof("Reading image %s from source.", url)
 		path = db.url_search_source(database, url, allocator) or_return
-		image = load_from_path(path, url, allocator) or_return
+		image = load_image_from_path(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = image_serialize(&image, allocator) or_return
 		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
@@ -71,7 +71,7 @@ image_deserialize :: proc(bytes: []u8, allocator: rt.Allocator) -> (image: Image
 	return image, os.General_Error.None }
 
 @(require_results)
-load_from_path :: proc(path: string, url: db.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
+load_image_from_path :: proc(path: string, url: db.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
 	ext: string
 	image_temp: ^im.Image
 	image_err: im.Error
@@ -96,7 +96,7 @@ load_from_path :: proc(path: string, url: db.URL, allocator: rt.Allocator) -> (i
 	free(image_temp)
 	return image, os.General_Error.None }
 
-upload_image :: proc(graphics_context: ^Graphics_Context, image: ^Image) -> bool {
+upload_image :: proc(image: ^Image) -> bool {
 	if image.handle != 0 do download_image(image)
 	gl.GenTextures(1, &image.handle)
 	gl.BindTexture(gl.TEXTURE_2D, image.handle)

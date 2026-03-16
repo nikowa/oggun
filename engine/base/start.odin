@@ -1,15 +1,11 @@
 #+feature using-stmt
 package base
 import rt "base:runtime"
-import "core:fmt"
+import fmt "core:fmt"
 import tr "core:thread"
-import sn "core:sync"
-import q "core:container/queue"
-import l "core:container/intrusive/list"
 import win "core:sys/windows"
-import "core:math/rand"
-import "shared:ranked_mutex"
-import ts "../container/two_stack"
+import log "core:log"
+
 
 
 worker_proc :: proc(data: rawptr) {
@@ -18,6 +14,7 @@ worker_proc :: proc(data: rawptr) {
 
 
 start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
+	log.info("Starting engine.")
 
 	////////////////////////////
 	// Determine worker count //

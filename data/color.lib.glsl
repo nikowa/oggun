@@ -1,5 +1,5 @@
-#include <types.glsl>
-#include <util.glsl>
+#include <types>
+#include <util>
 
 
 

@@ -1,4 +1,4 @@
-#include <cubemap.glsl>
+#include <cubemap>
 
 
 const float constant1_FON = 0.5 - 2.0 / (3.0 * PI);

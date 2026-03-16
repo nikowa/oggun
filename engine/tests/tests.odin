@@ -142,7 +142,7 @@ image_test :: proc(t_context: ^tst.T) {
 	relpath = "data/dev-colors.png"
 	url = "image:dev-colors"
 	path = db.relpath_to_path(relpath, allocator)
-	image, err = gx.load_from_path(path, url, allocator)
+	image, err = gx.load_image_from_path(path, url, allocator)
 	tst.expect(t_context, err == nil)
 	bytes, err = gx.image_serialize(&image, allocator)
 	tst.expect(t_context, err == nil)
@@ -173,3 +173,29 @@ micro_pair_test :: proc(t_context: ^tst.T) {
 	tst.expect(t_context, ! mp.is_empty(mp.from_rawptr(context.user_ptr)))
 	tst.expect(t_context, mp.from_rawptr(context.user_ptr)[0] == 0)
 	tst.expect(t_context, mp.from_rawptr(context.user_ptr)[1] == 1) }
+
+@(test)
+model_test :: proc(t_context: ^tst.T) {
+	allocator: rt.Allocator
+	model: gx.Model
+	deserialized_model: gx.Model
+	relpath: string
+	path: string
+	url: db.URL
+	err: os.Error
+	bytes: []u8
+
+	allocator = context.temp_allocator
+
+	// serialize/deserialize test //
+	relpath = "data/castle.glb"
+	url = "model:castle"
+	path = db.relpath_to_path(relpath, allocator)
+	model, err = gx.load_model_from_path(path, url, allocator)
+	tst.expect(t_context, err == nil)
+	bytes, err = gx.model_serialize(&model, allocator)
+	tst.expect(t_context, err == nil)
+	deserialized_model, err = gx.model_deserialize(bytes, allocator)
+	tst.expect(t_context, err == nil)
+	tst.expect(t_context, gx.model_equiv(&model, &deserialized_model))
+	free_all(allocator) }

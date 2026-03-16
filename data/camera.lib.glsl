@@ -1,4 +1,4 @@
-#include <types.glsl>
+#include <types>
 
 
 const vec3 CAMERA_DEFAULT_POSITION=vec3(0);

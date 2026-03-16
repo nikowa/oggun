@@ -9,6 +9,16 @@ Model :: struct {
 	... }
 ```
 
+#### `model_equiv`
+
+Check if two models are equivalent.
+
+```c
+model_equiv :: proc(
+	a: ^Model,
+	b: ^Model) -> bool
+```
+
 #### `import_or_retreive_model`
 
 Get a model from the database by URL. If no such model exists, load it from file and add to the database.
@@ -55,7 +65,6 @@ Upload model to GPU memory.
 
 ```c
 upload_model :: proc(
-	graphics_context: ^Graphics_Context,
 	model: ^Model) -> bool
 ```
 

@@ -163,6 +163,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	data: []u8
 	err: os.Error
 
+	log.infof("Reading database \"%s\".", config.relpath)
 	database.config = config
 	data, err = os.read_entire_file_from_path(relpath_to_path(config.relpath, allocator), allocator = allocator)
 	assert(err == nil)
@@ -187,6 +188,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 		_, err = b.reader_read_ptr(&reader, &data_len, size_of(data_len)); assert(err == nil)
 		entry.data = make([]u8, data_len, allocator)
 		_, err = b.reader_read_slice(&reader, entry.data); assert(err == nil)
+		log.infof("Reading entry \"%s\".", entry.url)
 		add_entry(&database, entry) }
 	return database }
 

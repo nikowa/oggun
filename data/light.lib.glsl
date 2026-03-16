@@ -1,9 +1,9 @@
-#include <types.glsl>
-#include <noise.glsl>
-#include <csdf.glsl>
-#include <color.glsl>
-#include <uv.glsl>
-#include <cubemap.glsl>
+#include <types>
+#include <noise>
+#include <csdf>
+#include <color>
+#include <uv>
+#include <cubemap>
 
 
 

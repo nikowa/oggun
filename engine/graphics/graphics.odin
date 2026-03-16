@@ -59,7 +59,7 @@ Graphics_Context :: struct {
 // 	point_shader:                    ^Point_Shader,
 // 	line_shader:                     ^Line_Shader,
 // 	physics_shader:                  ^Physics_Shader,
-// 	model_shader:                    ^Model_Shader,
+	model_shader: ^Model_Shader,
 // 	panel_shader:                    ^Panel_Shader,
 // 	water_effect_shader:             ^Water_Effect_Shader,
 // 	sdf_shader:                      ^SDF_Shader,
@@ -232,6 +232,8 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	graphics_context.shaders = make([dynamic]^Shader, 0, 16)
 	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "shader:vrect", frag_url = "shader:frect" }) or_return
 	graphics_context.image_shader = make_shader(graphics_context, database, Image_Shader, { name = "image", vert_url = "shader:vrect", frag_url = "shader:fimage" }) or_return
+	graphics_context.model_shader = make_shader(graphics_context, database, Model_Shader, { name = "model", vert_url = "shader:vmodel", frag_url = "shader:fmodel" }) or_return
+	// graphics_context.model_shader                = make_shader(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// graphics_context.buffer_shader               = make_shader(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// graphics_context.upscale_pass1_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
 	// graphics_context.upscale_pass2_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass2_Shader,        "vfill",    "fupscale-pass2")
@@ -241,7 +243,6 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	// graphics_context.point_shader                = make_shader(draw, working_directory_path, "point",                Point_Shader,                "vpoint",   "fpoint")
 	// graphics_context.line_shader                 = make_shader(draw, working_directory_path, "line",                 Line_Shader,                 "vline",    "fline")
 	// graphics_context.physics_shader              = make_shader(draw, working_directory_path, "physics",              Physics_Shader,              "vframe",   "fphysics")
-	// graphics_context.model_shader                = make_shader(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// graphics_context.panel_shader                = make_shader(draw, working_directory_path, "panel",                Panel_Shader,                "vrect",    "fpanel")
 	// graphics_context.water_effect_shader         = make_shader(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
 	// graphics_context.sdf_shader                  = make_shader(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
@@ -638,7 +639,7 @@ render_rect :: proc(graphics_context: ^Graphics_Context, rect: r.Rect, fill_colo
 	draw_triangles(6) }
 
 render_image :: proc(graphics_context: ^Graphics_Context, image: ^Image, rect: r.Rect, depth: f32 = 0.0) {
-	if ! image_loaded(image) do upload_image(graphics_context, image)
+	if ! image_loaded(image) do upload_image(image)
 	shader := use_shader(graphics_context.image_shader)
 	gl.BindVertexArray(graphics_context.vertex_array)
 	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_context.vertex_buffer)

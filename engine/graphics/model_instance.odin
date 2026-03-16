@@ -1,5 +1,5 @@
 #+feature using-stmt
-package model
+package graphics
 import fmt "core:fmt"
 import os "core:os"
 import gl "vendor:OpenGL"

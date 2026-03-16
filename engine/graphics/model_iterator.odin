@@ -1,5 +1,5 @@
 #+feature using-stmt
-package model
+package graphics
 import fmt "core:fmt"
 import la "core:math/linalg"
 

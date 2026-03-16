@@ -1,9 +1,9 @@
 #+feature using-stmt
-package model
+package graphics
 import rt "base:runtime"
 import fmt "core:fmt"
 import os "core:os"
-import sl "core:slice"
+import slc "core:slice"
 import m "core:math"
 import la "core:math/linalg"
 import mem "core:mem"
@@ -13,26 +13,34 @@ import gltf "shared:gltf2"
 import log "core:log"
 import db "../database"
 import t "core:time"
+import b "core:bytes"
 
 
+
+MODEL_MEMORY_CAP :: 16 * rt.Megabyte
 
 Model :: struct {
 	url: db.URL,
-	arena: mem.Arena, // TODO: Where is this initialized?
+	arena: mem.Arena,
 	positions_handle: u32,
 	normals_handle: u32,
 	texcoords_handle: u32,
 	lightmap_texcoords_handle: u32,
-	positions: [dynamic]f32,
-	normals: [dynamic]f32,
-	texcoords: [dynamic]f32,
-	lightmap_texcoords: [dynamic]f32,
+	positions: []f32,
+	normals: []f32,
+	texcoords: []f32,
+	lightmap_texcoords: []f32,
 // 	material: ^Material,
 // 	triangles_map: Texture,
 // thickness_map: Texture
 }
 
-
+model_equiv :: proc(a: ^Model, b: ^Model) -> bool {
+	return (a.url == b.url) &&
+		slc.equal(a.positions, b.positions) &&
+		slc.equal(a.normals, b.normals) &&
+		slc.equal(a.texcoords, b.texcoords) &&
+		slc.equal(a.lightmap_texcoords, b.lightmap_texcoords) }
 
 // model_position :: proc(model: ^Model, point_index: int) -> (position: [3]f32) {
 // 	STRIDE :: 3; return { model.positions[point_index * STRIDE + 0], model.positions[point_index * STRIDE + 1], model.positions[point_index * STRIDE + 2] } }
@@ -59,29 +67,48 @@ import_or_retreive_model :: proc(
 	if ok do if db.entry_outdated(database, entry) do ok = false
 	if ok do model = model_deserialize(entry.data, allocator) or_return
 	else {
-		// log.infof("Reading image %s from source.", url)
-		// path = db.url_search_source(database, url, allocator) or_return
-		// image = load_from_path(path, url, allocator) or_return
-		// modification_time = os.modification_time_by_path(path) or_return
-		// bytes = image_serialize(&image, allocator) or_return
-		// db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time)) or_return
-	}
+		log.infof("Reading model %s from source.", url)
+		path = db.url_search_source(database, url, allocator) or_return
+		model = load_model_from_path(path, url, allocator) or_return
+		modification_time = os.modification_time_by_path(path) or_return
+		bytes = model_serialize(&model, allocator) or_return
+		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
 	return model, os.General_Error.None }
 
-// model_serialize :: proc(
-//     model: ^Model,
-//     allocator: rt.Allocator) -> (bytes: []u8, err: os.Error) {
-// }
+model_serialize :: proc(
+    model: ^Model,
+    allocator: rt.Allocator) -> (bytes: []u8, err: os.Error) {
+	buffer: b.Buffer
+
+	b.buffer_init_allocator(&buffer, 0, MODEL_MEMORY_CAP, context.temp_allocator)
+	b.buffer_write_ptr(&buffer, model, size_of(model^)) or_return
+	b.buffer_write_slice(&buffer, model.positions[:]) or_return
+	b.buffer_write_slice(&buffer, model.normals[:]) or_return
+	b.buffer_write_slice(&buffer, model.texcoords[:]) or_return
+	b.buffer_write_slice(&buffer, model.lightmap_texcoords[:]) or_return
+	return slc.clone(b.buffer_to_bytes(&buffer), allocator), os.General_Error.None }
 
 model_deserialize :: proc(
-    bytes: []u8,
-    allocator: rt.Allocator) -> (model: Model, err: os.Error) {
-	return
-}
+	bytes: []u8,
+	allocator: rt.Allocator) -> (model: Model, err: os.Error) {
+	reader: b.Reader
 
-load_from_path :: proc(
-    path: string,
-    allocator: rt.Allocator) -> (model: Model, err: os.Error) {
+	b.reader_init(&reader, bytes)
+	b.reader_read_ptr(&reader, &model, size_of(model)) or_return
+	model.positions = make([]f32, len(model.positions), allocator) or_return
+	model.normals = make([]f32, len(model.normals), allocator) or_return
+	model.texcoords = make([]f32, len(model.texcoords), allocator) or_return
+	model.lightmap_texcoords = make([]f32, len(model.lightmap_texcoords), allocator) or_return
+	b.reader_read_slice(&reader, model.positions) or_return
+	b.reader_read_slice(&reader, model.normals) or_return
+	b.reader_read_slice(&reader, model.texcoords) or_return
+	b.reader_read_slice(&reader, model.lightmap_texcoords) or_return
+	return model, os.General_Error.None }
+
+load_model_from_path :: proc(
+	path: string,
+	url: db.URL,
+	allocator: rt.Allocator) -> (model: Model, err: os.Error) {
 	ext: string
 
 	if ! os.exists(path) {
@@ -89,15 +116,14 @@ load_from_path :: proc(
 		return {}, os.General_Error.Not_Exist }
 	ext = os.ext(path)
 	switch ext {
-	case ".glb": return _load_from_path_gltf(path, allocator)
+	case ".glb": return _load_model_from_path_gltf(path, url, allocator)
 	case: log.errorf("Model path %s has unsupported extension.", path) }
 	return {}, os.General_Error.Invalid_Path }
 
-MODEL_MEMORY_CAP :: 16 * rt.Megabyte
-
 // TODO: Add a version of this that load to scene tree, rather than a model.
-_load_from_path_gltf :: proc(
+_load_model_from_path_gltf :: proc(
     path: string,
+    url: db.URL,
     allocator: rt.Allocator) -> (model: Model, err: os.Error) {
 	mesh: gltf.Mesh
 	data: ^gltf.Data
@@ -107,6 +133,7 @@ _load_from_path_gltf :: proc(
 	ok: bool
 	attributes: ^map[string]gltf.Integer
 	mesh_accessor, indices_accessor, material_accessor, position_accessor, normal_accessor, texcoord_accessor, lightmap_texcoord_accessor: gltf.Integer
+	n: int
 
 	mem.arena_init(&model.arena, make([]u8, MODEL_MEMORY_CAP))
     err = os.General_Error.Invalid_File
@@ -120,7 +147,8 @@ _load_from_path_gltf :: proc(
 	mesh_name, ok = mesh.name.?; if ! ok do return
 	log.infof("Importing mesh \"%s\".", mesh_name)
 	context.allocator = mem.arena_allocator(&model.arena)
-	model.url = db.url_join({ "model", cast(db.URL)mesh_name }, allocator)
+	model.url = url
+	// model.url = db.url_join({ "model", cast(db.URL)mesh_name }, allocator)
 	if (len(mesh.primitives) != 1) || mesh.primitives[0].mode != .Triangles do return
 	primitive = &mesh.primitives[0]
 	attributes = &primitive.attributes
@@ -132,10 +160,6 @@ _load_from_path_gltf :: proc(
 	texcoord_accessor = attributes["TEXCOORD_0"]
 	lightmap_texcoord_accessor = attributes["TEXCOORD_1"]
 	if (data.accessors[position_accessor].normalized) || (data.accessors[normal_accessor].normalized) || (data.accessors[texcoord_accessor].normalized) || (data.accessors[lightmap_texcoord_accessor].normalized) do return
-	model.positions = make([dynamic]f32)
-	model.normals = make([dynamic]f32)
-	model.texcoords = make([dynamic]f32)
-	model.lightmap_texcoords = make([dynamic]f32)
 	positions_data: [][3]f32
 	normals_data: [][3]f32
 	texcoords_data: [][2]f32
@@ -152,23 +176,19 @@ _load_from_path_gltf :: proc(
 	if ! ok {
 		log.errorf("Mesh %s has no indices.", mesh_name)
 		return }
+	POSITIONS_STRIDE :: 3
+	NORMALS_STRIDE :: 3
+	TEXCOORDS_STRIDE :: 2
+	n = len(indices_data)
+	model.positions = make([]f32, POSITIONS_STRIDE * n)
+	model.normals = make([]f32, NORMALS_STRIDE * n)
+	model.texcoords = make([]f32, TEXCOORDS_STRIDE * n)
+	model.lightmap_texcoords = make([]f32, TEXCOORDS_STRIDE * n)
 	for i in indices_data {
-		append_elems(&model.positions, positions_data[i].x, positions_data[i].y, positions_data[i].z)
-		append_elems(&model.normals, normals_data[i].x, normals_data[i].y, normals_data[i].z)
-		append_elems(&model.texcoords, texcoords_data[i].x, texcoords_data[i].y)
-		append_elems(&model.lightmap_texcoords, lightmap_texcoords_data[i].x, lightmap_texcoords_data[i].y) }
-	// gl.GenBuffers(1, &model.positions_handle)
-	// gl.GenBuffers(1, &model.normals_handle)
-	// gl.GenBuffers(1, &model.texcoords_handle)
-	// gl.GenBuffers(1, &model.lightmap_texcoords_handle)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, model.positions_handle)
-	// gl.BufferData(gl.ARRAY_BUFFER, len(model.positions) * size_of(f32), &model.positions[0], gl.STATIC_DRAW)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, model.normals_handle)
-	// gl.BufferData(gl.ARRAY_BUFFER, len(model.normals) * size_of(f32), &model.normals[0], gl.STATIC_DRAW)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, model.texcoords_handle)
-	// gl.BufferData(gl.ARRAY_BUFFER, len(model.texcoords) * size_of(f32), &model.texcoords[0], gl.STATIC_DRAW)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, model.lightmap_texcoords_handle)
-	// gl.BufferData(gl.ARRAY_BUFFER, len(model.lightmap_texcoords) * size_of(f32), &model.lightmap_texcoords[0], gl.STATIC_DRAW)
+		copy(model.positions[POSITIONS_STRIDE * i : POSITIONS_STRIDE * (i + 1)], positions_data[i][:])
+		copy(model.normals[NORMALS_STRIDE * i : NORMALS_STRIDE * (i + 1)], normals_data[i][:])
+		copy(model.texcoords[TEXCOORDS_STRIDE * i : TEXCOORDS_STRIDE * (i + 1)], texcoords_data[i][:])
+		copy(model.lightmap_texcoords[TEXCOORDS_STRIDE * i : TEXCOORDS_STRIDE * (i + 1)], lightmap_texcoords_data[i][:]) }
 	// glb_material := &data.materials[material_accessor]
 	// assert(glb_material.metallic_roughness != nil)
 	// material_matellic_roughness := glb_material.metallic_roughness.?
@@ -210,11 +230,29 @@ _load_from_path_gltf :: proc(
 	// resize_arena_to_content(&model.arena, MODEL_MEMORY_CAP)
 	return model, os.General_Error.None }
 
+upload_model :: proc(model: ^Model) -> bool {
+	if model.positions_handle != 0 do download_model(model)
+	gl.GenBuffers(1, &model.positions_handle)
+	gl.GenBuffers(1, &model.normals_handle)
+	gl.GenBuffers(1, &model.texcoords_handle)
+	gl.GenBuffers(1, &model.lightmap_texcoords_handle)
+	gl.BindBuffer(gl.ARRAY_BUFFER, model.positions_handle)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.positions) * size_of(f32), &model.positions[0], gl.STATIC_DRAW)
+	gl.BindBuffer(gl.ARRAY_BUFFER, model.normals_handle)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.normals) * size_of(f32), &model.normals[0], gl.STATIC_DRAW)
+	gl.BindBuffer(gl.ARRAY_BUFFER, model.texcoords_handle)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.texcoords) * size_of(f32), &model.texcoords[0], gl.STATIC_DRAW)
+	gl.BindBuffer(gl.ARRAY_BUFFER, model.lightmap_texcoords_handle)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.lightmap_texcoords) * size_of(f32), &model.lightmap_texcoords[0], gl.STATIC_DRAW)
+	return true }
+
+download_model :: proc(model: ^Model) {
+	gl.DeleteBuffers(1,&model.positions_handle)
+	gl.DeleteBuffers(1,&model.normals_handle)
+	gl.DeleteBuffers(1,&model.texcoords_handle)
+	gl.DeleteBuffers(1,&model.lightmap_texcoords_handle) }
+
 // delete_model::proc(model:^Model) {
-// 	gl.DeleteBuffers(1,&model.positions_handle)
-// 	gl.DeleteBuffers(1,&model.normals_handle)
-// 	gl.DeleteBuffers(1,&model.texcoords_handle)
-// 	gl.DeleteBuffers(1,&model.lightmap_texcoords_handle)
 // 	mem.arena_free_all(&model.arena)
 // 	delete(model.arena.data) }
 
@@ -276,7 +314,7 @@ _load_from_path_gltf :: proc(
 
 // // (DESC): Find the nearest UV-triangle to the given point in UV-space. //
 // texcoords_nearest_uv_triangle :: proc(texcoords: []f32, point: [2]f32) -> (nearest_triangle: UV_Triangle, nearest_index: int) {
-// 	uv_triangles := sl.reinterpret([][3][2]f32, texcoords)
+// 	uv_triangles := slc.reinterpret([][3][2]f32, texcoords)
 // 	nearest_distance: f32 = m.F32_MAX
 // 	nearest_index = -1
 // 	for triangle, index in uv_triangles {
@@ -368,19 +406,19 @@ _load_from_path_gltf :: proc(
 
 
 // model_triangle_positions :: proc(model: ^Model, triangle_index: int) -> (triangle_positions: [3][3]f32) {
-// 	triangles := sl.reinterpret([][3][3]f32, model.positions[:])
+// 	triangles := slc.reinterpret([][3][3]f32, model.positions[:])
 // 	if triangle_index < len(triangles) do return triangles[triangle_index]
 // 	else do return {} }
 
 
 // model_triangle_normals :: proc(model: ^Model, triangle_index: int) -> (triangle_normals: [3][3]f32) {
-// 	triangles := sl.reinterpret([][3][3]f32, model.normals[:])
+// 	triangles := slc.reinterpret([][3][3]f32, model.normals[:])
 // 	if triangle_index < len(triangles) do return triangles[triangle_index]
 // 	else do return {} }
 
 
 // model_triangle_texcoords :: proc(model: ^Model, triangle_index: int) -> (triangle_texcoords: [3][2]f32) {
-// 	triangles := sl.reinterpret([][3][2]f32, model.texcoords[:])
+// 	triangles := slc.reinterpret([][3][2]f32, model.texcoords[:])
 // 	if triangle_index < len(triangles) do return triangles[triangle_index]
 // 	else do return {} }
 

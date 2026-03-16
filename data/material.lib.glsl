@@ -1,8 +1,8 @@
-#include <types.glsl>
-#include <color.glsl>
-#include <substance.glsl>
-#include <uv.glsl>
-#include <rdf.glsl>
+#include <types>
+#include <color>
+#include <substance>
+#include <uv>
+#include <rdf>
 
 
 const color_t LIGHT_COLOR=color_t(float(255)/255,float(236)/255,float(214)/255);

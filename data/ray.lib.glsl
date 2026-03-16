@@ -1,8 +1,8 @@
-#include <types.glsl>
-#include <csdf.glsl>
-#include <noise.glsl>
-#include <cubemap.glsl>
-#include <camera.glsl>
+#include <types>
+#include <csdf>
+#include <noise>
+#include <cubemap>
+#include <camera>
 
 
 

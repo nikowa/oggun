@@ -66,7 +66,6 @@ Upload image to GPU memory.
 
 ```c
 upload_image :: proc(
-	graphics_context: ^Graphics_Context,
 	image: ^Image) -> bool
 ```
 

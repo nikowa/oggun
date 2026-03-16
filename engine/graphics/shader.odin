@@ -61,25 +61,22 @@ Rect_Shader :: struct {
 	res: i32,
 	rounding: i32 }
 
+Model_Shader :: struct {
+	using shader: Shader,
+	model_matrix: i32,
+	camera_position_matrix: i32,
+	camera_projection_matrix: i32,
+	camera_far_clip: i32,
+	camera_position: i32,
+	haze_color: i32,
+	metallic_factor: i32,
+	roughness_factor: i32 }
 
 // Panel_Shader :: struct {
 // 	using shader: Shader,
 // 	pos:          i32,
 // 	res:          i32,
 // 	size:         i32 }
-
-
-// Model_Shader :: struct {
-// 	using shader:             Shader,
-// 	model_matrix:             i32,
-// 	camera_position_matrix:   i32,
-// 	camera_projection_matrix: i32,
-// 	camera_far_clip:          i32,
-// 	camera_position:          i32,
-// 	haze_color:               i32,
-// 	metallic_factor:          i32,
-// 	roughness_factor:         i32 }
-
 
 // Point_Shader :: struct {
 // 	using shader:    Shader,
@@ -234,8 +231,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	sources: [2]string = { "", "" }
 	for url, i in urls {
 		entry, ok = db.entry_from_url(database, urls[i])
-		if db.entry_outdated(database, entry) {
-			log.info("Updating entry.")
+		if db.entry_outdated(database, entry) || true {
 			path = db.path_from_url(database, urls[i], allocator)
 			bytes, err = os.read_entire_file_from_path(path, context.allocator)
 			sources[i] = cast(string)bytes
@@ -245,9 +241,8 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 			sources[i] = str.clone(glsl_builder_to_string(&builder))
 			destroy_glsl_builder(&builder)
 			modification_time = os.modification_time_by_path(path) or_return
-			db.add_entry(database, db.make_entry(urls[i], transmute([]u8)sources[i], modification_time)) or_return }
+			db.add_or_update_entry(database, db.make_entry(urls[i], transmute([]u8)sources[i], modification_time)) or_return }
 		else {
-			log.info("Reading shader source from database.")
 			sources[i] = cast(string)entry.data } }
 	// fmt.println(base.LOG, "Sources:", sources[0], sources[1])
 	shader.handle, ok = gl.load_shaders_source(sources[0], sources[1])
@@ -363,10 +358,15 @@ preprocess_glsl :: proc(database: ^db.Database, working_directory_path: string, 
 			open = fields[1][0]
 			close = fields[1][len(fields[1]) - 1]
 			if ((open == '\"') && (close == '\"')) || ((open == '<') && (close == '>')) {
-				relpath: string = fields[1][1:len(fields[1]) - 1]
+				relpath: string
+				relpath, err = os.join_filename(fields[1][1:len(fields[1]) - 1], "lib.glsl", context.temp_allocator)
 				path := db.relpath_to_source_path(database, relpath, context.temp_allocator)
+				log.infof("Including shader library \"%s\".", path)
 				bytes: []u8
 				bytes, err = os.read_entire_file_from_path(path, context.allocator)
+				if err != nil {
+					log.errorf("Shader library \"%s\" not found.", path)
+					return }
 				incl_source = cast(string)bytes }
 			else {
 				return #location(), os.General_Error.None }

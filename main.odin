@@ -8,8 +8,6 @@ import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
 import r "engine/container/rect"
-import mdl "engine/model"
-// import mdl "engine/model"
 
 
 
@@ -21,7 +19,6 @@ graphics_context: gx.Graphics_Context
 input_context: ipt.Input_Context
 
 main :: proc() {
-	fmt.println("Welcome to Willow!")
 
 	// Allocate some array of data for cage 1 then some for cage 2.
 	//  * How would threads use these?
@@ -36,22 +33,21 @@ main :: proc() {
 	// x1: ^u32 = new(u32)
 	// y0: ^u32 = new(u32)
 	// y1: ^u32 = new(u32)
-
+	context.logger = log.create_console_logger()
 	base.start(entry_point, n_workers_override = 1) }
 
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	entry: ^db.Entry
 	ok: bool
 	image: gx.Image
-	model: mdl.Model
+	model: gx.Model
 	err: os.Error
 
 	context.logger = log.create_console_logger()
-	fmt.println(thread_data.index)
 	database = db.make_or_read_database({ "Data.bin", "data" }, context.allocator)
 	gx.graphics_init(&graphics_context, &database, "Willow")
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
-	model, err = mdl.load_from_path(db.relpath_to_path("data/castle.glb", context.allocator), context.allocator)
+	model, err = gx.load_model_from_path(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	for ! graphics_context.window_closed {
@@ -61,4 +57,3 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		gx.render_image(&graphics_context, &image, r.Rect{ { 0, 20 }, { 400, 400 } }) }
 	db.write(&database, context.allocator)
 	return }
-

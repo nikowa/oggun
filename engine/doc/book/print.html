@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-bf8fa265.js";
+            window.path_to_searchindex_js = "searchindex-774bccaa.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-696be4c1.js"></script>
@@ -564,7 +564,6 @@ lock_push_pop :: proc(
 <h4 id="upload_image"><a class="header" href="#upload_image"><code>upload_image</code></a></h4>
 <p>Upload image to GPU memory.</p>
 <pre><code class="language-c">upload_image :: proc(
-	graphics_context: ^Graphics_Context,
 	image: ^Image) -&gt; bool
 </code></pre>
 <h4 id="download_image"><a class="header" href="#download_image"><code>download_image</code></a></h4>
@@ -583,6 +582,12 @@ lock_push_pop :: proc(
 <h4 id="model-1"><a class="header" href="#model-1"><code>Model</code></a></h4>
 <pre><code class="language-c">Model :: struct {
 	... }
+</code></pre>
+<h4 id="model_equiv"><a class="header" href="#model_equiv"><code>model_equiv</code></a></h4>
+<p>Check if two models are equivalent.</p>
+<pre><code class="language-c">model_equiv :: proc(
+	a: ^Model,
+	b: ^Model) -&gt; bool
 </code></pre>
 <h4 id="import_or_retreive_model"><a class="header" href="#import_or_retreive_model"><code>import_or_retreive_model</code></a></h4>
 <p>Get a model from the database by URL. If no such model exists, load it from file and add to the database.</p>
@@ -612,7 +617,6 @@ lock_push_pop :: proc(
 <h4 id="upload_model"><a class="header" href="#upload_model"><code>upload_model</code></a></h4>
 <p>Upload model to GPU memory.</p>
 <pre><code class="language-c">upload_model :: proc(
-	graphics_context: ^Graphics_Context,
 	model: ^Model) -&gt; bool
 </code></pre>
 <h4 id="download_model"><a class="header" href="#download_model"><code>download_model</code></a></h4>

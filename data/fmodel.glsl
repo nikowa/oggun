@@ -2,7 +2,7 @@ layout (binding = 0) uniform sampler2D diffuse_samp;
 layout (binding = 1) uniform sampler2D thickness_samp;
 layout (binding = 2) uniform sampler2D world_position_samp;
 layout (binding = 3) uniform sampler2D sky_samp;
-#include <rdf.glsl>
+#include <rdf>
 uniform vec3 camera_position;
 uniform float camera_far_clip;
 uniform vec3 haze_color;
