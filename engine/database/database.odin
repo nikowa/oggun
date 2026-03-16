@@ -23,6 +23,7 @@ MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
 Database_Binary_Header :: struct {
 	magic_number: u32,
 	spec_modification_time: tm.Time,
+	last_autosave_time: tm.Time,
 	n_entries: u32 }
 
 // Database binary:
@@ -31,11 +32,14 @@ Database_Binary_Header :: struct {
 
 Database_Config :: struct {
 	relpath: string,
-	source_directory_relpath: string }
+	source_directory_relpath: string,
+	autosave_interval: tm.Duration,
+	autosave_cap: u32 }
 
 Database :: struct {
 	using config: Database_Config,
 	spec_modification_time: tm.Time,
+	last_autosave_time: tm.Time,
 	entries: [dynamic]Entry,
 	entries_map: map[URL]^Entry,
 	spec_updated: bool }
@@ -159,13 +163,15 @@ make_or_read_database :: proc(config: Database_Config, allocator: rt.Allocator) 
 	if os.exists(relpath_to_path(config.relpath, allocator)) do return read(config, allocator)
 	else do return make_database(config, allocator) }
 
-_read_without_decompressing :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
+_read_without_decompressing :: proc(config: Database_Config, allocator: rt.Allocator, relpath_override: string = "") -> (database: Database) {
 	data: []u8
 	err: os.Error
+	path: string
 
 	log.infof("Reading database \"%s\".", config.relpath)
 	database.config = config
-	data, err = os.read_entire_file_from_path(relpath_to_path(config.relpath, allocator), allocator = allocator)
+	path = relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, allocator)
+	data, err = os.read_entire_file_from_path(path, allocator = allocator)
 	assert(err == nil)
 	reader: b.Reader
 	b.reader_init(&reader, data)
@@ -173,6 +179,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	b.reader_read_ptr(&reader, &binary_header, size_of(binary_header))
 	assert(binary_header.magic_number == MAGIC_NUMBER)
 	database.spec_modification_time = binary_header.spec_modification_time
+	database.last_autosave_time = binary_header.last_autosave_time
 	_check_spec_modification_time(&database)
 	database.entries = make_dynamic_array([dynamic]Entry, allocator = allocator)
 	for i in 0 ..< binary_header.n_entries {
@@ -193,23 +200,28 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	return database }
 
 read :: read_and_decompress
-read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
-	database = _read_without_decompressing(config, allocator = allocator)
+read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator, relpath_override: string = "") -> (database: Database) {
+	database = _read_without_decompressing(config, allocator, relpath_override)
 	_decompress(&database, allocator = allocator)
 	return database }
 
 write :: compress_and_write
-compress_and_write :: proc(database: ^Database, allocator: rt.Allocator) {
+compress_and_write :: proc(database: ^Database, allocator: rt.Allocator, relpath_override: string = "") {
 	_compress(database, allocator = allocator)
-	_write_without_compressing(database, allocator = allocator) }
+	_write_without_compressing(database, allocator, relpath_override) }
 
-_write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator) {
+_write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator, relpath_override: string = "") {
 	err: io.Error
 	buffer: b.Buffer
+	binary_header: Database_Binary_Header
+	path: string
 
 	if database.spec_updated do database.spec_updated = false
 	b.buffer_init_allocator(&buffer, 0, 32 * mem.Megabyte, allocator = allocator)
-	binary_header: Database_Binary_Header = { magic_number = MAGIC_NUMBER, spec_modification_time = database.spec_modification_time, n_entries = cast(u32)len(database.entries) }
+	binary_header.magic_number = MAGIC_NUMBER
+	binary_header.spec_modification_time = database.spec_modification_time
+	binary_header.last_autosave_time = database.last_autosave_time
+	binary_header.n_entries = cast(u32)len(database.entries)
 	_, err = b.buffer_write_ptr(&buffer, &binary_header, size_of(binary_header)); assert(err == nil)
 	for &entry, i in database.entries {
 		url_len: u8 = cast(u8)len(entry.url)
@@ -220,7 +232,8 @@ _write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator)
 		data_len: u32 = cast(u32)len(entry.data)
 		_, err = b.buffer_write_ptr(&buffer, &data_len, size_of(data_len)); assert(err == nil)
 		_, err = b.buffer_write_slice(&buffer, entry.data); assert(err == nil) }
-	assert(os.write_entire_file_from_bytes(relpath_to_path(database.relpath, context.temp_allocator), buffer.buf[:]) == nil) }
+	path = relpath_to_path((relpath_override != "") ? relpath_override : database.relpath, context.temp_allocator)
+	assert(os.write_entire_file_from_bytes(path, buffer.buf[:]) == nil) }
 
 remove_database :: proc(database: ^Database) -> (err: os.Error) {
 	return os.remove(relpath_to_path(database.relpath, context.temp_allocator)) }

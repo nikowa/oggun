@@ -381,9 +381,7 @@ download_model :: proc(model: ^Model) {
 // 			pixel^ = u8_denormalize(u8_normalize(pixel^) + two_point_thickness(points, normals, 1.0)) } }
 // 	load_texture(draw, &model.thickness_map) }
 
-
 // // (NOTE): An alternative method is an intersection method where you check to see.
-
 
 // bake_models :: proc(draw: ^Draw, cache: ^Cache) {
 // 	TRIANGLES_MAP_SIZE: [2]int : { 32, 32 }
@@ -394,7 +392,6 @@ download_model :: proc(model: ^Model) {
 // 	// for _, i in draw.models do model_bake_thickness_map_point_method(draw, &draw.models[i], THICKNESS_MAP_SIZE)
 // 	}
 
-
 // render_model_uv :: proc(draw: ^Draw, model: ^Model, rect: Rect = { pos = { 0, 0 }, size = { 256, 256 } }) {
 // 	// (TODO):
 // 	// iterator: UV_Triangle_Iterator = make_uv_triangle_iterator(model)
@@ -403,7 +400,6 @@ download_model :: proc(model: ^Model) {
 // 	// render_rect_hollow(draw, rect.pos, rect.size, color = RED, thickness = 2)
 // 	// for triangle in triangles do render_triangle(draw, points = { normal_space_to_rect_space(triangle[0], rect), normal_space_to_rect_space(triangle[1], rect), normal_space_to_rect_space(triangle[2], rect) }, color = RED)
 // }
-
 
 // model_triangle_positions :: proc(model: ^Model, triangle_index: int) -> (triangle_positions: [3][3]f32) {
 // 	triangles := slc.reinterpret([][3][3]f32, model.positions[:])

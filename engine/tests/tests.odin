@@ -37,7 +37,7 @@ database_test :: proc(t_context: ^tst.T) {
 
 	// context.allocator = rt.panic_allocator()
 	test_images := [2]string{ "assets/cardboard-tile-4.jpg", "assets/test.jpg" }
-	database_0 := db.make_database({ "Test-Data.bin", "data" }, context.temp_allocator)
+	database_0 := db.make_database({ "Test-Data.bin", "data", db.DEFAULT_AUTOSAVE_INTERVAL, db.DEFAULT_AUTOSAVE_CAP }, context.temp_allocator)
 	db.remove_database(&database_0)
 	defer db.delete_database(database_0, context.temp_allocator)
 	for test_image, i in test_images {
@@ -153,7 +153,7 @@ image_test :: proc(t_context: ^tst.T) {
 
 	// database test //
 	url = "image:dev-oriented-grid"
-	database := db.make_database({ "Test-Data.bin", "data" }, context.temp_allocator)
+	database := db.make_database({ "Test-Data.bin", "data", db.DEFAULT_AUTOSAVE_INTERVAL, db.DEFAULT_AUTOSAVE_CAP }, context.temp_allocator)
 	db.remove_database(&database)
 	tst.expect(t_context, ! db.contains_entry(&database, url))
 	image, err = gx.import_or_retreive_image(&database, url, context.temp_allocator)

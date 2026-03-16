@@ -44,13 +44,18 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	err: os.Error
 
 	context.logger = log.create_console_logger()
-	database = db.make_or_read_database({ "Data.bin", "data" }, context.allocator)
+	database = db.make_or_read_database({
+		relpath = "Data.bin",
+		source_directory_relpath = "data",
+		autosave_interval = db.DEFAULT_AUTOSAVE_INTERVAL,
+		autosave_cap = db.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	gx.graphics_init(&graphics_context, &database, "Willow")
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
 	model, err = gx.load_model_from_path(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	for ! graphics_context.window_closed {
+		db.autosave(&database)
 		ipt.input_tick(&input_context)
 		gx.graphics_tick(&graphics_context)
 		gx.render_rect(&graphics_context, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)

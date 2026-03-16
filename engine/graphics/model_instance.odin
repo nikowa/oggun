@@ -17,8 +17,6 @@ import gl "vendor:OpenGL"
 // 	transform_scale: matrix[4, 4]f32,
 // 	transform: matrix[4, 4]f32 }
 
-
-
 // model_instance_position :: proc(model_instance: ^Model_Instance, point_index: int) -> (position: [3]f32) {
 // 	STRIDE :: 3
 // 	model := model_instance.model
