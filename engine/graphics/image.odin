@@ -45,7 +45,7 @@ import_or_retreive_image :: proc(database: ^db.Database, url: db.URL, allocator:
 		image = load_image_from_path(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = image_serialize(&image, allocator) or_return
-		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
+		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time), true) or_return }
 	return image, os.General_Error.None }
 
 @(require_results)

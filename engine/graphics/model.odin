@@ -72,7 +72,7 @@ import_or_retreive_model :: proc(
 		model = load_model_from_path(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = model_serialize(&model, allocator) or_return
-		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time)) or_return }
+		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time), true) or_return }
 	return model, os.General_Error.None }
 
 model_serialize :: proc(

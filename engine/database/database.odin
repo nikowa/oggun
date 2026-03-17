@@ -40,6 +40,7 @@ Database :: struct {
 	using config: Database_Config,
 	spec_modification_time: tm.Time,
 	last_autosave_time: tm.Time,
+	modification_time: tm.Time,
 	entries: [dynamic]Entry,
 	entries_map: map[URL]^Entry,
 	spec_updated: bool }
@@ -90,7 +91,8 @@ entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: boo
 contains_entry :: proc(database: ^Database, url: URL) -> bool {
 	return url in database.entries_map }
 
-add_entry :: proc(database: ^Database, entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error) {
+// (TODO): Give "updated" a default value of "true".
+add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
 	if len(entry_config.data) == 0 {
 		log.errorf("Attempt to add entry %s with no data.", entry_config.url)
 		return nil, os.General_Error.Not_Exist }
@@ -100,13 +102,16 @@ add_entry :: proc(database: ^Database, entry_config: Entry_Config) -> (entry_ptr
 	append_elem(&database.entries, Entry{ config = entry_config }) or_return
 	index := len(database.entries) - 1
 	entry := &database.entries[index]
+	if modified {
+		database.modification_time = tm.now()
+		log.infof("Database modified at %v", database.modification_time) }
 	return map_insert(&database.entries_map, entry.url, entry)^, os.General_Error.None }
 
-add_or_update_entry :: proc(database: ^Database, entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error) {
+add_or_update_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
 	if contains_entry(database, entry_config.url) {
-		entry_update(database.entries_map[entry_config.url], entry_config)
+		update_entry(database, database.entries_map[entry_config.url], entry_config, modified)
 		return database.entries_map[entry_config.url], os.General_Error.None }
-	else do return add_entry(database, entry_config) }
+	else do return add_entry(database, entry_config, modified) }
 
 remove_entry :: proc(database: ^Database, entry: ^Entry) {
 	index: int = -1
@@ -196,7 +201,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 		entry.data = make([]u8, data_len, allocator)
 		_, err = b.reader_read_slice(&reader, entry.data); assert(err == nil)
 		log.infof("Reading entry \"%s\".", entry.url)
-		add_entry(&database, entry) }
+		add_entry(&database, entry, false) }
 	return database }
 
 read :: read_and_decompress
@@ -314,11 +319,16 @@ entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	path := path_from_url(database, entry.url, context.temp_allocator)
 	modification_time, err := os.modification_time_by_path(path)
 	if err != nil do return false
-	return tm.diff(entry.modification_time, modification_time) > 0 }
+	outdated = tm.diff(entry.modification_time, modification_time) > 0
+	if outdated do log.infof("Source of entry \"%s\" was modified.", entry.url)
+	return outdated }
 
-entry_update :: proc(entry: ^Entry, config: Entry_Config) {
+update_entry :: proc(database: ^Database, entry: ^Entry, config: Entry_Config, modified: bool) {
 	if entry.data != nil do delete(entry.data)
-	entry.config = config }
+	entry.config = config
+	if modified {
+		database.modification_time = tm.now()
+		log.infof("Database modified at %v", database.modification_time) } }
 
 @(require_results)
 url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string, err: os.Error) {

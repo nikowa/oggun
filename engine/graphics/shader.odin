@@ -231,7 +231,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	sources: [2]string = { "", "" }
 	for url, i in urls {
 		entry, ok = db.entry_from_url(database, urls[i])
-		if db.entry_outdated(database, entry) || true {
+		if db.entry_outdated(database, entry) {
 			path = db.path_from_url(database, urls[i], allocator)
 			bytes, err = os.read_entire_file_from_path(path, context.allocator)
 			sources[i] = cast(string)bytes
@@ -241,7 +241,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 			sources[i] = str.clone(glsl_builder_to_string(&builder))
 			destroy_glsl_builder(&builder)
 			modification_time = os.modification_time_by_path(path) or_return
-			db.add_or_update_entry(database, db.make_entry(urls[i], transmute([]u8)sources[i], modification_time)) or_return }
+			db.add_or_update_entry(database, db.make_entry(urls[i], transmute([]u8)sources[i], modification_time), true) or_return }
 		else {
 			sources[i] = cast(string)entry.data } }
 	// fmt.println(base.LOG, "Sources:", sources[0], sources[1])

@@ -4,6 +4,7 @@ uniform vec2 res;
 out vec2 tex_coord;
 
 
+
 void main(void) {
 	float x0 = (float(pos.x - size.x / 2) / res.x) * 2;
 	float x1 = (float(pos.x + size.x / 2) / res.x) * 2;
@@ -28,4 +29,3 @@ void main(void) {
 	else if(gl_VertexID == 5) {
 		gl_Position.xy = vec2(x1, y1);
 		tex_coord = vec2(1,0); } }
-
