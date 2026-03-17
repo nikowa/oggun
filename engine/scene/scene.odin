@@ -1,19 +1,54 @@
 package scene
 import rt "base:runtime"
 import gx "../graphics"
-// import tr "../container/tree"
+import db "../database"
 
 
 
+// (TODO): Add a memory arena field. When all the nodes are in that arena, that will make it much easier to serialize and
+// deserialize. To maintain links, use relative pointers.
+Scene_Config :: struct #all_or_none {
+	url: db.URL,
+	haze_color: [3]f32 }
+Scene :: struct {
+	using config: Scene_Config,
+	tree: Tree }
+
+make_scene :: proc(url: db.URL) -> (scene: Scene) {
+	scene.url = url
+	scene.tree.root = make_node(DEFAULT_NODE_CONFIG, context.allocator)
+	return scene }
+
+scene_attach :: proc(scene: ^Scene, child: ^Node) {
+	node_attach_child(scene.tree.root, child) }
+
+// (TODO): Add an url.
+// (TODO): Add serialize, deserialize, import, and save.
 Tree :: struct {
 	root: ^Node }
 
 Node_Config :: struct {
 	name: string,
-	render_proc: proc(graphics_context: ^gx.Graphics_Context, node: ^Node),
+	render_proc: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node),
+	tick_proc: proc(node: ^Node),
 	translate: [3]f32,
-	rotate: [3]f32,
-	scale: [3]f32 }
+	rotate: quaternion128,
+	scale: [3]f32,
+	visible: bool }
+
+DEFAULT_NODE_CONFIG: Node_Config : {
+	name = "default",
+	render_proc = nil,
+	tick_proc = nil,
+	translate = { 0, 0, 0 },
+	rotate = 1 + 0i + 0j + 0k,
+	scale = { 1, 1, 1 },
+	visible = true }
+
+default_node_config :: proc(name: string) -> (node_config: Node_Config) {
+	node_config = DEFAULT_NODE_CONFIG
+	node_config.name = name
+	return node_config }
 
 Node :: struct {
 	using config: Node_Config,
@@ -23,20 +58,35 @@ Node :: struct {
 	first_sibling: ^Node,
 	next_sibling: ^Node,
 	prev_sibling: ^Node,
-	transform_translate: matrix[4, 4]f32,
-	transform_rotate: matrix[4, 4]f32,
-	transform_scale: matrix[4, 4]f32,
-	transform: matrix[4, 4]f32 }
+	// transform_translate: matrix[4, 4]f32,
+	// transform_rotate: matrix[4, 4]f32,
+	// transform_scale: matrix[4, 4]f32,
+	// transform: matrix[4, 4]f32
+}
 
-render_node :: proc(graphics_context: ^gx.Graphics_Context, node: ^Node) {
+render_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	if node.render_proc == nil do return
-	node.render_proc(graphics_context, node) }
+	node.render_proc(graphics_context, scene, camera_node, node) }
+
+tick_node :: proc(node: ^Node) {
+	if node.tick_proc == nil do return
+	node.tick_proc(node) }
+
+render_scene :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node) {
+	render_node(graphics_context, scene, nil, &camera_node.node) }
+
+tick_scene :: proc(scene: ^Scene) {
+	tree_iterator: Tree_Iterator
+
+	assert(scene != nil)
+	tree_iterator = tree_iterator_root(&scene.tree)
+	for node in tree_iterate_next(&tree_iterator) do tick_node(node) }
 
 init_node :: proc(node: ^Node, config: Node_Config) {
 	node.config = config
 	node.first_sibling = node }
 
-make_node :: proc(allocator: rt.Allocator, config: Node_Config) -> (node: ^Node) {
+make_node :: proc(config: Node_Config, allocator: rt.Allocator) -> (node: ^Node) {
 	node = new(Node, allocator)
 	init_node(node, config)
 	return node }

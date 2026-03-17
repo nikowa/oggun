@@ -4,6 +4,7 @@ import os "core:os"
 import fmt "core:fmt"
 import mem "core:mem"
 import log "core:log"
+import la "core:math/linalg"
 import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
@@ -43,6 +44,10 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	image: gx.Image
 	model: gx.Model
 	err: os.Error
+	model_node: ^scn.Model_Node
+	camera: scn.Camera
+	camera_node: ^scn.Camera_Node
+	scene: scn.Scene
 
 	context.logger = log.create_console_logger()
 	database = db.make_or_read_database({
@@ -53,12 +58,22 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	gx.graphics_init(&graphics_context, &database, "Willow")
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
 	model, err = gx.load_model_from_path(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
+	gx.upload_model(&model)
+	scene = scn.make_scene("scene:castle")
+	camera = scn.DEFAULT_CAMERA
+	camera_node = scn.make_camera_node(scn.default_node_config("camera"), &camera, context.allocator)
+	scn.scene_attach(&scene, &camera_node.node)
+	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
+	scn.scene_attach(&scene, &model_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
+	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_context.window_closed {
-		// db.autosave(&database)
+		db.autosave(&database)
 		ipt.input_tick(&input_context)
+		scn.tick_scene(&scene)
 		gx.graphics_tick(&graphics_context)
+		scn.render_scene(&graphics_context, &scene, camera_node)
 		gx.render_rect(&graphics_context, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
 		gx.render_image(&graphics_context, &image, r.Rect{ { 0, 20 }, { 400, 400 } }) }
 	db.write(&database, context.allocator)

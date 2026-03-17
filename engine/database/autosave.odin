@@ -8,8 +8,8 @@ import os "core:os"
 
 
 
-// DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
-DEFAULT_AUTOSAVE_INTERVAL :: 3 * tm.Second
+DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
+// DEFAULT_AUTOSAVE_INTERVAL :: 3 * tm.Second
 DEFAULT_AUTOSAVE_CAP :: 10
 
 @(private="file")

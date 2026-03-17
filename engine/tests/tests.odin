@@ -186,6 +186,7 @@ model_test :: proc(t_context: ^tst.T) {
 	url: db.URL
 	err: os.Error
 	bytes: []u8
+	model_node: ^scn.Model_Node
 
 	allocator = context.temp_allocator
 
@@ -200,6 +201,12 @@ model_test :: proc(t_context: ^tst.T) {
 	deserialized_model, err = gx.model_deserialize(bytes, allocator)
 	tst.expect(t_context, err == nil)
 	tst.expect(t_context, gx.model_equiv(&model, &deserialized_model))
+
+	// model node test //
+	model_node = scn.make_model_node(scn.DEFAULT_NODE_CONFIG, &model, allocator)
+	model_node.name = "castle"
+	// scn.render_node(nil, model_node)
+
 	free_all(allocator) }
 
 @(test)
@@ -214,7 +221,7 @@ scene_test :: proc(t_context: ^tst.T) {
 	N :: 4
 
 	// attach root test //
-	node = scn.make_node(allocator, { name = "root" })
+	node = scn.make_node({ name = "root" }, allocator)
 	tst.expect(t_context, node != nil)
 	scn.tree_attach_root(&tree, node)
 	tst.expect(t_context, tree.root == node)
@@ -222,16 +229,16 @@ scene_test :: proc(t_context: ^tst.T) {
 	// attach child test //
 	node = tree.root
 	for i in 0 ..< N {
-		other_node = scn.make_node(allocator, { name = fmt.tprintf("node-1-%d", i) })
+		other_node = scn.make_node({ name = fmt.tprintf("node-1-%d", i) }, allocator)
 		tst.expect(t_context, other_node != nil)
 		scn.node_attach_child(node, other_node)
 		tst.expect(t_context, node.last_child == other_node) }
 
 	// attach sibling test //
-	node = scn.make_node(allocator, { name = "node-2-0" })
+	node = scn.make_node({ name = "node-2-0" }, allocator)
 	scn.node_attach_child(tree.root.first_child, node)
 	for i in 1 ..< N + 1 {
-		other_node = scn.make_node(allocator, { name = fmt.tprintf("node-2-%d", i) })
+		other_node = scn.make_node({ name = fmt.tprintf("node-2-%d", i) }, allocator)
 		tst.expect(t_context, other_node != nil)
 		scn.node_attach_sibling(node, other_node)
 		tst.expect(t_context, node.parent.last_child == other_node) }

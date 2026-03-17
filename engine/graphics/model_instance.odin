@@ -45,46 +45,6 @@ import gl "vendor:OpenGL"
 // 		model.texcoords[point_index * STRIDE + 1] }
 // 	return texcoord }
 
-// render_model_instance :: proc(graphics_context: ^Graphics_Context, camera: ^Camera, model_instance: ^Model_Instance) {
-// 	model := model_instance.model
-// 	transform := model_instance.transform
-// 	if !model.visible do return
-
-// 	shader := use_shader(draw.model_shader)
-
-// 	v_matrix := camera.view_matrix
-// 	p_matrix := camera.projection_matrix
-
-// 	set_shader_param(shader.model_matrix,             &transform)
-// 	set_shader_param(shader.camera_position_matrix,   &v_matrix)
-// 	set_shader_param(shader.camera_projection_matrix, &p_matrix)
-// 	set_shader_param(shader.camera_far_clip,          camera.far_clip)
-// 	set_shader_param(shader.camera_position,          camera.position)
-// 	set_shader_param(shader.haze_color,               draw.haze_color)
-// 	set_shader_param(shader.metallic_factor,          model.material.metallic_factor)
-// 	set_shader_param(shader.roughness_factor,         model.material.roughness_factor)
-// 	gl.BindBuffer(gl.ARRAY_BUFFER, model.positions_handle)
-// 	gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0)
-// 	gl.EnableVertexAttribArray(0)
-// 	gl.BindBuffer(gl.ARRAY_BUFFER, model.texcoords_handle)
-// 	gl.VertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, 0, 0)
-// 	gl.EnableVertexAttribArray(1)
-// 	gl.BindBuffer(gl.ARRAY_BUFFER, model.normals_handle)
-// 	gl.VertexAttribPointer(2, 3, gl.FLOAT, gl.FALSE, 0, 0)
-// 	gl.EnableVertexAttribArray(2)
-// 	gl.BindBuffer(gl.ARRAY_BUFFER, model.lightmap_texcoords_handle)
-// 	gl.VertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, 0, 0)
-// 	gl.EnableVertexAttribArray(3)
-// 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
-// 	// bind_texture(0,draw.textures["dev-grid"].handle)
-// 	bind_texture(0, model.material.base_color_texture.handle)
-// 	// bind_texture(1, model.triangles_map.handle)
-// 	bind_texture(1, model.thickness_map.handle)
-// 	bind_texture(2, model_instance.world_position_map.handle)
-// 	bind_texture(3, draw.textures_map["skybox"].handle)
-// 	draw_triangles(i32(len(model.positions)) * 3) }
-
-
 // render_all_model_instances :: proc(draw: ^Draw, camera: ^Camera) {
 // 	for _, i in draw.model_instances do render_model_instance(draw, camera, &draw.model_instances[i]) }
 

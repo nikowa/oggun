@@ -66,7 +66,6 @@ Graphics_Context :: struct {
 // 	chromatic_aberration_shader:     ^Chromatic_Aberration_Shader,
 // 	physics_buffer_internal_formats: []i32,
 // 	physics_buffer_formats:          []u32,
-// 	haze_color:                      [3]f32,
 // 	default_sb:                      Render_Buffer,
 // 	upscale_sb:                      Render_Buffer,
 // 	physics_rb:                      Render_Buffer,
