@@ -48,7 +48,7 @@ database_test :: proc(t_context: ^tst.T) {
 		bytes: []u8 = img.pixels.buf[:]
 		url: db.URL = db.url_join({ "image", cast(db.URL)sp.name(test_image, true, context.temp_allocator) }, context.temp_allocator)
 		entry := db.make_entry(url, bytes)
-		entries[i], err = db.add_entry(&database_0, entry)
+		entries[i], err = db.add_entry(&database_0, entry, true)
 		tst.expect(t_context, err == nil) }
 	entry_0, _ := db.entry_from_url(&database_0, "image:cardboard-tile-4")
 	entry_1, _ := db.entry_from_url(&database_0, "image:test")

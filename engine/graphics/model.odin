@@ -64,7 +64,7 @@ import_or_retreive_model :: proc(
 	bytes: []u8
 
 	entry, ok = db.entry_from_url(database, url)
-	if ok do if db.entry_outdated(database, entry) do ok = false
+	if ok do if db.entry_was_modified(database, entry) || database.spec_modified do ok = false
 	if ok do model = model_deserialize(entry.data, allocator) or_return
 	else {
 		log.infof("Reading model %s from source.", url)

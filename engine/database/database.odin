@@ -43,7 +43,7 @@ Database :: struct {
 	modification_time: tm.Time,
 	entries: [dynamic]Entry,
 	entries_map: map[URL]^Entry,
-	spec_updated: bool }
+	spec_modified: bool }
 
 Entry_Config :: struct {
 	url: URL,
@@ -185,7 +185,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	assert(binary_header.magic_number == MAGIC_NUMBER)
 	database.spec_modification_time = binary_header.spec_modification_time
 	database.last_autosave_time = binary_header.last_autosave_time
-	_check_spec_modification_time(&database)
+	err = _check_spec_modification_time(&database); if err != nil do log.error(err)
 	database.entries = make_dynamic_array([dynamic]Entry, allocator = allocator)
 	for i in 0 ..< binary_header.n_entries {
 		entry: Entry
@@ -221,7 +221,7 @@ _write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator,
 	binary_header: Database_Binary_Header
 	path: string
 
-	if database.spec_updated do database.spec_updated = false
+	if database.spec_modified do database.spec_modified = false
 	b.buffer_init_allocator(&buffer, 0, 32 * mem.Megabyte, allocator = allocator)
 	binary_header.magic_number = MAGIC_NUMBER
 	binary_header.spec_modification_time = database.spec_modification_time
@@ -313,9 +313,9 @@ path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) ->
 	relpath: string = relpath_from_url(database, url, allocator)
 	return relpath_to_path(relpath, allocator) }
 
-entry_outdated :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
+entry_was_modified :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	if entry == nil do return true
-	if database.spec_updated do return true
+	if database.spec_modified do return true
 	path := path_from_url(database, entry.url, context.temp_allocator)
 	modification_time, err := os.modification_time_by_path(path)
 	if err != nil do return false
@@ -352,7 +352,7 @@ _check_spec_modification_time :: proc(database: ^Database) -> (err: os.Error) {
 	engine_path = sp.dir(sp.dir(#file, context.temp_allocator), context.temp_allocator)
 	source_paths = {
 		os.join_path({ engine_path, "graphics" }, context.temp_allocator) or_return,
-		os.join_path({ engine_path, "model" }, context.temp_allocator) or_return }
+		os.join_path({ engine_path, "graphics" }, context.temp_allocator) or_return }
 	source_paths = {
 		os.join_path({ source_paths[0], "image.odin" }, context.temp_allocator) or_return,
 		os.join_path({ source_paths[1], "model.odin" }, context.temp_allocator) or_return }
@@ -361,7 +361,7 @@ _check_spec_modification_time :: proc(database: ^Database) -> (err: os.Error) {
 		if tm.diff(latest_modification_time, modification_time) > 0 {
 			latest_modification_time = modification_time } }
 	if tm.diff(database.spec_modification_time, latest_modification_time) > 0 {
-		database.spec_updated = true
-		log.info("Engine spec updated. Forcing re-import of all assets.") }
-	database.spec_modification_time = latest_modification_time
+		database.spec_modified = true
+		database.spec_modification_time = latest_modification_time
+		log.info("Engine modified. Forcing re-import of all assets.") }
 	return os.General_Error.None }
