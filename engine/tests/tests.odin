@@ -10,10 +10,12 @@ import str "core:strings"
 import os "core:os"
 import ref "core:reflect"
 import b "core:bytes"
+import fmt "core:fmt"
 import ts "../container/two_stack"
 import gx "../graphics"
 import db "../database"
 import mp "../container/micro_pair"
+import scn "../scene"
 
 
 
@@ -198,4 +200,78 @@ model_test :: proc(t_context: ^tst.T) {
 	deserialized_model, err = gx.model_deserialize(bytes, allocator)
 	tst.expect(t_context, err == nil)
 	tst.expect(t_context, gx.model_equiv(&model, &deserialized_model))
+	free_all(allocator) }
+
+@(test)
+scene_test :: proc(t_context: ^tst.T) {
+	allocator: rt.Allocator
+	tree: scn.Tree
+	node, other_node: ^scn.Node
+	tree_iterator: scn.Tree_Iterator
+	ok: bool
+
+	allocator = context.temp_allocator
+	N :: 4
+
+	// attach root test //
+	node = scn.make_node(allocator, { name = "root" })
+	tst.expect(t_context, node != nil)
+	scn.tree_attach_root(&tree, node)
+	tst.expect(t_context, tree.root == node)
+
+	// attach child test //
+	node = tree.root
+	for i in 0 ..< N {
+		other_node = scn.make_node(allocator, { name = fmt.tprintf("node-1-%d", i) })
+		tst.expect(t_context, other_node != nil)
+		scn.node_attach_child(node, other_node)
+		tst.expect(t_context, node.last_child == other_node) }
+
+	// attach sibling test //
+	node = scn.make_node(allocator, { name = "node-2-0" })
+	scn.node_attach_child(tree.root.first_child, node)
+	for i in 1 ..< N + 1 {
+		other_node = scn.make_node(allocator, { name = fmt.tprintf("node-2-%d", i) })
+		tst.expect(t_context, other_node != nil)
+		scn.node_attach_sibling(node, other_node)
+		tst.expect(t_context, node.parent.last_child == other_node) }
+
+	// root iterator test //
+	tree_iterator = scn.tree_iterator_root(&tree)
+	node, ok = scn.tree_iterate_next(&tree_iterator)
+	tst.expect(t_context, node.name == "root")
+	for i in 0 ..< N {
+		node, ok = scn.tree_iterate_next(&tree_iterator)
+		tst.expect(t_context, node.name == fmt.tprintf("node-1-%d", i)) }
+	for i in 0 ..< N + 1 {
+		node, ok = scn.tree_iterate_next(&tree_iterator)
+		tst.expect(t_context, node.name == fmt.tprintf("node-2-%d", i)) }
+
+	// node iterator test //
+	tree_iterator = scn.tree_iterator_node(tree.root.first_child.first_child)
+	for i in 0 ..< N + 1 {
+		node, ok = scn.tree_iterate_next(&tree_iterator)
+		tst.expect(t_context, node.name == fmt.tprintf("node-2-%d", i)) }
+
+	// sibling iterator test //
+	tree_iterator = scn.tree_iterator_root(&tree)
+	node, ok = scn.tree_iterate_next(&tree_iterator)
+	tst.expect(t_context, node.name == "root")
+	for i in 0 ..< N {
+		node, ok = scn.tree_iterate_next_sibling(&tree_iterator)
+		tst.expect(t_context, node.name == fmt.tprintf("node-1-%d", i)) }
+	node, ok = scn.tree_iterate_next_sibling(&tree_iterator)
+	tst.expect(t_context, ! ok)
+
+	// search by name test //
+	tst.expect(t_context, scn.tree_search_by_name(&tree, "root").name == "root")
+	tst.expect(t_context, scn.tree_search_by_name(&tree, "node-2-3").name == "node-2-3")
+
+	// search by proc test //
+	condition_proc :: proc(node: ^scn.Node, name: string) -> bool {
+		if node.parent == nil do return false
+		return node.parent.name == name }
+	tst.expect(t_context, scn.tree_search_by_proc(&tree, condition_proc, "root").parent.name == "root")
+	tst.expect(t_context, scn.tree_search_by_proc(&tree, condition_proc, "node-1-0").parent.name == "node-1-0")
+
 	free_all(allocator) }

@@ -8,6 +8,7 @@ import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
 import r "engine/container/rect"
+import scn "engine/scene"
 
 
 

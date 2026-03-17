@@ -27,7 +27,6 @@ import gl "vendor:OpenGL"
 // 	position = (model_instance.transform * [4]f32{ position.x, position.y, position.z, 1 }).xyz
 // 	return position }
 
-
 // model_instance_normal :: proc(model_instance: ^Model_Instance, point_index: int) -> (normal: [3]f32) {
 // 	STRIDE :: 3
 // 	model := model_instance.model
@@ -38,7 +37,6 @@ import gl "vendor:OpenGL"
 // 	normal = (model_instance.transform_rotate * [4]f32{ normal.x, normal.y, normal.z, 1 }).xyz
 // 	return normal }
 
-
 // model_instance_texcoord :: proc(model_instance: ^Model_Instance, point_index: int) -> (texcoord: [2]f32) {
 // 	STRIDE :: 2
 // 	model := model_instance.model
@@ -47,8 +45,7 @@ import gl "vendor:OpenGL"
 // 		model.texcoords[point_index * STRIDE + 1] }
 // 	return texcoord }
 
-
-// render_model_instance :: proc(draw: ^Draw, camera: ^Camera, model_instance: ^Model_Instance) {
+// render_model_instance :: proc(graphics_context: ^Graphics_Context, camera: ^Camera, model_instance: ^Model_Instance) {
 // 	model := model_instance.model
 // 	transform := model_instance.transform
 // 	if !model.visible do return
