@@ -64,6 +64,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	camera_node = scn.make_camera_node(scn.default_node_config("camera"), &camera, context.allocator)
 	scn.scene_attach(&scene, &camera_node.node)
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
+	model_node.node.translate.z = -0
 	scn.scene_attach(&scene, &model_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)

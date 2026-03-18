@@ -21,12 +21,12 @@ import r "../container/rect"
 
 
 
-BLACK:                  [4]f32 : {0,0,0,1}
-WHITE:                  [4]f32 : {1,1,1,1}
-RED:                    [4]f32 : {1,0,0,1}
-GREEN:                  [4]f32 : {0,1,0,1}
-BLUE:                   [4]f32 : {0,0,1,1}
-CYAN:                   [4]f32 : {0,1,1,1}
+BLACK: [4]f32 : {0, 0, 0, 1}
+WHITE: [4]f32 : {1, 1, 1, 1}
+RED: [4]f32 : {1, 0, 0, 1}
+GREEN: [4]f32 : {0, 1, 0, 1}
+BLUE: [4]f32 : {0, 0, 1, 1}
+CYAN: [4]f32 : {0, 1, 1, 1}
 
 
 
@@ -77,7 +77,6 @@ Graphics_Context :: struct {
 	vertex_buffer: u32,
 // 	cubemap:                         Cubemap
 }
-
 
 // Render_Buffer :: struct {
 // 	initialized:              bool,
