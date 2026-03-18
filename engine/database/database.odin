@@ -367,11 +367,15 @@ _check_spec_modification_time :: proc(database: ^Database) -> (err: os.Error) {
 	return os.General_Error.None }
 
 file_was_modified :: proc(relpath: string, modification_time: ^tm.Time) -> (was_modified: bool) {
+	path: string
 	current_modification_time: tm.Time
 	err: os.Error
 
-	current_modification_time, err = os.modification_time_by_path(relpath_to_path(relpath, context.temp_allocator))
+	path = relpath_to_path(relpath, context.temp_allocator)
+	assert(os.exists(path))
+	current_modification_time, err = os.modification_time_by_path(path)
 	assert(err == nil)
+	// log.infof("%s: %v -> %v", path, modification_time^, current_modification_time)
 	if tm.diff(modification_time^, current_modification_time) > 0 {
 		modification_time^ = current_modification_time
 		return true }
