@@ -74,8 +74,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_context.window_closed {
 		// example_dll.dev_tick()
-		if dll.dll_was_modified(&example_dll) {
-			dll.reload_dll(&example_dll)
+		if dll.watch_dll(&example_dll) {
 			log.infof("DLL \"%s\" was modified.", example_dll.relpath) }
 		db.autosave(&database)
 		ipt.input_tick(&input_context)
