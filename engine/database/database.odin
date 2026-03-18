@@ -365,3 +365,14 @@ _check_spec_modification_time :: proc(database: ^Database) -> (err: os.Error) {
 		database.spec_modification_time = latest_modification_time
 		log.info("Engine modified. Forcing re-import of all assets.") }
 	return os.General_Error.None }
+
+file_was_modified :: proc(relpath: string, modification_time: ^tm.Time) -> (was_modified: bool) {
+	current_modification_time: tm.Time
+	err: os.Error
+
+	current_modification_time, err = os.modification_time_by_path(relpath_to_path(relpath, context.temp_allocator))
+	assert(err == nil)
+	if tm.diff(modification_time^, current_modification_time) > 0 {
+		modification_time^ = current_modification_time
+		return true }
+	else do return false }

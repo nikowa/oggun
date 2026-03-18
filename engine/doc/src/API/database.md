@@ -304,11 +304,82 @@ entry_update :: proc(
 
 #### `url_search_source`
 
-Get the path of the first file in the database's source directory that has the a name matching the given URL.
-
 ```c
 url_search_source :: proc(
 	database: ^Database,
 	url: URL,
 	allocator: rt.Allocator) -> (path: string, err: os.Error)
 ```
+
+<details><summary>Description</summary>
+Get the path of the first file in the database's source directory that has the a name matching the given URL.
+</details>
+
+#### `file_was_modified`
+
+```c
+file_was_modified :: proc(
+	relpath: string,
+	modification_time: ^tm.Time) -> (was_modified: bool)
+```
+
+<details><summary>Description</summary>
+Watch a given file for modifications. The modification_time parameter is where the latest modification time is stored. Whenever the file is modified, this function will return `true`. This will happen only once per modification. Example:
+
+```
+modification_time: tm.Time
+for {
+	game_tick()
+	if file_was_modified(relpath, &modification_time) do do_something() }
+```
+
+</details>
+
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -7,16 +7,22 @@ import log "core:log"
 import m "core:math"
 import la "core:math/linalg"
 import dl "core:dynlib"
+import tm "core:time"
 import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
 import r "engine/container/rect"
 import scn "engine/scene"
+import dll "engine/dll"
 
 
 
 RO_State :: struct {
 	_: u8 }
+
+Example_DLL :: struct {
+	using base: dll.DLL,
+	dev_tick: proc() }
 
 database: db.Database
 graphics_context: gx.Graphics_Context
@@ -38,8 +44,12 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	camera_node: ^scn.Camera_Node
 	scene: scn.Scene
 	node_config: scn.Node_Config
+	example_dll: Example_DLL
 
 	context.logger = log.create_console_logger()
+	example_dll, ok = dll.make_dll(Example_DLL, "example-dll/example-dll.dll")
+	assert(ok)
+	assert(example_dll.dev_tick != nil)
 	database = db.make_or_read_database({
 		relpath = "Data.bin",
 		source_directory_relpath = "data",
@@ -63,6 +73,10 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_context.window_closed {
+		// example_dll.dev_tick()
+		if dll.dll_was_modified(&example_dll) {
+			dll.reload_dll(&example_dll)
+			log.infof("DLL \"%s\" was modified.", example_dll.relpath) }
 		db.autosave(&database)
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)

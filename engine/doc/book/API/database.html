@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-13b382e8.js";
+            window.path_to_searchindex_js = "../searchindex-32d10e5b.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-dd3148cf.js"></script>
@@ -360,12 +360,61 @@
 	config: Entry_Config)
 </code></pre>
 <h4 id="url_search_source"><a class="header" href="#url_search_source"><code>url_search_source</code></a></h4>
-<p>Get the path of the first file in the database’s source directory that has the a name matching the given URL.</p>
 <pre><code class="language-c">url_search_source :: proc(
 	database: ^Database,
 	url: URL,
 	allocator: rt.Allocator) -&gt; (path: string, err: os.Error)
 </code></pre>
+<details><summary>Description</summary>
+Get the path of the first file in the database's source directory that has the a name matching the given URL.
+</details>
+<h4 id="file_was_modified"><a class="header" href="#file_was_modified"><code>file_was_modified</code></a></h4>
+<pre><code class="language-c">file_was_modified :: proc(
+	relpath: string,
+	modification_time: ^tm.Time) -&gt; (was_modified: bool)
+</code></pre>
+<details><summary>Description</summary>
+Watch a given file for modifications. The modification_time parameter is where the latest modification time is stored. Whenever the file is modified, this function will return `true`. This will happen only once per modification. Example:
+<pre><code>modification_time: tm.Time
+for {
+	game_tick()
+	if file_was_modified(relpath, &amp;modification_time) do do_something() }
+</code></pre>
+</details>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 
                     </main>
 
