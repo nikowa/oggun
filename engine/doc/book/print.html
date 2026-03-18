@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-80947be6.js";
+            window.path_to_searchindex_js = "searchindex-13b382e8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-dd3148cf.js"></script>
@@ -632,6 +632,45 @@ lock_push_pop :: proc(
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="scene"><a class="header" href="#scene">Scene</a></h1>
 <p>A scene determines how 3D entities should be rendered. To render any 3D entity, you need a scene and a camera. A scene conotains a scene tree, which can be used to arrange any arbitrary objects in a hierarchy of 3D transforms. The scene tree is optional.</p>
+<h2 id="using-nodes"><a class="header" href="#using-nodes">Using nodes</a></h2>
+<p>Node is an intrusive type meant to be embedded in a struct.</p>
+<pre><code class="language-c">My_Node_Type :: struct {
+	node: scn.Node,
+	... }
+
+render_my_node_type :: proc(
+	graphics_context: ^gx.Graphics_Context,
+	scene: ^Scene,
+	camera_node: ^Camera_Node,
+	node: ^Node) {
+	... }
+
+tick_my_node_type :: proc(
+	node: ^Node) {
+	... }
+</code></pre>
+<p>Nodes have three hooks: <code>render_proc</code>, <code>tick_proc</code>, and <code>init_proc</code>. The init proc is called once to initialize the state of the entity which the node is embedded in. The render proc is called to draw the entity which the node is embedded in. The tick proc is called every frame to update the state of the entity.</p>
+<h2 id="built-in-node-types"><a class="header" href="#built-in-node-types">Built-in node types</a></h2>
+<p>There are several built-in types that derive from Node. They are:</p>
+<ul>
+<li><a href="#camera_node"><code>Camera_Node</code></a> — An instance of a <code>Camera</code>. The intended way to render a scene is to call the render proc on a camera positioned in the scene. You can add controls to the camera by <a href="#extending-builtin-node-types">overriding its tick procedure</a>.</li>
+<li><a href="#model_node"><code>Model_Node</code></a> — An instance of a <code>Model</code>. The intended way to render a model is to create a model node and link it to a model. If you want to draw additional things along with the model (eg. an icon or a healthbar) or to replace its shader, you can do so by <a href="#extending-builtin-node-types">overriding its render procedure</a>.</li>
+<li><code>Point_Light_Node</code> — Unimplemented.</li>
+<li><code>Sound_Node</code> — Unimplemented.</li>
+<li><code>Text_Node</code> — Unimplemented.</li>
+<li><code>Effect_Node</code> — Unimplemented.</li>
+</ul>
+<h2 id="extending-builtin-node-types"><a class="header" href="#extending-builtin-node-types">Extending builtin node types</a></h2>
+<p>You can extend the behavior of a built-in Node-derived type by overriding its hooks. If you call the default constructor of a built-in Node-derived type, the hooks will be assigned the default procs, unless you have you have overriden them in the Node Config passed to the constructor. For example, to override the tick procedure of a Camera Node with your own tick procedure, you can do it like this:</p>
+<pre><code class="language-c">node_config.tick_proc = tick_camera_node
+camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
+</code></pre>
+<p>And then you have to call the default tick proc manually, if you want the node to still exhibit its default behavior:</p>
+<pre><code class="language-c">my_tick_camera_node :: proc(node: ^scn.Node) {
+	scn.tick_camera_node(node)
+	camera_node := scn.node_object(node, scn.Camera_Node, "node")
+	... }
+</code></pre>
 <h3 id="types-5"><a class="header" href="#types-5">Types</a></h3>
 <h4 id="scene_config"><a class="header" href="#scene_config"><code>Scene_Config</code></a></h4>
 <pre><code class="language-c">Scene_Config :: struct {

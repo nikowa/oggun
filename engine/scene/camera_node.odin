@@ -12,10 +12,11 @@ Camera_Node :: struct {
 	using camera: ^Camera }
 
 make_camera_node :: proc(node_config: Node_Config, camera: ^Camera, allocator: rt.Allocator) -> (camera_node: ^Camera_Node) {
+	node_config := node_config
 	camera_node = new(Camera_Node, allocator)
+	if node_config.render_proc == nil do node_config.render_proc = render_camera_node
+	if node_config.tick_proc == nil do node_config.tick_proc = tick_camera_node
 	init_node(&camera_node.node, node_config)
-	camera_node.node.render_proc = render_camera_node
-	camera_node.node.tick_proc = tick_camera_node
 	camera_node.camera = camera
 	return camera_node }
 
@@ -39,8 +40,6 @@ tick_camera_node :: proc(node: ^Node) {
 	rotation_matrix: matrix[4, 4]f32
 
 	camera_node = node_object(node, Camera_Node, "node")
-	camera_node.node.translate = { 0, 0, -50 }
-	camera_node.node.rotate = la.quaternion_from_euler_angles_f32(2 * m.PI, 0, 0, .XYZ)
 	fovy = 2 * la.atan2(camera_node.sensor_size.y / 2, camera_node.focal_length)
 	aspect = camera_node.sensor_size.x / camera_node.sensor_size.y
 	near = camera_node.near_clip

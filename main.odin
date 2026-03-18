@@ -4,7 +4,9 @@ import os "core:os"
 import fmt "core:fmt"
 import mem "core:mem"
 import log "core:log"
+import m "core:math"
 import la "core:math/linalg"
+import dl "core:dynlib"
 import db "engine/database"
 import gx "engine/graphics"
 import ipt "engine/input"
@@ -21,23 +23,10 @@ graphics_context: gx.Graphics_Context
 input_context: ipt.Input_Context
 
 main :: proc() {
-
-	// Allocate some array of data for cage 1 then some for cage 2.
-	//  * How would threads use these?
-	//  * How do I make sure that thread A won't write to some element of cage 1 before acquiring its lock?
-	//  * How do I make sure that after thread A acquires the lock of cage 1, it can use all data within it?
-	// cage_allocator: ^base.Cage_Allocator = new(base.Cage_Allocator)
-	// base.cage_allocator_init(cage_allocator, make([]u8, 512))
-	// context.allocator = base.cage_allocator(cage_allocator)
-	// base.cage_allocator_new_cage(cage_allocator, 64, true)
-	// append(&cage_allocator.cages, base.Cage{ 0, 16 })
-	// x0: ^u32 = new(u32)
-	// x1: ^u32 = new(u32)
-	// y0: ^u32 = new(u32)
-	// y1: ^u32 = new(u32)
 	context.logger = log.create_console_logger()
 	base.start(entry_point, n_workers_override = 1) }
 
+@(export)
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	entry: ^db.Entry
 	ok: bool
@@ -48,6 +37,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	camera: scn.Camera
 	camera_node: ^scn.Camera_Node
 	scene: scn.Scene
+	node_config: scn.Node_Config
 
 	context.logger = log.create_console_logger()
 	database = db.make_or_read_database({
@@ -61,7 +51,10 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	gx.upload_model(&model)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
-	camera_node = scn.make_camera_node(scn.default_node_config("camera"), &camera, context.allocator)
+	node_config = scn.DEFAULT_NODE_CONFIG
+	node_config.name = "camera"
+	node_config.tick_proc = tick_camera_node
+	camera_node = scn.make_camera_node(node_config, &camera, context.allocator)
 	scn.scene_attach(&scene, &camera_node.node)
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
 	model_node.node.translate.z = -0
@@ -79,3 +72,11 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		scn.render_scene(&graphics_context, &scene, camera_node) }
 	db.write(&database, context.allocator)
 	return }
+
+tick_camera_node :: proc(node: ^scn.Node) {
+	camera_node: ^scn.Camera_Node
+
+	scn.tick_camera_node(node)
+	camera_node = scn.node_object(node, scn.Camera_Node, "node")
+	camera_node.node.translate = { 0, 0, -50 }
+	camera_node.node.rotate = la.quaternion_from_euler_angles_f32(2 * m.PI, 0, 0, .XYZ) }
