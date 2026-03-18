@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-774bccaa.js";
+            window.path_to_searchindex_js = "searchindex-80947be6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-696be4c1.js"></script>
+        <script src="toc-dd3148cf.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -628,6 +628,232 @@ lock_push_pop :: proc(
 <p>Check if the model has been uploaded to the GPU.</p>
 <pre><code class="language-c">model_loaded :: proc(
 	model: ^Model) -&gt; bool
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="scene"><a class="header" href="#scene">Scene</a></h1>
+<p>A scene determines how 3D entities should be rendered. To render any 3D entity, you need a scene and a camera. A scene conotains a scene tree, which can be used to arrange any arbitrary objects in a hierarchy of 3D transforms. The scene tree is optional.</p>
+<h3 id="types-5"><a class="header" href="#types-5">Types</a></h3>
+<h4 id="scene_config"><a class="header" href="#scene_config"><code>Scene_Config</code></a></h4>
+<pre><code class="language-c">Scene_Config :: struct {
+	url: db.URL,
+	haze_color: [3]f32 }
+</code></pre>
+<h4 id="scene-1"><a class="header" href="#scene-1"><code>Scene</code></a></h4>
+<pre><code class="language-c">Scene :: struct {
+	using config: Scene_Config,
+	tree: Tree }
+</code></pre>
+<h4 id="tree"><a class="header" href="#tree"><code>Tree</code></a></h4>
+<pre><code class="language-c">Tree :: struct {
+	root: ^Node }
+</code></pre>
+<h4 id="node_render_proc"><a class="header" href="#node_render_proc"><code>Node_Render_Proc</code></a></h4>
+<pre><code class="language-c">Node_Render_Proc :: #type proc(
+	graphics_context: ^gx.Graphics_Context,
+	scene: ^Scene,
+	camera_node: ^Camera_Node,
+	node: ^Node)
+</code></pre>
+<h4 id="node_tick_proc"><a class="header" href="#node_tick_proc"><code>Node_Tick_Proc</code></a></h4>
+<pre><code class="language-c">Node_Tick_Proc :: #type proc(
+	node: ^Node)
+</code></pre>
+<h4 id="node_config"><a class="header" href="#node_config"><code>Node_Config</code></a></h4>
+<pre><code class="language-c">Node_Config :: struct {
+	name: string,
+	render_proc: Node_Render_Proc,
+	tick_proc: Node_Tick_Proc,
+	translate: [3]f32,
+	rotate: quaternion128,
+	scale: [3]f32,
+	visible: bool }
+</code></pre>
+<h4 id="node"><a class="header" href="#node"><code>Node</code></a></h4>
+<pre><code class="language-c">Node :: struct {
+	using config: Node_Config,
+	parent: ^Node,
+	first_child: ^Node,
+	last_child: ^Node,
+	first_sibling: ^Node,
+	next_sibling: ^Node,
+	prev_sibling: ^Node }
+</code></pre>
+<h4 id="tree_iterator"><a class="header" href="#tree_iterator"><code>Tree_Iterator</code></a></h4>
+<pre><code class="language-c">Tree_Iterator :: struct {
+	curr: ^Node }
+</code></pre>
+<h4 id="camera_config"><a class="header" href="#camera_config"><code>Camera_Config</code></a></h4>
+<pre><code class="language-c">Camera_Config :: struct {
+	focal_length: f32,
+	sensor_size: [2]f32,
+	near_clip: f32,
+	far_clip: f32 }
+</code></pre>
+<h4 id="camera"><a class="header" href="#camera"><code>Camera</code></a></h4>
+<pre><code class="language-c">Camera :: struct {
+	using config: Camera_Config,
+	view_matrix: matrix[4, 4]f32,
+	projection_matrix: matrix[4, 4]f32,
+	camera_matrix: matrix[4, 4]f32,
+	local_matrix: matrix[4, 4]f32 }
+</code></pre>
+<h4 id="camera_node"><a class="header" href="#camera_node"><code>Camera_Node</code></a></h4>
+<pre><code class="language-c">Camera_Node :: struct {
+	node: Node,
+	using camera: ^Camera }
+</code></pre>
+<h4 id="model_node"><a class="header" href="#model_node"><code>Model_Node</code></a></h4>
+<pre><code class="language-c">Model_Node :: struct {
+	node: Node,
+	using model: ^gx.Model }
+</code></pre>
+<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
+<h4 id="make_scene"><a class="header" href="#make_scene"><code>make_scene</code></a></h4>
+<p>The intended way to construct a <code>Scene</code>.</p>
+<pre><code class="language-c">make_scene :: proc(
+	url: db.URL) -&gt; (scene: Scene)
+</code></pre>
+<h4 id="scene_attach"><a class="header" href="#scene_attach"><code>scene_attach</code></a></h4>
+<p>Attach node as a last sibling to the root node of the given scene.</p>
+<pre><code class="language-c">scene_attach :: proc(
+	scene: ^Scene,
+	child: ^Node)
+</code></pre>
+<h4 id="default_node_config"><a class="header" href="#default_node_config"><code>default_node_config</code></a></h4>
+<pre><code class="language-c">default_node_config :: proc(
+	name: string) -&gt; (node_config: Node_Config)
+</code></pre>
+<h4 id="render_node"><a class="header" href="#render_node"><code>render_node</code></a></h4>
+<p>Call the render proc on the given node, if hooked.</p>
+<pre><code class="language-c">render_node :: proc(
+	graphics_context: ^gx.Graphics_Context,
+	scene: ^Scene,
+	camera_node: ^Camera_Node,
+	node: ^Node)
+</code></pre>
+<h4 id="tick_node"><a class="header" href="#tick_node"><code>tick_node</code></a></h4>
+<p>Call the tick proc on the given node, if hooked.</p>
+<pre><code class="language-c">tick_node :: proc(
+	node: ^Node)
+</code></pre>
+<h4 id="render_scene"><a class="header" href="#render_scene"><code>render_scene</code></a></h4>
+<p>Render a whole scene with the given camera. This renders all nodes, in breadth-first order.</p>
+<pre><code class="language-c">render_scene :: proc(
+	graphics_context: ^gx.Graphics_Context,
+	scene: ^Scene,
+	camera_node: ^Camera_Node)
+</code></pre>
+<h4 id="tick_scene"><a class="header" href="#tick_scene"><code>tick_scene</code></a></h4>
+<p>Tick the whole scene. This calls the tick procs on all nodes, in breadth-first order.</p>
+<pre><code class="language-c">tick_scene :: proc(
+	scene: ^Scene)
+</code></pre>
+<h4 id="init_node"><a class="header" href="#init_node"><code>init_node</code></a></h4>
+<pre><code class="language-c">init_node :: proc(
+	node: ^Node,
+	config: Node_Config)
+</code></pre>
+<h4 id="make_node"><a class="header" href="#make_node"><code>make_node</code></a></h4>
+<pre><code class="language-c">make_node :: proc(
+	config: Node_Config,
+	allocator: rt.Allocator) -&gt; (node: ^Node)
+</code></pre>
+<h4 id="tree_attach_root"><a class="header" href="#tree_attach_root"><code>tree_attach_root</code></a></h4>
+<p>Set a node as the root of a given tree.</p>
+<pre><code class="language-c">tree_attach_root :: proc(
+	tree: ^Tree,
+	node: ^Node)
+</code></pre>
+<h4 id="node_attach_sibling"><a class="header" href="#node_attach_sibling"><code>node_attach_sibling</code></a></h4>
+<p>Add a sibling to a given node.</p>
+<pre><code class="language-c">node_attach_sibling :: proc(
+	node: ^Node,
+	sibling: ^Node)
+</code></pre>
+<h4 id="node_attach_child"><a class="header" href="#node_attach_child"><code>node_attach_child</code></a></h4>
+<p>Add a child to a given node.</p>
+<pre><code class="language-c">node_attach_child :: proc(
+	node: ^Node,
+	child: ^Node)
+</code></pre>
+<h4 id="node_detach"><a class="header" href="#node_detach"><code>node_detach</code></a></h4>
+<p>Detach a given node from its tree. Its siblings are attached to one another and its children remain on the detached node.</p>
+<pre><code class="language-c">node_detach :: proc(
+	node: ^Node)
+</code></pre>
+<h4 id="node_object"><a class="header" href="#node_object"><code>node_object</code></a></h4>
+<p>Get an object from a point to its node field.</p>
+<pre><code class="language-c">node_object :: proc(
+	node: ^Node,
+	$T: typeid,
+	$field_name: string) -&gt; (^T)
+</code></pre>
+<h4 id="tree_iterator_root"><a class="header" href="#tree_iterator_root"><code>tree_iterator_root</code></a></h4>
+<p>Create a tree iterator, starting at the root.</p>
+<pre><code class="language-c">tree_iterator_root :: proc(
+	tree: ^Tree) -&gt; Tree_Iterator
+</code></pre>
+<h4 id="tree_iterator_node"><a class="header" href="#tree_iterator_node"><code>tree_iterator_node</code></a></h4>
+<p>Create a tree iterator, starting from a given node.</p>
+<pre><code class="language-c">tree_iterator_node :: proc(
+	node: ^Node) -&gt; Tree_Iterator
+</code></pre>
+<h4 id="tree_iterate_next"><a class="header" href="#tree_iterate_next"><code>tree_iterate_next</code></a></h4>
+<pre><code class="language-c">tree_iterate_next :: proc "contextless" (
+	iterator: ^Tree_Iterator) -&gt; (node: ^Node, ok: bool)
+</code></pre>
+<h4 id="tree_iterate_prev"><a class="header" href="#tree_iterate_prev"><code>tree_iterate_prev</code></a></h4>
+<pre><code class="language-c">tree_iterate_prev :: proc "contextless" (
+	iterator: ^Tree_Iterator) -&gt; (node: ^Node, ok: bool)
+</code></pre>
+<h4 id="tree_iterate_next_sibling"><a class="header" href="#tree_iterate_next_sibling"><code>tree_iterate_next_sibling</code></a></h4>
+<pre><code class="language-c">tree_iterate_next_sibling :: proc "contextless" (
+	iterator: ^Tree_Iterator) -&gt; (node: ^Node, ok: bool)
+</code></pre>
+<h4 id="tree_iterate_prev_sibling"><a class="header" href="#tree_iterate_prev_sibling"><code>tree_iterate_prev_sibling</code></a></h4>
+<pre><code class="language-c">tree_iterate_prev_sibling :: proc "contextless" (
+	iterator: ^Tree_Iterator) -&gt; (node: ^Node, ok: bool)
+</code></pre>
+<h4 id="tree_search_by_name"><a class="header" href="#tree_search_by_name"><code>tree_search_by_name</code></a></h4>
+<pre><code class="language-c">tree_search_by_name :: proc(
+	tree: ^Tree,
+	name: string) -&gt; (result: ^Node)
+</code></pre>
+<h4 id="tree_search_by_proc"><a class="header" href="#tree_search_by_proc"><code>tree_search_by_proc</code></a></h4>
+<pre><code class="language-c">tree_search_by_proc :: proc(
+	tree: ^Tree,
+	condition_proc: proc(node: ^Node, user_data: $T) -&gt; bool,
+	user_data: T) -&gt; (result: ^Node)
+</code></pre>
+<h4 id="make_camera_node"><a class="header" href="#make_camera_node"><code>make_camera_node</code></a></h4>
+<pre><code class="language-c">make_camera_node :: proc(
+	node_config: Node_Config,
+	camera: ^Camera,
+	allocator: rt.Allocator) -&gt; (camera_node: ^Camera_Node)
+</code></pre>
+<h4 id="render_camera_node"><a class="header" href="#render_camera_node"><code>render_camera_node</code></a></h4>
+<pre><code class="language-c">render_camera_node :: proc(
+	graphics_context: ^gx.Graphics_Context,
+	scene: ^Scene,
+	camera_node: ^Camera_Node,
+	node: ^Node)
+</code></pre>
+<h4 id="tick_camera_node"><a class="header" href="#tick_camera_node"><code>tick_camera_node</code></a></h4>
+<pre><code class="language-c">tick_camera_node :: proc(
+	node: ^Node)
+</code></pre>
+<h4 id="make_model_node"><a class="header" href="#make_model_node"><code>make_model_node</code></a></h4>
+<pre><code class="language-c">make_model_node :: proc(
+	node_config: Node_Config,
+	model: ^gx.Model,
+	allocator: rt.Allocator) -&gt; (model_node: ^Model_Node)
+</code></pre>
+<h4 id="render_model_node"><a class="header" href="#render_model_node"><code>render_model_node</code></a></h4>
+<pre><code class="language-c">render_model_node :: proc(
+	graphics_context: ^gx.Graphics_Context,
+	scene: ^Scene,
+	camera_node: ^Camera_Node,
+	node: ^Node)
 </code></pre>
 
                     </main>

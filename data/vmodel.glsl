@@ -11,7 +11,6 @@ out vec2 texcoord_interpolated;
 out vec3 normal_interpolated;
 out vec2 lightmap_texcoord_interpolated;
 
-
 void main(void) {
 	mat4 position_matrix = camera_position_matrix * model_matrix;
 	position_interpolated = (model_matrix * vec4(position, 1)).xyz;
@@ -20,5 +19,5 @@ void main(void) {
 	texcoord_interpolated = vec2(texcoord.x, 1 - texcoord.y);
 	lightmap_texcoord_interpolated = vec2(lightmap_texcoord.x, 1 - lightmap_texcoord.y);
 	gl_Position = (camera_projection_matrix * position_matrix) * vec4(position, 1);
+	// gl_Position = vec4(position, 1);
 	scr_position_interpolated = gl_Position.xyz; }
-

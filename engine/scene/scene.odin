@@ -10,6 +10,7 @@ import db "../database"
 Scene_Config :: struct #all_or_none {
 	url: db.URL,
 	haze_color: [3]f32 }
+
 Scene :: struct {
 	using config: Scene_Config,
 	tree: Tree }
@@ -27,10 +28,14 @@ scene_attach :: proc(scene: ^Scene, child: ^Node) {
 Tree :: struct {
 	root: ^Node }
 
+Node_Render_Proc :: #type proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
+
+Node_Tick_Proc :: #type proc(node: ^Node)
+
 Node_Config :: struct {
 	name: string,
-	render_proc: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node),
-	tick_proc: proc(node: ^Node),
+	render_proc: Node_Render_Proc,
+	tick_proc: Node_Tick_Proc,
 	translate: [3]f32,
 	rotate: quaternion128,
 	scale: [3]f32,
@@ -94,9 +99,6 @@ make_node :: proc(config: Node_Config, allocator: rt.Allocator) -> (node: ^Node)
 tree_attach_root :: proc(tree: ^Tree, node: ^Node) {
 	tree.root = node }
 
-node_is_only_sibling :: proc(node: ^Node) -> bool {
-	return node.first_sibling == node }
-
 node_attach_sibling :: proc(node: ^Node, sibling: ^Node) {
 	node.parent.last_child.next_sibling = sibling
 	sibling.prev_sibling = node.parent.last_child
@@ -110,14 +112,13 @@ node_attach_child :: proc(node: ^Node, child: ^Node) {
 		child.parent = node }
 	else do node_attach_sibling(node.last_child, child) }
 
+// (TODO): Test this!
 node_detach :: proc(node: ^Node) {
 	if node.prev_sibling != nil do node.prev_sibling.next_sibling = node.next_sibling
 	if node.next_sibling != nil do node.next_sibling.prev_sibling = node.prev_sibling
 	if node.parent.first_child == node do node.parent.first_child = node.next_sibling
 	if node.parent.last_child == node do node.parent.last_child = node.prev_sibling
 	node.parent = nil
-	node.first_child = nil
-	node.last_child = nil
 	node.first_sibling = nil
 	node.next_sibling = nil }
 

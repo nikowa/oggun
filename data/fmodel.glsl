@@ -27,4 +27,5 @@ void main(void) {
 	base_color=mix(base_color,haze_color,clamp((2.0*(depth-1))+1,0.0,1.0));
 	base_color=texture(world_position_samp, vec2(lightmap_texcoord_interpolated.x, lightmap_texcoord_interpolated.y)).xyz; // TEMP
 	// base_color=vec3(texcoord_interpolated.x, texcoord_interpolated.y, 0);
+	base_color=normal_interpolated; // TEMP
 	color.xyz=base_color; }

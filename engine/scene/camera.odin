@@ -32,7 +32,7 @@ Camera :: struct {
 
 DEFAULT_CAMERA: Camera : {
 	focal_length = 2,
-	sensor_size = { 1920, 1080 },
+	sensor_size = { 1.920, 1.080 },
 	near_clip = 0.0,
 	far_clip = 64.0 }
 

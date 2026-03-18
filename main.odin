@@ -73,8 +73,8 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)
 		gx.graphics_tick(&graphics_context)
-		scn.render_scene(&graphics_context, &scene, camera_node)
-		gx.render_rect(&graphics_context, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
-		gx.render_image(&graphics_context, &image, r.Rect{ { 0, 20 }, { 400, 400 } }) }
+		// gx.render_rect(&graphics_context, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
+		// gx.render_image(&graphics_context, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
+		scn.render_scene(&graphics_context, &scene, camera_node) }
 	db.write(&database, context.allocator)
 	return }

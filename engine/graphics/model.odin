@@ -1,6 +1,7 @@
 #+feature using-stmt
 package graphics
 import rt "base:runtime"
+import rl "core:reflect"
 import fmt "core:fmt"
 import os "core:os"
 import slc "core:slice"
@@ -164,7 +165,7 @@ _load_model_from_path_gltf :: proc(
 	normals_data: [][3]f32
 	texcoords_data: [][2]f32
 	lightmap_texcoords_data: [][2]f32
-	indices_data: []u16
+	indices_data: []u32
 	positions_data, ok = gltf.buffer_slice(data,position_accessor).([][3]f32); if ! ok do return
 	normals_data, ok = gltf.buffer_slice(data,normal_accessor).([][3]f32); if ! ok do return
 	texcoords_data, ok = gltf.buffer_slice(data,texcoord_accessor).([][2]f32); if ! ok do return
@@ -172,8 +173,14 @@ _load_model_from_path_gltf :: proc(
 	if ! ok {
 		log.errorf("Mesh %s has no lightmap texcoords.", mesh_name)
 		return }
-	indices_data, ok = gltf.buffer_slice(data, indices_accessor).([]u16)
-	if ! ok {
+	// log.infof("Indices variant: %v.", rl.union_variant_type_info(gltf.buffer_slice(data, indices_accessor)))
+	#partial switch variant in gltf.buffer_slice(data, indices_accessor) {
+	case []u16:
+		indices_data = make([]u32, len(variant))
+		for index, i in variant do indices_data[i] = cast(u32)index
+	case []u32:
+		indices_data = variant
+	case:
 		log.errorf("Mesh %s has no indices.", mesh_name)
 		return }
 	POSITIONS_STRIDE :: 3
@@ -184,11 +191,11 @@ _load_model_from_path_gltf :: proc(
 	model.normals = make([]f32, NORMALS_STRIDE * n)
 	model.texcoords = make([]f32, TEXCOORDS_STRIDE * n)
 	model.lightmap_texcoords = make([]f32, TEXCOORDS_STRIDE * n)
-	for i in indices_data {
-		copy(model.positions[POSITIONS_STRIDE * i : POSITIONS_STRIDE * (i + 1)], positions_data[i][:])
-		copy(model.normals[NORMALS_STRIDE * i : NORMALS_STRIDE * (i + 1)], normals_data[i][:])
-		copy(model.texcoords[TEXCOORDS_STRIDE * i : TEXCOORDS_STRIDE * (i + 1)], texcoords_data[i][:])
-		copy(model.lightmap_texcoords[TEXCOORDS_STRIDE * i : TEXCOORDS_STRIDE * (i + 1)], lightmap_texcoords_data[i][:]) }
+	for i, j in indices_data {
+		copy(model.positions[POSITIONS_STRIDE * j : POSITIONS_STRIDE * (j + 1)], positions_data[i][:])
+		copy(model.normals[NORMALS_STRIDE * j : NORMALS_STRIDE * (j + 1)], normals_data[i][:])
+		copy(model.texcoords[TEXCOORDS_STRIDE * j : TEXCOORDS_STRIDE * (j + 1)], texcoords_data[i][:])
+		copy(model.lightmap_texcoords[TEXCOORDS_STRIDE * j : TEXCOORDS_STRIDE * (j + 1)], lightmap_texcoords_data[i][:]) }
 	// glb_material := &data.materials[material_accessor]
 	// assert(glb_material.metallic_roughness != nil)
 	// material_matellic_roughness := glb_material.metallic_roughness.?

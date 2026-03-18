@@ -2,6 +2,7 @@ package scene
 import rt "base:runtime"
 import log "core:log"
 import la "core:math/linalg"
+import m "core:math"
 import gx "../graphics"
 
 
@@ -38,12 +39,27 @@ tick_camera_node :: proc(node: ^Node) {
 	rotation_matrix: matrix[4, 4]f32
 
 	camera_node = node_object(node, Camera_Node, "node")
+	camera_node.node.translate = { 0, 0, -50 }
 	fovy = 2 * la.atan2(camera_node.sensor_size.y / 2, camera_node.focal_length)
 	aspect = camera_node.sensor_size.x / camera_node.sensor_size.y
 	near = camera_node.near_clip
 	far = camera_node.far_clip
 	// rotation_matrix = la.matrix4_rotate_f32(- camera_node.angle.y, { 1, 0, 0 }) * la.matrix4_rotate_f32(camera_node.angle.x, { 0, 0, 1 })
 	camera_node.view_matrix = /*rotation_matrix * */la.matrix4_translate_f32(- camera_node.node.translate)
-	camera_node.projection_matrix = la.matrix4_perspective_f32(fovy = fovy, aspect = aspect, near = near, far = far)
+	camera_node.projection_matrix = la.matrix4_perspective_f32(fovy = fovy, aspect = aspect, near = near, far = far, flip_z_axis = false) // Maybe flip the z axis?
 	camera_node.camera_matrix = camera_node.projection_matrix * camera_node.view_matrix
 	camera_node.local_matrix = camera_node.projection_matrix * rotation_matrix }
+
+matrix4_perspective_f32 :: proc(fovy, aspect, near, far: f32) -> (m: matrix[4, 4]f32) {
+	X :: 0
+	Y :: 1
+	Z :: 2
+	W :: 3
+	tan_half_fovy := la.tan(0.5 * fovy)
+	m[X, X] = 1 / (aspect * tan_half_fovy)
+	m[Y, Z] = 1 / (tan_half_fovy)
+	m[Z, Y] = + (far + near) / (far - near)
+	m[W, Y] = + 1
+	m[Z, W] = -2 * far * near / (far - near)
+	m[Z] = m[Z]
+	return }
