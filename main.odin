@@ -50,7 +50,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	context.logger = log.create_console_logger()
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
-	// assert(example_dll.dev_tick != nil)
+	assert(example_dll.dev_tick != nil)
 	database = db.make_or_read_database({
 		relpath = "Data.bin",
 		source_directory_relpath = "data",
@@ -74,7 +74,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_context.window_closed {
-		// example_dll.dev_tick()
+		example_dll.dev_tick()
 		dll.watch_dll(&example_dll)
 		// if db.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		db.autosave(&database)
