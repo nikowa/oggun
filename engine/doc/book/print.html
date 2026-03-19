@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-32d10e5b.js";
+            window.path_to_searchindex_js = "searchindex-9d324ef6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-dd3148cf.js"></script>
+        <script src="toc-67184962.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -943,6 +943,71 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	camera_node: ^Camera_Node,
 	node: ^Node)
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="dll"><a class="header" href="#dll">DLL</a></h1>
+<pre><code class="language-c">import dll "willow/dll"
+</code></pre>
+<p>A helper library for managing DLLs and hot-reloading.</p>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<p>Create a struct that derives from <code>dll.DLL</code>, and has a field for each proc exported by your DLL package:</p>
+<pre><code class="language-c">My_DLL :: struct {
+	using base: dll.DLL,
+	my_dll_proc: proc() }
+</code></pre>
+<p>Create an object of your derived DLL type by <code>dll.make_dll</code> and give it the relative path to the source of your DLL:</p>
+<pre><code class="language-c">example_dll: Example_DLL
+example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
+</code></pre>
+<p>To check if the DLL source has been modified and reload the DLL if necessary, call <code>dll.watch_dll</code> with a pointer to the instance of your derived DLL type:</p>
+<pre><code class="language-c">dll.watch_dll(&amp;example_dll)
+</code></pre>
+<p>While the DLL is being reloaded, the proc pointers in it will become temporarily invalid. Thus make sure this isn’t called while any of those procs is in use.</p>
+<h3 id="types-6"><a class="header" href="#types-6">Types</a></h3>
+<h4 id="dll-1"><a class="header" href="#dll-1"><code>DLL</code></a></h4>
+<pre><code class="language-c">DLL :: struct {
+	lib: dl.Library,
+	source_relpath: string,
+	dll_relpath: string,
+	modification_time: tm.Time }
+</code></pre>
+<h3 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h3>
+<h4 id="make_dll"><a class="header" href="#make_dll"><code>make_dll</code></a></h4>
+<pre><code class="language-c">make_dll :: proc(
+	$T: typeid,
+	source_relpath: string) -&gt; (dll_object: T, err: os.Error)
+</code></pre>
+<details><summary>Description</summary>
+Create an instance of a type derived from dll.DLL, while compiling and loading the requested package as a DLL.
+</details>
+<h4 id="compile_dll"><a class="header" href="#compile_dll"><code>compile_dll</code></a></h4>
+<pre><code class="language-c">compile_dll :: proc(
+	source_relpath: string,
+	dll_relpath: string)
+</code></pre>
+<details><summary>Description</summary>
+Issue an Odin build command to compile a DLL.
+</details>
+<h4 id="dll_was_modified"><a class="header" href="#dll_was_modified"><code>dll_was_modified</code></a></h4>
+<pre><code class="language-c">dll_was_modified :: proc(
+	dll_object: ^$T) -&gt; (was_modified: bool)
+</code></pre>
+<details><summary>Description</summary>
+Check if the source of a given DLL has been modified.
+</details>
+<h4 id="reload_dll"><a class="header" href="#reload_dll"><code>reload_dll</code></a></h4>
+<pre><code class="language-c">reload_dll :: proc(
+	dll_object: ^$T) -&gt; (ok: bool)
+</code></pre>
+<details><summary>Description</summary>
+Reload a given DLL.
+</details>
+<h4 id="watch_dll"><a class="header" href="#watch_dll"><code>watch_dll</code></a></h4>
+<pre><code class="language-c">watch_dll :: proc(
+	dll_object: ^$T) -&gt; (ok: bool)
+</code></pre>
+<details><summary>Description</summary>
+Check if the source of a given DLL has been modified, and if it has, reload it and return true.
+</details>
 
                     </main>
 

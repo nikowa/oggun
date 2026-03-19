@@ -30,7 +30,7 @@ make_dll :: proc($T: typeid, source_relpath: string) -> (dll_object: T, err: os.
 	dir = sp.dir(source_relpath, context.temp_allocator)
 	dll_object.dll_relpath = os.join_path({ dir, os.join_filename(name, "dll", context.temp_allocator) or_return }, context.temp_allocator) or_return
 	compile_dll(dll_object.source_relpath, dll_object.dll_relpath)
-	ok = load_dll(&dll_object)
+	ok = _load_dll(&dll_object)
 	if ! ok do return {}, os.General_Error.Not_Exist
 	dll_object.modification_time, _ = os.modification_time_by_path(db.relpath_to_path(source_relpath, context.temp_allocator))
 	return dll_object, os.General_Error.None }
@@ -49,14 +49,14 @@ reload_dll :: proc(dll_object: ^$T) -> (ok: bool) where intr.type_has_field(T, "
 	dll_object.lib = nil
 	err := os.remove(dll_object.dll_relpath)
 	compile_dll(dll_object.source_relpath, dll_object.dll_relpath)
-	load_dll(dll_object) or_return
+	_load_dll(dll_object) or_return
 	return true }
 
 watch_dll :: proc(dll_object: ^$T) -> (ok: bool) where intr.type_has_field(T, "base"), intr.type_field_type(T, "base") == DLL {
 	if dll_was_modified(dll_object) do return reload_dll(dll_object)
 	return false }
 
-load_dll :: proc(dll_object: ^$T) -> (ok: bool) where intr.type_has_field(T, "base"), intr.type_field_type(T, "base") == DLL {
+_load_dll :: proc(dll_object: ^$T) -> (ok: bool) where intr.type_has_field(T, "base"), intr.type_field_type(T, "base") == DLL {
 	dll_object.base.lib = dl.load_library(dll_object.base.dll_relpath) or_return
 	for field in rl.struct_fields_zipped(T) {
 		if field.name == "lib" || !(rl.is_procedure(field.type) || rl.is_pointer(field.type)) do continue

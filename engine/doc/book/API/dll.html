@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Container - Willow</title>
+        <title>DLL - Willow</title>
 
 
         <!-- Custom HTML head -->
@@ -174,63 +174,79 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="container"><a class="header" href="#container">Container</a></h1>
-<p>Various containers used throughout Willow.</p>
+                        <h1 id="dll"><a class="header" href="#dll">DLL</a></h1>
+<pre><code class="language-c">import dll "willow/dll"
+</code></pre>
+<p>A helper library for managing DLLs and hot-reloading.</p>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<p>Create a struct that derives from <code>dll.DLL</code>, and has a field for each proc exported by your DLL package:</p>
+<pre><code class="language-c">My_DLL :: struct {
+	using base: dll.DLL,
+	my_dll_proc: proc() }
+</code></pre>
+<p>Create an object of your derived DLL type by <code>dll.make_dll</code> and give it the relative path to the source of your DLL:</p>
+<pre><code class="language-c">example_dll: Example_DLL
+example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
+</code></pre>
+<p>To check if the DLL source has been modified and reload the DLL if necessary, call <code>dll.watch_dll</code> with a pointer to the instance of your derived DLL type:</p>
+<pre><code class="language-c">dll.watch_dll(&amp;example_dll)
+</code></pre>
+<p>While the DLL is being reloaded, the proc pointers in it will become temporarily invalid. Thus make sure this isn’t called while any of those procs is in use.</p>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
-<h4 id="two_stack"><a class="header" href="#two_stack"><code>Two_Stack</code></a></h4>
-<pre><code class="language-c">Two_Stack :: struct($T: typeid) {
-	buffer: [2]T,
-	len: u8 }
+<h4 id="dll-1"><a class="header" href="#dll-1"><code>DLL</code></a></h4>
+<pre><code class="language-c">DLL :: struct {
+	lib: dl.Library,
+	source_relpath: string,
+	dll_relpath: string,
+	modification_time: tm.Time }
 </code></pre>
 <h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
-<h4 id="init"><a class="header" href="#init"><code>init</code></a></h4>
-<pre><code class="language-c">init :: proc(two_stack: ^Two_Stack($T))
+<h4 id="make_dll"><a class="header" href="#make_dll"><code>make_dll</code></a></h4>
+<pre><code class="language-c">make_dll :: proc(
+	$T: typeid,
+	source_relpath: string) -&gt; (dll_object: T, err: os.Error)
 </code></pre>
-<h4 id="len"><a class="header" href="#len"><code>len</code></a></h4>
-<pre><code class="language-c">len :: proc(two_stack: ^Two_Stack($T)) -&gt; int
+<details><summary>Description</summary>
+Create an instance of a type derived from dll.DLL, while compiling and loading the requested package as a DLL.
+</details>
+<h4 id="compile_dll"><a class="header" href="#compile_dll"><code>compile_dll</code></a></h4>
+<pre><code class="language-c">compile_dll :: proc(
+	source_relpath: string,
+	dll_relpath: string)
 </code></pre>
-<h4 id="push"><a class="header" href="#push"><code>push</code></a></h4>
-<pre><code class="language-c">push :: push_top
+<details><summary>Description</summary>
+Issue an Odin build command to compile a DLL.
+</details>
+<h4 id="dll_was_modified"><a class="header" href="#dll_was_modified"><code>dll_was_modified</code></a></h4>
+<pre><code class="language-c">dll_was_modified :: proc(
+	dll_object: ^$T) -&gt; (was_modified: bool)
 </code></pre>
-<h4 id="push_top"><a class="header" href="#push_top"><code>push_top</code></a></h4>
-<pre><code class="language-c">push_top :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; bool
+<details><summary>Description</summary>
+Check if the source of a given DLL has been modified.
+</details>
+<h4 id="reload_dll"><a class="header" href="#reload_dll"><code>reload_dll</code></a></h4>
+<pre><code class="language-c">reload_dll :: proc(
+	dll_object: ^$T) -&gt; (ok: bool)
 </code></pre>
-<h4 id="push_bottom"><a class="header" href="#push_bottom"><code>push_bottom</code></a></h4>
-<pre><code class="language-c">push_bottom :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; bool
+<details><summary>Description</summary>
+Reload a given DLL.
+</details>
+<h4 id="watch_dll"><a class="header" href="#watch_dll"><code>watch_dll</code></a></h4>
+<pre><code class="language-c">watch_dll :: proc(
+	dll_object: ^$T) -&gt; (ok: bool)
 </code></pre>
-<h4 id="pop"><a class="header" href="#pop"><code>pop</code></a></h4>
-<pre><code class="language-c">pop :: pop_top
-</code></pre>
-<h4 id="pop_top"><a class="header" href="#pop_top"><code>pop_top</code></a></h4>
-<pre><code class="language-c">pop_top :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
-</code></pre>
-<h4 id="pop_bottom"><a class="header" href="#pop_bottom"><code>pop_bottom</code></a></h4>
-<pre><code class="language-c">pop_bottom :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
-</code></pre>
-<h4 id="peek"><a class="header" href="#peek"><code>peek</code></a></h4>
-<pre><code class="language-c">peek :: peek_top
-</code></pre>
-<h4 id="peek_top"><a class="header" href="#peek_top"><code>peek_top</code></a></h4>
-<pre><code class="language-c">peek_top :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
-</code></pre>
-<h4 id="peek_bottom"><a class="header" href="#peek_bottom"><code>peek_bottom</code></a></h4>
-<pre><code class="language-c">peek_bottom :: proc(two_stack: ^Two_Stack($T)) -&gt; (elem: T, ok: bool)
-</code></pre>
-<h4 id="contains"><a class="header" href="#contains"><code>contains</code></a></h4>
-<pre><code class="language-c">contains :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; (ok: bool)
-</code></pre>
+<details><summary>Description</summary>
+Check if the source of a given DLL has been modified, and if it has, reload it and return true.
+</details>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../API/database.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../API/scene.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../API/graphics.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -238,13 +254,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../API/database.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../API/scene.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../API/graphics.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
-                    </a>
             </nav>
 
         </div>
