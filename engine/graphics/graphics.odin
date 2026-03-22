@@ -162,7 +162,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
-	gl.FrontFace(gl.CW)
+	gl.FrontFace(gl.CCW)
 	gl.Enable(gl.CULL_FACE)
 	gl.CullFace(gl.FRONT)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)

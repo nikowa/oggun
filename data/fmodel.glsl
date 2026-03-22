@@ -9,15 +9,15 @@ uniform vec3 haze_color;
 uniform float metallic_factor;
 out vec4 color;
 in vec3 position_interpolated;
+in vec3 scr_position_interpolated;
 in vec2 texcoord_interpolated;
 in vec3 normal_interpolated;
 in vec2 lightmap_texcoord_interpolated;
 void main(void) {
-	color.w=1.0;
-	// TODO: Should this use the corrected camera position vector?
-	float depth=distance(position_interpolated,camera_position)/camera_far_clip;
-	gl_FragDepth=depth;
-	vec3 base_color=texture(diffuse_samp,vec2(texcoord_interpolated.x,-texcoord_interpolated.y)).xyz;
+	color.w = 1.0;
+	float depth = length(scr_position_interpolated) / camera_far_clip;
+	gl_FragDepth = depth;
+	vec3 base_color = texture(diffuse_samp, vec2(texcoord_interpolated.x, -texcoord_interpolated.y)).xyz;
 	// base_color=vec3(0.9); // TEMP
 	// color.xyz=base_color; return;
 	vec3 camera_direction=normalize(position_interpolated-camera_position);
@@ -27,5 +27,8 @@ void main(void) {
 	base_color=mix(base_color,haze_color,clamp((2.0*(depth-1))+1,0.0,1.0));
 	base_color=texture(world_position_samp, vec2(lightmap_texcoord_interpolated.x, lightmap_texcoord_interpolated.y)).xyz; // TEMP
 	// base_color=vec3(texcoord_interpolated.x, texcoord_interpolated.y, 0);
-	base_color=normal_interpolated; // TEMP
-	color.xyz=base_color; }
+	base_color = 0.5 * (normal_interpolated + vec3(1, 1, 1)); // TEMP
+	color.xyz = base_color;
+	// color.xyz=vec3(gl_FragDepth);
+	// color.xyz=vec3(gl_FragDepth / 10.0);
+	}
