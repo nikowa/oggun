@@ -6,7 +6,7 @@ import tm "core:time"
 
 
 // Clock :: struct {
-// 	stopwatch_zero: time.Stopwatch,
+// 	stopwatch_zero: tm.Stopwatch,
 // 	frame_rate_controller: Tick_Rate_Controller,
 // 	net_time: f32,
 // 	net_time_to_last_frame: f32 }
@@ -14,7 +14,7 @@ import tm "core:time"
 
 // Tick_Rate_Controller :: struct {
 // 	tickrate_config:           Tickrate_Config,
-// 	stopwatch:                 time.Stopwatch,
+// 	stopwatch:                 tm.Stopwatch,
 // 	tick_period_nsec:          i64,
 // 	tick_period_sec:           f32,
 // 	accumulation_to_now:       i64,
@@ -23,7 +23,7 @@ import tm "core:time"
 
 
 // clock_init :: proc(clock: ^Clock, framerate_config: Tickrate_Config) {
-// 	time.stopwatch_start(&clock.stopwatch_zero)
+// 	tm.stopwatch_start(&clock.stopwatch_zero)
 // 	tick_rate_controller_init(&clock.frame_rate_controller, framerate_config)
 // 	clock.net_time = 0.0
 // 	clock.net_time_to_last_frame = 0.0 }
@@ -31,7 +31,7 @@ import tm "core:time"
 
 // tick_rate_controller_init :: proc(controller: ^Tick_Rate_Controller, tickrate_config: Tickrate_Config) {
 // 	controller.tickrate_config = tickrate_config
-// 	time.stopwatch_start(&controller.stopwatch)
+// 	tm.stopwatch_start(&controller.stopwatch)
 // 	controller.tick_period_nsec = FRAME_PERIODS_NSEC[cast(int)tickrate_config]
 // 	controller.tick_period_sec = FRAME_PERIODS_SEC[cast(int)tickrate_config]
 // 	controller.accumulation_to_now = 0.0
@@ -41,7 +41,7 @@ import tm "core:time"
 
 // tick_rate_controller_tick :: proc(controller: ^Tick_Rate_Controller) {
 // 	using controller
-// 	accumulation_to_now = time.duration_nanoseconds(time.stopwatch_duration(stopwatch))
+// 	accumulation_to_now = tm.duration_nanoseconds(tm.stopwatch_duration(stopwatch))
 // 	if accumulation_to_now - accumulation_to_last_tick >= tick_period_nsec {
 // 		should_tick = true
 // 		accumulation_to_last_tick += tick_period_nsec } }
@@ -76,12 +76,12 @@ import tm "core:time"
 // 	PERIOD_UNLIMITED_SEC }
 
 
-// PERIOD_30FPS_SEC:f32:f32(33_333_333)/f32(time.Second)
-// PERIOD_60FPS_SEC:f32:f32(16_666_666)/f32(time.Second)
-// PERIOD_120FPS_SEC:f32:f32(8_333_333)/f32(time.Second)
-// PERIOD_144FPS_SEC:f32:f32(6_944_444)/f32(time.Second)
-// PERIOD_240FPS_SEC:f32:f32(4_166_666)/f32(time.Second)
-// PERIOD_540FPS_SEC:f32:f32(1_851_851)/f32(time.Second)
+// PERIOD_30FPS_SEC:f32:f32(33_333_333)/f32(tm.Second)
+// PERIOD_60FPS_SEC:f32:f32(16_666_666)/f32(tm.Second)
+// PERIOD_120FPS_SEC:f32:f32(8_333_333)/f32(tm.Second)
+// PERIOD_144FPS_SEC:f32:f32(6_944_444)/f32(tm.Second)
+// PERIOD_240FPS_SEC:f32:f32(4_166_666)/f32(tm.Second)
+// PERIOD_540FPS_SEC:f32:f32(1_851_851)/f32(tm.Second)
 // PERIOD_UNLIMITED_SEC:f32:0
 
 
@@ -95,14 +95,14 @@ import tm "core:time"
 // 	UNLIMITED }
 
 
-// zero_stopwatch::proc(timer:^time.Stopwatch) {
-// 	if timer.running {
-// 		time.stopwatch_reset(timer) }
-// 	time.stopwatch_start(timer) }
+zero_stopwatch :: proc(timer: ^tm.Stopwatch) {
+	if timer.running {
+		tm.stopwatch_reset(timer) }
+	tm.stopwatch_start(timer) }
 
 
-// read_stopwatch::proc(timer:^time.Stopwatch)->f32 {
-// 	return f32(time.duration_seconds(time.stopwatch_duration(timer^))) }
+read_stopwatch :: proc(timer: ^tm.Stopwatch) -> f32 {
+	return cast(f32)tm.duration_seconds(tm.stopwatch_duration(timer^)) }
 
 
 // Clock_Tick_Data :: struct {
@@ -116,6 +116,6 @@ import tm "core:time"
 // 	lock_guard(&clock.lock)
 // 	tick_rate_controller_tick(&clock.frame_rate_controller)
 // 	clock.net_time = read_stopwatch(&clock.stopwatch_zero)
-// 	clock.net_time_to_last_frame = cast(f32)time.duration_seconds(cast(time.Duration)clock.frame_rate_controller.accumulation_to_last_tick)
+// 	clock.net_time_to_last_frame = cast(f32)tm.duration_seconds(cast(tm.Duration)clock.frame_rate_controller.accumulation_to_last_tick)
 // 	// if frame_count % 30 == 0 { fps = f32(f32(frame_count) / net_time) }
 // 	}

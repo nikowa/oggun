@@ -1,5 +1,5 @@
 package game
-import base "engine/base"
+import bs "engine/base"
 import os "core:os"
 import fmt "core:fmt"
 import mem "core:mem"
@@ -22,7 +22,7 @@ RO_State :: struct {
 
 Example_DLL :: struct {
 	using base: dll.DLL,
-	dev_tick: proc(camera_node: ^scn.Camera_Node) }
+	dev_tick: proc(camera_node: ^scn.Camera_Node, time: f32) }
 
 database: db.Database
 graphics_context: gx.Graphics_Context
@@ -30,10 +30,10 @@ input_context: ipt.Input_Context
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	base.start(entry_point, n_workers_override = 1) }
+	bs.start(entry_point, n_workers_override = 1) }
 
 @(export)
-entry_point :: proc(thread_data: ^base.Thread_Data) {
+entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	entry: ^db.Entry
 	ok: bool
 	image: gx.Image
@@ -46,8 +46,11 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	node_config: scn.Node_Config
 	example_dll: Example_DLL
 	modification_time: tm.Time
+	stopwatch: tm.Stopwatch
+	time: f32
 
 	context.logger = log.create_console_logger()
+	bs.zero_stopwatch(&stopwatch)
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
 	assert(example_dll.dev_tick != nil)
@@ -74,7 +77,8 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_context.window_closed {
-		example_dll.dev_tick(camera_node)
+		time = bs.read_stopwatch(&stopwatch)
+		example_dll.dev_tick(camera_node, time)
 		dll.watch_dll(&example_dll)
 		// if db.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		db.autosave(&database)
