@@ -22,7 +22,7 @@ RO_State :: struct {
 
 Example_DLL :: struct {
 	using base: dll.DLL,
-	dev_tick: proc() }
+	dev_tick: proc(camera_node: ^scn.Camera_Node) }
 
 database: db.Database
 graphics_context: gx.Graphics_Context
@@ -74,7 +74,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_context.window_closed {
-		example_dll.dev_tick()
+		example_dll.dev_tick(camera_node)
 		dll.watch_dll(&example_dll)
 		// if db.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		db.autosave(&database)
