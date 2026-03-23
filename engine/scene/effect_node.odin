@@ -31,7 +31,7 @@ render_effect_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene
 	gx.set_shader_param(shader.camera_far_clip, camera_node.far_clip)
 	gx.set_shader_param(shader.camera_position, camera_node.node.translate)
 	gx.set_shader_param(shader.haze_color, scene.haze_color)
-	gx.set_shader_param(shader.time, 0.0)
+	gx.set_shader_param(shader.time, graphics_context.time)
 	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.verts_handle)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.EnableVertexAttribArray(0)

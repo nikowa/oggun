@@ -8,7 +8,8 @@ import os "core:os"
 import db "../database"
 import la "core:math/linalg"
 import fmt "core:fmt"
-import base "../base"
+import tm "core:time"
+import bs "../base"
 import r "../container/rect"
 
 
@@ -35,7 +36,9 @@ Graphics_Context :: struct {
 	window_size: [2]u32,
 	window_closed: bool,
 // 	fullscreen:                      bool,
-	active_resolution:               [2]u32,
+	active_resolution: [2]u32,
+	stopwatch: tm.Stopwatch,
+	time: f32,
 // 	resolution:                      [2]int,
 // 	resolution_scale:                f32,
 // 	last_models_write_time:          os.File_Time,
@@ -246,7 +249,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	// graphics_context.water_effect_shader         = make_shader(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
 	// graphics_context.sdf_shader                  = make_shader(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 	// graphics_context.chromatic_aberration_shader = make_shader(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
-
+	bs.zero_stopwatch(&graphics_context.stopwatch)
 	return nil }
 
 
@@ -1138,6 +1141,7 @@ graphics_tick_begin :: proc(graphics_context: ^Graphics_Context) {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	clear_frame_buffer(0)
 	select_frame_buffer(graphics_context, 0)
+	graphics_context.time = bs.read_stopwatch(&graphics_context.stopwatch)
 // 	clear_render_buffer(&draw.default_sb)
 // 	select_render_buffer(draw, &draw.default_sb)
 // 	set_depth_test(true)
