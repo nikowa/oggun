@@ -17,6 +17,11 @@ import sp "core:path/slashpath"
 
 URL :: distinct string
 
+// URL_Ref :: struct($T: typeid) {
+// 	buffer: [128],
+// 	url: URL,
+// 	ptr: ^T }
+
 
 
 MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100

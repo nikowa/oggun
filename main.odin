@@ -14,6 +14,7 @@ import ipt "engine/input"
 import r "engine/container/rect"
 import scn "engine/scene"
 import dll "engine/dll"
+import msh "engine/mesh"
 
 
 
@@ -48,8 +49,13 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	modification_time: tm.Time
 	stopwatch: tm.Stopwatch
 	time: f32
+	square_grid: [dynamic][2]f32
+	effect: gx.Effect
 
 	context.logger = log.create_console_logger()
+	square_grid = make([dynamic][2]f32)
+	msh.append_uv_square_grid(&square_grid, grid_size = { 6, 4 })
+	// for elem in square_grid do log.info(elem)
 	bs.zero_stopwatch(&stopwatch)
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
@@ -63,6 +69,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
 	model, err = gx.load_model_from_path(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
+	effect = gx.make_effect({ "effect:explosion", { 8, 8 }, 1 }, context.allocator)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
 	node_config = scn.DEFAULT_NODE_CONFIG

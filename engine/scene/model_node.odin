@@ -18,6 +18,10 @@ make_model_node :: proc(node_config: Node_Config, model: ^gx.Model, allocator: r
 	model_node.model = model
 	return model_node }
 
+// render_model :: proc(graphics_context: ^gx.Graphics_Context, model: ^Model, position: [3]f32) {
+// 	// TODO
+// }
+
 render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	model_node: ^Model_Node
 	translate_matrix: matrix[4, 4]f32

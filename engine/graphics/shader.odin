@@ -32,6 +32,7 @@ GLSL_VERSION_STRING:    string : "#version 460 core"
 
 
 
+// (TODO): Change name to URL
 Shader_Config :: struct #all_or_none {
 	name: string,
 	vert_url, frag_url: db.URL }
@@ -40,7 +41,7 @@ Shader_Config :: struct #all_or_none {
 Shader :: struct {
 	using config: Shader_Config,
 	handle: u32,
-	last_compile_time: tm.Time,
+	compilation_time: tm.Time, // Equal to the latest modification time of the entry.
 	compiled: bool }
 
 
@@ -210,6 +211,18 @@ make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, database: ^db
 	init_shader_params(Type, shader)
 	return shader, nil }
 
+// Shader :: struct {
+// 	using config: Shader_Config,
+// 	handle: u32,
+// 	last_compile_time: tm.Time,
+// 	compiled: bool }
+
+// watch_shaders :: proc() {
+// 		append(&graphics_context.shaders, &shader.shader) or_return
+// 	compile_shader(graphics_context, database, shader) or_return
+
+// }
+
 compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Database, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
 	modification_time: tm.Time
@@ -253,6 +266,10 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 		print_glsl_error(link_message, compile_message_type, shader, sources[0], sources[1]) }
 	if ! ok do return io.Error.No_Progress
 	return nil }
+
+// compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Database, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
+
+// }
 
 init_shader_params :: proc($Type: typeid, shader: ^Type) {
 	fields: #soa[]rl.Struct_Field

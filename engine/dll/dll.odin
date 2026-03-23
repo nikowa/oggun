@@ -44,9 +44,16 @@ compile_dll :: proc(source_relpath: string, dll_relpath: string) -> (err: os.Err
 	command: []string = { "odin", "build", source_relpath, "-file", "-build-mode:dll", fmt.tprintf("-out:%s", dll_relpath) }
 	process_desc: os.Process_Desc = { working_dir = "", command = command }
 	state, stdout, stderr, os_error: = os.process_exec(process_desc, context.temp_allocator)
-	if ! os.exists(dll_relpath) do return os.General_Error.Invalid_File
-	new_modification_time = os.modification_time_by_path(dll_relpath) or_return
-	if tm.diff(old_modification_time, new_modification_time) == 0 do return os.General_Error.Invalid_File
+	if ! os.exists(dll_relpath) {
+		log.errorf("Odin failed to compile DLL: \n%s%s", stdout, stderr)
+		return os.General_Error.Invalid_File }
+	if ! os.exists(dll_relpath) do err = os.General_Error.Invalid_File
+	else {
+		new_modification_time, err = os.modification_time_by_path(dll_relpath)
+		if tm.diff(old_modification_time, new_modification_time) == 0 do err = os.General_Error.Invalid_File }
+	if err != os.General_Error.None {
+		log.errorf("Odin failed to compile DLL: \n%s%s", stdout, stderr)
+		return os.General_Error.Invalid_File }
 	return os.General_Error.None }
 
 dll_was_modified :: proc(dll_object: ^$T) -> (was_modified: bool) where intr.type_has_field(T, "base"), intr.type_field_type(T, "base") == DLL {
