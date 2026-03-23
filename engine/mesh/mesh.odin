@@ -25,7 +25,6 @@ import r "../container/rect"
 //  B---C
 //
 append_uv_rect :: proc(verts: ^[dynamic][2]f32, x: [2]f32 = { 0, 1 }, y: [2]f32 = { 0, 1 }) {
-	log.info("Appending rect", x, y)
 	a, b, c, d: [2]f32 = { x[0], y[1] }, { x[0], y[0] }, { x[1], y[0] }, { x[1], y[1] }
 	append_elems(verts, a, b, c, a, c, d) }
 

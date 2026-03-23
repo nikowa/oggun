@@ -224,12 +224,15 @@ _load_model_from_path_gltf :: proc(
 	// model_instance := &draw.model_instances[len(draw.model_instances) - 1]
 	// fmt.println(LOG, "Added instance with name", model_instance.name)
 	// model_instance.model = model
-	// mesh_rotation: quaternion128 = cast(quaternion128)node.rotation
-	// mesh_scale: [3]f32 = node.scale
-	// mesh_translation: [3]f32 = node.translation
-	// mesh_rotation_matrix: matrix[4,4]f32 = la.matrix4_from_quaternion_f32(mesh_rotation)
-	// mesh_scale_matrix: matrix[4,4]f32 = la.matrix4_scale_f32(mesh_scale)
-	// mesh_translation_matrix: matrix[4,4]f32 = la.matrix4_translate_f32(mesh_translation)
+
+
+
+
+	// transform_matrix: matrix[4, 4]f32 = la.matrix4_translate_f32(mesh_translation) * la.matrix4_from_quaternion_f32(cast(quaternion128)node.rotation) * la.matrix4_scale_f32(mesh_scale)
+
+
+
+
 	// model_instance.transform_translate = mesh_translation_matrix
 	// model_instance.transform_rotate = mesh_rotation_matrix
 	// model_instance.transform_scale = mesh_scale_matrix
