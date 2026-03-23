@@ -41,6 +41,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	model: gx.Model
 	err: os.Error
 	model_node: ^scn.Model_Node
+	effect_node: ^scn.Effect_Node
 	camera: scn.Camera
 	camera_node: ^scn.Camera_Node
 	scene: scn.Scene
@@ -69,7 +70,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
 	model, err = gx.load_model_from_path(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	effect = gx.make_effect({ "effect:explosion", { 8, 8 }, 1 }, context.allocator)
+	effect = gx.make_effect({ "effect:explosion", { 8, 8 }, 1 }, &graphics_context, &database, "shader:veffect-explosion", "shader:feffect-explosion", context.allocator)
+	gx.upload_effect(&effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
 	node_config = scn.DEFAULT_NODE_CONFIG
@@ -79,7 +81,9 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	scn.scene_attach(&scene, &camera_node.node)
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
 	model_node.node.translate.z = -0
+	effect_node = scn.make_effect_node(scn.default_node_config("effect"), &effect, context.allocator)
 	scn.scene_attach(&scene, &model_node.node)
+	scn.scene_attach(&scene, &effect_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))

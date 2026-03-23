@@ -73,6 +73,16 @@ Model_Shader :: struct {
 	metallic_factor: i32,
 	roughness_factor: i32 }
 
+Effect_Shader :: struct {
+	using shader: Shader,
+	node_matrix: i32,
+	camera_position_matrix: i32,
+	camera_projection_matrix: i32,
+	camera_far_clip: i32,
+	camera_position: i32,
+	haze_color: i32,
+	time: i32 }
+
 // Panel_Shader :: struct {
 // 	using shader: Shader,
 // 	pos:          i32,

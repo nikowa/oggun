@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-9d324ef6.js";
+            window.path_to_searchindex_js = "../searchindex-c4aa1afd.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-67184962.js"></script>
@@ -175,7 +175,11 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="database"><a class="header" href="#database">Database</a></h1>
-<p>A basic key-value database. Entries are slices of bytes, accessed by a string URL. The URL has the form <code>&lt;kind&gt;:&lt;name&gt;</code>.</p>
+<p><em>TODO:</em> Rename to asset manager.</p>
+<p><img src="../dataflow.png" alt="dataflow-image"></p>
+<p>Database is an abstraction layer between the in-memory and on-disk representations of assets. It’s purpose is to make it so you don’t have to think about where the assets are coming from and to automate updating and reloading them.</p>
+<p>Assets are identified by a string URL. The URL has the form <code>&lt;kind&gt;:&lt;name&gt;</code>. The intended way of managing assets is by registering their kinds at initialization time, then loading them and then saving them at deinitialization time; The database will automatically do the importing, reading, and writing for you. However, if you want, you can also import, read, or write manually.</p>
+<p>By setting the <code>watch</code> field on <code>Asset_Manager_Config</code>, you can enable the asset manager to watch for changes and automatically read, import, or load assets. This can allow you to edit assets while the game is running and see changes in real time.</p>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
 <h4 id="url"><a class="header" href="#url"><code>URL</code></a></h4>
 <pre><code class="language-c">URL :: distinct string
@@ -201,6 +205,17 @@
 <h4 id="entry"><a class="header" href="#entry"><code>Entry</code></a></h4>
 <pre><code class="language-c">Entry :: struct {
 	using config: Entry_Config }
+</code></pre>
+<h4 id="serialize_proc"><a class="header" href="#serialize_proc"><code>Serialize_Proc</code></a></h4>
+<pre><code>Serialize_Proc :: #type proc(
+	data: rawptr,
+	size: u32,
+	allocator: rt.Allocator) -&gt; (bytes: []u8, err: os.Error)
+</code></pre>
+<h4 id="deserialize_proc"><a class="header" href="#deserialize_proc"><code>Deserialize_Proc</code></a></h4>
+<pre><code>Deserialize_Proc :: #type proc(
+	bytes: []u8,
+	allocator: rt.Allocator) -&gt; (data: rawptr, size: u32, err: os.Error)
 </code></pre>
 <h4 id="make_database"><a class="header" href="#make_database"><code>make_database</code></a></h4>
 <p>Database constructor.</p>

@@ -1,6 +1,14 @@
 # Database
 
-A basic key-value database. Entries are slices of bytes, accessed by a string URL. The URL has the form `<kind>:<name>`.
+_TODO:_ Rename to asset manager.
+
+![dataflow-image](../dataflow.png)
+
+Database is an abstraction layer between the in-memory and on-disk representations of assets. It's purpose is to make it so you don't have to think about where the assets are coming from and to automate updating and reloading them.
+
+Assets are identified by a string URL. The URL has the form `<kind>:<name>`. The intended way of managing assets is by registering their kinds at initialization time, then loading them and then saving them at deinitialization time; The database will automatically do the importing, reading, and writing for you. However, if you want, you can also import, read, or write manually.
+
+By setting the `watch` field on `Asset_Manager_Config`, you can enable the asset manager to watch for changes and automatically read, import, or load assets. This can allow you to edit assets while the game is running and see changes in real time.
 
 ### Types
 
@@ -43,6 +51,24 @@ Entry_Config :: struct {
 Entry :: struct {
 	using config: Entry_Config }
 ```
+
+#### `Serialize_Proc`
+
+```
+Serialize_Proc :: #type proc(
+	data: rawptr,
+	size: u32,
+	allocator: rt.Allocator) -> (bytes: []u8, err: os.Error)
+```
+
+#### `Deserialize_Proc`
+
+```
+Deserialize_Proc :: #type proc(
+	bytes: []u8,
+	allocator: rt.Allocator) -> (data: rawptr, size: u32, err: os.Error)
+```
+
 
 #### `make_database`
 

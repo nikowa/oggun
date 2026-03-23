@@ -4,3 +4,5 @@
 - Add database procedure to watch an entry's source for updates and import it live
 - Shader recompiling
 - Generic effect shader, test it
+
+- Rename graphics context to graphics manager, database to asset manager

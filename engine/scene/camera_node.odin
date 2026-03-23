@@ -12,11 +12,7 @@ Camera_Node :: struct {
 	using camera: ^Camera }
 
 make_camera_node :: proc(node_config: Node_Config, camera: ^Camera, allocator: rt.Allocator) -> (camera_node: ^Camera_Node) {
-	node_config := node_config
-	camera_node = new(Camera_Node, allocator)
-	if node_config.render_proc == nil do node_config.render_proc = render_camera_node
-	if node_config.tick_proc == nil do node_config.tick_proc = tick_camera_node
-	init_node(&camera_node.node, node_config)
+	camera_node = make_derived_node(Camera_Node, node_config, render_camera_node, tick_camera_node, allocator)
 	camera_node.camera = camera
 	return camera_node }
 

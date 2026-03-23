@@ -12,9 +12,7 @@ Model_Node :: struct {
 	using model: ^gx.Model }
 
 make_model_node :: proc(node_config: Node_Config, model: ^gx.Model, allocator: rt.Allocator) -> (model_node: ^Model_Node) {
-	model_node = new(Model_Node, allocator)
-	init_node(&model_node.node, node_config)
-	model_node.node.render_proc = render_model_node
+	model_node = make_derived_node(Model_Node, node_config, render_model_node, nil, allocator)
 	model_node.model = model
 	return model_node }
 
@@ -23,25 +21,12 @@ make_model_node :: proc(node_config: Node_Config, model: ^gx.Model, allocator: r
 // }
 
 render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
-	model_node: ^Model_Node
-	translate_matrix: matrix[4, 4]f32
-	rotate_matrix: matrix[4, 4]f32
-	scale_matrix: matrix[4, 4]f32
-	transform_matrix: matrix[4, 4]f32
-
 	assert(graphics_context != nil)
 	assert(graphics_context.model_shader != nil)
 	assert(node != nil)
-
-
-	model_node = node_object(node, Model_Node, "node")
+	model_node := node_object(node, Model_Node, "node")
 	shader := gx.use_shader(graphics_context.model_shader)
-	translate_matrix = la.matrix4_translate_f32(model_node.node.translate)
-	rotate_matrix = la.matrix4_rotate_f32(model_node.node.rotate.x, { 1, 0, 0 }) *
-		la.matrix4_rotate_f32(model_node.node.rotate.y, { 0, 1, 0 }) *
-		la.matrix4_rotate_f32(model_node.node.rotate.z, { 0, 0, 1 })
-	scale_matrix = la.matrix4_scale_f32(model_node.node.scale)
-	transform_matrix = translate_matrix * rotate_matrix * scale_matrix
+	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&model_node.node)
 	gx.set_shader_param(shader.model_matrix, &transform_matrix)
 	gx.set_shader_param(shader.camera_position_matrix, &camera_node.view_matrix)
 	gx.set_shader_param(shader.camera_projection_matrix, &camera_node.projection_matrix)
@@ -63,6 +48,7 @@ render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene,
 	gl.VertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.EnableVertexAttribArray(3)
 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	gl.Enable(gl.CULL_FACE)
 	// // bind_texture(0,draw.textures["dev-grid"].handle)
 	// bind_texture(0, model_node.material.base_color_texture.handle)
 	// // bind_texture(1, model_node.triangles_map.handle)

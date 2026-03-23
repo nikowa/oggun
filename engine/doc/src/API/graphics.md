@@ -22,8 +22,6 @@ image_equiv :: proc(
 
 #### `import_or_retreive_image`
 
-Get an image from the database by URL. If no such image exists, load it from file and add to the database.
-
 ```c
 import_or_retreive_image :: proc(
 	database: ^db.Database,
@@ -31,9 +29,11 @@ import_or_retreive_image :: proc(
 	allocator: rt.Allocator) -> (image: Image, err: os.Error)
 ```
 
-#### `image_serialize`
+<details><summary>Description</summary>
+Get an image from the database by URL. If no such image exists, load it from file and add to the database.
+</details>
 
-Serialize an `Image` object.
+#### `image_serialize`
 
 ```c
 image_serialize :: proc(
@@ -41,15 +41,21 @@ image_serialize :: proc(
 	allocator: rt.Allocator) -> (bytes: []u8, err: os.Error)
 ```
 
-#### `image_deserialize`
+<details><summary>Description</summary>
+Serialize an `Image` object.
+</details>
 
-Deserialize an `Image` object.
+#### `image_deserialize`
 
 ```c
 image_deserialize :: proc(
 	bytes: []u8,
 	allocator: rt.Allocator) -> (image: Image, err: os.Error)
 ```
+
+<details><summary>Description</summary>
+Deserialize an `Image` object.
+</details>
 
 #### `load_from_path`
 
@@ -62,27 +68,33 @@ load_from_path :: proc(
 
 #### `upload_image`
 
-Upload image to GPU memory.
-
 ```c
 upload_image :: proc(
 	image: ^Image) -> bool
 ```
 
-#### `download_image`
+<details><summary>Description</summary>
+Upload image to GPU memory.
+</details>
 
-Release the GPU memory associated with the image.
+#### `download_image`
 
 ```c
 download_image :: proc(
 	image: ^Image)
 ```
 
-#### `image_loaded`
+<details><summary>Description</summary>
+Release the GPU memory associated with the image.
+</details>
 
-Check if the image has been uploaded to the GPU.
+#### `image_loaded`
 
 ```c
 image_loaded :: proc(
 	image: ^Image) -> bool
 ```
+
+<details><summary>Description</summary>
+Check if the image has been uploaded to the GPU.
+</details>

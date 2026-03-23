@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-9d324ef6.js";
+            window.path_to_searchindex_js = "../searchindex-c4aa1afd.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-67184962.js"></script>
@@ -188,24 +188,30 @@
 	b: ^Image) -&gt; bool
 </code></pre>
 <h4 id="import_or_retreive_image"><a class="header" href="#import_or_retreive_image"><code>import_or_retreive_image</code></a></h4>
-<p>Get an image from the database by URL. If no such image exists, load it from file and add to the database.</p>
 <pre><code class="language-c">import_or_retreive_image :: proc(
 	database: ^db.Database,
 	url: db.URL,
 	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
 </code></pre>
+<details><summary>Description</summary>
+Get an image from the database by URL. If no such image exists, load it from file and add to the database.
+</details>
 <h4 id="image_serialize"><a class="header" href="#image_serialize"><code>image_serialize</code></a></h4>
-<p>Serialize an <code>Image</code> object.</p>
 <pre><code class="language-c">image_serialize :: proc(
 	image: ^Image,
 	allocator: rt.Allocator) -&gt; (bytes: []u8, err: os.Error)
 </code></pre>
+<details><summary>Description</summary>
+Serialize an `Image` object.
+</details>
 <h4 id="image_deserialize"><a class="header" href="#image_deserialize"><code>image_deserialize</code></a></h4>
-<p>Deserialize an <code>Image</code> object.</p>
 <pre><code class="language-c">image_deserialize :: proc(
 	bytes: []u8,
 	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
 </code></pre>
+<details><summary>Description</summary>
+Deserialize an `Image` object.
+</details>
 <h4 id="load_from_path"><a class="header" href="#load_from_path"><code>load_from_path</code></a></h4>
 <pre><code class="language-c">load_from_path :: proc(
 	path: string,
@@ -213,20 +219,26 @@
 	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
 </code></pre>
 <h4 id="upload_image"><a class="header" href="#upload_image"><code>upload_image</code></a></h4>
-<p>Upload image to GPU memory.</p>
 <pre><code class="language-c">upload_image :: proc(
 	image: ^Image) -&gt; bool
 </code></pre>
+<details><summary>Description</summary>
+Upload image to GPU memory.
+</details>
 <h4 id="download_image"><a class="header" href="#download_image"><code>download_image</code></a></h4>
-<p>Release the GPU memory associated with the image.</p>
 <pre><code class="language-c">download_image :: proc(
 	image: ^Image)
 </code></pre>
+<details><summary>Description</summary>
+Release the GPU memory associated with the image.
+</details>
 <h4 id="image_loaded"><a class="header" href="#image_loaded"><code>image_loaded</code></a></h4>
-<p>Check if the image has been uploaded to the GPU.</p>
 <pre><code class="language-c">image_loaded :: proc(
 	image: ^Image) -&gt; bool
 </code></pre>
+<details><summary>Description</summary>
+Check if the image has been uploaded to the GPU.
+</details>
 
                     </main>
 

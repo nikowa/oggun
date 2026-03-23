@@ -1,0 +1,41 @@
+package scene
+import rt "base:runtime"
+import log "core:log"
+import la "core:math/linalg"
+import m "core:math"
+import gl "vendor:OpenGL"
+import gx "../graphics"
+
+
+
+Effect_Node :: struct {
+	node: Node,
+	using effect: ^gx.Effect }
+
+make_effect_node :: proc(node_config: Node_Config, effect: ^gx.Effect, allocator: rt.Allocator) -> (effect_node: ^Effect_Node) {
+	effect_node = make_derived_node(Effect_Node, node_config, render_effect_node, nil, allocator)
+	effect_node.effect = effect
+	return effect_node }
+
+render_effect_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+	assert(graphics_context != nil)
+	assert(graphics_context.model_shader != nil)
+	assert(node != nil)
+	effect_node := node_object(node, Effect_Node, "node")
+	assert(gx.effect_is_uploaded(effect_node.effect))
+	shader := gx.use_shader(effect_node.shader)
+	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&effect_node.node)
+	gx.set_shader_param(shader.node_matrix, &transform_matrix)
+	gx.set_shader_param(shader.camera_position_matrix, &camera_node.view_matrix)
+	gx.set_shader_param(shader.camera_projection_matrix, &camera_node.projection_matrix)
+	gx.set_shader_param(shader.camera_far_clip, camera_node.far_clip)
+	gx.set_shader_param(shader.camera_position, camera_node.node.translate)
+	gx.set_shader_param(shader.haze_color, scene.haze_color)
+	gx.set_shader_param(shader.time, 0.0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.verts_handle)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.EnableVertexAttribArray(0)
+	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	gl.Disable(gl.CULL_FACE)
+	gx.draw_triangles(cast(i32)(len(effect_node.verts) * 2)) }

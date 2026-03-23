@@ -1,5 +1,6 @@
 package scene
 import rt "base:runtime"
+import la "core:math/linalg"
 import gx "../graphics"
 import db "../database"
 
@@ -96,6 +97,14 @@ make_node :: proc(config: Node_Config, allocator: rt.Allocator) -> (node: ^Node)
 	init_node(node, config)
 	return node }
 
+make_derived_node :: proc($Derived_Node_Type: typeid, node_config: Node_Config, default_render_proc: Node_Render_Proc, default_tick_proc: Node_Tick_Proc, allocator: rt.Allocator) -> (derived_node: ^Derived_Node_Type) {
+	node_config := node_config
+	derived_node = new(Derived_Node_Type, allocator)
+	if node_config.render_proc == nil do node_config.render_proc = default_render_proc
+	if node_config.tick_proc == nil do node_config.tick_proc = default_tick_proc
+	init_node(&derived_node.node, node_config)
+	return derived_node }
+
 tree_attach_root :: proc(tree: ^Tree, node: ^Node) {
 	tree.root = node }
 
@@ -178,3 +187,12 @@ tree_search_by_proc :: proc(tree: ^Tree, condition_proc: proc(node: ^Node, user_
 	for node in tree_iterate_next(&iterator) {
 		if condition_proc(node, user_data) do return node }
 	return nil }
+
+node_transforms :: proc(node: ^Node) -> (translate_matrix, rotate_matrix, scale_matrix, transform_matrix: matrix[4, 4]f32) {
+	translate_matrix = la.matrix4_translate_f32(node.translate)
+	rotate_matrix = la.matrix4_rotate_f32(node.rotate.x, { 1, 0, 0 }) *
+		la.matrix4_rotate_f32(node.rotate.y, { 0, 1, 0 }) *
+		la.matrix4_rotate_f32(node.rotate.z, { 0, 0, 1 })
+	scale_matrix = la.matrix4_scale_f32(node.scale)
+	transform_matrix = translate_matrix * rotate_matrix * scale_matrix
+	return }
