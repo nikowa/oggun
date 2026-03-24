@@ -169,6 +169,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	gl.FrontFace(gl.CCW)
 	gl.Enable(gl.CULL_FACE)
 	gl.CullFace(gl.FRONT)
+	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 	gl.Disable(gl.MULTISAMPLE)
 // 	draw.default_sb, ok = make_scene_buffer_static(draw.resolution)

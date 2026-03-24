@@ -1,5 +1,5 @@
 #include <veffect>
-vec3 effect_position(vec2 uv) {
+vec3 effect_position() {
 	vec3 pos;
 	pos.x = 2 * (uv.x - 0.5);
 	pos.y = 2 * (uv.y - 0.5);
