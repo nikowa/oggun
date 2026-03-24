@@ -27,10 +27,10 @@ Model :: struct {
 	normals_handle: u32,
 	texcoords_handle: u32,
 	lightmap_texcoords_handle: u32,
-	positions: []f32,
-	normals: []f32,
-	texcoords: []f32,
-	lightmap_texcoords: []f32,
+	positions: [][3]f32,
+	normals: [][3]f32,
+	texcoords: [][2]f32,
+	lightmap_texcoords: [][2]f32,
 // 	material: ^Material,
 // 	triangles_map: Texture,
 // thickness_map: Texture
@@ -70,7 +70,7 @@ import_or_retreive_model :: proc(
 	else {
 		log.infof("Reading model %s from source.", url)
 		path = db.url_search_source(database, url, allocator) or_return
-		model = load_model_from_path(path, url, allocator) or_return
+		model = load_model(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = model_serialize(&model, allocator) or_return
 		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time), true) or_return }
@@ -96,17 +96,18 @@ model_deserialize :: proc(
 
 	b.reader_init(&reader, bytes)
 	b.reader_read_ptr(&reader, &model, size_of(model)) or_return
-	model.positions = make([]f32, len(model.positions), allocator) or_return
-	model.normals = make([]f32, len(model.normals), allocator) or_return
-	model.texcoords = make([]f32, len(model.texcoords), allocator) or_return
-	model.lightmap_texcoords = make([]f32, len(model.lightmap_texcoords), allocator) or_return
+	model.positions = make([][3]f32, len(model.positions), allocator) or_return
+	model.normals = make([][3]f32, len(model.normals), allocator) or_return
+	model.texcoords = make([][2]f32, len(model.texcoords), allocator) or_return
+	model.lightmap_texcoords = make([][2]f32, len(model.lightmap_texcoords), allocator) or_return
 	b.reader_read_slice(&reader, model.positions) or_return
 	b.reader_read_slice(&reader, model.normals) or_return
 	b.reader_read_slice(&reader, model.texcoords) or_return
 	b.reader_read_slice(&reader, model.lightmap_texcoords) or_return
 	return model, os.General_Error.None }
 
-load_model_from_path :: proc(
+// (TODO): Standardize the load/save, import, read/write interface. Implement register.
+load_model :: proc(
 	path: string,
 	url: db.URL,
 	allocator: rt.Allocator) -> (model: Model, err: os.Error) {
@@ -117,12 +118,12 @@ load_model_from_path :: proc(
 		return {}, os.General_Error.Not_Exist }
 	ext = os.ext(path)
 	switch ext {
-	case ".glb": return _load_model_from_path_gltf(path, url, allocator)
+	case ".glb": return _load_model_gltf(path, url, allocator)
 	case: log.errorf("Model path %s has unsupported extension.", path) }
 	return {}, os.General_Error.Invalid_Path }
 
 // TODO: Add a version of this that load to scene tree, rather than a model.
-_load_model_from_path_gltf :: proc(
+_load_model_gltf :: proc(
     path: string,
     url: db.URL,
     allocator: rt.Allocator) -> (model: Model, err: os.Error) {
@@ -143,6 +144,7 @@ _load_model_from_path_gltf :: proc(
 	case gltf.JSON_Error: if err.type != .None do return
 	case gltf.GLTF_Error: return }
 	if len(data.nodes) != 1 do return
+	node := data.nodes[0]
 	mesh_accessor, ok = data.nodes[0].mesh.?; if ! ok do return
 	mesh = data.meshes[mesh_accessor]
 	mesh_name, ok = mesh.name.?; if ! ok do return
@@ -183,19 +185,20 @@ _load_model_from_path_gltf :: proc(
 	case:
 		log.errorf("Mesh %s has no indices.", mesh_name)
 		return }
-	POSITIONS_STRIDE :: 3
-	NORMALS_STRIDE :: 3
-	TEXCOORDS_STRIDE :: 2
+	translate_matrix := la.matrix4_translate_f32(node.translation)
+	rotate_matrix := la.matrix4_from_quaternion_f32(cast(quaternion128)node.rotation)
+	scale_matrix := la.matrix4_scale_f32(node.scale)
+	transform_matrix := translate_matrix * rotate_matrix * scale_matrix
 	n = len(indices_data)
-	model.positions = make([]f32, POSITIONS_STRIDE * n)
-	model.normals = make([]f32, NORMALS_STRIDE * n)
-	model.texcoords = make([]f32, TEXCOORDS_STRIDE * n)
-	model.lightmap_texcoords = make([]f32, TEXCOORDS_STRIDE * n)
+	model.positions = make([][3]f32, n)
+	model.normals = make([][3]f32, n)
+	model.texcoords = make([][2]f32, n)
+	model.lightmap_texcoords = make([][2]f32, n)
 	for i, j in indices_data {
-		copy(model.positions[POSITIONS_STRIDE * j : POSITIONS_STRIDE * (j + 1)], positions_data[i][:])
-		copy(model.normals[NORMALS_STRIDE * j : NORMALS_STRIDE * (j + 1)], normals_data[i][:])
-		copy(model.texcoords[TEXCOORDS_STRIDE * j : TEXCOORDS_STRIDE * (j + 1)], texcoords_data[i][:])
-		copy(model.lightmap_texcoords[TEXCOORDS_STRIDE * j : TEXCOORDS_STRIDE * (j + 1)], lightmap_texcoords_data[i][:]) }
+		model.positions[j] = (transform_matrix * [4]f32{positions_data[i].x, positions_data[i].y, positions_data[i].z, 1}).xyz
+		model.normals[j] = normals_data[i]
+		model.texcoords[j] = texcoords_data[i]
+		model.lightmap_texcoords[j] = lightmap_texcoords_data[i] }
 	// glb_material := &data.materials[material_accessor]
 	// assert(glb_material.metallic_roughness != nil)
 	// material_matellic_roughness := glb_material.metallic_roughness.?
@@ -228,11 +231,6 @@ _load_model_from_path_gltf :: proc(
 
 
 
-	// transform_matrix: matrix[4, 4]f32 = la.matrix4_translate_f32(mesh_translation) * la.matrix4_from_quaternion_f32(cast(quaternion128)node.rotation) * la.matrix4_scale_f32(mesh_scale)
-
-
-
-
 	// model_instance.transform_translate = mesh_translation_matrix
 	// model_instance.transform_rotate = mesh_rotation_matrix
 	// model_instance.transform_scale = mesh_scale_matrix
@@ -247,13 +245,13 @@ upload_model :: proc(model: ^Model) -> bool {
 	gl.GenBuffers(1, &model.texcoords_handle)
 	gl.GenBuffers(1, &model.lightmap_texcoords_handle)
 	gl.BindBuffer(gl.ARRAY_BUFFER, model.positions_handle)
-	gl.BufferData(gl.ARRAY_BUFFER, len(model.positions) * size_of(f32), &model.positions[0], gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.positions) * size_of(model.positions[0]), &model.positions[0], gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, model.normals_handle)
-	gl.BufferData(gl.ARRAY_BUFFER, len(model.normals) * size_of(f32), &model.normals[0], gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.normals) * size_of(model.normals[0]), &model.normals[0], gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, model.texcoords_handle)
-	gl.BufferData(gl.ARRAY_BUFFER, len(model.texcoords) * size_of(f32), &model.texcoords[0], gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.texcoords) * size_of(model.texcoords[0]), &model.texcoords[0], gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, model.lightmap_texcoords_handle)
-	gl.BufferData(gl.ARRAY_BUFFER, len(model.lightmap_texcoords) * size_of(f32), &model.lightmap_texcoords[0], gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(model.lightmap_texcoords) * size_of(model.lightmap_texcoords[0]), &model.lightmap_texcoords[0], gl.STATIC_DRAW)
 	return true }
 
 download_model :: proc(model: ^Model) {

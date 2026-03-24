@@ -194,7 +194,7 @@ model_test :: proc(t_context: ^tst.T) {
 	relpath = "data/castle.glb"
 	url = "model:castle"
 	path = db.relpath_to_path(relpath, allocator)
-	model, err = gx.load_model_from_path(path, url, allocator)
+	model, err = gx.load_model(path, url, allocator)
 	tst.expect(t_context, err == nil)
 	bytes, err = gx.model_serialize(&model, allocator)
 	tst.expect(t_context, err == nil)

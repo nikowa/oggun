@@ -41,6 +41,7 @@ Node_Config :: struct {
 	rotate: quaternion128,
 	scale: [3]f32,
 	visible: bool }
+	// using transform: Node_Transform }
 
 DEFAULT_NODE_CONFIG: Node_Config : {
 	name = "default",
@@ -70,6 +71,15 @@ Node :: struct {
 	// transform: matrix[4, 4]f32
 }
 
+// (TODO): Implement this, so I can nest nodes and tarnsforms are applied recursively.
+Node_Transform :: struct {
+	translate: matrix[4, 4]f32,
+	rotate: matrix[4, 4]f32,
+	scale: matrix[4, 4]f32,
+	total: matrix[4, 4]f32 }
+
+// node_transform_cumulative :: proc(node: ^Node) -> (transform: Node_Transform) { }
+
 render_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	if node.render_proc == nil do return
 	node.render_proc(graphics_context, scene, camera_node, node) }
@@ -77,6 +87,8 @@ render_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camer
 tick_node :: proc(node: ^Node) {
 	if node.tick_proc == nil do return
 	node.tick_proc(node) }
+
+// (TODO): A default tick_node proc, which calculates the cumulative transform.
 
 render_scene :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node) {
 	render_node(graphics_context, scene, nil, &camera_node.node) }

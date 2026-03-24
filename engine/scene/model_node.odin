@@ -16,10 +16,6 @@ make_model_node :: proc(node_config: Node_Config, model: ^gx.Model, allocator: r
 	model_node.model = model
 	return model_node }
 
-// render_model :: proc(graphics_context: ^gx.Graphics_Context, model: ^Model, position: [3]f32) {
-// 	// TODO
-// }
-
 render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	assert(graphics_context != nil)
 	assert(graphics_context.model_shader != nil)
@@ -27,7 +23,7 @@ render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene,
 	model_node := node_object(node, Model_Node, "node")
 	shader := gx.use_shader(graphics_context.model_shader)
 	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&model_node.node)
-	gx.set_shader_param(shader.model_matrix, &transform_matrix)
+	gx.set_shader_param(shader.model_matrix, &transform_matrix) // (TODO): Rename to node_matrix
 	gx.set_shader_param(shader.camera_position_matrix, &camera_node.view_matrix)
 	gx.set_shader_param(shader.camera_projection_matrix, &camera_node.projection_matrix)
 	gx.set_shader_param(shader.camera_far_clip, camera_node.far_clip)

@@ -70,6 +70,7 @@ Entry :: struct {
 // [^]u8   | data
 
 make_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
+	log.warn("Allocating entries map")
 	return Database{
 		config = config,
 		entries = make_dynamic_array_len_cap([dynamic]Entry, 0, 64, allocator),
@@ -91,10 +92,23 @@ entry_equiv :: proc(entry_a: ^Entry, entry_b: ^Entry) -> bool {
 		sl.equal(entry_a.data, entry_b.data) }
 
 entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: bool) {
-	return database.entries_map[url] }
+	for entry, i in database.entries do if entry.url == url do return &database.entries[i], true
+	return nil, false }
+	// entry_ptr: ^^Entry
+	// err: os.Error
+	// _, entry_ptr, _, err = map_entry(&database.entries_map, url)
+	// return entry_ptr^, err != nil }
+	// assert(url in database.entries_map)
+	// return database.entries_map[url] }
 
 contains_entry :: proc(database: ^Database, url: URL) -> bool {
 	return url in database.entries_map }
+
+log_database :: proc(database: ^Database) {
+	log.infof("Database %s:", database.relpath)
+	for entry, i in database.entries do log.infof("%d --- %s", i, entry.url)
+	keys, _ := sl.map_keys(database.entries_map)
+	for key, i in keys do log.infof("%d --- %v", i, key) }
 
 // (TODO): Give "updated" a default value of "true".
 add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
@@ -109,13 +123,17 @@ add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: boo
 	entry := &database.entries[index]
 	if modified {
 		database.modification_time = tm.now()
-		log.infof("Database modified at %v", database.modification_time) }
+		// log.infof("Database modified at %v", database.modification_time)
+	}
+	log.warnf("Adding %s to entries map", entry.url)
 	return map_insert(&database.entries_map, entry.url, entry)^, os.General_Error.None }
 
 add_or_update_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
+	ok: bool
 	if contains_entry(database, entry_config.url) {
-		update_entry(database, database.entries_map[entry_config.url], entry_config, modified)
-		return database.entries_map[entry_config.url], os.General_Error.None }
+		if entry_ptr, ok = entry_from_url(database, entry_config.url); ! ok do return nil, os.General_Error.Not_Exist
+		update_entry(database, entry_ptr, entry_config, modified)
+		return entry_ptr, os.General_Error.None }
 	else do return add_entry(database, entry_config, modified) }
 
 remove_entry :: proc(database: ^Database, entry: ^Entry) {
@@ -179,6 +197,8 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	path: string
 
 	log.infof("Reading database \"%s\".", config.relpath)
+
+	database = make_database(config, allocator)
 	database.config = config
 	path = relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, allocator)
 	data, err = os.read_entire_file_from_path(path, allocator = allocator)
@@ -205,7 +225,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 		_, err = b.reader_read_ptr(&reader, &data_len, size_of(data_len)); assert(err == nil)
 		entry.data = make([]u8, data_len, allocator)
 		_, err = b.reader_read_slice(&reader, entry.data); assert(err == nil)
-		log.infof("Reading entry \"%s\".", entry.url)
+		// log.infof("Reading entry \"%s\".", entry.url)
 		add_entry(&database, entry, false) }
 	return database }
 
@@ -213,10 +233,12 @@ read :: read_and_decompress
 read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator, relpath_override: string = "") -> (database: Database) {
 	database = _read_without_decompressing(config, allocator, relpath_override)
 	_decompress(&database, allocator = allocator)
+	log_database(&database)
 	return database }
 
 write :: compress_and_write
 compress_and_write :: proc(database: ^Database, allocator: rt.Allocator, relpath_override: string = "") {
+	log_database(database)
 	_compress(database, allocator = allocator)
 	_write_without_compressing(database, allocator, relpath_override) }
 
@@ -319,6 +341,7 @@ path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) ->
 	return relpath_to_path(relpath, allocator) }
 
 entry_was_modified :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
+	assert(entry.url != "")
 	if entry == nil do return true
 	if database.spec_modified do return true
 	path := path_from_url(database, entry.url, context.temp_allocator)
@@ -333,7 +356,8 @@ update_entry :: proc(database: ^Database, entry: ^Entry, config: Entry_Config, m
 	entry.config = config
 	if modified {
 		database.modification_time = tm.now()
-		log.infof("Database modified at %v", database.modification_time) } }
+		// log.infof("Database modified at %v", database.modification_time)
+	} }
 
 @(require_results)
 url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string, err: os.Error) {

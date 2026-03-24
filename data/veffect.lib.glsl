@@ -5,3 +5,4 @@ uniform mat4 camera_projection_matrix;
 uniform float time;
 out vec2 uv_interpolated;
 out vec3 scr_position_interpolated;
+out vec3 position_interpolated;

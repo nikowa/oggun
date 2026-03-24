@@ -31,6 +31,7 @@ make_effect :: proc(config: Effect_Config, graphics_context: ^Graphics_Context, 
 	shrink(&verts)
 	effect.verts = sl.reinterpret([]f32, verts[:])
 	effect.shader, err = make_shader(graphics_context, database, Effect_Shader, { name = cast(string)config.url, vert_url = vert_url, frag_url = frag_url })
+	// if err != nil do log.errorf("Failed to make shader %s, %s: %v", vert_url, frag_url, err)
 	assert(err == nil)
 	return effect }
 

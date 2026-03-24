@@ -83,6 +83,13 @@ Effect_Shader :: struct {
 	haze_color: i32,
 	time: i32 }
 
+Mesh_Shader :: struct {
+	using shader: Shader,
+	node_matrix: i32,
+	camera_position_matrix: i32,
+	camera_projection_matrix: i32,
+	camera_far_clip: i32 }
+
 // Panel_Shader :: struct {
 // 	using shader: Shader,
 // 	pos:          i32,
@@ -213,7 +220,7 @@ make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, database: ^db
 	// 1. Is it in the database?
 	// 2. If it is, load from database.
 	// 3. If it isn't, create anew and add to database.
-
+	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader = new(Type)
 	shader.config = config
 	append(&graphics_context.shaders, &shader.shader) or_return
@@ -254,7 +261,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	sources: [2]string = { "", "" }
 	for url, i in urls {
 		entry, ok = db.entry_from_url(database, urls[i])
-		if db.entry_was_modified(database, entry) || database.spec_modified {
+		if ! ok || db.entry_was_modified(database, entry) || database.spec_modified {
 			path = db.path_from_url(database, urls[i], allocator)
 			bytes, err = os.read_entire_file_from_path(path, context.allocator)
 			sources[i] = cast(string)bytes
@@ -388,7 +395,7 @@ preprocess_glsl :: proc(database: ^db.Database, working_directory_path: string, 
 				relpath: string
 				relpath, err = os.join_filename(fields[1][1:len(fields[1]) - 1], "lib.glsl", context.temp_allocator)
 				path := db.relpath_to_source_path(database, relpath, context.temp_allocator)
-				log.infof("Including shader library \"%s\".", path)
+				// log.infof("Including shader library \"%s\".", path)
 				bytes: []u8
 				bytes, err = os.read_entire_file_from_path(path, context.allocator)
 				if err != nil {

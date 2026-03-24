@@ -44,6 +44,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	effect_node: ^scn.Effect_Node
 	camera: scn.Camera
 	camera_node: ^scn.Camera_Node
+	mesh: msh.Mesh
+	mesh_node: ^scn.Mesh_Node
 	scene: scn.Scene
 	node_config: scn.Node_Config
 	example_dll: Example_DLL
@@ -68,9 +70,9 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		autosave_cap = db.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	gx.graphics_init(&graphics_context, &database, "Willow")
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
-	model, err = gx.load_model_from_path(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
+	model, err = gx.load_model(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	effect = gx.make_effect({ "effect:explosion", { 8, 8 }, 1 }, &graphics_context, &database, "shader:veffect-explosion", "shader:feffect-explosion", context.allocator)
+	effect = gx.make_effect({ "effect:explosion", { 64, 64 }, 1 }, &graphics_context, &database, "shader:veffect-explosion", "shader:feffect-explosion", context.allocator)
 	gx.upload_effect(&effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
@@ -78,12 +80,16 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	node_config.name = "camera"
 	node_config.tick_proc = tick_camera_node
 	camera_node = scn.make_camera_node(node_config, &camera, context.allocator)
-	scn.scene_attach(&scene, &camera_node.node)
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
 	model_node.node.translate.z = -0
 	effect_node = scn.make_effect_node(scn.default_node_config("effect"), &effect, context.allocator)
+	// mesh = msh.make_line_cube_mesh(context.allocator)
+	// mesh_node = scn.make_mesh_node(scn.default_node_config("mesh"), &mesh, context.allocator)
+	// DICK
+	scn.scene_attach(&scene, &camera_node.node)
 	scn.scene_attach(&scene, &model_node.node)
 	scn.scene_attach(&scene, &effect_node.node)
+	// scn.scene_attach(&scene, &mesh_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))

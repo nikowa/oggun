@@ -1,0 +1,37 @@
+package scene
+import rt "base:runtime"
+import log "core:log"
+import la "core:math/linalg"
+import gl "vendor:OpenGL"
+import gx "../graphics"
+import msh "../mesh"
+
+
+
+Mesh_Node :: struct {
+	node: Node,
+	using mesh: ^msh.Mesh }
+
+// (TODO): Add a make_and_attach function.
+make_mesh_node :: proc(node_config: Node_Config, mesh: ^msh.Mesh, allocator: rt.Allocator) -> (mesh_node: ^Mesh_Node) {
+	mesh_node = make_derived_node(Mesh_Node, node_config, render_mesh_node, nil, allocator)
+	mesh_node.mesh = mesh
+	return mesh_node }
+
+render_mesh_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+	assert(graphics_context != nil)
+	assert(graphics_context.mesh_shader != nil)
+	assert(node != nil)
+	mesh_node := node_object(node, Mesh_Node, "node")
+	shader := gx.use_shader(graphics_context.mesh_shader)
+	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&mesh_node.node)
+	gx.set_shader_param(shader.node_matrix, &transform_matrix)
+	gx.set_shader_param(shader.camera_position_matrix, &camera_node.view_matrix)
+	gx.set_shader_param(shader.camera_projection_matrix, &camera_node.projection_matrix)
+	gx.set_shader_param(shader.camera_far_clip, camera_node.far_clip)
+	gl.BindBuffer(gl.ARRAY_BUFFER, mesh_node.handle)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0)
+	gl.EnableVertexAttribArray(0)
+	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	gl.Disable(gl.CULL_FACE)
+	gx.draw_triangles(cast(i32)(len(mesh_node.verts) * 3)) }

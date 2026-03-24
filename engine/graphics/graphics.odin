@@ -63,6 +63,7 @@ Graphics_Context :: struct {
 // 	line_shader:                     ^Line_Shader,
 // 	physics_shader:                  ^Physics_Shader,
 	model_shader: ^Model_Shader,
+	mesh_shader: ^Mesh_Shader,
 // 	panel_shader:                    ^Panel_Shader,
 // 	water_effect_shader:             ^Water_Effect_Shader,
 // 	sdf_shader:                      ^SDF_Shader,
@@ -235,6 +236,7 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "shader:vrect", frag_url = "shader:frect" }) or_return
 	graphics_context.image_shader = make_shader(graphics_context, database, Image_Shader, { name = "image", vert_url = "shader:vrect", frag_url = "shader:fimage" }) or_return
 	graphics_context.model_shader = make_shader(graphics_context, database, Model_Shader, { name = "model", vert_url = "shader:vmodel", frag_url = "shader:fmodel" }) or_return
+	graphics_context.mesh_shader = make_shader(graphics_context, database, Mesh_Shader, { name = "mesh", vert_url = "shader:vmesh", frag_url = "shader:fmesh" }) or_return
 	// graphics_context.model_shader                = make_shader(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// graphics_context.buffer_shader               = make_shader(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// graphics_context.upscale_pass1_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
