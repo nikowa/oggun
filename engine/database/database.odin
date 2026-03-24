@@ -70,7 +70,7 @@ Entry :: struct {
 // [^]u8   | data
 
 make_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (database: Database) {
-	log.warn("Allocating entries map")
+	// log.warn("Allocating entries map")
 	return Database{
 		config = config,
 		entries = make_dynamic_array_len_cap([dynamic]Entry, 0, 64, allocator),
@@ -125,7 +125,7 @@ add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: boo
 		database.modification_time = tm.now()
 		// log.infof("Database modified at %v", database.modification_time)
 	}
-	log.warnf("Adding %s to entries map", entry.url)
+	// log.warnf("Adding %s to entries map", entry.url)
 	return map_insert(&database.entries_map, entry.url, entry)^, os.General_Error.None }
 
 add_or_update_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
@@ -196,7 +196,7 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	err: os.Error
 	path: string
 
-	log.infof("Reading database \"%s\".", config.relpath)
+	// log.infof("Reading database \"%s\".", config.relpath)
 
 	database = make_database(config, allocator)
 	database.config = config
@@ -233,12 +233,12 @@ read :: read_and_decompress
 read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator, relpath_override: string = "") -> (database: Database) {
 	database = _read_without_decompressing(config, allocator, relpath_override)
 	_decompress(&database, allocator = allocator)
-	log_database(&database)
+	// log_database(&database)
 	return database }
 
 write :: compress_and_write
 compress_and_write :: proc(database: ^Database, allocator: rt.Allocator, relpath_override: string = "") {
-	log_database(database)
+	// log_database(database)
 	_compress(database, allocator = allocator)
 	_write_without_compressing(database, allocator, relpath_override) }
 

@@ -83,13 +83,13 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
 	model_node.node.translate.z = -0
 	effect_node = scn.make_effect_node(scn.default_node_config("effect"), &effect, context.allocator)
-	// mesh = msh.make_line_cube_mesh(context.allocator)
-	// mesh_node = scn.make_mesh_node(scn.default_node_config("mesh"), &mesh, context.allocator)
-	// DICK
+	mesh = msh.make_line_cube_mesh(context.allocator)
+	msh.upload_mesh(&mesh)
+	mesh_node = scn.make_mesh_node(scn.default_node_config("mesh"), &mesh, context.allocator)
 	scn.scene_attach(&scene, &camera_node.node)
 	scn.scene_attach(&scene, &model_node.node)
 	scn.scene_attach(&scene, &effect_node.node)
-	// scn.scene_attach(&scene, &mesh_node.node)
+	scn.scene_attach(&scene, &mesh_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))

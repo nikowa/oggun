@@ -148,7 +148,7 @@ _load_model_gltf :: proc(
 	mesh_accessor, ok = data.nodes[0].mesh.?; if ! ok do return
 	mesh = data.meshes[mesh_accessor]
 	mesh_name, ok = mesh.name.?; if ! ok do return
-	log.infof("Importing mesh \"%s\".", mesh_name)
+	// log.infof("Importing mesh \"%s\".", mesh_name)
 	context.allocator = mem.arena_allocator(&model.arena)
 	model.url = url
 	// model.url = db.url_join({ "model", cast(db.URL)mesh_name }, allocator)

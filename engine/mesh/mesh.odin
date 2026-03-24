@@ -74,8 +74,8 @@ append_uv_square_grid :: proc(verts: ^[dynamic][2]f32, x: [2]f32 = { 0, 1 }, y: 
 //        Y
 append_line_cube :: proc(verts: ^[dynamic][3]f32) {
 	a, b, c, d, e, f, g, h: [3]f32 =
-		{ 0, 0, 0 }, { 0, 1, 0 }, { 1, 1, 0 }, { 1, 0, 0 },
-		{ 0, 0, 1 }, { 0, 1, 1 }, { 1, 1, 1 }, { 1, 0, 1 }
+		{ -1, -1, -1 }, { -1, +1, -1 }, { +1, +1, -1 }, { +1, -1, -1 },
+		{ -1, -1, +1 }, { -1, +1, +1 }, { +1, +1, +1 }, { +1, -1, +1 }
 	append_elems(verts, a, b)
 	append_elems(verts, b, c)
 	append_elems(verts, c, d)

@@ -23,6 +23,7 @@ render_mesh_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, 
 	assert(graphics_context.mesh_shader != nil)
 	assert(node != nil)
 	mesh_node := node_object(node, Mesh_Node, "node")
+	assert(mesh_node.handle != 0)
 	shader := gx.use_shader(graphics_context.mesh_shader)
 	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&mesh_node.node)
 	gx.set_shader_param(shader.node_matrix, &transform_matrix)
@@ -34,4 +35,4 @@ render_mesh_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, 
 	gl.EnableVertexAttribArray(0)
 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	gl.Disable(gl.CULL_FACE)
-	gx.draw_triangles(cast(i32)(len(mesh_node.verts) * 3)) }
+	gx.draw_lines(cast(i32)(len(mesh_node.verts) * 3)) }
