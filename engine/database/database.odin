@@ -59,6 +59,17 @@ Entry_Config :: struct {
 Entry :: struct {
 	using config: Entry_Config }
 
+Asset_Command :: enum {
+	Register,
+	Import,
+	Export,
+	Read,
+	Write,
+	Load,
+	Save,
+	Upload,
+	Download }
+
 // TODO: Add a *compression kind* field, which selects between LZ4 and QOI.
 
 // Entry binary:

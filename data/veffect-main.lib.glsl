@@ -3,4 +3,5 @@ void main(void) {
 	uv_interpolated = vert;
 	gl_Position = (camera_projection_matrix * camera_position_matrix * node_matrix) * position;
 	scr_position_interpolated = gl_Position.xyz;
-	position_interpolated = position.xyz; }
+	position_interpolated = position.xyz;
+	surface_index = _surface_index; }

@@ -12,38 +12,43 @@ import msh "../mesh"
 
 Effect_Config :: struct {
 	url: db.URL,
-	surface_res: [2]u32,
-	surface_count: u32 }
+	surface_res: [][2]u32 }
 
 // Each surface is a normalized UV mesh, from which positions are computed by the vertex shader.
 Effect :: struct {
 	using config: Effect_Config,
 	shader: ^Effect_Shader,
-	verts_handle: u32,
-	verts: []f32 }
+	mesh: msh.Mesh(2) }
+
+// verts: [][3]f32
+// surface_indexes: []i32
 
 make_effect :: proc(config: Effect_Config, graphics_context: ^Graphics_Context, database: ^db.Database, vert_url, frag_url: db.URL, allocator: rt.Allocator) -> (effect: Effect) {
 	err: os.Error
+	mesh_builder: msh.Mesh_Builder(2)
 
 	effect.config = config
-	verts := make([dynamic][2]f32, allocator = allocator)
-	for _ in 0 ..< config.surface_count do msh.append_uv_square_grid(&verts, grid_size = config.surface_res)
-	shrink(&verts)
-	effect.verts = sl.reinterpret([]f32, verts[:])
+	mesh_builder = msh.make_mesh_builder(2, allocator)
+	for res, i in config.surface_res do msh.builder_append_2d_square_grid(&mesh_builder, grid_size = res)
+	effect.mesh = msh.mesh_from_builder(mesh_builder)
 	effect.shader, err = make_shader(graphics_context, database, Effect_Shader, { name = cast(string)config.url, vert_url = vert_url, frag_url = frag_url })
 	// if err != nil do log.errorf("Failed to make shader %s, %s: %v", vert_url, frag_url, err)
 	assert(err == nil)
 	return effect }
 
 upload_effect :: proc(effect: ^Effect) -> bool {
-	if effect.verts_handle != 0 do download_effect(effect)
-	gl.GenBuffers(1, &effect.verts_handle)
-	gl.BindBuffer(gl.ARRAY_BUFFER, effect.verts_handle)
-	gl.BufferData(gl.ARRAY_BUFFER, len(effect.verts) * size_of(f32), &effect.verts[0], gl.STATIC_DRAW)
+	if effect.mesh.verts_handle != 0 do download_effect(effect)
+	gl.GenBuffers(1, &effect.mesh.verts_handle)
+	gl.BindBuffer(gl.ARRAY_BUFFER, effect.mesh.verts_handle)
+	gl.BufferData(gl.ARRAY_BUFFER, len(effect.mesh.verts) * size_of(effect.mesh.verts[0]), &effect.mesh.verts[0], gl.STATIC_DRAW)
+	gl.GenBuffers(1, &effect.mesh.surface_indexes_handle)
+	gl.BindBuffer(gl.ARRAY_BUFFER, effect.mesh.surface_indexes_handle)
+	gl.BufferData(gl.ARRAY_BUFFER, len(effect.mesh.surface_indexes) * size_of(effect.mesh.surface_indexes[0]), &effect.mesh.surface_indexes[0], gl.STATIC_DRAW)
 	return true }
 
 effect_is_uploaded :: proc(effect: ^Effect) -> bool {
-	return effect.verts_handle != 0 }
+	return effect.mesh.verts_handle != 0 }
 
 download_effect :: proc(effect: ^Effect) {
-	gl.DeleteBuffers(1,&effect.verts_handle) }
+	gl.DeleteBuffers(1, &effect.mesh.verts_handle)
+	gl.DeleteBuffers(1, &effect.mesh.surface_indexes_handle) }

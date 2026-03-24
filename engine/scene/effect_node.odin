@@ -33,10 +33,13 @@ render_effect_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene
 	gx.set_shader_param(shader.camera_position, camera_node.node.translate)
 	gx.set_shader_param(shader.haze_color, scene.haze_color)
 	gx.set_shader_param(shader.time, graphics_context.time)
-	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.verts_handle)
+	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.mesh.verts_handle)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.EnableVertexAttribArray(0)
-	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
-	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.mesh.surface_indexes_handle)
+	gl.VertexAttribPointer(1, 1, gl.INT, gl.FALSE, 0, 0)
+	gl.EnableVertexAttribArray(1)
+	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	gl.Disable(gl.CULL_FACE)
-	gx.draw_triangles(cast(i32)(len(effect_node.verts) * 2)) }
+	gx.draw_triangles(cast(i32)(len(effect_node.mesh.verts) * 2)) }

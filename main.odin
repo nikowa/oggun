@@ -44,7 +44,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	effect_node: ^scn.Effect_Node
 	camera: scn.Camera
 	camera_node: ^scn.Camera_Node
-	mesh: msh.Mesh
+	mesh: msh.Mesh(3)
 	mesh_node: ^scn.Mesh_Node
 	scene: scn.Scene
 	node_config: scn.Node_Config
@@ -52,13 +52,9 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	modification_time: tm.Time
 	stopwatch: tm.Stopwatch
 	time: f32
-	square_grid: [dynamic][2]f32
 	effect: gx.Effect
 
 	context.logger = log.create_console_logger()
-	square_grid = make([dynamic][2]f32)
-	msh.append_uv_square_grid(&square_grid, grid_size = { 6, 4 })
-	// for elem in square_grid do log.info(elem)
 	bs.zero_stopwatch(&stopwatch)
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
@@ -72,7 +68,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
 	model, err = gx.load_model(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	effect = gx.make_effect({ "effect:explosion", { 64, 64 }, 1 }, &graphics_context, &database, "shader:veffect-explosion", "shader:feffect-explosion", context.allocator)
+	effect = gx.make_effect({ "effect:explosion", { { 4, 4 }, { 16, 16 } } }, &graphics_context, &database, "shader:veffect-explosion", "shader:feffect-explosion", context.allocator)
 	gx.upload_effect(&effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
@@ -83,7 +79,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
 	model_node.node.translate.z = -0
 	effect_node = scn.make_effect_node(scn.default_node_config("effect"), &effect, context.allocator)
-	mesh = msh.make_line_cube_mesh(context.allocator)
+	mesh = msh.make_line_cube_mesh(3, context.allocator)
 	msh.upload_mesh(&mesh)
 	mesh_node = scn.make_mesh_node(scn.default_node_config("mesh"), &mesh, context.allocator)
 	scn.scene_attach(&scene, &camera_node.node)

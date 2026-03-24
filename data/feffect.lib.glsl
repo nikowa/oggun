@@ -4,3 +4,4 @@ uniform float camera_far_clip;
 in vec2 uv_interpolated;
 in vec3 scr_position_interpolated;
 in vec3 position_interpolated;
+flat in int surface_index;
