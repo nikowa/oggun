@@ -209,12 +209,7 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: as.Asset_Config, 
 	shader.shader_config = config
 	as.init_string_asset(manager, &shader.vert_asset, { config.vert_url, as.String_Asset })
 	as.init_string_asset(manager, &shader.frag_asset, { config.frag_url, as.String_Asset })
-	assert(as.string_asset_command(manager, &shader.vert_asset, .Import))
-	assert(as.string_asset_command(manager, &shader.frag_asset, .Import))
-	assert(as.string_asset_command(manager, &shader.vert_asset, .Load))
-	assert(as.string_asset_command(manager, &shader.frag_asset, .Load))
 	append(&graphics_context.shaders, shader) or_return
-	compile_shader(graphics_context, manager, shader) or_return
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -229,7 +224,7 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: as.Asset_Config, 
 
 // }
 
-compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, shader: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
+compile_shader :: proc(database: ^as.Asset_Manager, shader: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
 	modification_time: tm.Time
 	entry: ^as.Entry
@@ -261,10 +256,6 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_
 		print_glsl_error(link_message, compile_message_type, shader, sources[0], sources[1]) }
 	if ! ok do return io.Error.No_Progress
 	return nil }
-
-// compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
-
-// }
 
 print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader_Asset, vert_string: string, frag_string: string) {
 	content: string
@@ -404,11 +395,18 @@ preprocess_glsl :: proc(database: ^as.Asset_Manager, working_directory_path: str
 		else do fmt.sbprintln(&builder.string_builder, line) }
 	return {}, os.General_Error.None }
 
-shader_asset_command :: proc(manager: ^as.Asset_Manager, asset: ^as.Asset, command: as.Asset_Command, watch: bool = false) -> (ok: bool) {
-	assert((manager != nil) && (assert != nil))
+shader_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, command: as.Asset_Command, watch: bool = false) -> (ok: bool) {
+	assert((as_mngr != nil) && (assert != nil))
 	shader_asset := as.asset_object(asset, Shader_Asset, "asset")
 	switch command {
-	case .Validate, .Query_Location, .Import, .Load, .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:
+	case .Import:
+		assert(as.string_asset_command(as_mngr, &shader_asset.vert_asset, .Import))
+		assert(as.string_asset_command(as_mngr, &shader_asset.frag_asset, .Import))
+		assert(as.string_asset_command(as_mngr, &shader_asset.vert_asset, .Load))
+		assert(as.string_asset_command(as_mngr, &shader_asset.frag_asset, .Load))
+		err := compile_shader(as_mngr, shader_asset)
+		return err == nil
+	case .Validate, .Query_Location, .Load, .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:
 		log.errorf("Command %v not implemented for asset kind \"string\".", command)
 		return false }
 	return false }

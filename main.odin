@@ -94,7 +94,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		example_dll.dev_tick(camera_node, time)
 		dll.watch_dll(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
-		as.watch_assets(&as_mngr)
+		// as.watch_assets(&as_mngr)
 		as.autosave(&as_mngr)
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)

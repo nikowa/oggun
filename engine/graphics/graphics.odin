@@ -238,6 +238,10 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, ti
 	init_shader_asset(&gx_mngr.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, gx_mngr, as_mngr) or_return
 	init_shader_asset(&gx_mngr.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, gx_mngr, as_mngr) or_return
 	init_shader_asset(&gx_mngr.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, gx_mngr, as_mngr) or_return
+	assert(shader_asset_command(as_mngr, &gx_mngr.rect_shader.asset, .Import))
+	assert(shader_asset_command(as_mngr, &gx_mngr.image_shader.asset, .Import))
+	assert(shader_asset_command(as_mngr, &gx_mngr.model_shader.asset, .Import))
+	assert(shader_asset_command(as_mngr, &gx_mngr.mesh_shader.asset, .Import))
 	// gx_mngr.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// gx_mngr.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// gx_mngr.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
