@@ -5,7 +5,7 @@ import os "core:os"
 import im "core:image"
 import png "core:image/png"
 import jpeg "core:image/jpeg"
-import db "../database"
+import as "../asset_manager"
 import b "core:bytes"
 import slc "core:slice"
 import fmt "core:fmt"
@@ -16,7 +16,7 @@ import gl "vendor:OpenGL"
 
 
 Image :: struct {
-	url: db.URL,
+	url: as.URL,
 	using image: im.Image,
 	handle: u32 } // TODO: Add procedures to load the image to the GPU.
 
@@ -29,23 +29,23 @@ image_equiv :: proc(a: ^Image, b: ^Image) -> bool {
 		(a.metadata == b.metadata) &&
 		(a.which == b.which) }
 
-import_or_retreive_image :: proc(database: ^db.Database, url: db.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
-	entry: ^db.Entry
+import_or_retreive_image :: proc(database: ^as.Asset_Manager, url: as.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
+	entry: ^as.Entry
 	ok: bool
 	path: string
 	modification_time: t.Time
 	bytes: []u8
 
-	entry, ok = db.entry_from_url(database, url)
-	if ok do if db.entry_was_modified(database, entry) || database.spec_modified do ok = false
+	entry, ok = as.entry_from_url(database, url)
+	if ok do if as.entry_was_modified(database, entry) || database.spec_modified do ok = false
 	if ok do image = image_deserialize(entry.data, allocator) or_return
 	else {
 		log.infof("Reading image %s from source.", url)
-		path = db.url_search_source(database, url, allocator) or_return
+		path = as.url_search_source(database, url, allocator) or_return
 		image = load_image_from_path(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = image_serialize(&image, allocator) or_return
-		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time), true) or_return }
+		as.add_or_update_entry(database, as.make_entry(url, bytes, modification_time), true) or_return }
 	return image, os.General_Error.None }
 
 @(require_results)
@@ -71,7 +71,7 @@ image_deserialize :: proc(bytes: []u8, allocator: rt.Allocator) -> (image: Image
 	return image, os.General_Error.None }
 
 @(require_results)
-load_image_from_path :: proc(path: string, url: db.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
+load_image_from_path :: proc(path: string, url: as.URL, allocator: rt.Allocator) -> (image: Image, err: os.Error) {
 	ext: string
 	image_temp: ^im.Image
 	image_err: im.Error

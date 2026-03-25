@@ -23,7 +23,7 @@ import sc "core:strconv"
 import tr "core:thread"
 import tm "core:time"
 import io "core:io"
-import db "../database"
+import as "../asset_manager"
 import base "../base"
 
 
@@ -35,15 +35,14 @@ GLSL_VERSION_STRING:    string : "#version 460 core"
 // (TODO): Change name to URL
 Shader_Config :: struct #all_or_none {
 	name: string,
-	vert_url, frag_url: db.URL }
-
+	vert_url, frag_url: as.URL }
 
 Shader :: struct {
-	using config: Shader_Config,
+	using shader_config: Shader_Config,
+	vert_asset, frag_asset: as.String_Asset,
 	handle: u32,
 	compilation_time: tm.Time, // Equal to the latest modification time of the entry.
 	compiled: bool }
-
 
 // Font_Shader :: struct {
 // 	using shader:    Shader,
@@ -52,7 +51,6 @@ Shader :: struct {
 // 	this_buffer_res: i32,
 // 	symbol_size:     i32,
 // 	text_color:      i32 }
-
 
 Rect_Shader :: struct {
 	using shader: Shader,
@@ -208,23 +206,26 @@ Image_Shader :: struct {
 
 
 GLSL_Builder :: struct {
-	string_builder:    str.Builder,
-	includes:          [dynamic]string,
+	string_builder: str.Builder,
+	includes: [dynamic]string,
 	uniform_variables: [dynamic][2]string,
-	macros:            [dynamic]string,
-	global_variables:  [dynamic][2]string }
+	macros: [dynamic]string,
+	global_variables: [dynamic][2]string }
 
 make_shader :: make_shader_from_disk
 
-make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, database: ^db.Database, $Type: typeid, config: Shader_Config) -> (shader: ^Type, err: os.Error) {
-	// 1. Is it in the database?
-	// 2. If it is, load from database.
-	// 3. If it isn't, create anew and add to database.
+make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, manager: ^as.Asset_Manager, $Type: typeid, config: Shader_Config) -> (shader: ^Type, err: os.Error) {
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader = new(Type)
-	shader.config = config
+	shader.shader_config = config
+	shader.vert_asset = as.make_string_asset(manager, { config.vert_url })
+	shader.frag_asset = as.make_string_asset(manager, { config.frag_url })
+	assert(as.string_asset_command(manager, &shader.vert_asset, .Import))
+	assert(as.string_asset_command(manager, &shader.frag_asset, .Import))
+	assert(as.string_asset_command(manager, &shader.vert_asset, .Load))
+	assert(as.string_asset_command(manager, &shader.frag_asset, .Load))
 	append(&graphics_context.shaders, &shader.shader) or_return
-	compile_shader(graphics_context, database, shader) or_return
+	compile_shader(graphics_context, manager, shader) or_return
 	init_shader_params(Type, shader)
 	return shader, nil }
 
@@ -240,10 +241,10 @@ make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, database: ^db
 
 // }
 
-compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Database, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
+compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
 	modification_time: tm.Time
-	entry: ^db.Entry
+	entry: ^as.Entry
 	ok: bool
 	path: string
 	source: string
@@ -257,24 +258,13 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	loc: rt.Source_Code_Location
 
 	working_directory_path, _ = os.get_working_directory(allocator = allocator)
-	urls: [2]db.URL = { shader.vert_url, shader.frag_url }
-	sources: [2]string = { "", "" }
-	for url, i in urls {
-		entry, ok = db.entry_from_url(database, urls[i])
-		if ! ok || db.entry_was_modified(database, entry) || database.spec_modified {
-			path = db.path_from_url(database, urls[i], allocator)
-			bytes, err = os.read_entire_file_from_path(path, context.allocator)
-			sources[i] = cast(string)bytes
-			init_glsl_builder(&builder) or_return
-			fmt.sbprintln(&builder.string_builder, GLSL_VERSION_STRING)
-			loc = preprocess_glsl(database, working_directory_path, &builder, sources[i]) or_return
-			sources[i] = str.clone(glsl_builder_to_string(&builder))
-			destroy_glsl_builder(&builder)
-			modification_time = os.modification_time_by_path(path) or_return
-			db.add_or_update_entry(database, db.make_entry(urls[i], transmute([]u8)sources[i], modification_time), true) or_return }
-		else {
-			sources[i] = cast(string)entry.data } }
-	// fmt.println(base.LOG, "Sources:", sources[0], sources[1])
+	sources: [2]string = { shader.vert_asset.str, shader.frag_asset.str }
+	for source, i in sources {
+		init_glsl_builder(&builder) or_return
+		fmt.sbprintln(&builder.string_builder, GLSL_VERSION_STRING)
+		loc = preprocess_glsl(database, working_directory_path, &builder, sources[i]) or_return
+		sources[i] = str.clone(glsl_builder_to_string(&builder))
+		destroy_glsl_builder(&builder) }
 	shader.handle, ok = gl.load_shaders_source(sources[0], sources[1])
 	compile_message, compile_message_type, link_message, link_message_type = gl.get_last_error_messages()
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) {
@@ -284,7 +274,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Databa
 	if ! ok do return io.Error.No_Progress
 	return nil }
 
-// compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^db.Database, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
+// compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
 
 // }
 
@@ -335,7 +325,7 @@ destroy_glsl_builder :: proc(glsl_builder: ^GLSL_Builder) {
 glsl_builder_to_string :: proc(glsl_builder: ^GLSL_Builder) -> string {
 	return str.to_string(glsl_builder.string_builder) }
 
-preprocess_glsl :: proc(database: ^db.Database, working_directory_path: string, builder: ^GLSL_Builder, source: string) -> (loc: rt.Source_Code_Location, err: os.Error) {
+preprocess_glsl :: proc(database: ^as.Asset_Manager, working_directory_path: string, builder: ^GLSL_Builder, source: string) -> (loc: rt.Source_Code_Location, err: os.Error) {
 	lines:         []string
 	line:          string
 	fields:        []string
@@ -394,7 +384,7 @@ preprocess_glsl :: proc(database: ^db.Database, working_directory_path: string, 
 			if ((open == '\"') && (close == '\"')) || ((open == '<') && (close == '>')) {
 				relpath: string
 				relpath, err = os.join_filename(fields[1][1:len(fields[1]) - 1], "lib.glsl", context.temp_allocator)
-				path := db.relpath_to_source_path(database, relpath, context.temp_allocator)
+				path := as.relpath_to_source_path(database, relpath, context.temp_allocator)
 				// log.infof("Including shader library \"%s\".", path)
 				bytes: []u8
 				bytes, err = os.read_entire_file_from_path(path, context.allocator)

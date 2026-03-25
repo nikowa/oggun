@@ -2,21 +2,21 @@ package scene
 import rt "base:runtime"
 import la "core:math/linalg"
 import gx "../graphics"
-import db "../database"
+import as "../asset_manager"
 
 
 
 // (TODO): Add a memory arena field. When all the nodes are in that arena, that will make it much easier to serialize and
 // deserialize. To maintain links, use relative pointers.
 Scene_Config :: struct #all_or_none {
-	url: db.URL,
+	url: as.URL,
 	haze_color: [3]f32 }
 
 Scene :: struct {
 	using config: Scene_Config,
 	tree: Tree }
 
-make_scene :: proc(url: db.URL) -> (scene: Scene) {
+make_scene :: proc(url: as.URL) -> (scene: Scene) {
 	scene.url = url
 	scene.tree.root = make_node(DEFAULT_NODE_CONFIG, context.allocator)
 	return scene }

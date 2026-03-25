@@ -5,13 +5,13 @@ import mem "core:mem"
 import os "core:os"
 import sl "core:slice"
 import gl "vendor:OpenGL"
-import db "../database"
+import as "../asset_manager"
 import msh "../mesh"
 
 
 
 Effect_Config :: struct {
-	url: db.URL,
+	url: as.URL,
 	surface_res: [][2]u32 }
 
 // Each surface is a normalized UV mesh, from which positions are computed by the vertex shader.
@@ -23,7 +23,7 @@ Effect :: struct {
 // verts: [][3]f32
 // surface_indexes: []i32
 
-make_effect :: proc(config: Effect_Config, graphics_context: ^Graphics_Context, database: ^db.Database, vert_url, frag_url: db.URL, allocator: rt.Allocator) -> (effect: Effect) {
+make_effect :: proc(config: Effect_Config, graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, vert_url, frag_url: as.URL, allocator: rt.Allocator) -> (effect: Effect) {
 	err: os.Error
 	mesh_builder: msh.Mesh_Builder(2)
 

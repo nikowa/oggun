@@ -1,4 +1,4 @@
-package database
+package asset_manager
 import fmt "core:fmt"
 import rt "base:runtime"
 import tm "core:time"
@@ -15,14 +15,18 @@ import sp "core:path/slashpath"
 
 
 
+// * Used-defined asset type, derived from `Asset`.
+// * User-defined asset functions.
+// * User registers the type.
+
+
+
 URL :: distinct string
 
 // URL_Ref :: struct($T: typeid) {
 // 	buffer: [128],
 // 	url: URL,
 // 	ptr: ^T }
-
-
 
 MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
 Database_Binary_Header :: struct {
@@ -59,20 +63,9 @@ Entry_Config :: struct {
 Entry :: struct {
 	using config: Entry_Config }
 
-Asset_Command :: enum {
-	Register,
-	Import,
-	Export,
-	Read,
-	Write,
-	Load,
-	Save,
-	Upload,
-	Download }
-
 // TODO: Add a *compression kind* field, which selects between LZ4 and QOI.
 
-// Entry binary:
+// Asset binary:
 // u8      | url_len
 // [^]u8   | url
 // tm.Time | modification_time
@@ -90,6 +83,8 @@ make_database :: proc(config: Database_Config, allocator: rt.Allocator) -> (data
 delete_database :: proc(database: Database, allocator: rt.Allocator) {
 	rt.delete_dynamic_array(database.entries)
 	rt.delete_map(database.entries_map) }
+
+// (TODO): Don't put assets directly in the database, put pointers in the database. User should be able to store their assets wherever they want.
 
 make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -> (entry: Entry) {
 	return Entry{ url = url, data = data, modification_time = modification_time, compressed = compressed } }
@@ -117,9 +112,9 @@ contains_entry :: proc(database: ^Database, url: URL) -> bool {
 
 log_database :: proc(database: ^Database) {
 	log.infof("Database %s:", database.relpath)
-	for entry, i in database.entries do log.infof("%d --- %s", i, entry.url)
-	keys, _ := sl.map_keys(database.entries_map)
-	for key, i in keys do log.infof("%d --- %v", i, key) }
+	for entry, i in database.entries do log.infof("%d --- %s", i, entry.url) }
+	// keys, _ := sl.map_keys(database.entries_map)
+	// for key, i in keys do log.infof("%d --- %v", i, key) }
 
 // (TODO): Give "updated" a default value of "true".
 add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
@@ -244,7 +239,7 @@ read :: read_and_decompress
 read_and_decompress :: proc(config: Database_Config, allocator: rt.Allocator, relpath_override: string = "") -> (database: Database) {
 	database = _read_without_decompressing(config, allocator, relpath_override)
 	_decompress(&database, allocator = allocator)
-	// log_database(&database)
+	log_database(&database)
 	return database }
 
 write :: compress_and_write
@@ -342,7 +337,6 @@ relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator)
 	for type_extension in URL_TYPE_EXTENSIONS do if url_components[0] == type_extension[0] {
 		extension = type_extension[1]
 		break }
-	if extension == "" do return ""
 	filename, _ := os.join_filename(url_components[1], extension, allocator)
 	path, _ = os.join_path({ database.source_directory_relpath, filename }, allocator)
 	return path }

@@ -8,7 +8,7 @@ import m "core:math"
 import la "core:math/linalg"
 import dl "core:dynlib"
 import tm "core:time"
-import db "engine/database"
+import as "engine/asset_manager"
 import gx "engine/graphics"
 import ipt "engine/input"
 import r "engine/container/rect"
@@ -25,7 +25,7 @@ Example_DLL :: struct {
 	using base: dll.DLL,
 	dev_tick: proc(camera_node: ^scn.Camera_Node, time: f32) }
 
-database: db.Database
+asset_manager: as.Asset_Manager
 graphics_context: gx.Graphics_Context
 input_context: ipt.Input_Context
 
@@ -35,7 +35,7 @@ main :: proc() {
 
 @(export)
 entry_point :: proc(thread_data: ^bs.Thread_Data) {
-	entry: ^db.Entry
+	entry: ^as.Entry
 	ok: bool
 	image: gx.Image
 	model: gx.Model
@@ -59,16 +59,16 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
 	assert(example_dll.dev_tick != nil)
-	database = db.make_or_read_database({
+	asset_manager = as.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "data",
-		autosave_interval = db.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = db.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	gx.graphics_init(&graphics_context, &database, "Willow")
-	image, _ = gx.import_or_retreive_image(&database, "image:kitten", context.allocator)
-	model, err = gx.load_model(db.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
+		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,
+		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
+	gx.graphics_init(&graphics_context, &asset_manager, "Willow")
+	image, _ = gx.import_or_retreive_image(&asset_manager, "image:kitten", context.allocator)
+	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	effect = gx.make_effect({ "effect:explosion", { { 4, 4 }, { 16, 16 } } }, &graphics_context, &database, "shader:veffect-explosion", "shader:feffect-explosion", context.allocator)
+	effect = gx.make_effect({ "effect:explosion", { { 64, 64 }, { 16, 16 } } }, &graphics_context, &asset_manager, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
 	gx.upload_effect(&effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
@@ -93,15 +93,15 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		time = bs.read_stopwatch(&stopwatch)
 		example_dll.dev_tick(camera_node, time)
 		dll.watch_dll(&example_dll)
-		// if db.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
-		db.autosave(&database)
+		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
+		as.autosave(&asset_manager)
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)
 		gx.graphics_tick(&graphics_context)
 		// gx.render_rect(&graphics_context, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
 		// gx.render_image(&graphics_context, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
 		scn.render_scene(&graphics_context, &scene, camera_node) }
-	db.write(&database, context.allocator)
+	as.write(&asset_manager, context.allocator)
 	return }
 
 tick_camera_node :: proc(node: ^scn.Node) {

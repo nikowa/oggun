@@ -9,7 +9,7 @@ import sp "core:path/slashpath"
 import fm "core:fmt"
 import str "core:strings"
 import log "core:log"
-import db "../database"
+import as "../asset_manager"
 
 
 
@@ -33,7 +33,7 @@ make_dll :: proc($T: typeid, source_relpath: string) -> (dll_object: T, err: os.
 	compile_dll(dll_object.source_relpath, dll_object.dll_relpath) or_return
 	ok = _load_dll(&dll_object)
 	if ! ok do return {}, os.General_Error.Not_Exist
-	dll_object.modification_time, _ = os.modification_time_by_path(db.relpath_to_path(source_relpath, context.temp_allocator))
+	dll_object.modification_time, _ = os.modification_time_by_path(as.relpath_to_path(source_relpath, context.temp_allocator))
 	return dll_object, os.General_Error.None }
 
 compile_dll :: proc(source_relpath: string, dll_relpath: string) -> (err: os.Error) {
@@ -56,7 +56,7 @@ compile_dll :: proc(source_relpath: string, dll_relpath: string) -> (err: os.Err
 	return os.General_Error.None }
 
 dll_was_modified :: proc(dll_object: ^$T) -> (was_modified: bool) where intr.type_has_field(T, "base"), intr.type_field_type(T, "base") == DLL {
-	return db.file_was_modified(dll_object.base.source_relpath, &dll_object.base.modification_time) }
+	return as.file_was_modified(dll_object.base.source_relpath, &dll_object.base.modification_time) }
 
 reload_dll :: proc(dll_object: ^$T) -> (err: os.Error) where intr.type_has_field(T, "base"), intr.type_field_type(T, "base") == DLL {
 	log.infof("Reloading DLL %s.", dll_object.dll_relpath)

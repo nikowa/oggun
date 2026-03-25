@@ -1,4 +1,4 @@
-package database
+package asset_manager
 import tm "core:time"
 import log "core:log"
 import fmt "core:fmt"
@@ -18,7 +18,7 @@ _file_is_autosave :: proc(name: string) -> bool {
 	if ! (os.ext(name) == ".bin") do return false
 	return true }
 
-autosave :: proc(database: ^Database) {
+autosave :: proc(database: ^Asset_Manager) {
 	time_now: tm.Time
 	relpath: string
 	saved: bool

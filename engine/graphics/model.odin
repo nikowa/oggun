@@ -12,7 +12,7 @@ import fp "core:path/filepath"
 import gl "vendor:OpenGL"
 import gltf "shared:gltf2"
 import log "core:log"
-import db "../database"
+import as "../asset_manager"
 import t "core:time"
 import b "core:bytes"
 
@@ -21,7 +21,7 @@ import b "core:bytes"
 MODEL_MEMORY_CAP :: 16 * rt.Megabyte
 
 Model :: struct {
-	url: db.URL,
+	url: as.URL,
 	arena: mem.Arena,
 	positions_handle: u32,
 	normals_handle: u32,
@@ -55,25 +55,25 @@ model_equiv :: proc(a: ^Model, b: ^Model) -> bool {
 // 	STRIDE :: 2; return { model.texcoords[point_index * STRIDE + 0], model.texcoords[point_index * STRIDE + 1] } }
 
 import_or_retreive_model :: proc(
-    database: ^db.Database,
-    url: db.URL,
+    database: ^as.Asset_Manager,
+    url: as.URL,
     allocator: rt.Allocator) -> (model: Model, err: os.Error) {
-	entry: ^db.Entry
+	entry: ^as.Entry
 	ok: bool
 	path: string
 	modification_time: t.Time
 	bytes: []u8
 
-	entry, ok = db.entry_from_url(database, url)
-	if ok do if db.entry_was_modified(database, entry) || database.spec_modified do ok = false
+	entry, ok = as.entry_from_url(database, url)
+	if ok do if as.entry_was_modified(database, entry) || database.spec_modified do ok = false
 	if ok do model = model_deserialize(entry.data, allocator) or_return
 	else {
 		log.infof("Reading model %s from source.", url)
-		path = db.url_search_source(database, url, allocator) or_return
+		path = as.url_search_source(database, url, allocator) or_return
 		model = load_model(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = model_serialize(&model, allocator) or_return
-		db.add_or_update_entry(database, db.make_entry(url, bytes, modification_time), true) or_return }
+		as.add_or_update_entry(database, as.make_entry(url, bytes, modification_time), true) or_return }
 	return model, os.General_Error.None }
 
 model_serialize :: proc(
@@ -109,7 +109,7 @@ model_deserialize :: proc(
 // (TODO): Standardize the load/save, import, read/write interface. Implement register.
 load_model :: proc(
 	path: string,
-	url: db.URL,
+	url: as.URL,
 	allocator: rt.Allocator) -> (model: Model, err: os.Error) {
 	ext: string
 
@@ -125,7 +125,7 @@ load_model :: proc(
 // TODO: Add a version of this that load to scene tree, rather than a model.
 _load_model_gltf :: proc(
     path: string,
-    url: db.URL,
+    url: as.URL,
     allocator: rt.Allocator) -> (model: Model, err: os.Error) {
 	mesh: gltf.Mesh
 	data: ^gltf.Data
@@ -151,7 +151,7 @@ _load_model_gltf :: proc(
 	// log.infof("Importing mesh \"%s\".", mesh_name)
 	context.allocator = mem.arena_allocator(&model.arena)
 	model.url = url
-	// model.url = db.url_join({ "model", cast(db.URL)mesh_name }, allocator)
+	// model.url = as.url_join({ "model", cast(as.URL)mesh_name }, allocator)
 	if (len(mesh.primitives) != 1) || mesh.primitives[0].mode != .Triangles do return
 	primitive = &mesh.primitives[0]
 	attributes = &primitive.attributes

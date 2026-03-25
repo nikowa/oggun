@@ -5,7 +5,7 @@ import glfw "vendor:glfw"
 import gl "vendor:OpenGL"
 import str "core:strings"
 import os "core:os"
-import db "../database"
+import as "../asset_manager"
 import la "core:math/linalg"
 import fmt "core:fmt"
 import tm "core:time"
@@ -103,7 +103,7 @@ Graphics_Context :: struct {
 // 	formats:                  []u8,
 // 	buffers:                  [][]u8 }
 
-graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Database, title: string) -> (err: os.Error) {
+graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, title: string) -> (err: os.Error) {
 // 	width:         i32
 // 	height:        i32
 // 	ok:            bool
@@ -234,10 +234,10 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^db.Databas
 // 	init_cubemap(&draw.cubemap, { 512, 512 })
 
 	graphics_context.shaders = make([dynamic]^Shader, 0, 16)
-	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "shader:vrect", frag_url = "shader:frect" }) or_return
-	graphics_context.image_shader = make_shader(graphics_context, database, Image_Shader, { name = "image", vert_url = "shader:vrect", frag_url = "shader:fimage" }) or_return
-	graphics_context.model_shader = make_shader(graphics_context, database, Model_Shader, { name = "model", vert_url = "shader:vmodel", frag_url = "shader:fmodel" }) or_return
-	graphics_context.mesh_shader = make_shader(graphics_context, database, Mesh_Shader, { name = "mesh", vert_url = "shader:vmesh", frag_url = "shader:fmesh" }) or_return
+	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "string:vrect.glsl", frag_url = "string:frect.glsl" }) or_return
+	graphics_context.image_shader = make_shader(graphics_context, database, Image_Shader, { name = "image", vert_url = "string:vrect.glsl", frag_url = "string:fimage.glsl" }) or_return
+	graphics_context.model_shader = make_shader(graphics_context, database, Model_Shader, { name = "model", vert_url = "string:vmodel.glsl", frag_url = "string:fmodel.glsl" }) or_return
+	graphics_context.mesh_shader = make_shader(graphics_context, database, Mesh_Shader, { name = "mesh", vert_url = "string:vmesh.glsl", frag_url = "string:fmesh.glsl" }) or_return
 	// graphics_context.model_shader                = make_shader(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// graphics_context.buffer_shader               = make_shader(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// graphics_context.upscale_pass1_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
