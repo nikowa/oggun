@@ -1,6 +1,6 @@
-uniform vec2 pos;
-uniform vec2 size;
-uniform vec2 res;
+layout(location = 0) uniform vec2 pos;
+layout(location = 1) uniform vec2 size;
+layout(location = 2) uniform vec2 res;
 out vec2 tex_coord;
 
 

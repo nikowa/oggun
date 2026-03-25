@@ -1,4 +1,4 @@
-uniform float camera_far_clip;
+layout(location = 3) uniform float camera_far_clip;
 out vec4 color;
 in vec3 scr_position_interpolated;
 void main(void) {

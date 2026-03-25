@@ -3,10 +3,11 @@ layout (binding = 1) uniform sampler2D thickness_samp;
 layout (binding = 2) uniform sampler2D world_position_samp;
 layout (binding = 3) uniform sampler2D sky_samp;
 #include <rdf>
-uniform vec3 camera_position;
-uniform float camera_far_clip;
-uniform vec3 haze_color;
-uniform float metallic_factor;
+layout(location = 3) uniform vec3 camera_position;
+layout(location = 4) uniform float camera_far_clip;
+layout(location = 5) uniform vec3 haze_color;
+layout(location = 6) uniform float metallic_factor;
+layout(location = 7) uniform float roughness_factor;
 out vec4 color;
 in vec3 position_interpolated;
 in vec3 scr_position_interpolated;

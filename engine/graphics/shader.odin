@@ -34,10 +34,10 @@ GLSL_VERSION_STRING:    string : "#version 460 core"
 
 // (TODO): Change name to URL
 Shader_Config :: struct #all_or_none {
-	name: string,
 	vert_url, frag_url: as.URL }
 
-Shader :: struct {
+Shader_Asset :: struct {
+	using asset: as.Asset,
 	using shader_config: Shader_Config,
 	vert_asset, frag_asset: as.String_Asset,
 	handle: u32,
@@ -52,41 +52,35 @@ Shader :: struct {
 // 	symbol_size:     i32,
 // 	text_color:      i32 }
 
-Rect_Shader :: struct {
-	using shader: Shader,
-	pos: i32,
-	size: i32,
-	fill_color: i32,
-	res: i32,
-	rounding: i32 }
+Rect_Shader_Uniforms :: enum {
+	POS        = 0,
+	SIZE       = 1,
+	RES        = 2,
+	FILL_COLOR = 3,
+	ROUNDING   = 4 }
 
-Model_Shader :: struct {
-	using shader: Shader,
-	model_matrix: i32,
-	camera_position_matrix: i32,
-	camera_projection_matrix: i32,
-	camera_far_clip: i32,
-	camera_position: i32,
-	haze_color: i32,
-	metallic_factor: i32,
-	roughness_factor: i32 }
+Model_Shader_Uniforms :: enum {
+	MODEL_MATRIX             = 0,
+	CAMERA_POSITION_MATRIX   = 1,
+	CAMERA_PROJECTION_MATRIX = 2,
+	CAMERA_POSITION          = 3,
+	CAMERA_FAR_CLIP          = 4,
+	HAZE_COLOR               = 5,
+	METALLIC_FACTOR          = 6,
+	ROUGHNESS_FACTOR         = 7 }
 
-Effect_Shader :: struct {
-	using shader: Shader,
-	node_matrix: i32,
-	camera_position_matrix: i32,
-	camera_projection_matrix: i32,
-	camera_far_clip: i32,
-	camera_position: i32,
-	haze_color: i32,
-	time: i32 }
+Effect_Shader_Uniforms :: enum {
+	NODE_MATRIX              = 0,
+	CAMERA_POSITION_MATRIX   = 1,
+	CAMERA_PROJECTION_MATRIX = 2,
+	TIME                     = 3,
+	CAMERA_FAR_CLIP          = 4 }
 
-Mesh_Shader :: struct {
-	using shader: Shader,
-	node_matrix: i32,
-	camera_position_matrix: i32,
-	camera_projection_matrix: i32,
-	camera_far_clip: i32 }
+Mesh_Shader_Uniforms :: enum {
+	NODE_MATRIX              = 0,
+	CAMERA_POSITION_MATRIX   = 1,
+	CAMERA_PROJECTION_MATRIX = 2,
+	CAMERA_FAR_CLIP          = 3 }
 
 // Panel_Shader :: struct {
 // 	using shader: Shader,
@@ -112,13 +106,10 @@ Mesh_Shader :: struct {
 // 	time:            i32,
 // 	mask:            i32 }
 
-
-Image_Shader :: struct {
-	using shader: Shader,
-	pos: i32,
-	size: i32,
-	res: i32 }
-
+Image_Uniforms :: enum {
+	POS  = 0,
+	SIZE = 1,
+	RES  = 2 }
 
 // Chromatic_Aberration_Shader :: struct {
 // 	using shader: Shader }
@@ -212,11 +203,9 @@ GLSL_Builder :: struct {
 	macros: [dynamic]string,
 	global_variables: [dynamic][2]string }
 
-make_shader :: make_shader_from_disk
-
-make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, manager: ^as.Asset_Manager, $Type: typeid, config: Shader_Config) -> (shader: ^Type, err: os.Error) {
+init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: as.Asset_Config, config: Shader_Config, graphics_context: ^Graphics_Context, manager: ^as.Asset_Manager) -> (err: os.Error) {
+	as.init_asset(manager, &shader.asset, asset_config)
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
-	shader = new(Type)
 	shader.shader_config = config
 	as.init_string_asset(manager, &shader.vert_asset, { config.vert_url, as.String_Asset })
 	as.init_string_asset(manager, &shader.frag_asset, { config.frag_url, as.String_Asset })
@@ -224,10 +213,9 @@ make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, manager: ^as.
 	assert(as.string_asset_command(manager, &shader.frag_asset, .Import))
 	assert(as.string_asset_command(manager, &shader.vert_asset, .Load))
 	assert(as.string_asset_command(manager, &shader.frag_asset, .Load))
-	append(&graphics_context.shaders, &shader.shader) or_return
+	append(&graphics_context.shaders, shader) or_return
 	compile_shader(graphics_context, manager, shader) or_return
-	init_shader_params(Type, shader)
-	return shader, nil }
+	return os.General_Error.None }
 
 // Shader :: struct {
 // 	using config: Shader_Config,
@@ -241,7 +229,7 @@ make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, manager: ^as.
 
 // }
 
-compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, shader: ^Shader, allocator := context.allocator) -> (err: os.Error) {
+compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, shader: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
 	modification_time: tm.Time
 	entry: ^as.Entry
@@ -278,23 +266,7 @@ compile_shader :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_
 
 // }
 
-init_shader_params :: proc($Type: typeid, shader: ^Type) {
-	fields: #soa[]rl.Struct_Field
-
-	fields = rl.struct_fields_zipped(Type)
-	for _, i in fields {
-		if fields[i].name == "shader" do continue
-		#partial switch v in fields[i].type.variant {
-		case rt.Type_Info_Integer:
-			(cast(^i32)(cast(uintptr)shader + fields[i].offset))^ = get_shader_param_handle(cast(u32)shader.handle, fields[i].name)
-		case rt.Type_Info_Named:
-			using_struct := v.base.variant.(rt.Type_Info_Struct)
-			for j in 0 ..< using_struct.field_count {
-				(cast(^i32)(cast(uintptr)shader + fields[i].offset + using_struct.offsets[j]))^ = get_shader_param_handle(cast(u32)shader.handle, using_struct.names[j]) }
-		case: continue } }
-}
-
-print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader, vert_string: string, frag_string: string) {
+print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader_Asset, vert_string: string, frag_string: string) {
 	content: string
 	bl:      int
 	br:      int
@@ -304,12 +276,12 @@ print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: 
 	#partial switch message_type {
 	case gl.Shader_Type.VERTEX_SHADER: content=vert_string
 	case gl.Shader_Type.FRAGMENT_SHADER: content=frag_string
-	case: log.error("Shader compilation error:", shader.name, ": ", message_type, ": ", message, ": ?", sep = "") }
+	case: log.error("Shader compilation error:", shader.url, ": ", message_type, ": ", message, ": ?", sep = "") }
 	bl = str.index_rune(message, '(')
 	br = str.index_rune(message, ')')
 	line_n = sc.parse_int(message[bl + 1 : br]) or_else -1
 	line = base.nth_line(content, line_n - 1)
-	log.error("Shader linking error:", message_type, "/", shader.name, "(", line_n, ")", ": ", ":\n", message, ": \n", line, sep = "") }
+	log.error("Shader linking error:", message_type, "/", shader.url, "(", line_n, ")", ": ", ":\n", message, ": \n", line, sep = "") }
 
 init_glsl_builder :: proc(glsl_builder: ^GLSL_Builder) -> (res: ^str.Builder, err: rt.Allocator_Error) {
 	res, err = str.builder_init(&glsl_builder.string_builder)
@@ -431,3 +403,12 @@ preprocess_glsl :: proc(database: ^as.Asset_Manager, working_directory_path: str
 				append(&builder.global_variables, [2]string{ str.clone(fields[0]), str.clone(fields[1]) }) } }
 		else do fmt.sbprintln(&builder.string_builder, line) }
 	return {}, os.General_Error.None }
+
+shader_asset_command :: proc(manager: ^as.Asset_Manager, asset: ^as.Asset, command: as.Asset_Command, watch: bool = false) -> (ok: bool) {
+	assert((manager != nil) && (assert != nil))
+	shader_asset := as.asset_object(asset, Shader_Asset, "asset")
+	switch command {
+	case .Validate, .Query_Location, .Import, .Load, .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:
+		log.errorf("Command %v not implemented for asset kind \"string\".", command)
+		return false }
+	return false }

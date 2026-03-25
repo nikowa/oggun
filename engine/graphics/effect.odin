@@ -17,13 +17,13 @@ Effect_Config :: struct {
 // Each surface is a normalized UV mesh, from which positions are computed by the vertex shader.
 Effect :: struct {
 	using config: Effect_Config,
-	shader: ^Effect_Shader,
+	shader: Shader_Asset,
 	mesh: msh.Mesh(2) }
 
 // verts: [][3]f32
 // surface_indexes: []i32
 
-make_effect :: proc(config: Effect_Config, graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, vert_url, frag_url: as.URL, allocator: rt.Allocator) -> (effect: Effect) {
+make_effect :: proc(config: Effect_Config, gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, vert_url, frag_url: as.URL, allocator: rt.Allocator) -> (effect: Effect) {
 	err: os.Error
 	mesh_builder: msh.Mesh_Builder(2)
 
@@ -31,9 +31,8 @@ make_effect :: proc(config: Effect_Config, graphics_context: ^Graphics_Context, 
 	mesh_builder = msh.make_mesh_builder(2, allocator)
 	for res, i in config.surface_res do msh.builder_append_2d_square_grid(&mesh_builder, grid_size = res)
 	effect.mesh = msh.mesh_from_builder(mesh_builder)
-	effect.shader, err = make_shader(graphics_context, database, Effect_Shader, { name = cast(string)config.url, vert_url = vert_url, frag_url = frag_url })
+	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url }, gx_mngr, as_mngr)
 	// if err != nil do log.errorf("Failed to make shader %s, %s: %v", vert_url, frag_url, err)
-	assert(err == nil)
 	return effect }
 
 upload_effect :: proc(effect: ^Effect) -> bool {

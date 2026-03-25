@@ -44,26 +44,26 @@ Graphics_Context :: struct {
 // 	last_models_write_time:          os.File_Time,
 // 	models:                          [dynamic]Model,
 // 	model_instances:                 [dynamic]Model_Instance,
-	shaders: [dynamic]^Shader,
+	shaders: [dynamic]^Shader_Asset,
 	// textures:                [dynamic]Texture,
 	// textures_map:                    map[string]^Texture,
 // 	materials:                       [dynamic]Material,
 // 	models_map:                      map[string]^Model,
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
-	image_shader: ^Image_Shader,
+	image_shader: Shader_Asset,
 // 	buffer_shader:                   ^Buffer_Shader,
 // 	upscale_pass1_shader:            ^Upscale_Pass1_Shader,
 // 	upscale_pass2_shader:            ^Upscale_Pass2_Shader,
 // 	blend_shader:                    ^Blend_Shader,
 // 	curvature_shader:                ^Curvature_Shader,
 // 	font_shader:                     ^Font_Shader,
-	rect_shader: ^Rect_Shader,
+	rect_shader: Shader_Asset,
 // 	point_shader:                    ^Point_Shader,
 // 	line_shader:                     ^Line_Shader,
 // 	physics_shader:                  ^Physics_Shader,
-	model_shader: ^Model_Shader,
-	mesh_shader: ^Mesh_Shader,
+	model_shader: Shader_Asset,
+	mesh_shader: Shader_Asset,
 // 	panel_shader:                    ^Panel_Shader,
 // 	water_effect_shader:             ^Water_Effect_Shader,
 // 	sdf_shader:                      ^SDF_Shader,
@@ -103,7 +103,7 @@ Graphics_Context :: struct {
 // 	formats:                  []u8,
 // 	buffers:                  [][]u8 }
 
-graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_Manager, title: string) -> (err: os.Error) {
+graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, title: string) -> (err: os.Error) {
 // 	width:         i32
 // 	height:        i32
 // 	ok:            bool
@@ -135,14 +135,14 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_M
 	glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, 1)
 	glfw.WindowHint(glfw.SAMPLES, 4)
 	glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-	graphics_context.window = glfw.CreateWindow(960, 540, str.clone_to_cstring(title), nil, nil)
-	glfw.SetWindowPos(graphics_context.window, 0, 540)
-	assert(graphics_context.window != nil)
-	glfw.MakeContextCurrent(graphics_context.window)
+	gx_mngr.window = glfw.CreateWindow(960, 540, str.clone_to_cstring(title), nil, nil)
+	glfw.SetWindowPos(gx_mngr.window, 0, 540)
+	assert(gx_mngr.window != nil)
+	glfw.MakeContextCurrent(gx_mngr.window)
 	glfw.SwapInterval(0)
 	gl.load_up_to(4, 6, glfw.gl_set_proc_address)
 // 	gl.DebugMessageCallback(error_callback, nil)
-	glfw.FocusWindow(graphics_context.window)
+	glfw.FocusWindow(gx_mngr.window)
 // 	glfw.SetWindowFocusCallback(draw.window, focus_callback)
 // 	glfw.SetKeyCallback(draw.window, key_callback)
 // 	glfw.SetScrollCallback(draw.window, scroll_callback)
@@ -153,14 +153,14 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_M
 // 	glfw.SetDropCallback(draw.window, drop_callback)
 // 	glfw.SetInputMode(draw.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 // 	glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
-	width, height := glfw.GetFramebufferSize(graphics_context.window)
-	graphics_context.window_size = { cast(u32)width, cast(u32)height }
-	graphics_context.active_resolution = graphics_context.window_size
-	gl.Viewport(0, 0, cast(i32)graphics_context.window_size.x, cast(i32)graphics_context.window_size.y)
-	gl.GenVertexArrays(1, &graphics_context.vertex_array)
-	gl.BindVertexArray(graphics_context.vertex_array)
-	gl.GenBuffers(1, &graphics_context.vertex_buffer)
-	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_context.vertex_buffer)
+	width, height := glfw.GetFramebufferSize(gx_mngr.window)
+	gx_mngr.window_size = { cast(u32)width, cast(u32)height }
+	gx_mngr.active_resolution = gx_mngr.window_size
+	gl.Viewport(0, 0, cast(i32)gx_mngr.window_size.x, cast(i32)gx_mngr.window_size.y)
+	gl.GenVertexArrays(1, &gx_mngr.vertex_array)
+	gl.BindVertexArray(gx_mngr.vertex_array)
+	gl.GenBuffers(1, &gx_mngr.vertex_buffer)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gx_mngr.vertex_buffer)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 	gl.ClearColor(0, 0, 0, 1)
 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
@@ -232,27 +232,27 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_M
 // 	load_models_from_gltf(draw, working_directory_path, "beach")
 // 	bake_models(draw, cache) // TEMP
 // 	init_cubemap(&draw.cubemap, { 512, 512 })
-
-	graphics_context.shaders = make([dynamic]^Shader, 0, 16)
-	graphics_context.rect_shader = make_shader(graphics_context, database, Rect_Shader, { name = "rect", vert_url = "string:vrect.glsl", frag_url = "string:frect.glsl" }) or_return
-	graphics_context.image_shader = make_shader(graphics_context, database, Image_Shader, { name = "image", vert_url = "string:vrect.glsl", frag_url = "string:fimage.glsl" }) or_return
-	graphics_context.model_shader = make_shader(graphics_context, database, Model_Shader, { name = "model", vert_url = "string:vmodel.glsl", frag_url = "string:fmodel.glsl" }) or_return
-	graphics_context.mesh_shader = make_shader(graphics_context, database, Mesh_Shader, { name = "mesh", vert_url = "string:vmesh.glsl", frag_url = "string:fmesh.glsl" }) or_return
-	// graphics_context.model_shader                = make_shader(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
-	// graphics_context.buffer_shader               = make_shader(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
-	// graphics_context.upscale_pass1_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
-	// graphics_context.upscale_pass2_shader        = make_shader(draw, working_directory_path, "buffer",               Upscale_Pass2_Shader,        "vfill",    "fupscale-pass2")
-	// graphics_context.blend_shader                = make_shader(draw, working_directory_path, "blend",                Blend_Shader,                "vfill",    "fblend")
-	// graphics_context.curvature_shader            = make_shader(draw, working_directory_path, "curvature",            Curvature_Shader,            "vfill",    "fcurvature")
-	// graphics_context.font_shader                 = make_shader(draw, working_directory_path, "font",                 Font_Shader,                 "vfont",    "ffont")
-	// graphics_context.point_shader                = make_shader(draw, working_directory_path, "point",                Point_Shader,                "vpoint",   "fpoint")
-	// graphics_context.line_shader                 = make_shader(draw, working_directory_path, "line",                 Line_Shader,                 "vline",    "fline")
-	// graphics_context.physics_shader              = make_shader(draw, working_directory_path, "physics",              Physics_Shader,              "vframe",   "fphysics")
-	// graphics_context.panel_shader                = make_shader(draw, working_directory_path, "panel",                Panel_Shader,                "vrect",    "fpanel")
-	// graphics_context.water_effect_shader         = make_shader(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
-	// graphics_context.sdf_shader                  = make_shader(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
-	// graphics_context.chromatic_aberration_shader = make_shader(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
-	bs.zero_stopwatch(&graphics_context.stopwatch)
+	as.register_asset_kind(as_mngr, Shader_Asset, { command = shader_asset_command })
+	gx_mngr.shaders = make([dynamic]^Shader_Asset, 0, 16)
+	init_shader_asset(&gx_mngr.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }, gx_mngr, as_mngr) or_return
+	init_shader_asset(&gx_mngr.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, gx_mngr, as_mngr) or_return
+	init_shader_asset(&gx_mngr.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, gx_mngr, as_mngr) or_return
+	init_shader_asset(&gx_mngr.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, gx_mngr, as_mngr) or_return
+	// gx_mngr.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
+	// gx_mngr.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
+	// gx_mngr.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
+	// gx_mngr.upscale_pass2_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass2_Shader,        "vfill",    "fupscale-pass2")
+	// gx_mngr.blend_shader                = make_shader_asset(draw, working_directory_path, "blend",                Blend_Shader,                "vfill",    "fblend")
+	// gx_mngr.curvature_shader            = make_shader_asset(draw, working_directory_path, "curvature",            Curvature_Shader,            "vfill",    "fcurvature")
+	// gx_mngr.font_shader                 = make_shader_asset(draw, working_directory_path, "font",                 Font_Shader,                 "vfont",    "ffont")
+	// gx_mngr.point_shader                = make_shader_asset(draw, working_directory_path, "point",                Point_Shader,                "vpoint",   "fpoint")
+	// gx_mngr.line_shader                 = make_shader_asset(draw, working_directory_path, "line",                 Line_Shader,                 "vline",    "fline")
+	// gx_mngr.physics_shader              = make_shader_asset(draw, working_directory_path, "physics",              Physics_Shader,              "vframe",   "fphysics")
+	// gx_mngr.panel_shader                = make_shader_asset(draw, working_directory_path, "panel",                Panel_Shader,                "vrect",    "fpanel")
+	// gx_mngr.water_effect_shader         = make_shader_asset(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
+	// gx_mngr.sdf_shader                  = make_shader_asset(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
+	// gx_mngr.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
+	bs.zero_stopwatch(&gx_mngr.stopwatch)
 	return nil }
 
 
@@ -270,10 +270,10 @@ graphics_init :: proc(graphics_context: ^Graphics_Context, database: ^as.Asset_M
 // 	gl.Clear(gl.DEPTH_BUFFER_BIT) }
 
 
-select_frame_buffer :: proc(graphics_context: ^Graphics_Context, frame_buffer_handle: u32) {
-	graphics_context.active_resolution = graphics_context.window_size
+select_frame_buffer :: proc(gx_mngr: ^Graphics_Context, frame_buffer_handle: u32) {
+	gx_mngr.active_resolution = gx_mngr.window_size
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
-	gl.Viewport(0, 0, cast(i32)graphics_context.window_size.x, cast(i32)graphics_context.window_size.y) }
+	gl.Viewport(0, 0, cast(i32)gx_mngr.window_size.x, cast(i32)gx_mngr.window_size.y) }
 
 
 clear_frame_buffer :: proc(frame_buffer_handle: u32) {
@@ -421,7 +421,7 @@ uniform_1f :: #force_inline proc(shader: u32, name: cstring, param: f32) {
 	gl.Uniform1f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param) }
 
 
-set_shader_param_1f32 :: #force_inline proc(param_handle: i32, value: f32) {
+set_shader_param_1f32 :: #force_inline proc(#any_int param_handle: i32, value: f32) {
 	gl.Uniform1f(param_handle, value) }
 
 
@@ -429,7 +429,7 @@ uniform_2f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param
 	gl.Uniform2f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y) }
 
 
-set_shader_param_2f32 :: #force_inline proc(param_handle: i32, value: [2]f32) {
+set_shader_param_2f32 :: #force_inline proc(#any_int param_handle: i32, value: [2]f32) {
 	gl.Uniform2f(param_handle, value.x, value.y) }
 
 
@@ -437,7 +437,7 @@ uniform_3f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param
 	gl.Uniform3f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y, cast(f32)param_z) }
 
 
-set_shader_param_3f32 :: #force_inline proc(param_handle: i32, value: [3]f32) {
+set_shader_param_3f32 :: #force_inline proc(#any_int param_handle: i32, value: [3]f32) {
 	gl.Uniform3f(param_handle, value.x, value.y, value.z) }
 
 
@@ -445,7 +445,7 @@ uniform_4f :: #force_inline proc(shader: u32, name: cstring, param_x: f32, param
 	gl.Uniform4f(gl.GetUniformLocation(cast(u32)shader, name), cast(f32)param_x, cast(f32)param_y, cast(f32)param_z, cast(f32)param_w) }
 
 
-set_shader_param_4f32 :: #force_inline proc(param_handle: i32, value: [4]f32) {
+set_shader_param_4f32 :: #force_inline proc(#any_int param_handle: i32, value: [4]f32) {
 	gl.Uniform4f(param_handle, cast(f32)value.x, cast(f32)value.y, cast(f32)value.z, cast(f32)value.w) }
 
 
@@ -453,27 +453,27 @@ uniform_1i :: #force_inline proc(shader: u32, name: cstring, #any_int param: int
 	gl.Uniform1i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param) }
 
 
-set_shader_param_1i32 :: #force_inline proc(param_handle: i32, value: i32) {
+set_shader_param_1i32 :: #force_inline proc(#any_int param_handle: i32, value: i32) {
 	gl.Uniform1i(param_handle, value) }
 
 
-set_shader_param_1i16 :: #force_inline proc(param_handle: i32, value: i16) {
+set_shader_param_1i16 :: #force_inline proc(#any_int param_handle: i32, value: i16) {
 	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-set_shader_param_1i8 :: #force_inline proc(param_handle: i32, value: i8) {
+set_shader_param_1i8 :: #force_inline proc(#any_int param_handle: i32, value: i8) {
 	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-set_shader_param_1u32 :: #force_inline proc(param_handle: i32, value: u32) {
+set_shader_param_1u32 :: #force_inline proc(#any_int param_handle: i32, value: u32) {
 	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-set_shader_param_1u16 :: #force_inline proc(param_handle: i32, value: u16) {
+set_shader_param_1u16 :: #force_inline proc(#any_int param_handle: i32, value: u16) {
 	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
-set_shader_param_1u8 :: #force_inline proc(param_handle: i32, value: u8) {
+set_shader_param_1u8 :: #force_inline proc(#any_int param_handle: i32, value: u8) {
 	gl.Uniform1i(param_handle, cast(i32)value) }
 
 
@@ -481,27 +481,27 @@ uniform_2i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: i
 	gl.Uniform2i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y) }
 
 
-set_shader_param_2i32 :: #force_inline proc(param_handle: i32, value: [2]i32) {
+set_shader_param_2i32 :: #force_inline proc(#any_int param_handle: i32, value: [2]i32) {
 	gl.Uniform2i(param_handle, value.x, value.y) }
 
 
-set_shader_param_2i16 :: #force_inline proc(param_handle: i32, value: [2]i16) {
+set_shader_param_2i16 :: #force_inline proc(#any_int param_handle: i32, value: [2]i16) {
 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-set_shader_param_2i8 :: #force_inline proc(param_handle: i32, value: [2]i8) {
+set_shader_param_2i8 :: #force_inline proc(#any_int param_handle: i32, value: [2]i8) {
 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-set_shader_param_2u32 :: #force_inline proc(param_handle: i32, value: [2]u32) {
+set_shader_param_2u32 :: #force_inline proc(#any_int param_handle: i32, value: [2]u32) {
 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-set_shader_param_2u16 :: #force_inline proc(param_handle: i32, value: [2]u16) {
+set_shader_param_2u16 :: #force_inline proc(#any_int param_handle: i32, value: [2]u16) {
 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
-set_shader_param_2u8 :: #force_inline proc(param_handle: i32, value: [2]u8) {
+set_shader_param_2u8 :: #force_inline proc(#any_int param_handle: i32, value: [2]u8) {
 	gl.Uniform2i(param_handle, cast(i32)value.x, cast(i32)value.y) }
 
 
@@ -509,27 +509,27 @@ uniform_3i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: i
 	gl.Uniform3i(gl.GetUniformLocation(cast(u32)shader, name), cast(i32)param_x, cast(i32)param_y, cast(i32)param_z) }
 
 
-set_shader_param_3i32 :: #force_inline proc(param_handle: i32, value: [3]i32) {
+set_shader_param_3i32 :: #force_inline proc(#any_int param_handle: i32, value: [3]i32) {
 	gl.Uniform3i(param_handle, value.x, value.y, value.z) }
 
 
-set_shader_param_3i16 :: #force_inline proc(param_handle: i32, value: [3]i16) {
+set_shader_param_3i16 :: #force_inline proc(#any_int param_handle: i32, value: [3]i16) {
 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-set_shader_param_3i8 :: #force_inline proc(param_handle: i32, value: [3]i8) {
+set_shader_param_3i8 :: #force_inline proc(#any_int param_handle: i32, value: [3]i8) {
 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-set_shader_param_3u32 :: #force_inline proc(param_handle: i32, value: [3]u32) {
+set_shader_param_3u32 :: #force_inline proc(#any_int param_handle: i32, value: [3]u32) {
 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-set_shader_param_3u16 :: #force_inline proc(param_handle: i32, value: [3]u16) {
+set_shader_param_3u16 :: #force_inline proc(#any_int param_handle: i32, value: [3]u16) {
 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
-set_shader_param_3u8 :: #force_inline proc(param_handle: i32, value: [3]u8) {
+set_shader_param_3u8 :: #force_inline proc(#any_int param_handle: i32, value: [3]u8) {
 	gl.Uniform3i(param_handle, cast(i32)value.x, cast(i32)value.y, cast(i32)value.z) }
 
 
@@ -541,7 +541,7 @@ uniform_matrix_4f :: #force_inline proc(shader: u32, name: cstring, value: [^]f3
 	gl.UniformMatrix4fv(gl.GetUniformLocation(cast(u32)shader, name), 1, false, value) }
 
 
-set_shader_param_matrix_4f :: #force_inline proc(param_handle: i32, value: ^matrix[4, 4]f32) {
+set_shader_param_matrix_4f :: #force_inline proc(#any_int param_handle: i32, value: ^matrix[4, 4]f32) {
 	gl.UniformMatrix4fv(param_handle, 1, false, &value[0][0]) }
 
 
@@ -587,12 +587,9 @@ draw_lines :: proc(count: i32) {
 draw_points :: proc(count: i32) {
     gl.DrawArrays(gl.POINTS, 0, count) }
 
-
-use_shader :: proc(shader: ^$T, loc := #caller_location) -> (^T) {
-	assert(shader != nil, loc = loc); assert(shader.handle != 0, loc = loc)
-	gl.UseProgram(cast(u32)shader.handle)
-	return shader }
-
+use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
+	assert(shader.handle != 0)
+	gl.UseProgram(shader.handle) }
 
 // set_blend :: proc(value: bool) {
 // 	if value { gl.Enable(gl.BLEND) } else { gl.Disable(gl.BLEND) } }
@@ -634,23 +631,25 @@ use_shader :: proc(shader: ^$T, loc := #caller_location) -> (^T) {
 // 	render_rect_outlined(draw, pos = pos + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
 // 	render_rect_outlined(draw, pos = pos + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-render_rect :: proc(graphics_context: ^Graphics_Context, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
-	shader := use_shader(graphics_context.rect_shader)
-	set_shader_param(shader.pos, rect.pos)
-	set_shader_param(shader.size, rect.size)
-	set_shader_param(shader.fill_color, fill_color)
-	set_shader_param(shader.rounding, rounding)
-	set_shader_param(shader.res, la.array_cast(graphics_context.active_resolution, f32))
+render_rect :: proc(gx_mngr: ^Graphics_Context, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
+	using Rect_Shader_Uniforms
+	use_shader(&gx_mngr.rect_shader)
+	set_shader_param(POS, rect.pos)
+	set_shader_param(SIZE, rect.size)
+	set_shader_param(FILL_COLOR, fill_color)
+	set_shader_param(ROUNDING, rounding)
+	set_shader_param(RES, la.array_cast(gx_mngr.active_resolution, f32))
 	draw_triangles(6) }
 
-render_image :: proc(graphics_context: ^Graphics_Context, image: ^Image, rect: r.Rect, depth: f32 = 0.0) {
+render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, depth: f32 = 0.0) {
+	using Image_Uniforms
 	if ! image_loaded(image) do upload_image(image)
-	shader := use_shader(graphics_context.image_shader)
-	gl.BindVertexArray(graphics_context.vertex_array)
-	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_context.vertex_buffer)
-	set_shader_param(shader.pos, rect.pos)
-	set_shader_param(shader.size, rect.size)
-	set_shader_param(shader.res, la.array_cast(graphics_context.active_resolution, f32))
+	use_shader(&gx_mngr.image_shader)
+	gl.BindVertexArray(gx_mngr.vertex_array)
+	gl.BindBuffer(gl.ARRAY_BUFFER, gx_mngr.vertex_buffer)
+	set_shader_param(POS, rect.pos)
+	set_shader_param(SIZE, rect.size)
+	set_shader_param(RES, la.array_cast(gx_mngr.active_resolution, f32))
 	bind_texture(0, image.handle)
 	texture_filtering(gl.NEAREST)
 	draw_triangles(6) }
@@ -1125,8 +1124,8 @@ texture_wrapping :: proc(mode: i32) {
 // 	return ptr }
 
 @(deferred_in=graphics_tick_end)
-graphics_tick :: proc(graphics_context: ^Graphics_Context) {
-	graphics_tick_begin(graphics_context) }
+graphics_tick :: proc(gx_mngr: ^Graphics_Context) {
+	graphics_tick_begin(gx_mngr) }
 
 // // TODO: Make sure that whenever this job is created, these filters are applied. //
 // // TODO: Create "Draw_Tick_Args" cast to "rawptr" as argument instead of array of "any"s.
@@ -1140,17 +1139,17 @@ graphics_tick :: proc(graphics_context: ^Graphics_Context) {
 // 	working_directory_path: string }
 // draw_tick_filters: Thread_Filters : { .MAIN_THREAD }
 // @(tag = "job")
-graphics_tick_begin :: proc(graphics_context: ^Graphics_Context) {
+graphics_tick_begin :: proc(gx_mngr: ^Graphics_Context) {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	clear_frame_buffer(0)
-	select_frame_buffer(graphics_context, 0)
-	graphics_context.time = bs.read_stopwatch(&graphics_context.stopwatch)
+	select_frame_buffer(gx_mngr, 0)
+	gx_mngr.time = bs.read_stopwatch(&gx_mngr.stopwatch)
 // 	clear_render_buffer(&draw.default_sb)
 // 	select_render_buffer(draw, &draw.default_sb)
 // 	set_depth_test(true)
 }
 
-graphics_tick_end :: proc(graphics_context: ^Graphics_Context) {
+graphics_tick_end :: proc(gx_mngr: ^Graphics_Context) {
 // 	if .MODELS in draw.draw_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.draw_mask {
 // 		// TODO: Separate skybox renderer from water effect renderer.
@@ -1217,14 +1216,14 @@ graphics_tick_end :: proc(graphics_context: ^Graphics_Context) {
 // 	// set_blend(false)
 // 	// get_hovered_index()
 // 	// cap_fps()
-	glfw.SwapBuffers(graphics_context.window)
-	if glfw.WindowShouldClose(graphics_context.window) do graphics_context.window_closed = true
+	glfw.SwapBuffers(gx_mngr.window)
+	if glfw.WindowShouldClose(gx_mngr.window) do gx_mngr.window_closed = true
 
 // 	// TODO: Add a draw_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //
 // 	watch_models(draw, "beach")
 // 	{ lock_guard(&physics.lock); physics.d_surf, physics.d_surf_displaced, physics.d_surfer, physics.n_surf, physics.n_surf_displaced = read_physics_render_buffer(draw) }
 // 	{ lock_guard(&input.lock); if key_was_pressed(input, .J) do recompile_shaders(unwrap(draw), working_directory_path) }
-	graphics_context.frame_count += 1 }
+	gx_mngr.frame_count += 1 }
 	// DICK
 
 

@@ -1,9 +1,9 @@
 layout(location = 0) in vec2 _vert;
 layout(location = 1) in int _surface_index;
-uniform mat4 node_matrix;
-uniform mat4 camera_position_matrix;
-uniform mat4 camera_projection_matrix;
-uniform float time;
+layout(location = 0) uniform mat4 node_matrix;
+layout(location = 1) uniform mat4 camera_position_matrix;
+layout(location = 2) uniform mat4 camera_projection_matrix;
+layout(location = 3) uniform float time;
 out vec2 _uv_interpolated;
 out vec3 _scr_position_interpolated;
 out vec3 _position_interpolated;

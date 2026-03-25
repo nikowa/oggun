@@ -79,14 +79,14 @@ make_asset_manager :: proc(config: Asset_Manager_Config, allocator: rt.Allocator
 	register_builtin_asset_kinds(&asset_manager)
 	return asset_manager }
 
-register_asset_kind :: proc(manager: ^Asset_Manager, type: typeid, kind: Asset_Kind) {
-	manager.asset_kinds[type] = kind }
+register_asset_kind :: proc(manager: ^Asset_Manager, $Type: typeid, kind: Asset_Kind) {
+	log.info("Registering type ", type_info_of(Type).id)
+	manager.asset_kinds[Type] = kind }
 
 // assert(as.asset_command(manager, as.String_Asset, &shader.frag_asset.asset, .Load))
 watch_assets :: proc(manager: ^Asset_Manager) {
 	for asset in manager.assets {
+		log.info("Watching asset of type", type_info_of(asset.derived_type).id)
 		asset_kind, ok := manager.asset_kinds[asset.derived_type]
 		assert(ok)
-		asset_kind.command(manager, asset, .Import, true)
-	}
-}
+		asset_kind.command(manager, asset, .Import, true) } }

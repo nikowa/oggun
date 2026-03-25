@@ -1,10 +1,10 @@
-layout(location=0) in vec3 position;
-layout(location=1) in vec2 texcoord;
-layout(location=2) in vec3 normal;
-layout(location=3) in vec3 lightmap_texcoord;
-uniform mat4 model_matrix;
-uniform mat4 camera_position_matrix;
-uniform mat4 camera_projection_matrix;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec2 texcoord;
+layout(location = 2) in vec3 normal;
+layout(location = 3) in vec3 lightmap_texcoord;
+layout(location = 0) uniform mat4 model_matrix;
+layout(location = 1) uniform mat4 camera_position_matrix;
+layout(location = 2) uniform mat4 camera_projection_matrix;
 out vec3 position_interpolated;
 out vec3 scr_position_interpolated;
 out vec2 texcoord_interpolated;

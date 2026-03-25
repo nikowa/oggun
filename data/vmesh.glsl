@@ -1,7 +1,7 @@
 layout(location = 0) in vec3 position;
-uniform mat4 node_matrix;
-uniform mat4 camera_position_matrix;
-uniform mat4 camera_projection_matrix;
+layout(location = 0) uniform mat4 node_matrix;
+layout(location = 1) uniform mat4 camera_position_matrix;
+layout(location = 2) uniform mat4 camera_projection_matrix;
 out vec3 scr_position_interpolated;
 
 void main(void) {

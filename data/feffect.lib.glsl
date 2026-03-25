@@ -1,6 +1,6 @@
 out vec4 _color;
-uniform float time;
-uniform float camera_far_clip;
+layout(location = 3) uniform float time;
+layout(location = 4) uniform float camera_far_clip;
 in vec2 _uv_interpolated;
 in vec3 _scr_position_interpolated;
 in vec3 _position_interpolated;
