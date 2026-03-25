@@ -1,6 +1,7 @@
 package asset_manager
-import fmt "core:fmt"
+import intr "base:intrinsics"
 import rt "base:runtime"
+import fmt "core:fmt"
 import tm "core:time"
 import os "core:os"
 import b "core:bytes"
@@ -19,6 +20,7 @@ Asset_Manager_Config :: Database_Config
 
 Asset_Manager :: struct {
 	using database: Database,
+	assets: [dynamic]^Asset,
 	asset_kinds: map[typeid]Asset_Kind }
 
 Asset_Command :: enum {
@@ -46,17 +48,25 @@ Asset_Location_Field :: enum {
 Asset_Command_Proc :: #type proc(manager: ^Asset_Manager, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool)
 
 Asset_Config :: struct {
-	url: URL }
+	url: URL,
+	derived_type: typeid }
 
 Asset :: struct {
 	using asset_config: Asset_Config,
 	location: Asset_Location }
 
 Asset_Kind :: struct {
-	command_proc: Asset_Command_Proc }
+	command: Asset_Command_Proc }
 
-make_asset :: proc(config: Asset_Config) -> Asset {
-	return { asset_config = config } }
+asset_command :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+	assert(Asset_Type in manager.asset_kinds)
+	asset_kind := manager.asset_kinds[Asset_Type]
+	when ODIN_DEBUG do asset_kind.command(manager, asset, .Validate, false)
+	return asset_kind.command(manager, asset, command, watch) }
+
+init_asset :: proc(manager: ^Asset_Manager, asset: ^Asset, config: Asset_Config) {
+	asset.asset_config = config
+	append(&manager.assets, asset) }
 
 asset_object :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 	offset: uintptr = offset_of_by_string(T, field_name)
@@ -65,8 +75,18 @@ asset_object :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 make_asset_manager :: proc(config: Asset_Manager_Config, allocator: rt.Allocator) -> (asset_manager: Asset_Manager) {
 	asset_manager.database = make_or_read_database(config, allocator)
 	asset_manager.asset_kinds = make(map[typeid]Asset_Kind, allocator)
+	asset_manager.assets = make([dynamic]^Asset, allocator)
 	register_builtin_asset_kinds(&asset_manager)
 	return asset_manager }
 
 register_asset_kind :: proc(manager: ^Asset_Manager, type: typeid, kind: Asset_Kind) {
 	manager.asset_kinds[type] = kind }
+
+// assert(as.asset_command(manager, as.String_Asset, &shader.frag_asset.asset, .Load))
+watch_assets :: proc(manager: ^Asset_Manager) {
+	for asset in manager.assets {
+		asset_kind, ok := manager.asset_kinds[asset.derived_type]
+		assert(ok)
+		asset_kind.command(manager, asset, .Import, true)
+	}
+}

@@ -8,8 +8,7 @@ vec3 effect_position() {
 		pos.y = sin(2 * PI * uv.x);
 		pos.xy *= cos(asin(pos.z));
 		pos *= 0.5;
-		pos *= 1.0 + 0.2 * sin(4 * time);
-	}
+		pos *= 1.0 + 0.2 * sin(4 * time); }
 	else {
 		pos.x = 2 * (uv.x - 0.5);
 		pos.y = 2 * (uv.y - 0.5);

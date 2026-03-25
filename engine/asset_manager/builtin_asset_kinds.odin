@@ -19,10 +19,9 @@ String_Asset :: struct {
 	using asset: Asset,
 	str: string }
 
-make_string_asset :: proc(manager: ^Asset_Manager, config: Asset_Config) -> (string_asset: String_Asset) {
-	string_asset.asset = make_asset(config)
-	string_asset_command(manager, &string_asset.asset, .Query_Location)
-	return string_asset }
+init_string_asset :: proc(manager: ^Asset_Manager, string_asset: ^String_Asset, config: Asset_Config) {
+	init_asset(manager, &string_asset.asset, config)
+	string_asset_command(manager, &string_asset.asset, .Query_Location) }
 
 // (NOTE): If the "watch" field is set, then the command is called by a watcher, and it should only be executed if the source
 // location is outdated. For assets that do not implement outdatedness checking, the command should be ignored if "watch" is
@@ -38,6 +37,7 @@ string_asset_command :: proc(manager: ^Asset_Manager, asset: ^Asset, command: As
 		path := path_from_url(&manager.database, asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
+		if watch do return true
 		if .Source_Directory not_in asset.location do return false
 		err: os.Error
 		entry, ok := entry_from_url(&manager.database, asset.url)
@@ -60,5 +60,4 @@ string_asset_command :: proc(manager: ^Asset_Manager, asset: ^Asset, command: As
 	return false }
 
 register_builtin_asset_kinds :: proc(manager: ^Asset_Manager) {
-	register_asset_kind(manager, string, { command_proc = string_asset_command }) }
-
+	register_asset_kind(manager, String_Asset, { command = string_asset_command }) }

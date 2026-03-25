@@ -218,8 +218,8 @@ make_shader_from_disk :: proc(graphics_context: ^Graphics_Context, manager: ^as.
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader = new(Type)
 	shader.shader_config = config
-	shader.vert_asset = as.make_string_asset(manager, { config.vert_url })
-	shader.frag_asset = as.make_string_asset(manager, { config.frag_url })
+	as.init_string_asset(manager, &shader.vert_asset, { config.vert_url, as.String_Asset })
+	as.init_string_asset(manager, &shader.frag_asset, { config.frag_url, as.String_Asset })
 	assert(as.string_asset_command(manager, &shader.vert_asset, .Import))
 	assert(as.string_asset_command(manager, &shader.frag_asset, .Import))
 	assert(as.string_asset_command(manager, &shader.vert_asset, .Load))
