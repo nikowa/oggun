@@ -20,20 +20,14 @@ Effect :: struct {
 	shader: Shader_Asset,
 	mesh: msh.Mesh(2) }
 
-// verts: [][3]f32
-// surface_indexes: []i32
-
-make_effect :: proc(config: Effect_Config, gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, vert_url, frag_url: as.URL, allocator: rt.Allocator) -> (effect: Effect) {
+init_effect :: proc(effect: ^Effect, config: Effect_Config, gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, vert_url, frag_url: as.URL, allocator: rt.Allocator) {
 	err: os.Error
 	mesh_builder: msh.Mesh_Builder(2)
-
 	effect.config = config
 	mesh_builder = msh.make_mesh_builder(2, allocator)
 	for res, i in config.surface_res do msh.builder_append_2d_square_grid(&mesh_builder, grid_size = res)
 	effect.mesh = msh.mesh_from_builder(mesh_builder)
-	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url }, gx_mngr, as_mngr)
-	// if err != nil do log.errorf("Failed to make shader %s, %s: %v", vert_url, frag_url, err)
-	return effect }
+	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url }, gx_mngr, as_mngr) }
 
 upload_effect :: proc(effect: ^Effect) -> bool {
 	if effect.mesh.verts_handle != 0 do download_effect(effect)

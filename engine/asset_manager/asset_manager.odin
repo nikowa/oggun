@@ -51,6 +51,7 @@ Asset_Config :: struct {
 	url: URL,
 	derived_type: typeid }
 
+// (NOTE): All types that derive from asset must be remain at the same memory address after initialization by "init_asset".
 Asset :: struct {
 	using asset_config: Asset_Config,
 	location: Asset_Location }
@@ -65,6 +66,7 @@ asset_command :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset
 	return asset_kind.command(manager, asset, command, watch) }
 
 init_asset :: proc(manager: ^Asset_Manager, asset: ^Asset, config: Asset_Config) {
+	// log.info("Initializing asset of type", type_info_of(config.derived_type).id)
 	asset.asset_config = config
 	append(&manager.assets, asset) }
 
@@ -75,7 +77,7 @@ asset_object :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 make_asset_manager :: proc(config: Asset_Manager_Config, allocator: rt.Allocator) -> (asset_manager: Asset_Manager) {
 	asset_manager.database = make_or_read_database(config, allocator)
 	asset_manager.asset_kinds = make(map[typeid]Asset_Kind, allocator)
-	asset_manager.assets = make([dynamic]^Asset, allocator)
+	asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32, allocator)
 	register_builtin_asset_kinds(&asset_manager)
 	return asset_manager }
 
@@ -86,7 +88,7 @@ register_asset_kind :: proc(manager: ^Asset_Manager, $Type: typeid, kind: Asset_
 // assert(as.asset_command(manager, as.String_Asset, &shader.frag_asset.asset, .Load))
 watch_assets :: proc(manager: ^Asset_Manager) {
 	for asset in manager.assets {
-		log.info("Watching asset of type", type_info_of(asset.derived_type).id)
+		// log.infof("Watching asset %s of type %v", asset.url, type_info_of(asset.derived_type).id)
 		asset_kind, ok := manager.asset_kinds[asset.derived_type]
 		assert(ok)
 		asset_kind.command(manager, asset, .Import, true) } }

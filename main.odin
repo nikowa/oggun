@@ -25,8 +25,8 @@ Example_DLL :: struct {
 	using base: dll.DLL,
 	dev_tick: proc(camera_node: ^scn.Camera_Node, time: f32) }
 
-asset_manager: as.Asset_Manager
-graphics_context: gx.Graphics_Context
+as_mngr: as.Asset_Manager
+gx_mngr: gx.Graphics_Context
 input_context: ipt.Input_Context
 
 main :: proc() {
@@ -59,16 +59,16 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
 	assert(example_dll.dev_tick != nil)
-	asset_manager = as.make_asset_manager({
+	as_mngr = as.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "data",
 		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	gx.graphics_init(&graphics_context, &asset_manager, "Willow")
-	image, _ = gx.import_or_retreive_image(&asset_manager, "image:kitten", context.allocator)
+	gx.graphics_init(&gx_mngr, &as_mngr, "Willow")
+	image, _ = gx.import_or_retreive_image(&as_mngr, "image:kitten", context.allocator)
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	effect = gx.make_effect({ "effect:explosion", { { 64, 64 }, { 16, 16 } } }, &graphics_context, &asset_manager, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
+	gx.init_effect(&effect, { "effect:explosion", { { 64, 64 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
 	gx.upload_effect(&effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
@@ -89,20 +89,20 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
-	for ! graphics_context.window_closed {
+	for ! gx_mngr.window_closed {
 		time = bs.read_stopwatch(&stopwatch)
 		example_dll.dev_tick(camera_node, time)
 		dll.watch_dll(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
-		// as.watch_assets(&asset_manager)
-		as.autosave(&asset_manager)
+		as.watch_assets(&as_mngr)
+		as.autosave(&as_mngr)
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)
-		gx.graphics_tick(&graphics_context)
-		// gx.render_rect(&graphics_context, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
-		// gx.render_image(&graphics_context, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
-		scn.render_scene(&graphics_context, &scene, camera_node) }
-	as.write(&asset_manager, context.allocator)
+		gx.graphics_tick(&gx_mngr)
+		// gx.render_rect(&gx_mngr, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
+		// gx.render_image(&gx_mngr, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
+		scn.render_scene(&gx_mngr, &scene, camera_node) }
+	as.write(&as_mngr, context.allocator)
 	return }
 
 tick_camera_node :: proc(node: ^scn.Node) {
