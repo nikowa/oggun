@@ -53,6 +53,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	stopwatch: tm.Stopwatch
 	time: f32
 	effect: gx.Effect
+	string_asset: as.String_Asset
 
 	context.logger = log.create_console_logger()
 	bs.zero_stopwatch(&stopwatch)
@@ -88,17 +89,21 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	scn.scene_attach(&scene, &mesh_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
+	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })
+	assert(as.string_asset_command(&as_mngr, &string_asset, .Import))
+	assert(as.string_asset_command(&as_mngr, &string_asset, .Load))
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! gx_mngr.window_closed {
 		time = bs.read_stopwatch(&stopwatch)
 		example_dll.dev_tick(camera_node, time)
 		dll.watch_dll(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
-		// as.watch_assets(&as_mngr)
+		as.watch_assets(&as_mngr)
 		as.autosave(&as_mngr)
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)
 		gx.graphics_tick(&gx_mngr)
+		// log.info(string_asset.str)
 		// gx.render_rect(&gx_mngr, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
 		// gx.render_image(&gx_mngr, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
 		scn.render_scene(&gx_mngr, &scene, camera_node) }

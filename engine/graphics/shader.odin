@@ -41,7 +41,7 @@ Shader_Asset :: struct {
 	using shader_config: Shader_Config,
 	vert_asset, frag_asset: as.String_Asset,
 	handle: u32,
-	compilation_time: tm.Time, // Equal to the latest modification time of the entry.
+	last_modification_time: tm.Time,
 	compiled: bool }
 
 // Font_Shader :: struct {
@@ -224,9 +224,8 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: as.Asset_Config, 
 
 // }
 
-compile_shader :: proc(database: ^as.Asset_Manager, shader: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
+compile_shader :: proc(as_mngr: ^as.Asset_Manager, shader_asset: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
-	modification_time: tm.Time
 	entry: ^as.Entry
 	ok: bool
 	path: string
@@ -241,21 +240,23 @@ compile_shader :: proc(database: ^as.Asset_Manager, shader: ^Shader_Asset, alloc
 	loc: rt.Source_Code_Location
 
 	working_directory_path, _ = os.get_working_directory(allocator = allocator)
-	sources: [2]string = { shader.vert_asset.str, shader.frag_asset.str }
+	sources: [2]string = { shader_asset.vert_asset.str, shader_asset.frag_asset.str }
 	for source, i in sources {
 		init_glsl_builder(&builder) or_return
 		fmt.sbprintln(&builder.string_builder, GLSL_VERSION_STRING)
-		loc = preprocess_glsl(database, working_directory_path, &builder, sources[i]) or_return
+		loc = preprocess_glsl(as_mngr, working_directory_path, &builder, sources[i]) or_return
 		sources[i] = str.clone(glsl_builder_to_string(&builder))
 		destroy_glsl_builder(&builder) }
-	shader.handle, ok = gl.load_shaders_source(sources[0], sources[1])
+	shader_asset.handle, ok = gl.load_shaders_source(sources[0], sources[1])
 	compile_message, compile_message_type, link_message, link_message_type = gl.get_last_error_messages()
-	if (compile_message_type != .NONE) && (len(compile_message) > 0) {
-		print_glsl_error(compile_message, compile_message_type, shader, sources[0], sources[1]) }
-	if len(link_message) > 0 {
-		print_glsl_error(link_message, compile_message_type, shader, sources[0], sources[1]) }
+	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
+	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
-	return nil }
+	shader_asset.last_modification_time = base.time_max(
+		(as.entry_from_url(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
+		(as.entry_from_url(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
+	return os.General_Error.None }
+
 
 print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader_Asset, vert_string: string, frag_string: string) {
 	content: string
@@ -395,11 +396,22 @@ preprocess_glsl :: proc(database: ^as.Asset_Manager, working_directory_path: str
 		else do fmt.sbprintln(&builder.string_builder, line) }
 	return {}, os.General_Error.None }
 
+shader_outdated :: proc(shader_asset: ^Shader_Asset, as_mngr: ^as.Asset_Manager) -> (outdated: bool) {
+	latest_modification_time: tm.Time = base.time_max(
+		(as.entry_from_url(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
+		(as.entry_from_url(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
+	return tm.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
+
 shader_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, command: as.Asset_Command, watch: bool = false) -> (ok: bool) {
 	assert((as_mngr != nil) && (assert != nil))
 	shader_asset := as.asset_object(asset, Shader_Asset, "asset")
 	switch command {
 	case .Import:
+		if watch {
+			if ! shader_outdated(shader_asset, as_mngr) do return
+			// If one of the strings' modification times are newer than the shader's modification time, update the shader with
+			// the new strings.
+		}
 		assert(as.string_asset_command(as_mngr, &shader_asset.vert_asset, .Import))
 		assert(as.string_asset_command(as_mngr, &shader_asset.frag_asset, .Import))
 		assert(as.string_asset_command(as_mngr, &shader_asset.vert_asset, .Load))
@@ -407,6 +419,6 @@ shader_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, comma
 		err := compile_shader(as_mngr, shader_asset)
 		return err == nil
 	case .Validate, .Query_Location, .Load, .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:
-		log.errorf("Command %v not implemented for asset kind \"string\".", command)
+		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)
 		return false }
 	return false }

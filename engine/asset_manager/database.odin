@@ -346,8 +346,8 @@ path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) ->
 	return relpath_to_path(relpath, allocator) }
 
 entry_was_modified :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
-	assert(entry.url != "")
 	if entry == nil do return true
+	assert(entry.url != "")
 	if database.spec_modified do return true
 	path := path_from_url(database, entry.url, context.temp_allocator)
 	modification_time, err := os.modification_time_by_path(path)

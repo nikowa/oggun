@@ -3,7 +3,7 @@ package base
 import "base:runtime"
 import "core:reflect"
 import "core:fmt"
-import "core:time"
+import tm "core:time"
 import "core:math"
 import "core:mem"
 import "core:os"
@@ -12,6 +12,9 @@ import "core:path/filepath"
 import "core:slice"
 import "core:strings"
 import "core:sys/windows"
+
+time_max :: proc(a, b: tm.Time) -> (tm.Time) {
+	return tm.diff(b, a) >= 0 ? a : b }
 
 /*
 print_log :: proc(args: ..any, sep := " ", flush := true) -> int{

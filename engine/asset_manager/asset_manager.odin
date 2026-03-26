@@ -91,4 +91,5 @@ watch_assets :: proc(manager: ^Asset_Manager) {
 		// log.infof("Watching asset %s of type %v", asset.url, type_info_of(asset.derived_type).id)
 		asset_kind, ok := manager.asset_kinds[asset.derived_type]
 		assert(ok)
-		asset_kind.command(manager, asset, .Import, true) } }
+		asset_kind.command(manager, asset, .Import, true)
+		asset_kind.command(manager, asset, .Load, true) } }
