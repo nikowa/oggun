@@ -8,7 +8,7 @@ vec4 effect_color() {
 	if (surface_index == 0) {
 		color = mix(yellow, orange, clamp(0.5 * (position.z + 1.0), 0, 1)); }
 	else {
-		color = mix(blue, purple, clamp(0.5 * (position.z + 1.0), 0, 1)); }
+		color = mix(orange, purple, clamp(0.5 * (position.z + 1.0), 0, 1)); }
 	// vec3 color = mix(red, yellow, float(surface_index));
 	// vec3 color = mix(vec3(1, 0, 0), vec3(0, 1, 0), float(surface_index));
 	// float alpha = length(uv);

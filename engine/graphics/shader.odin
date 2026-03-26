@@ -238,6 +238,7 @@ compile_shader :: proc(as_mngr: ^as.Asset_Manager, shader_asset: ^Shader_Asset, 
 	builder: GLSL_Builder
 	working_directory_path: string
 	loc: rt.Source_Code_Location
+	handle: u32
 
 	working_directory_path, _ = os.get_working_directory(allocator = allocator)
 	sources: [2]string = { shader_asset.vert_asset.str, shader_asset.frag_asset.str }
@@ -247,7 +248,8 @@ compile_shader :: proc(as_mngr: ^as.Asset_Manager, shader_asset: ^Shader_Asset, 
 		loc = preprocess_glsl(as_mngr, working_directory_path, &builder, sources[i]) or_return
 		sources[i] = str.clone(glsl_builder_to_string(&builder))
 		destroy_glsl_builder(&builder) }
-	shader_asset.handle, ok = gl.load_shaders_source(sources[0], sources[1])
+	handle, ok = gl.load_shaders_source(sources[0], sources[1])
+	if ok do shader_asset.handle = handle
 	compile_message, compile_message_type, link_message, link_message_type = gl.get_last_error_messages()
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
