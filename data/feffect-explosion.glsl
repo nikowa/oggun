@@ -9,9 +9,11 @@ vec4 effect_color() {
 		color = mix(yellow, orange, clamp(0.5 * (position.z + 1.0), 0, 1)); }
 	else {
 		color = mix(orange, purple, clamp(0.5 * (position.z + 1.0), 0, 1)); }
-	// vec3 color = mix(red, yellow, float(surface_index));
-	// vec3 color = mix(vec3(1, 0, 0), vec3(0, 1, 0), float(surface_index));
-	// float alpha = length(uv);
 	float alpha = 1.0;
+	// color.xyz = normal;
+	// color.xyz = 0.5 * (normal + vec3(1.0));
+	vec3 incident_ray = position - camera_position;
+	alpha = 1.0 - clamp(abs(0.35 * dot(incident_ray, normal)), 0.0, 1.0);
+	alpha = pow(alpha + 0.2, 2.0);
 	return vec4(color, alpha); }
 #include <feffect-main>

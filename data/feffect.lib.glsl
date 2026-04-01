@@ -1,10 +1,13 @@
 out vec4 _color;
 layout(location = 3) uniform float time;
 layout(location = 4) uniform float camera_far_clip;
+layout(location = 5) uniform vec3 camera_position;
 in vec2 _uv_interpolated;
 in vec3 _scr_position_interpolated;
 in vec3 _position_interpolated;
+in vec3 _normal_interpolated;
 flat in int _surface_index_flat;
 vec2 uv = _uv_interpolated;
 int surface_index = _surface_index_flat;
 vec3 position = _position_interpolated;
+vec3 normal = _normal_interpolated;

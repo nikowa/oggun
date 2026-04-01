@@ -36,7 +36,7 @@ import_or_retreive_image :: proc(database: ^as.Asset_Manager, url: as.URL, alloc
 	modification_time: t.Time
 	bytes: []u8
 
-	entry, ok = as.entry_from_url(database, url)
+	entry, ok = as.get_entry(database, url)
 	if ok do if as.entry_was_modified(database, entry) || database.spec_modified do ok = false
 	if ok do image = image_deserialize(entry.data, allocator) or_return
 	else {

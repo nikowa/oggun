@@ -120,7 +120,7 @@ import im "core:image"
 
 // 	texture.config = config
 // 	path = relpath_to_source_path(database, relpath_from_url(database, url, context.allocator), context.allocator)
-// 	if entry, ok = db.entry_from_url(&database, url); ok {
+// 	if entry, ok = db.get_entry(&database, url); ok {
 // 		data = entry.data }
 // 	else {
 // 		data = os.read_entire_file_from_path(path, context.allocator) or_return

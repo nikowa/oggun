@@ -72,7 +72,7 @@ vec3 jensen_BSSRDF(vec3 omega_out,vec3 omega_in) {
 }
 
 
-vec3 eon_BRDF(vec3 base_color,vec3 outgoing_direction,vec3 surface_normal,vec3 light_direction,float roughness) {
+vec3 eon_BRDF(vec3 base_color, vec3 outgoing_direction, vec3 surface_normal, vec3 light_direction, float roughness) {
 	vec3 result=vec3(0);
 	vec3 single_scattering_albedo=base_color;
 	vec3 surface_z=surface_normal;

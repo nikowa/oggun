@@ -12,6 +12,7 @@ import log "core:log"
 import str "core:strings"
 import base "../base"
 import sp "core:path/slashpath"
+import hsh "core:crypto/hash"
 
 
 
@@ -37,22 +38,32 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 		path := path_from_url(&as_mngr.database, asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
+		// There is a problem here: watch imports this every time
+		// if asset.url == "string:vmodel.glsl" do log.warnf("Trying to import string")
 		if .Source_Directory not_in asset.location do return false
 		err: os.Error
-		entry, ok := entry_from_url(&as_mngr.database, asset.url)
-		if ! ok || entry_was_modified(&as_mngr.database, entry) || as_mngr.database.spec_modified {
+		entry, existed := get_or_make_entry(&as_mngr.database, asset.url)
+		// log.warn(cast(uintptr)entry)
+		if ! existed || entry_was_modified(&as_mngr.database, entry) {
 			// log.warn("Updating entry.")
 			path := path_from_url(&as_mngr.database, asset.url, context.temp_allocator)
 			bytes: []u8; bytes, err = os.read_entire_file_from_path(path, context.allocator)
+			// if asset.url == "string:vmodel.glsl" do log.warnf("Importing string:\n%s\n", cast(string)bytes)
 			modification_time, _ := os.modification_time_by_path(path)
-			_, err = add_or_update_entry(&as_mngr.database, make_entry(asset.url, bytes, modification_time), true) }
+			_, err = add_or_update_entry(&as_mngr.database, make_entry(asset.url, bytes, modification_time), true)
+			assert(entry_integrity(entry)) }
+		// assert(entry != nil)
+		// assert(entry_integrity(entry))
 		asset.location += { .Database }
 		return true
 	case .Load:
+		// if asset.url == "string:vmodel.glsl" do log.warnf("Trying to load string")
 		if .Database not_in asset.location do return false
-		entry := entry_from_url(&as_mngr.database, asset.url) or_return
+		entry := get_entry(&as_mngr.database, asset.url) or_return
 		if watch do if string_asset.str == cast(string)entry.data do return true
 		string_asset.str = str.clone_from_bytes(entry.data)
+		// if entry.url == "string:vmodel.glsl" {
+		// 	log.warnf("Loading string:\n%s\n", string_asset.str) }
 		asset.location += { .Main_Memory }
 		return true
 	case .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:

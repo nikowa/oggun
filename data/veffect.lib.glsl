@@ -7,6 +7,6 @@ layout(location = 3) uniform float time;
 out vec2 _uv_interpolated;
 out vec3 _scr_position_interpolated;
 out vec3 _position_interpolated;
+out vec3 _normal_interpolated;
 flat out int _surface_index_flat;
-vec2 uv = _vert;
 int surface_index = _surface_index;

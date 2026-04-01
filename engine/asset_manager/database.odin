@@ -10,6 +10,8 @@ import sl "core:slice"
 import lz4 "vendor:compress/lz4"
 import log "core:log"
 import str "core:strings"
+import hsh "core:crypto/hash"
+import sha "core:crypto/sha2"
 import base "../base"
 import sp "core:path/slashpath"
 
@@ -61,7 +63,8 @@ Entry_Config :: struct {
 	data: []u8 }
 
 Entry :: struct {
-	using config: Entry_Config }
+	using config: Entry_Config,
+	hash: u32 }
 
 // TODO: Add a *compression kind* field, which selects between LZ4 and QOI.
 
@@ -87,7 +90,9 @@ delete_database :: proc(database: Database, allocator: rt.Allocator) {
 // (TODO): Don't put assets directly in the database, put pointers in the database. User should be able to store their assets wherever they want.
 
 make_entry :: proc(url: URL, data: []u8, modification_time: tm.Time = { }, compressed: b8 = false) -> (entry: Entry) {
-	return Entry{ url = url, data = data, modification_time = modification_time, compressed = compressed } }
+	entry = Entry{ url = url, data = data, modification_time = modification_time, compressed = compressed }
+	entry.hash = _hash_entry(&entry)
+	return entry }
 
 delete_entry :: proc(entry: Entry, allocator: rt.Allocator) {
 	delete_slice(entry.data, allocator) }
@@ -97,15 +102,15 @@ entry_equiv :: proc(entry_a: ^Entry, entry_b: ^Entry) -> bool {
 		(entry_a.compressed == entry_b.compressed) &&
 		sl.equal(entry_a.data, entry_b.data) }
 
-entry_from_url :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: bool) {
+// @(deprecated="This function is unsafe. Use \"get_or_make_entry\" instead.")
+get_entry :: proc(database: ^Database, url: URL) -> (entry: ^Entry, ok: bool) {
 	for entry, i in database.entries do if entry.url == url do return &database.entries[i], true
 	return nil, false }
-	// entry_ptr: ^^Entry
-	// err: os.Error
-	// _, entry_ptr, _, err = map_entry(&database.entries_map, url)
-	// return entry_ptr^, err != nil }
-	// assert(url in database.entries_map)
-	// return database.entries_map[url] }
+
+get_or_make_entry :: proc(database: ^Database, url: URL) -> (entry: ^Entry, existed: bool) {
+	entry, existed = get_entry(database, url)
+	if ! existed do entry, _ = add_entry(database, { url = url }, false)
+	return entry, existed }
 
 contains_entry :: proc(database: ^Database, url: URL) -> bool {
 	return url in database.entries_map }
@@ -116,11 +121,12 @@ log_database :: proc(database: ^Database) {
 	// keys, _ := sl.map_keys(database.entries_map)
 	// for key, i in keys do log.infof("%d --- %v", i, key) }
 
+entry_integrity :: proc(entry: ^Entry) -> (ok: bool) {
+	ok = entry.hash == _hash_entry(entry)
+	return ok }
+
 // (TODO): Give "updated" a default value of "true".
 add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
-	if len(entry_config.data) == 0 {
-		log.errorf("Attempt to add entry %s with no data.", entry_config.url)
-		return nil, os.General_Error.Not_Exist }
 	if contains_entry(database, entry_config.url) {
 		log.errorf("Cannot add entry %s to database. Already exists", entry_config.url)
 		return nil, os.General_Error.Exist }
@@ -131,13 +137,14 @@ add_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: boo
 		database.modification_time = tm.now()
 		// log.infof("Database modified at %v", database.modification_time)
 	}
+	entry.hash = _hash_entry(entry)
 	// log.warnf("Adding %s to entries map", entry.url)
 	return map_insert(&database.entries_map, entry.url, entry)^, os.General_Error.None }
 
 add_or_update_entry :: proc(database: ^Database, entry_config: Entry_Config, modified: bool) -> (entry_ptr: ^Entry, err: os.Error) {
 	ok: bool
-	if contains_entry(database, entry_config.url) {
-		if entry_ptr, ok = entry_from_url(database, entry_config.url); ! ok do return nil, os.General_Error.Not_Exist
+	// DICK
+	if entry_ptr, ok = get_entry(database, entry_config.url); ok {
 		update_entry(database, entry_ptr, entry_config, modified)
 		return entry_ptr, os.General_Error.None }
 	else do return add_entry(database, entry_config, modified) }
@@ -214,10 +221,12 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 	binary_header: Database_Binary_Header
 	b.reader_read_ptr(&reader, &binary_header, size_of(binary_header))
 	assert(binary_header.magic_number == MAGIC_NUMBER)
+	database.spec_modified = false
 	database.spec_modification_time = binary_header.spec_modification_time
 	database.last_autosave_time = binary_header.last_autosave_time
 	err = _check_spec_modification_time(&database); if err != nil do log.error(err)
 	database.entries = make_dynamic_array([dynamic]Entry, allocator = allocator)
+	log.warn("Reading Database.")
 	for i in 0 ..< binary_header.n_entries {
 		entry: Entry
 		url_len: u8
@@ -232,7 +241,8 @@ _read_without_decompressing :: proc(config: Database_Config, allocator: rt.Alloc
 		entry.data = make([]u8, data_len, allocator)
 		_, err = b.reader_read_slice(&reader, entry.data); assert(err == nil)
 		// log.infof("Reading entry \"%s\".", entry.url)
-		add_entry(&database, entry, false) }
+		add_entry(&database, entry, false)
+		if ! entry_integrity(&entry) do log.errorf("Entry %s is invalid.", entry.url) }
 	return database }
 
 read :: read_and_decompress
@@ -254,6 +264,7 @@ _write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator,
 	binary_header: Database_Binary_Header
 	path: string
 
+	log.warn("Writing Database.")
 	if database.spec_modified do database.spec_modified = false
 	b.buffer_init_allocator(&buffer, 0, 32 * mem.Megabyte, allocator = allocator)
 	binary_header.magic_number = MAGIC_NUMBER
@@ -262,6 +273,8 @@ _write_without_compressing :: proc(database: ^Database, allocator: rt.Allocator,
 	binary_header.n_entries = cast(u32)len(database.entries)
 	_, err = b.buffer_write_ptr(&buffer, &binary_header, size_of(binary_header)); assert(err == nil)
 	for &entry, i in database.entries {
+		if ! entry_integrity(&database.entries[i]) do log.errorf("Entry %s is invalid.", entry.url)
+		// assert(entry_integrity(&database.entries[i])) // TEMP
 		url_len: u8 = cast(u8)len(entry.url)
 		_, err = b.buffer_write_ptr(&buffer, &url_len, size_of(url_len)); assert(err == nil)
 		_, err = b.buffer_write_string(&buffer, cast(string)entry.url); assert(err == nil)
@@ -348,7 +361,6 @@ path_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator) ->
 entry_was_modified :: proc(database: ^Database, entry: ^Entry) -> (outdated: bool) {
 	if entry == nil do return true
 	assert(entry.url != "")
-	if database.spec_modified do return true
 	path := path_from_url(database, entry.url, context.temp_allocator)
 	modification_time, err := os.modification_time_by_path(path)
 	if err != nil do return false
@@ -356,13 +368,18 @@ entry_was_modified :: proc(database: ^Database, entry: ^Entry) -> (outdated: boo
 	if outdated do log.infof("Source of entry \"%s\" was modified.", entry.url)
 	return outdated }
 
+_hash_entry :: proc(entry: ^Entry) -> (hash: u32) {
+	digest := hsh.hash_bytes(.Insecure_MD5, entry.data, context.temp_allocator)
+	hash = sl.reinterpret([]u32, digest)[0]
+	// log.warnf("Hashed entry %s to %d.", entry.url, hash)
+	return hash }
+
 update_entry :: proc(database: ^Database, entry: ^Entry, config: Entry_Config, modified: bool) {
-	if entry.data != nil do delete(entry.data)
+	if len(entry.data) > 0 do delete(entry.data)
 	entry.config = config
+	entry.hash = _hash_entry(entry)
 	if modified {
-		database.modification_time = tm.now()
-		// log.infof("Database modified at %v", database.modification_time)
-	} }
+		database.modification_time = tm.now() } }
 
 @(require_results)
 url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator) -> (path: string, err: os.Error) {

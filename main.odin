@@ -15,6 +15,7 @@ import r "engine/container/rect"
 import scn "engine/scene"
 import dll "engine/dll"
 import msh "engine/mesh"
+import hsh "core:crypto/hash"
 
 
 
@@ -54,7 +55,13 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	time: f32
 	effect: gx.Effect
 	string_asset: as.String_Asset
+	track: mem.Tracking_Allocator
 
+	// when ODIN_DEBUG {
+		// mem.tracking_allocator_init(&track, context.allocator)
+		// context.allocator = mem.tracking_allocator(&track)
+	// }
+	// for digest_size in hsh.DIGEST_SIZES do log.info(digest_size)
 	context.logger = log.create_console_logger()
 	bs.zero_stopwatch(&stopwatch)
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
@@ -69,7 +76,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	image, _ = gx.import_or_retreive_image(&as_mngr, "image:kitten", context.allocator)
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	gx.init_effect(&effect, { "effect:explosion", { { 64, 64 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
+	gx.init_effect(&effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
 	gx.upload_effect(&effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
@@ -84,9 +91,9 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	msh.upload_mesh(&mesh)
 	mesh_node = scn.make_mesh_node(scn.default_node_config("mesh"), &mesh, context.allocator)
 	scn.scene_attach(&scene, &camera_node.node)
-	scn.scene_attach(&scene, &model_node.node)
-	scn.scene_attach(&scene, &effect_node.node)
-	scn.scene_attach(&scene, &mesh_node.node)
+	// scn.scene_attach(&scene, &model_node.node) // TEMP
+	scn.scene_attach(&scene, &effect_node.node) // TEMP
+	// scn.scene_attach(&scene, &mesh_node.node) // TEMP
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })
@@ -98,8 +105,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		example_dll.dev_tick(camera_node, time)
 		dll.watch_dll(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
-		as.watch_assets(&as_mngr)
-		as.autosave(&as_mngr)
+		as.watch_assets(&as_mngr) // TEMP
+		// as.autosave(&as_mngr) // TEMP
 		ipt.input_tick(&input_context)
 		scn.tick_scene(&scene)
 		gx.graphics_tick(&gx_mngr)
@@ -115,5 +122,6 @@ tick_camera_node :: proc(node: ^scn.Node) {
 
 	scn.tick_camera_node(node)
 	camera_node = scn.node_object(node, scn.Camera_Node, "node")
-	camera_node.node.translate = { 0, 0, -50 }
-	camera_node.node.rotate = la.quaternion_from_euler_angles_f32(2 * m.PI, 0, 0, .XYZ) }
+	// camera_node.node.translate = { 0, 0, -50 }
+	// camera_node.node.rotate = la.quaternion_from_euler_angles_f32(2 * m.PI, 0, 0, .XYZ)
+}

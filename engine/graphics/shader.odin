@@ -74,7 +74,8 @@ Effect_Shader_Uniforms :: enum {
 	CAMERA_POSITION_MATRIX   = 1,
 	CAMERA_PROJECTION_MATRIX = 2,
 	TIME                     = 3,
-	CAMERA_FAR_CLIP          = 4 }
+	CAMERA_FAR_CLIP          = 4,
+	CAMERA_POSITION          = 5 }
 
 Mesh_Shader_Uniforms :: enum {
 	NODE_MATRIX              = 0,
@@ -242,6 +243,8 @@ compile_shader :: proc(as_mngr: ^as.Asset_Manager, shader_asset: ^Shader_Asset, 
 
 	working_directory_path, _ = os.get_working_directory(allocator = allocator)
 	sources: [2]string = { shader_asset.vert_asset.str, shader_asset.frag_asset.str }
+	// log.infof("Vertex source:\n%s\n", sources[0])
+	// log.infof("Fragment source:\n%s\n", sources[1])
 	for source, i in sources {
 		init_glsl_builder(&builder) or_return
 		fmt.sbprintln(&builder.string_builder, GLSL_VERSION_STRING)
@@ -255,8 +258,8 @@ compile_shader :: proc(as_mngr: ^as.Asset_Manager, shader_asset: ^Shader_Asset, 
 	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
 	shader_asset.last_modification_time = base.time_max(
-		(as.entry_from_url(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
-		(as.entry_from_url(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
+		(as.get_entry(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
+		(as.get_entry(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
 	return os.General_Error.None }
 
 
@@ -400,8 +403,8 @@ preprocess_glsl :: proc(database: ^as.Asset_Manager, working_directory_path: str
 
 shader_outdated :: proc(shader_asset: ^Shader_Asset, as_mngr: ^as.Asset_Manager) -> (outdated: bool) {
 	latest_modification_time: tm.Time = base.time_max(
-		(as.entry_from_url(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
-		(as.entry_from_url(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
+		(as.get_entry(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
+		(as.get_entry(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
 	return tm.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
 shader_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, command: as.Asset_Command, watch: bool = false) -> (ok: bool) {
