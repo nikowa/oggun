@@ -9,6 +9,7 @@ layout(location = 5) uniform vec3 haze_color;
 layout(location = 6) uniform float metallic_factor;
 layout(location = 7) uniform float roughness_factor;
 out vec4 color;
+out float emission;
 in vec3 position_interpolated;
 in vec3 scr_position_interpolated;
 in vec2 texcoord_interpolated;

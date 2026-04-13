@@ -1,5 +1,6 @@
 package game
 import bs "engine/base"
+import rt "base:runtime"
 import os "core:os"
 import fmt "core:fmt"
 import mem "core:mem"
@@ -24,7 +25,7 @@ RO_State :: struct {
 
 Example_DLL :: struct {
 	using base: dll.DLL,
-	dev_tick: proc(camera_node: ^scn.Camera_Node, time: f32) }
+	dev_tick: proc(camera_node: ^scn.Camera_Node, done_onces: ^map[rt.Source_Code_Location]bool, time: f32) }
 
 as_mngr: as.Asset_Manager
 gx_mngr: gx.Graphics_Context
@@ -45,17 +46,15 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	effect_node: ^scn.Effect_Node
 	camera: scn.Camera
 	camera_node: ^scn.Camera_Node
-	mesh: msh.Mesh(3)
-	mesh_node: ^scn.Mesh_Node
 	scene: scn.Scene
 	node_config: scn.Node_Config
 	example_dll: Example_DLL
 	modification_time: tm.Time
 	stopwatch: tm.Stopwatch
 	time: f32
-	effect: gx.Effect
 	string_asset: as.String_Asset
 	track: mem.Tracking_Allocator
+	done_onces := make(map[rt.Source_Code_Location]bool)
 
 	// when ODIN_DEBUG {
 		// mem.tracking_allocator_init(&track, context.allocator)
@@ -72,28 +71,36 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		source_directory_relpath = "data",
 		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	gx.graphics_init(&gx_mngr, &as_mngr, "Willow")
+	gx.graphics_init(&gx_mngr, &as_mngr, gx.DEFAULT_GRAPHICS_CONFIG, "Willow")
+	// gx.graphics_init(&gx_mngr, &as_mngr, { window_size = { 1920, 1080 } }, "Willow")
 	image, _ = gx.import_or_retreive_image(&as_mngr, "image:kitten", context.allocator)
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
-	gx.init_effect(&effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
-	gx.upload_effect(&effect)
+	explosion_effect: gx.Effect
+	gx.init_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
+	gx.upload_effect(&explosion_effect)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
+	camera.sensor_size *= 10
 	node_config = scn.DEFAULT_NODE_CONFIG
 	node_config.name = "camera"
 	node_config.tick_proc = tick_camera_node
 	camera_node = scn.make_camera_node(node_config, &camera, context.allocator)
 	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
 	model_node.node.translate.z = -0
-	effect_node = scn.make_effect_node(scn.default_node_config("effect"), &effect, context.allocator)
-	mesh = msh.make_line_cube_mesh(3, context.allocator)
-	msh.upload_mesh(&mesh)
-	mesh_node = scn.make_mesh_node(scn.default_node_config("mesh"), &mesh, context.allocator)
+	effect_node = scn.make_effect_node(scn.default_node_config("explosion-effect"), &explosion_effect, context.allocator)
+	cube_mesh := msh.make_line_cube_mesh(context.allocator, 0.5)
+	ground_mesh := msh.make_line_ground_mesh(context.allocator)
+	msh.upload_mesh(&cube_mesh)
+	msh.upload_mesh(&ground_mesh)
+	cube_mesh_node := scn.make_mesh_node(scn.default_node_config("cube-mesh"), &cube_mesh, context.allocator)
+	ground_mesh_node := scn.make_mesh_node(scn.default_node_config("ground-mesh"), &ground_mesh, context.allocator)
+	cube_mesh_node.node.translate = { 0.0, 0.0, 0.5 }
 	scn.scene_attach(&scene, &camera_node.node)
 	// scn.scene_attach(&scene, &model_node.node) // TEMP
 	scn.scene_attach(&scene, &effect_node.node) // TEMP
-	// scn.scene_attach(&scene, &mesh_node.node) // TEMP
+	scn.scene_attach(&scene, &cube_mesh_node.node) // TEMP
+	scn.scene_attach(&scene, &ground_mesh_node.node) // TEMP
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })
@@ -102,7 +109,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! gx_mngr.window_closed {
 		time = bs.read_stopwatch(&stopwatch)
-		example_dll.dev_tick(camera_node, time)
+		example_dll.dev_tick(camera_node, &done_onces, time)
 		dll.watch_dll(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		as.watch_assets(&as_mngr) // TEMP
@@ -125,3 +132,4 @@ tick_camera_node :: proc(node: ^scn.Node) {
 	// camera_node.node.translate = { 0, 0, -50 }
 	// camera_node.node.rotate = la.quaternion_from_euler_angles_f32(2 * m.PI, 0, 0, .XYZ)
 }
+

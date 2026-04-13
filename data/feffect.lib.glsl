@@ -1,4 +1,5 @@
 out vec4 _color;
+out float emission;
 layout(location = 3) uniform float time;
 layout(location = 4) uniform float camera_far_clip;
 layout(location = 5) uniform vec3 camera_position;

@@ -43,6 +43,7 @@ tick_camera_node :: proc(node: ^Node) {
 	rotation_matrix = la.matrix4_from_quaternion_f32(camera_node.node.rotate)
 	camera_node.view_matrix = rotation_matrix * la.matrix4_translate_f32(- camera_node.node.translate)
 	camera_node.projection_matrix = la.matrix4_perspective_f32(fovy = fovy, aspect = aspect, near = near, far = far, flip_z_axis = false) // Maybe flip the z axis?
+	camera_node.projection_matrix = la.matrix_ortho3d_f32(left = - camera_node.sensor_size.x / 2, right = camera_node.sensor_size.x / 2, bottom = -camera_node.sensor_size.y / 2, top = camera_node.sensor_size.y / 2, near = near, far = far, flip_z_axis = false)
 	camera_node.camera_matrix = camera_node.projection_matrix * camera_node.view_matrix
 	camera_node.local_matrix = camera_node.projection_matrix * rotation_matrix }
 

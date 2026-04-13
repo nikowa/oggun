@@ -15,5 +15,6 @@ vec4 effect_color() {
 	vec3 incident_ray = position - camera_position;
 	alpha = 1.0 - clamp(abs(0.35 * dot(incident_ray, normal)), 0.0, 1.0);
 	alpha = pow(alpha + 0.2, 2.0);
+	alpha = 1.0;
 	return vec4(color, alpha); }
 #include <feffect-main>

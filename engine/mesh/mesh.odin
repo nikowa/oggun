@@ -50,9 +50,14 @@ upload_mesh :: proc(mesh: ^Mesh($depth)) -> bool {
 download_mesh :: proc(mesh: ^Mesh($depth)) {
 	gl.DeleteBuffers(1, &mesh.verts_handle) }
 
-make_line_cube_mesh :: proc($depth: int, allocator: rt.Allocator) -> (mesh: Mesh(depth)) {
-	mesh_builder := make_mesh_builder(depth, allocator)
-	builder_append_line_cube(&mesh_builder)
+make_line_cube_mesh :: proc(allocator: rt.Allocator, radius: f32) -> (mesh: Mesh(3)) {
+	mesh_builder := make_mesh_builder(3, allocator)
+	builder_append_line_cube(&mesh_builder, radius)
+	return mesh_from_builder(mesh_builder) }
+
+make_line_ground_mesh :: proc(allocator: rt.Allocator) -> (mesh: Mesh(3)) {
+	mesh_builder := make_mesh_builder(3, allocator)
+	builder_append_line_ground(&mesh_builder)
 	return mesh_from_builder(mesh_builder) }
 
 //   3---5
@@ -96,21 +101,34 @@ builder_append_2d_square_grid :: proc(builder: ^Mesh_Builder(2), x: [2]f32 = { 0
 //      \
 //       v
 //        Y
-builder_append_line_cube :: proc(builder: ^Mesh_Builder(3)) {
-	a, b, c, d, e, f, g, h: [3]f32 =
+builder_append_line_cube :: proc(builder: ^Mesh_Builder(3), radius: f32) {
+	A :: 0; B :: 1; C :: 2; D :: 3; E :: 4; F :: 5; G :: 6; H :: 7
+	points: [8][3]f32 = {
 		{ -1, -1, -1 }, { -1, +1, -1 }, { +1, +1, -1 }, { +1, -1, -1 },
-		{ -1, -1, +1 }, { -1, +1, +1 }, { +1, +1, +1 }, { +1, -1, +1 }
-	append_elems(&builder.verts, a, b)
-	append_elems(&builder.verts, b, c)
-	append_elems(&builder.verts, c, d)
-	append_elems(&builder.verts, d, a)
-	append_elems(&builder.verts, e, f)
-	append_elems(&builder.verts, f, g)
-	append_elems(&builder.verts, g, h)
-	append_elems(&builder.verts, h, e)
-	append_elems(&builder.verts, a, e)
-	append_elems(&builder.verts, b, f)
-	append_elems(&builder.verts, c, g)
-	append_elems(&builder.verts, d, h)
-	for i in 0 ..< 12 * 2 do append_elem(&builder.surface_indexes, cast(i32)builder.surface_count)
+		{ -1, -1, +1 }, { -1, +1, +1 }, { +1, +1, +1 }, { +1, -1, +1 } }
+	for &point in points do point *= radius
+	append_elems(&builder.verts, points[A], points[B])
+	append_elems(&builder.verts, points[B], points[C])
+	append_elems(&builder.verts, points[C], points[D])
+	append_elems(&builder.verts, points[D], points[A])
+	append_elems(&builder.verts, points[E], points[F])
+	append_elems(&builder.verts, points[F], points[G])
+	append_elems(&builder.verts, points[G], points[H])
+	append_elems(&builder.verts, points[H], points[E])
+	append_elems(&builder.verts, points[A], points[E])
+	append_elems(&builder.verts, points[B], points[F])
+	append_elems(&builder.verts, points[C], points[G])
+	append_elems(&builder.verts, points[D], points[H])
+	surface_index: i32 = cast(i32)builder.surface_count
+	for i in 0 ..< 12 * 2 do append_elem(&builder.surface_indexes, surface_index)
+	builder.surface_count += 1 }
+
+builder_append_line_ground :: proc(builder: ^Mesh_Builder(3)) {
+	surface_index: i32 = cast(i32)builder.surface_count
+	N :: 4
+	for i: int = -N; i <= N; i += 1 {
+		append_elems(&builder.verts,
+			[3]f32{ -cast(f32)N, cast(f32)i, 0 }, [3]f32{ cast(f32)N, cast(f32)i, 0 },
+			[3]f32{ cast(f32)i, -cast(f32)N, 0 }, [3]f32{ cast(f32)i, cast(f32)N, 0 })
+		append_elems(&builder.surface_indexes, surface_index, surface_index) }
 	builder.surface_count += 1 }

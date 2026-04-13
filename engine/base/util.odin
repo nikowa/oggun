@@ -1,6 +1,6 @@
 #+feature using-stmt
 package base
-import "base:runtime"
+import rt "base:runtime"
 import "core:reflect"
 import "core:fmt"
 import tm "core:time"
@@ -15,6 +15,12 @@ import "core:sys/windows"
 
 time_max :: proc(a, b: tm.Time) -> (tm.Time) {
 	return tm.diff(b, a) >= 0 ? a : b }
+
+once :: proc(done_onces: ^map[rt.Source_Code_Location]bool, this_once := #caller_location) -> bool {
+	if this_once not_in done_onces {
+		done_onces[this_once] = true
+		return true }
+	else do return false }
 
 /*
 print_log :: proc(args: ..any, sep := " ", flush := true) -> int{

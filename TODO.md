@@ -1,4 +1,5 @@
 
+- Texture advection swamp shader
 - Pass the existing tests
 - Write and pass tests for the data validity checks
 - Find which procedures can be made "contextless" and make them such

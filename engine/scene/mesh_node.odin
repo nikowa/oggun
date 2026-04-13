@@ -34,6 +34,6 @@ render_mesh_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, 
 	gl.BindBuffer(gl.ARRAY_BUFFER, mesh_node.verts_handle)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.EnableVertexAttribArray(0)
-	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	gx.polygon_mode(.Line)
 	gl.Disable(gl.CULL_FACE)
 	gx.draw_lines(cast(i32)(len(mesh_node.verts) * 3)) }

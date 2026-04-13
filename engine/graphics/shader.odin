@@ -83,6 +83,9 @@ Mesh_Shader_Uniforms :: enum {
 	CAMERA_PROJECTION_MATRIX = 2,
 	CAMERA_FAR_CLIP          = 3 }
 
+Buffer_Shader_Uniforms :: enum {
+	RES = 0 }
+
 // Panel_Shader :: struct {
 // 	using shader: Shader,
 // 	pos:          i32,

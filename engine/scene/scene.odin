@@ -35,6 +35,7 @@ Node_Tick_Proc :: #type proc(node: ^Node)
 
 Node_Config :: struct {
 	name: string,
+	id: u32,
 	render_proc: Node_Render_Proc,
 	tick_proc: Node_Tick_Proc,
 	translate: [3]f32,

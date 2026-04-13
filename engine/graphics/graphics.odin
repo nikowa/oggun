@@ -29,11 +29,15 @@ GREEN: [4]f32 : {0, 1, 0, 1}
 BLUE: [4]f32 : {0, 0, 1, 1}
 CYAN: [4]f32 : {0, 1, 1, 1}
 
+Graphics_Config :: struct {
+	window_size: [2]u32 }
 
+DEFAULT_GRAPHICS_CONFIG: Graphics_Config : {
+	window_size = { 960, 540 } }
 
 Graphics_Context :: struct {
+	using graphics_config: Graphics_Config,
 	window: glfw.WindowHandle,
-	window_size: [2]u32,
 	window_closed: bool,
 // 	fullscreen:                      bool,
 	active_resolution: [2]u32,
@@ -52,7 +56,7 @@ Graphics_Context :: struct {
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
 	image_shader: Shader_Asset,
-// 	buffer_shader:                   ^Buffer_Shader,
+	buffer_shader: Shader_Asset,
 // 	upscale_pass1_shader:            ^Upscale_Pass1_Shader,
 // 	upscale_pass2_shader:            ^Upscale_Pass2_Shader,
 // 	blend_shader:                    ^Blend_Shader,
@@ -70,7 +74,7 @@ Graphics_Context :: struct {
 // 	chromatic_aberration_shader:     ^Chromatic_Aberration_Shader,
 // 	physics_buffer_internal_formats: []i32,
 // 	physics_buffer_formats:          []u32,
-// 	default_sb:                      Render_Buffer,
+	canvas_rb: Render_Buffer,
 // 	upscale_sb:                      Render_Buffer,
 // 	physics_rb:                      Render_Buffer,
 // 	draw_mask:                       Draw_Mask,
@@ -82,16 +86,15 @@ Graphics_Context :: struct {
 // 	cubemap:                         Cubemap
 }
 
-// Render_Buffer :: struct {
-// 	initialized:              bool,
-// 	frame_buffer_handle:      u32,
-// 	texture_handles:          []u32,
-// 	texture_formats:          []u32,
-// 	texture_internal_formats: []i32,
-// 	render_buffer_handle:     u32,
-// 	size:                     [2]int,
-// 	n_frames:                 i16 }
-
+Render_Buffer :: struct {
+	initialized: bool,
+	frame_buffer_handle: u32,
+	texture_handles: []u32,
+	texture_formats: []u32,
+	texture_internal_formats: []i32,
+	render_buffer_handle: u32,
+	size: [2]u32,
+	n_frames: i16 }
 
 // Render_Buffer_Data :: struct {
 // 	initialized:              bool,
@@ -103,7 +106,8 @@ Graphics_Context :: struct {
 // 	formats:                  []u8,
 // 	buffers:                  [][]u8 }
 
-graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, title: string) -> (err: os.Error) {
+graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, config: Graphics_Config, title: string) -> (err: os.Error) {
+	gx_mngr.graphics_config = config
 // 	width:         i32
 // 	height:        i32
 // 	ok:            bool
@@ -135,8 +139,8 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, ti
 	glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, 1)
 	glfw.WindowHint(glfw.SAMPLES, 4)
 	glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-	gx_mngr.window = glfw.CreateWindow(960, 540, str.clone_to_cstring(title), nil, nil)
-	glfw.SetWindowPos(gx_mngr.window, 0, 540)
+	gx_mngr.window = glfw.CreateWindow(auto_cast gx_mngr.window_size.x, auto_cast gx_mngr.window_size.y, str.clone_to_cstring(title), nil, nil)
+	glfw.SetWindowPos(gx_mngr.window, 0, 540) // TEMP
 	assert(gx_mngr.window != nil)
 	glfw.MakeContextCurrent(gx_mngr.window)
 	glfw.SwapInterval(0)
@@ -163,7 +167,7 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, ti
 	gl.BindBuffer(gl.ARRAY_BUFFER, gx_mngr.vertex_buffer)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 	gl.ClearColor(0, 0, 0, 1)
-	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	polygon_mode(.Fill)
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.FrontFace(gl.CCW)
@@ -238,10 +242,12 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, ti
 	init_shader_asset(&gx_mngr.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, gx_mngr, as_mngr) or_return
 	init_shader_asset(&gx_mngr.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, gx_mngr, as_mngr) or_return
 	init_shader_asset(&gx_mngr.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, gx_mngr, as_mngr) or_return
+	init_shader_asset(&gx_mngr.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }, gx_mngr, as_mngr) or_return
 	assert(shader_asset_command(as_mngr, &gx_mngr.rect_shader.asset, .Import))
 	assert(shader_asset_command(as_mngr, &gx_mngr.image_shader.asset, .Import))
 	assert(shader_asset_command(as_mngr, &gx_mngr.model_shader.asset, .Import))
 	assert(shader_asset_command(as_mngr, &gx_mngr.mesh_shader.asset, .Import))
+	assert(shader_asset_command(as_mngr, &gx_mngr.buffer_shader.asset, .Import))
 	// gx_mngr.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// gx_mngr.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// gx_mngr.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
@@ -256,29 +262,25 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, ti
 	// gx_mngr.water_effect_shader         = make_shader_asset(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
 	// gx_mngr.sdf_shader                  = make_shader_asset(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 	// gx_mngr.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
+	gx_mngr.canvas_rb = make_render_buffer(1 * gx_mngr.window_size, { gl.RGBA8, gl.R32F }, { gl.RGBA, gl.RED })
 	bs.zero_stopwatch(&gx_mngr.stopwatch)
 	return nil }
 
+select_render_buffer :: proc(gx_mngr: ^Graphics_Context, render_buffer: ^Render_Buffer) {
+	if render_buffer == nil { select_frame_buffer(gx_mngr, 0) }
+	gx_mngr.active_resolution = render_buffer.size
+	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
+	gl.Viewport(0, 0, cast(i32)gx_mngr.active_resolution.x, cast(i32)gx_mngr.active_resolution.y) }
 
-// // NOTE: If a function takes
-// select_render_buffer :: proc(draw: ^Draw, render_buffer: ^Render_Buffer) {
-// 	if render_buffer == nil { select_frame_buffer(draw, 0) }
-// 	draw.active_resolution = render_buffer.size
-// 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
-// 	gl.Viewport(0, 0, cast(i32)draw.active_resolution.x, cast(i32)draw.active_resolution.y) }
-
-
-// clear_render_buffer :: proc(render_buffer: ^Render_Buffer) {
-// 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
-// 	gl.Clear(gl.COLOR_BUFFER_BIT)
-// 	gl.Clear(gl.DEPTH_BUFFER_BIT) }
-
+clear_render_buffer :: proc(render_buffer: ^Render_Buffer) {
+	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+	gl.Clear(gl.DEPTH_BUFFER_BIT) }
 
 select_frame_buffer :: proc(gx_mngr: ^Graphics_Context, frame_buffer_handle: u32) {
 	gx_mngr.active_resolution = gx_mngr.window_size
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
 	gl.Viewport(0, 0, cast(i32)gx_mngr.window_size.x, cast(i32)gx_mngr.window_size.y) }
-
 
 clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
@@ -302,12 +304,9 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	return init_render_buffer_data_static(render_buffer_data, res, 5, { 4, 3, 3, 1, 1 }, { gl.RGBA8, AUX_BUF_FMT, AUX_BUF_FMT, gl.R8, gl.R8 }) }
 
 
-// make_render_buffer_static :: proc(size: [2]int, n_buffers: int, internal_formats: []i32, formats: []u32, depth_component: bool = true) -> (Render_Buffer, bool) {
-// 	render_buffer: Render_Buffer
-// 	ok:            bool
-
-// 	ok = init_render_buffer_static(&render_buffer, size, n_buffers, internal_formats, formats, depth_component)
-// 	return render_buffer, ok }
+make_render_buffer :: proc(size: [2]u32, internal_formats: []i32, formats: []u32, depth_component: bool = true) -> (render_buffer: Render_Buffer) {
+	init_render_buffer(&render_buffer, size, internal_formats, formats, depth_component)
+	return render_buffer }
 
 
 // make_physics_buffer :: proc(draw: ^Draw) -> (Render_Buffer, bool) {
@@ -343,36 +342,36 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	return d_surf, d_surf_displaced, d_surfer, n_surf, n_surf_displaced }
 
 
-// init_render_buffer_static :: proc(render_buffer: ^Render_Buffer, size: [2]int, n_buffers: int, internal_formats: []i32, formats: []u32, depth_component: bool = true) -> bool {
-// 	assert(render_buffer != nil); if render_buffer == nil { return false }
-// 	if (size.x == 0) || (size.y == 0) || (n_buffers == 0) || (len(internal_formats) != n_buffers) || (len(formats) != n_buffers) { return false }
-// 	render_buffer.size = size
-// 	render_buffer.texture_formats = make([]u32, len(formats))
-// 	render_buffer.n_frames = 1
-// 	copy(render_buffer.texture_formats, formats)
-// 	render_buffer.texture_internal_formats = make([]i32, len(internal_formats))
-// 	copy(render_buffer.texture_internal_formats, internal_formats)
-// 	gl.GenFramebuffers(1, cast(^u32)&render_buffer.frame_buffer_handle)
-// 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
-// 	render_buffer.texture_handles = make([]u32, n_buffers) // NOTE This is not freed. //
-// 	for i in 0 ..< n_buffers {
-// 		gl.GenTextures(cast(i32)n_buffers, cast(^u32)&render_buffer.texture_handles[i])
-// 		gl.BindTexture(gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i])
-// 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-// 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-// 		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_formats[i], cast(i32)size.x, cast(i32)size.y, 0, formats[i], gl.UNSIGNED_BYTE, nil)
-// 		texture_filtering(gl.NEAREST)
-// 		gl.BindTexture(gl.TEXTURE_2D, 0)
-// 		gl.FramebufferTexture2D(gl.FRAMEBUFFER, cast(u32)(gl.COLOR_ATTACHMENT0+i), gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i], 0) }
-// 	if gl.CheckFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE { return false }
-// 	gl.GenRenderbuffers(1, cast(^u32)&render_buffer.render_buffer_handle)
-// 	if depth_component {
-// 		gl.BindRenderbuffer(gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle)
-// 		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT32, cast(i32)size.x, cast(i32)size.y)
-// 		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle) }
-// 	if gl.CheckFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE { return false }
-// 	render_buffer.initialized = true
-// 	return true }
+init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]u32, internal_formats: []i32, formats: []u32, depth_component: bool = true) {
+	assert(render_buffer != nil)
+	assert(!((size.x == 0) || (size.y == 0) || (len(internal_formats) == 0) || (len(internal_formats) != len(formats))))
+	n_buffers := len(internal_formats)
+	render_buffer.size = size
+	render_buffer.texture_formats = make([]u32, len(formats))
+	render_buffer.n_frames = 1
+	copy(render_buffer.texture_formats, formats)
+	render_buffer.texture_internal_formats = make([]i32, len(internal_formats))
+	copy(render_buffer.texture_internal_formats, internal_formats)
+	gl.GenFramebuffers(1, cast(^u32)&render_buffer.frame_buffer_handle)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
+	render_buffer.texture_handles = make([]u32, n_buffers) // NOTE This is not freed. //
+	for i in 0 ..< n_buffers {
+		gl.GenTextures(cast(i32)n_buffers, cast(^u32)&render_buffer.texture_handles[i])
+		gl.BindTexture(gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i])
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_formats[i], cast(i32)size.x, cast(i32)size.y, 0, formats[i], gl.UNSIGNED_BYTE, nil)
+		texture_filtering(gl.NEAREST)
+		gl.BindTexture(gl.TEXTURE_2D, 0)
+		gl.FramebufferTexture2D(gl.FRAMEBUFFER, cast(u32)(gl.COLOR_ATTACHMENT0+i), gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i], 0) }
+	assert(gl.CheckFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
+	gl.GenRenderbuffers(1, cast(^u32)&render_buffer.render_buffer_handle)
+	if depth_component {
+		gl.BindRenderbuffer(gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle)
+		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT32, cast(i32)size.x, cast(i32)size.y)
+		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle) }
+	assert(gl.CheckFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
+	render_buffer.initialized = true }
 
 
 // make_render_buffer_data_static :: proc(size: [2]int, n_buffers: int, depths: []u8, internal_formats: []i32) -> (Render_Buffer_Data, bool) {
@@ -599,8 +598,8 @@ use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
 // 	if value { gl.Enable(gl.BLEND) } else { gl.Disable(gl.BLEND) } }
 
 
-// set_depth_test :: proc(value: bool) {
-// 	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
+set_depth_test :: proc(value: bool) {
+	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
 
 
 // Plot :: struct {
@@ -658,6 +657,15 @@ render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, de
 	texture_filtering(gl.NEAREST)
 	draw_triangles(6) }
 
+render_render_buffer :: proc(gx_mngr: ^Graphics_Context, render_buffer: ^Render_Buffer, channel: u32) {
+	using Buffer_Shader_Uniforms
+	use_shader(&gx_mngr.buffer_shader)
+	set_shader_param(RES, la.array_cast(gx_mngr.active_resolution, f32))
+	bind_texture(0, render_buffer.texture_handles[cast(int)channel])
+	texture_filtering(gl.LINEAR)
+	polygon_mode(.Fill)
+	draw_triangles(6) }
+
 // render_panel :: proc(draw: ^Draw, background: ^Render_Buffer, pos: [2]f32, size: [2]f32) {
 // 	shader := use_shader(draw.panel_shader)
 // 	set_shader_param(shader.pos, pos)
@@ -675,9 +683,8 @@ render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, de
 // 	set_shader_param(shader.size, size)
 // 	set_shader_param(shader.fill_color, fill_color)
 // 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
-// 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-// 	draw_triangles(6)
-// 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL) }
+// 	polygon_mode(.Line)
+// 	draw_triangles(6) }
 
 
 // render_rect_outlined :: proc(draw: ^Draw, pos: [2]f32, size: [2]f32, fill_color: [4]f32 = BLACK, outline_color: [4]f32 = WHITE) {
@@ -721,9 +728,8 @@ render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, de
 // 	set_shader_param(shader.this_buffer_res, la.array_cast(draw.active_resolution, f32))
 // 	set_shader_param(shader.line_color, color)
 // 	set_shader_param(shader.dashed, cast(i32)dashed)
-// 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-// 	draw_lines(2)
-// 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL) }
+// 	polygon_mode(gl.Line)
+// 	draw_lines(2) }
 
 
 // render_texture :: proc {
@@ -748,13 +754,6 @@ render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, de
 // render_chromatic_aberration :: proc(draw: ^Draw, texture_handle: u32) {
 // 	shader := use_shader(draw.chromatic_aberration_shader)
 // 	bind_texture(0, texture_handle)
-// 	texture_filtering(gl.LINEAR)
-// 	draw_triangles(6) }
-
-
-// render_buffer_texture :: proc(draw: ^Draw, render_buffer: ^Render_Buffer, channel: int) {
-// 	shader := use_shader(draw.buffer_shader)
-// 	bind_texture(0, render_buffer.texture_handles[channel])
 // 	texture_filtering(gl.LINEAR)
 // 	draw_triangles(6) }
 
@@ -981,6 +980,14 @@ render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, de
 // 				if draw.shaders[i].name == name {
 // 					recompile_shader(draw, working_directory_path, draw.shaders[i]) } } } } }
 
+Polygon_Mode :: enum {
+	Point = gl.POINT,
+	Line = gl.LINE,
+	Fill = gl.FILL }
+
+polygon_mode :: proc(mode: Polygon_Mode) {
+	gl.PolygonMode(gl.FRONT_AND_BACK, cast(u32)mode) }
+
 texture_filtering :: proc(mode: i32) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mode)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, mode) }
@@ -1146,14 +1153,16 @@ graphics_tick :: proc(gx_mngr: ^Graphics_Context) {
 graphics_tick_begin :: proc(gx_mngr: ^Graphics_Context) {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	clear_frame_buffer(0)
-	select_frame_buffer(gx_mngr, 0)
 	gx_mngr.time = bs.read_stopwatch(&gx_mngr.stopwatch)
-// 	clear_render_buffer(&draw.default_sb)
-// 	select_render_buffer(draw, &draw.default_sb)
-// 	set_depth_test(true)
-}
+	select_render_buffer(gx_mngr, &gx_mngr.canvas_rb)
+	clear_render_buffer(&gx_mngr.canvas_rb)
+	set_depth_test(true) }
 
 graphics_tick_end :: proc(gx_mngr: ^Graphics_Context) {
+	set_depth_test(false)
+	select_frame_buffer(gx_mngr, 0)
+	render_render_buffer(gx_mngr, &gx_mngr.canvas_rb, 0)
+
 // 	if .MODELS in draw.draw_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.draw_mask {
 // 		// TODO: Separate skybox renderer from water effect renderer.

@@ -9,12 +9,14 @@ vec3 effect_position(vec2 uv) {
 		position.x = cos(2 * PI * uv.x);
 		position.y = sin(2 * PI * uv.x);
 		position.xy *= cos(asin(position.z));
-		position *= 0.5;
+		position.xyz *= 0.5;
 		position *= 1.0 + 0.2 * sin(4 * time); }
 	else {
 		position.x = 2 * (uv.x - 0.5);
 		position.y = 2 * (uv.y - 0.5);
-		position.z = -0.3 + 32.0 * (pow(position.x / 10, 2.0) + pow(position.y / 10, 2.0)) + 0.2 * (sin(4 * time + 32 * uv.x) + sin(3 * time + 32 * uv.y)); }
+		position.z = -1.0 + 64.0 * (pow(position.x / 10, 2.0) + pow(position.y / 10, 2.0)) + 0.2 * (sin(4 * time + 32 * uv.x) + sin(3 * time + 32 * uv.y));
+		position.xyz *= 0.5;
+		position.xyz = vec3(0); }
 	position = clamp(position, vec3(-1), vec3(1));
 	// if (gl_VertexID <= 66) {
 	// 	position.z += sin(4 * time);

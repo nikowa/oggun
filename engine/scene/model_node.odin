@@ -44,7 +44,7 @@ render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene,
 	gl.BindBuffer(gl.ARRAY_BUFFER, model_node.lightmap_texcoords_handle)
 	gl.VertexAttribPointer(3, 2, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.EnableVertexAttribArray(3)
-	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	gx.polygon_mode(.Fill)
 	gl.Enable(gl.CULL_FACE)
 	// // bind_texture(0,draw.textures["dev-grid"].handle)
 	// bind_texture(0, model_node.material.base_color_texture.handle)
