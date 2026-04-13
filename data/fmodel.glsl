@@ -79,6 +79,7 @@ void main(void) {
 	vec3 rough_component = niko_BRDF(0.62 * base_color, camera_direction, normal_interpolated, light_direction, 1.0);
 	// (TODO): "camera_position" is not set. Fix this.
 	// color.xyz = position_interpolated; return;
+	color.xyz = vec3(1, 0, 0); return; // TODO
 	color.xyz = rough_component; return;
 	vec3 metallic_component=mirror_BRDF(camera_direction, normal_interpolated);
 	base_color = mix(rough_component, metallic_component, metallic_factor);
@@ -86,4 +87,5 @@ void main(void) {
 	// base_color = texture(world_position_samp, vec2(lightmap_texcoord_interpolated.x, lightmap_texcoord_interpolated.y)).xyz; // TEMP
 	// base_color=vec3(texcoord_interpolated.x, texcoord_interpolated.y, 0);
 	base_color = 0.5 * (normal_interpolated + vec3(1, 1, 1)); // TEMP
-	color.xyz = base_color; }
+	color.xyz = base_color;
+}

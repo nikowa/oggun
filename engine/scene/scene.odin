@@ -42,10 +42,10 @@ Node_Config :: struct {
 	rotate: quaternion128,
 	scale: [3]f32,
 	visible: bool }
-	// using transform: Node_Transform }
 
 DEFAULT_NODE_CONFIG: Node_Config : {
 	name = "default",
+	id = 0,
 	render_proc = nil,
 	tick_proc = nil,
 	translate = { 0, 0, 0 },
@@ -53,9 +53,24 @@ DEFAULT_NODE_CONFIG: Node_Config : {
 	scale = { 1, 1, 1 },
 	visible = true }
 
-default_node_config :: proc(name: string) -> (node_config: Node_Config) {
-	node_config = DEFAULT_NODE_CONFIG
-	node_config.name = name
+default_node_config :: proc(
+		name: string = DEFAULT_NODE_CONFIG.name,
+		id: u32 = DEFAULT_NODE_CONFIG.id,
+		render_proc: Node_Render_Proc = nil,
+		tick_proc: Node_Tick_Proc = nil,
+		translate: [3]f32 = DEFAULT_NODE_CONFIG.translate,
+		rotate: quaternion128 = DEFAULT_NODE_CONFIG.rotate,
+		scale: [3]f32 = DEFAULT_NODE_CONFIG.scale,
+		visible: bool = DEFAULT_NODE_CONFIG.visible) -> (node_config: Node_Config) {
+	node_config = {
+		name = name,
+		id = id,
+		render_proc = render_proc,
+		tick_proc = tick_proc,
+		translate = translate,
+		rotate = rotate,
+		scale = scale,
+		visible = visible }
 	return node_config }
 
 Node :: struct {
@@ -66,18 +81,20 @@ Node :: struct {
 	first_sibling: ^Node,
 	next_sibling: ^Node,
 	prev_sibling: ^Node,
+	transform: Node_Transform }
+// (NOTE):
 	// transform_translate: matrix[4, 4]f32,
 	// transform_rotate: matrix[4, 4]f32,
 	// transform_scale: matrix[4, 4]f32,
 	// transform: matrix[4, 4]f32
-}
 
 // (TODO): Implement this, so I can nest nodes and tarnsforms are applied recursively.
 Node_Transform :: struct {
 	translate: matrix[4, 4]f32,
 	rotate: matrix[4, 4]f32,
 	scale: matrix[4, 4]f32,
-	total: matrix[4, 4]f32 }
+	total: matrix[4, 4]f32,
+	total_cumulative: matrix[4, 4]f32 }
 
 // node_transform_cumulative :: proc(node: ^Node) -> (transform: Node_Transform) { }
 

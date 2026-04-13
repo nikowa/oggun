@@ -75,7 +75,8 @@ Effect_Shader_Uniforms :: enum {
 	CAMERA_PROJECTION_MATRIX = 2,
 	TIME                     = 3,
 	CAMERA_FAR_CLIP          = 4,
-	CAMERA_POSITION          = 5 }
+	CAMERA_POSITION          = 5,
+	ID                       = 6 }
 
 Mesh_Shader_Uniforms :: enum {
 	NODE_MATRIX              = 0,

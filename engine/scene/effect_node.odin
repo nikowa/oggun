@@ -34,6 +34,7 @@ render_effect_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene
 	gx.set_shader_param(TIME, graphics_context.time)
 	// (TODO): How is this a different camera node from the camera node set in the DLL?
 	gx.set_shader_param(CAMERA_POSITION, camera_node.node.translate)
+	gx.set_shader_param(ID, effect_node.node.id)
 	// log.info(camera_node.node.translate)
 	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.mesh.verts_handle)
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, gl.FALSE, 0, 0)

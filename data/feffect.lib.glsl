@@ -1,8 +1,10 @@
 out vec4 _color;
-out float emission;
+out float _emission;
+out uint _id;
 layout(location = 3) uniform float time;
 layout(location = 4) uniform float camera_far_clip;
 layout(location = 5) uniform vec3 camera_position;
+layout(location = 6) uniform uint id;
 in vec2 _uv_interpolated;
 in vec3 _scr_position_interpolated;
 in vec3 _position_interpolated;

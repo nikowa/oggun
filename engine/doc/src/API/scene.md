@@ -2,7 +2,19 @@
 
 A scene determines how 3D entities should be rendered. To render any 3D entity, you need a scene and a camera. A scene conotains a scene tree, which can be used to arrange any arbitrary objects in a hierarchy of 3D transforms. The scene tree is optional.
 
-## Using nodes
+
+## Built-in node types
+
+There are several built-in types that derive from Node. They are:
+
+- [`Camera_Node`](#camera_node) --- An instance of a `Camera`. The intended way to render a scene is to call the render proc on a camera positioned in the scene. You can add controls to the camera by [overriding its tick procedure](#extending-builtin-node-types).
+- [`Model_Node`](#model_node) --- An instance of a `Model`. The intended way to render a model is to create a model node and link it to a model. If you want to draw additional things along with the model (eg. an icon or a healthbar) or to replace its shader, you can do so by [overriding its render procedure](#extending-builtin-node-types).
+- `Point_Light_Node` --- Unimplemented.
+- `Sound_Node` --- Unimplemented.
+- `Text_Node` --- Unimplemented.
+- `Effect_Node` --- Unimplemented.
+
+## Defining custom nodes
 
 Node is an intrusive type meant to be embedded in a struct.
 
@@ -25,17 +37,6 @@ tick_my_node_type :: proc(
 
 Nodes have three hooks: `render_proc`, `tick_proc`, and `init_proc`. The init proc is called once to initialize the state of the entity which the node is embedded in. The render proc is called to draw the entity which the node is embedded in. The tick proc is called every frame to update the state of the entity.
 
-## Built-in node types
-
-There are several built-in types that derive from Node. They are:
-
-- [`Camera_Node`](#camera_node) --- An instance of a `Camera`. The intended way to render a scene is to call the render proc on a camera positioned in the scene. You can add controls to the camera by [overriding its tick procedure](#extending-builtin-node-types).
-- [`Model_Node`](#model_node) --- An instance of a `Model`. The intended way to render a model is to create a model node and link it to a model. If you want to draw additional things along with the model (eg. an icon or a healthbar) or to replace its shader, you can do so by [overriding its render procedure](#extending-builtin-node-types).
-- `Point_Light_Node` --- Unimplemented.
-- `Sound_Node` --- Unimplemented.
-- `Text_Node` --- Unimplemented.
-- `Effect_Node` --- Unimplemented.
-
 ## Extending builtin node types
 
 You can extend the behavior of a built-in Node-derived type by overriding its hooks. If you call the default constructor of a built-in Node-derived type, the hooks will be assigned the default procs, unless you have you have overriden them in the Node Config passed to the constructor. For example, to override the tick procedure of a Camera Node with your own tick procedure, you can do it like this:
@@ -53,6 +54,12 @@ my_tick_camera_node :: proc(node: ^scn.Node) {
 	camera_node := scn.node_object(node, scn.Camera_Node, "node")
 	... }
 ```
+
+## Positioning nodes
+
+The `translate`, `rotate`, and `scale` fields of `Node` are meant to be used to describe the position, orientation, and size of the node's contents, relative to it's parent node. The graphics system does not use those fields, instead it uses contents of the `transform` field. If you want, you can write to `transform` directly, or you can use the `node_update_transform` procedure to update `transform` based on the contents of `translate`, `rotate`, and `scale`. You can also use `tree_update_transforms` to update the transforms of all nodes in the tree in the aforementioned way.
+
+Every node has a `Transform` field.
 
 ### Types
 

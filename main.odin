@@ -86,18 +86,20 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	node_config.name = "camera"
 	node_config.tick_proc = tick_camera_node
 	camera_node = scn.make_camera_node(node_config, &camera, context.allocator)
-	model_node = scn.make_model_node(scn.default_node_config("castle"), &model, context.allocator)
+	model_node = scn.make_model_node(scn.default_node_config(name = "castle", id = 1), &model, context.allocator)
 	model_node.node.translate.z = -0
-	effect_node = scn.make_effect_node(scn.default_node_config("explosion-effect"), &explosion_effect, context.allocator)
+	effect_node = scn.make_effect_node(scn.default_node_config(name = "explosion-effect", id = 2), &explosion_effect, context.allocator)
 	cube_mesh := msh.make_line_cube_mesh(context.allocator, 0.5)
-	ground_mesh := msh.make_line_ground_mesh(context.allocator)
+	ground_mesh := msh.make_line_ground_mesh(context.allocator, 5)
 	msh.upload_mesh(&cube_mesh)
 	msh.upload_mesh(&ground_mesh)
 	cube_mesh_node := scn.make_mesh_node(scn.default_node_config("cube-mesh"), &cube_mesh, context.allocator)
 	ground_mesh_node := scn.make_mesh_node(scn.default_node_config("ground-mesh"), &ground_mesh, context.allocator)
-	cube_mesh_node.node.translate = { 0.0, 0.0, 0.5 }
+	translate: [3]f32 = { -2, -2, 0.5 }
+	effect_node.node.translate = translate
+	cube_mesh_node.node.translate = translate
 	scn.scene_attach(&scene, &camera_node.node)
-	// scn.scene_attach(&scene, &model_node.node) // TEMP
+	scn.scene_attach(&scene, &model_node.node) // TEMP
 	scn.scene_attach(&scene, &effect_node.node) // TEMP
 	scn.scene_attach(&scene, &cube_mesh_node.node) // TEMP
 	scn.scene_attach(&scene, &ground_mesh_node.node) // TEMP

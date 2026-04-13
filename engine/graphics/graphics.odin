@@ -9,6 +9,7 @@ import as "../asset_manager"
 import la "core:math/linalg"
 import fmt "core:fmt"
 import tm "core:time"
+import log "core:log"
 import bs "../base"
 import r "../container/rect"
 
@@ -132,12 +133,12 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 // 	draw.fonts_map = make(map[string]^Font)
 // 	draw.haze_color = { 181.0 / 255, 217.0 / 255, 255.0 / 255 }
 // 	draw.draw_mask = { .MODELS, .EFFECTS }
-// 	glfw.SetErrorCallback(glfw_error_callback)
+	// glfw.SetErrorCallback(glfw_error_callback)
 	assert(cast(bool)glfw.Init())
 	glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
 	glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 6)
 	glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, 1)
-	glfw.WindowHint(glfw.SAMPLES, 4)
+	glfw.WindowHint(glfw.SAMPLES, 8)
 	glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 	gx_mngr.window = glfw.CreateWindow(auto_cast gx_mngr.window_size.x, auto_cast gx_mngr.window_size.y, str.clone_to_cstring(title), nil, nil)
 	glfw.SetWindowPos(gx_mngr.window, 0, 540) // TEMP
@@ -145,7 +146,7 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 	glfw.MakeContextCurrent(gx_mngr.window)
 	glfw.SwapInterval(0)
 	gl.load_up_to(4, 6, glfw.gl_set_proc_address)
-// 	gl.DebugMessageCallback(error_callback, nil)
+	gl.DebugMessageCallback(error_callback, nil)
 	glfw.FocusWindow(gx_mngr.window)
 // 	glfw.SetWindowFocusCallback(draw.window, focus_callback)
 // 	glfw.SetKeyCallback(draw.window, key_callback)
@@ -175,7 +176,8 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 	gl.CullFace(gl.FRONT)
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	gl.Disable(gl.MULTISAMPLE)
+	gl.Enable(gl.MULTISAMPLE)
+	gl.Enable(gl.DEBUG_OUTPUT)
 // 	draw.default_sb, ok = make_scene_buffer_static(draw.resolution)
 // 	assert(ok)
 // 	draw.upscale_sb, ok = make_render_buffer_static(draw.window_size,1,{gl.RGBA8},{gl.RGBA})
@@ -262,7 +264,8 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 	// gx_mngr.water_effect_shader         = make_shader_asset(draw, working_directory_path, "effect-water",         Water_Effect_Shader,         "vframe",   "effect-water.f")
 	// gx_mngr.sdf_shader                  = make_shader_asset(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 	// gx_mngr.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
-	gx_mngr.canvas_rb = make_render_buffer(1 * gx_mngr.window_size, { gl.RGBA8, gl.R32F }, { gl.RGBA, gl.RED })
+	// DICK
+	gx_mngr.canvas_rb = make_render_buffer(1 * gx_mngr.window_size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 	bs.zero_stopwatch(&gx_mngr.stopwatch)
 	return nil }
 
@@ -304,8 +307,8 @@ clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 // 	return init_render_buffer_data_static(render_buffer_data, res, 5, { 4, 3, 3, 1, 1 }, { gl.RGBA8, AUX_BUF_FMT, AUX_BUF_FMT, gl.R8, gl.R8 }) }
 
 
-make_render_buffer :: proc(size: [2]u32, internal_formats: []i32, formats: []u32, depth_component: bool = true) -> (render_buffer: Render_Buffer) {
-	init_render_buffer(&render_buffer, size, internal_formats, formats, depth_component)
+make_render_buffer :: proc(size: [2]u32, internal_formats: []i32, formats: []u32, data_types: []u32, samples: int = 1, depth_component: bool = true) -> (render_buffer: Render_Buffer) {
+	init_render_buffer(&render_buffer, size, internal_formats, formats, data_types, samples, depth_component)
 	return render_buffer }
 
 
@@ -342,7 +345,7 @@ make_render_buffer :: proc(size: [2]u32, internal_formats: []i32, formats: []u32
 // 	return d_surf, d_surf_displaced, d_surfer, n_surf, n_surf_displaced }
 
 
-init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]u32, internal_formats: []i32, formats: []u32, depth_component: bool = true) {
+init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]u32, internal_formats: []i32, formats: []u32, data_types: []u32, samples: int = 1, depth_component: bool = true) {
 	assert(render_buffer != nil)
 	assert(!((size.x == 0) || (size.y == 0) || (len(internal_formats) == 0) || (len(internal_formats) != len(formats))))
 	n_buffers := len(internal_formats)
@@ -356,19 +359,35 @@ init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]u32, internal
 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
 	render_buffer.texture_handles = make([]u32, n_buffers) // NOTE This is not freed. //
 	for i in 0 ..< n_buffers {
-		gl.GenTextures(cast(i32)n_buffers, cast(^u32)&render_buffer.texture_handles[i])
-		gl.BindTexture(gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i])
-		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_formats[i], cast(i32)size.x, cast(i32)size.y, 0, formats[i], gl.UNSIGNED_BYTE, nil)
-		texture_filtering(gl.NEAREST)
-		gl.BindTexture(gl.TEXTURE_2D, 0)
-		gl.FramebufferTexture2D(gl.FRAMEBUFFER, cast(u32)(gl.COLOR_ATTACHMENT0+i), gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i], 0) }
-	assert(gl.CheckFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
+		if samples > 1 {
+			gl.GenTextures(cast(i32)n_buffers, cast(^u32)&render_buffer.texture_handles[i])
+			gl.BindTexture(gl.TEXTURE_2D_MULTISAMPLE, cast(u32)render_buffer.texture_handles[i])
+			// gl.TexParameteri(gl.TEXTURE_2D_MULTISAMPLE, gl.TEXTURE_WRAP_S, gl.REPEAT)
+			// gl.TexParameteri(gl.TEXTURE_2D_MULTISAMPLE, gl.TEXTURE_WRAP_T, gl.REPEAT)
+			// gl.TexParameteri(gl.TEXTURE_2D_MULTISAMPLE, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+			// gl.TexParameteri(gl.TEXTURE_2D_MULTISAMPLE, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+			gl.TexImage2DMultisample(gl.TEXTURE_2D_MULTISAMPLE, cast(i32)samples, cast(u32)internal_formats[i], cast(i32)size.x, cast(i32)size.y, true)
+			gl.FramebufferTexture2D(gl.FRAMEBUFFER, cast(u32)(gl.COLOR_ATTACHMENT0+i), gl.TEXTURE_2D_MULTISAMPLE, cast(u32)render_buffer.texture_handles[i], 0)
+			gl.BindTexture(gl.TEXTURE_2D_MULTISAMPLE, 0) }
+		else {
+			gl.GenTextures(cast(i32)n_buffers, cast(^u32)&render_buffer.texture_handles[i])
+			gl.BindTexture(gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i])
+			gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+			gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+			gl.TexImage2D(gl.TEXTURE_2D, 0, internal_formats[i], cast(i32)size.x, cast(i32)size.y, 0, formats[i], data_types[i], nil)
+			texture_filtering(gl.NEAREST)
+			gl.BindTexture(gl.TEXTURE_2D, 0)
+			gl.FramebufferTexture2D(gl.FRAMEBUFFER, cast(u32)(gl.COLOR_ATTACHMENT0+i), gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i], 0) } }
+	status := gl.CheckFramebufferStatus(gl.FRAMEBUFFER)
+	log.error(status)
+	assert(status == gl.FRAMEBUFFER_COMPLETE)
 	gl.GenRenderbuffers(1, cast(^u32)&render_buffer.render_buffer_handle)
 	if depth_component {
 		gl.BindRenderbuffer(gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle)
-		gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT32, cast(i32)size.x, cast(i32)size.y)
+		if samples > 1 {
+			gl.RenderbufferStorageMultisample(gl.RENDERBUFFER, 8, gl.DEPTH_COMPONENT32, cast(i32)size.x, cast(i32)size.y) }
+		else {
+			gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT32, cast(i32)size.x, cast(i32)size.y) }
 		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle) }
 	assert(gl.CheckFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
 	render_buffer.initialized = true }
@@ -469,15 +488,15 @@ set_shader_param_1i8 :: #force_inline proc(#any_int param_handle: i32, value: i8
 
 
 set_shader_param_1u32 :: #force_inline proc(#any_int param_handle: i32, value: u32) {
-	gl.Uniform1i(param_handle, cast(i32)value) }
+	gl.Uniform1ui(param_handle, cast(u32)value) }
 
 
 set_shader_param_1u16 :: #force_inline proc(#any_int param_handle: i32, value: u16) {
-	gl.Uniform1i(param_handle, cast(i32)value) }
+	gl.Uniform1ui(param_handle, cast(u32)value) }
 
 
 set_shader_param_1u8 :: #force_inline proc(#any_int param_handle: i32, value: u8) {
-	gl.Uniform1i(param_handle, cast(i32)value) }
+	gl.Uniform1ui(param_handle, cast(u32)value) }
 
 
 uniform_2i :: #force_inline proc(shader: u32, name: cstring, #any_int param_x: int, #any_int param_y: int) {
@@ -1037,10 +1056,10 @@ texture_wrapping :: proc(mode: i32) {
 // 	case: return -1 } }
 
 
-// error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, length: i32, message: cstring, userParam: rawptr) {
-// 	if severity == gl.DEBUG_SEVERITY_NOTIFICATION do return
-// 	context = rt.default_context()
-// 	print_bad("OpenGL error:", source, type, id, severity, length, message) }
+error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, length: i32, message: cstring, userParam: rawptr) {
+	if severity == gl.DEBUG_SEVERITY_NOTIFICATION do return
+	context = rt.default_context()
+	log.error("OpenGL error:", source, type, id, severity, length, message) }
 
 
 // render_text :: proc(draw: ^Draw, args: ..any, sep: string = "", pos: [2]f32 = { 0, 0 }, color: [4]f32 = WHITE, pivot: bit_set[Compass] = {}, font: ^Font = nil, shadow: bool = false, spacing: f32 = 1.0) {
