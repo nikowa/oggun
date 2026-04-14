@@ -1,4 +1,5 @@
 
+- Make a GLSL library of noise generators
 - Texture advection swamp shader
 - Pass the existing tests
 - Write and pass tests for the data validity checks

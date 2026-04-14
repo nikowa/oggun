@@ -78,7 +78,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	explosion_effect: gx.Effect
 	gx.init_and_upload_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
 	swamp_effect: gx.Effect
-	gx.init_and_upload_effect(&swamp_effect, { "effect:swamp", { { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-swamp.glsl", "string:feffect-swamp.glsl", context.allocator)
+	gx.init_and_upload_effect(&swamp_effect, { "effect:swamp", { { 1, 1 }, { 1, 1 }, { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-swamp.glsl", "string:feffect-swamp.glsl", context.allocator)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
 	camera.sensor_size *= 10

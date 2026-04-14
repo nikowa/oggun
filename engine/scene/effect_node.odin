@@ -40,7 +40,7 @@ render_effect_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, gl.FALSE, 0, 0)
 	gl.EnableVertexAttribArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, effect_node.mesh.surface_indexes_handle)
-	gl.VertexAttribPointer(1, 1, gl.INT, gl.FALSE, 0, 0)
+	gl.VertexAttribIPointer(1, 1, gl.INT, 0, 0)
 	gl.EnableVertexAttribArray(1)
 	gx.polygon_mode(.Fill)
 	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
