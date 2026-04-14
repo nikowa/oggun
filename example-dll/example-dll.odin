@@ -18,11 +18,15 @@ dev_tick :: proc(camera_node: ^scn.Camera_Node, done_onces: ^map[rt.Source_Code_
 	distance: f32
 	rotate_matrix: matrix[4, 4]f32
 	pitch = 0.1 * la.sin(4 * time)
-	pitch = 0.4 * time
-	yaw = 0.1 * time
 	pitch = -0.8 * m.PI
+	yaw = 0.1 * time
 	distance = 12.0
 	yaw = 0.0
+	distance = 12.0
+
+	// Debug //
+	// pitch = 0.4 * time
+	distance = 8.0
 
 	if bs.once(done_onces) { fmt.println("Done again!") }
 	camera_node.node.translate = - distance * ([4]f32{ 0, 0, 1, 1 } * la.matrix4_from_euler_angles_f32(pitch, 0, yaw, .XYZ)).xyz

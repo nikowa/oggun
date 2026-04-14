@@ -43,7 +43,6 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	model: gx.Model
 	err: os.Error
 	model_node: ^scn.Model_Node
-	effect_node: ^scn.Effect_Node
 	camera: scn.Camera
 	camera_node: ^scn.Camera_Node
 	scene: scn.Scene
@@ -77,8 +76,9 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
 	explosion_effect: gx.Effect
-	gx.init_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
-	gx.upload_effect(&explosion_effect)
+	gx.init_and_upload_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
+	swamp_effect: gx.Effect
+	gx.init_and_upload_effect(&swamp_effect, { "effect:swamp", { { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-swamp.glsl", "string:feffect-swamp.glsl", context.allocator)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
 	camera.sensor_size *= 10
@@ -88,21 +88,23 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	camera_node = scn.make_camera_node(node_config, &camera, context.allocator)
 	model_node = scn.make_model_node(scn.default_node_config(name = "castle", id = 1), &model, context.allocator)
 	model_node.node.translate.z = -0
-	effect_node = scn.make_effect_node(scn.default_node_config(name = "explosion-effect", id = 2), &explosion_effect, context.allocator)
+	explosion_effect_node := scn.make_effect_node(scn.default_node_config(name = "explosion-effect", id = 2), &explosion_effect, context.allocator)
+	swamp_effect_node := scn.make_effect_node(scn.default_node_config(name = "swamp-effect", id = 2), &swamp_effect, context.allocator)
 	cube_mesh := msh.make_line_cube_mesh(context.allocator, 0.5)
-	ground_mesh := msh.make_line_ground_mesh(context.allocator, 5)
+	ground_mesh := msh.make_line_ground_mesh(context.allocator, 8)
 	msh.upload_mesh(&cube_mesh)
 	msh.upload_mesh(&ground_mesh)
 	cube_mesh_node := scn.make_mesh_node(scn.default_node_config("cube-mesh"), &cube_mesh, context.allocator)
 	ground_mesh_node := scn.make_mesh_node(scn.default_node_config("ground-mesh"), &ground_mesh, context.allocator)
-	translate: [3]f32 = { -2, -2, 0.5 }
-	effect_node.node.translate = translate
+	translate: [3]f32 = { -3.5, -3.5, 0.5 }
+	explosion_effect_node.node.translate = translate
 	cube_mesh_node.node.translate = translate
 	scn.scene_attach(&scene, &camera_node.node)
-	scn.scene_attach(&scene, &model_node.node) // TEMP
-	scn.scene_attach(&scene, &effect_node.node) // TEMP
-	scn.scene_attach(&scene, &cube_mesh_node.node) // TEMP
-	scn.scene_attach(&scene, &ground_mesh_node.node) // TEMP
+	scn.scene_attach(&scene, &model_node.node)
+	scn.scene_attach(&scene, &explosion_effect_node.node)
+	scn.scene_attach(&scene, &swamp_effect_node.node)
+	scn.scene_attach(&scene, &cube_mesh_node.node)
+	scn.scene_attach(&scene, &ground_mesh_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })

@@ -40,6 +40,10 @@ upload_effect :: proc(effect: ^Effect) -> bool {
 	gl.BufferData(gl.ARRAY_BUFFER, len(effect.mesh.surface_indexes) * size_of(effect.mesh.surface_indexes[0]), &effect.mesh.surface_indexes[0], gl.STATIC_DRAW)
 	return true }
 
+init_and_upload_effect :: proc(effect: ^Effect, config: Effect_Config, gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, vert_url, frag_url: as.URL, allocator: rt.Allocator) {
+	init_effect(effect, config, gx_mngr, as_mngr, vert_url, frag_url, allocator)
+	upload_effect(effect) }
+
 effect_is_uploaded :: proc(effect: ^Effect) -> bool {
 	return effect.mesh.verts_handle != 0 }
 

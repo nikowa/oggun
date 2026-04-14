@@ -71,7 +71,14 @@ vec3 niko_BRDF(vec3 base_color, vec3 outgoing_direction, vec3 surface_normal, ve
 void main(void) {
 	color.w = 1.0;
 	float depth = length(scr_position_interpolated) / camera_far_clip;
-	gl_FragDepth = depth;
+	depth = -scr_position_interpolated.z;
+	// depth = 0.4;
+	gl_FragDepth = gl_FragCoord.z;
+	// color.xyz = 1 * vec3(depth); return;
+	// if (depth > 0.79) color.xyz = vec3(1, 0, 0);
+	// color.xyz = vec3(8 * gl_FragCoord.z) / 1.0;
+	// return;
+	// color.xyz = vec3(-scr_position_interpolated.z / camera_far_clip); return;
 	vec3 base_color = texture(diffuse_samp, vec2(texcoord_interpolated.x, -texcoord_interpolated.y)).xyz;
 	base_color = vec3(0.8);
 	vec3 camera_direction = normalize(position_interpolated - camera_position);

@@ -896,12 +896,13 @@ render_render_buffer :: proc(gx_mngr: ^Graphics_Context, render_buffer: ^Render_
 // 	draw_triangles(6) }
 
 
-// get_hovered_index :: proc(draw: ^Draw, input: ^Input, ui: ^UI) -> int {
+// DICK
+// get_hovered_id :: proc(gx_mngr: ^Graphics_Context, mouse_pos: [2]f32) -> u32 {
 // 	result: u8
 // 	pos:    [2]f32
 
-// 	select_render_buffer(draw, &draw.default_sb)
-// 	gl.ReadBuffer(gl.COLOR_ATTACHMENT4)
+// 	select_render_buffer(gx_mngr, &gx_mngr.canvas_rb)
+// 	gl.ReadBuffer(gl.COLOR_ATTACHMENT2) // (NOTE): This is bad. //
 // 	pos = la.array_cast(draw.resolution, f32) / 2 + input.cursor
 // 	gl.ReadPixels(
 // 		x = cast(i32)pos.x,
