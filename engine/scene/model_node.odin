@@ -26,6 +26,7 @@ render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene,
 	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&model_node.node)
 	gx.set_shader_param(MODEL_MATRIX, &transform_matrix) // (TODO): Rename to node_matrix
 	gx.set_shader_param(CAMERA_POSITION_MATRIX, &camera_node.view_matrix)
+	// log.info(camera_node.view_matrix)
 	gx.set_shader_param(CAMERA_PROJECTION_MATRIX, &camera_node.projection_matrix)
 	gx.set_shader_param(CAMERA_FAR_CLIP, camera_node.far_clip)
 	gx.set_shader_param(CAMERA_POSITION, camera_node.node.translate)
@@ -53,3 +54,34 @@ render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene,
 	// bind_texture(2, model_instance.world_position_map.handle)
 	// bind_texture(3, draw.textures_map["skybox"].handle)
 	gx.draw_triangles(cast(i32)(len(model_node.positions) * 3)) }
+
+// model_node_bake_position :: proc(gx_mngr: ^gx.Graphics_Context, node: ^Model_Node, size: [2]int) {
+// 	texture_size:     [2]int
+// 	iterator:         Texel_Iterator
+// 	texture_name:     string
+// 	texture_filename: string
+// 	ok:               bool
+// 	bytes:            []u8
+// 	error:            os.Error
+// 	filepath:         string
+
+// 	fmt.println(LOG, "Baking world-position-map for instance of model", node.name)
+// 	texture = &model_instance.world_position_map
+// 	texture_name = fmt.aprintf("%s-%s", model_instance.name, "world-position")
+// 	texture^, ok = generic_texture_search_and_remove(draw, texture_name)
+// 	texture_filename = fmt.aprintf("%s.qoi", texture_name)
+
+// 	init_texture_from_description(draw, texture, texture_name, size, 3, 8)
+// 	texture_size = { model_instance.world_position_map.width, model_instance.world_position_map.height }
+// 	iterator = make_texel_iterator(model, model_instance.transform, texture_size)
+// 	for texel in texel_iterate_next(&iterator) {
+// 		pixel: ^[3]u8 = texture_pixel_from_position(texture, texel.position, [3]u8)
+// 		// /*if bary_inside(texel.bary) do*/ pixel^ = rgb_denormalize(0.02 * texel.point)
+// 		/*if bary_inside(texel.bary) do*/ pixel^ = rgb_denormalize(0.5 * (texel.normal + 1))
+// 		// if bary_inside(texel.bary) do pixel^ = rgb_denormalize(texel.bary)
+// 		// if bary_inside(texel.bary) do pixel^ = rgb_denormalize({ texel.uv_point.x, texel.uv_point.y, 0 })
+// 		// if bary_inside(texel.bary) do pixel^ = rgb_denormalize(texel.triangle[2])
+// 		// pixel^.x = u8_denormalize(cast(f32)(texel.triangle_index % 8) / 8)
+// 	}
+// 	cache_write(fmt.aprintf("%s.qoi", texture_name), texture_to_qoi(texture))
+// 	load_texture(draw, texture) }

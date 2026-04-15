@@ -124,3 +124,43 @@ const vec3 random_dirs[32] = vec3[32](
 	vec3(0.07766119,  0.11850656,-0.07703004),
 	vec3(-0.10057095, 0.049205,   0.10773038),
 	vec3(0.16374578, -0.12341746,-0.00628171));
+float fractional_noise(float t, float seed) {
+	return fract(sin(t + 0.00001 * seed) * 128282); }
+float smoothstep(float t) {
+	float y = clamp(t, 0.0, 1.0);
+	return y * y * (3.0 - 2.0 * y); }
+float linear_fractional_noise(float t, float seed) {
+	float i = floor(t);
+	return mix(fractional_noise(i, seed), fractional_noise(i + 1, seed), fract(t)); }
+float smooth_fractional_noise(float t, float seed) {
+	float i = floor(t);
+	return mix(fractional_noise(i, seed), fractional_noise(i + 1, seed), smoothstep(fract(t))); }
+float fractional_noise_2d(vec2 t, float seed) {
+	float w = fractional_noise(1.0 + 0.000001 * seed, 0.0);
+	return fract(sin(dot(t.xy, 1000.0 * vec2(cos(w), sin(w)))) * 43758.5453123); }
+float linear_fractional_noise_2d(vec2 t, float seed) {
+	vec2 i = floor(t);
+	vec2 f = fract(t);
+	float a = fractional_noise_2d(i, seed);
+	float b = fractional_noise_2d(i + vec2(1, 0), seed);
+	float c = fractional_noise_2d(i + vec2(0, 1), seed);
+	float d = fractional_noise_2d(i + vec2(1, 1), seed);
+	return mix(a, b, f.x) +
+	    (c - a)* f.y * (1 - f.x) +
+	    (d - b) * f.x * f.y; }
+float smooth_fractional_noise_2d(vec2 t, float seed) {
+	vec2 i = floor(t);
+	vec2 f = fract(t);
+	float a = fractional_noise_2d(i, seed);
+	float b = fractional_noise_2d(i + vec2(1, 0), seed);
+	float c = fractional_noise_2d(i + vec2(0, 1), seed);
+	float d = fractional_noise_2d(i + vec2(1, 1), seed);
+	f = f * f * (vec2(3) - 2 * f);
+	return mix(a, b, f.x) +
+	    (c - a)* f.y * (1 - f.x) +
+	    (d - b) * f.x * f.y; }
+float grid_noise(vec2 t, float scale, float seed) {
+	t /= scale;
+	t.x = floor(t.x);
+	t.y = floor(t.y);
+	return fract(sin(dot(t.xy + vec2(0.000001 * seed), vec2(12.9898, 78.233))) * 43758.5453123); }

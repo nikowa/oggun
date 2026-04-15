@@ -12,6 +12,7 @@ out vec4 color;
 out float emission;
 in vec3 position_interpolated;
 in vec3 scr_position_interpolated;
+in vec3 scr_normal_interpolated;
 in vec2 texcoord_interpolated;
 in vec3 normal_interpolated;
 in vec2 lightmap_texcoord_interpolated;
@@ -25,7 +26,7 @@ vec3 f_niko(vec3 rho, float r, vec3 wi_local, vec3 wo_local, bool exact) {
 	float s = dot(wi_local, wo_local) - mu_i * mu_o;
 	// DICK
 	// return vec3(1.0) * wi_local.z;
-	return vec3(1.0) * mix((1.0 - (sharpness - DEFAULT_SHARPNESS)) * mu_o, mu_o, pow(mu_o, 2.0));
+	// return vec3(1.0) * mix((1.0 - (sharpness - DEFAULT_SHARPNESS)) * mu_o, mu_o, pow(mu_o, 2.0));
 	// return vec3(1.0) * (1.0 + 1.0 * (sharpness - 0.25)) * sign(mu_o) * abs(pow(mu_o, mix(0.01, 4.0, sharpness)));
 	float sovertF = (s > 0.0f) ? (s / abs(max(mu_i, mu_o))) : s;
 	float AF = 1.0f / (1.0f + constant1_FON * r);
@@ -83,10 +84,13 @@ void main(void) {
 	base_color = vec3(0.8);
 	vec3 camera_direction = normalize(position_interpolated - camera_position);
 	vec3 light_direction = normalize(vec3(1, 0, 1));
-	vec3 rough_component = niko_BRDF(0.62 * base_color, camera_direction, normal_interpolated, light_direction, 1.0);
+	vec3 rough_component = lambert_BRDF(0.62 * base_color, camera_direction, normal_interpolated, light_direction, 1.0);
 	// (TODO): "camera_position" is not set. Fix this.
 	// color.xyz = position_interpolated; return;
-	color.xyz = vec3(1, 0, 0); return; // TODO
+	// color.xyz = vec3(1, 0, 0); return; // TODO
+	// color.xyz = normal_interpolated; return;
+	// color.xyz = vec3(dot(camera_direction, normal_interpolated)); return;
+	// color.xyz = vec3(dot(scr_normal_interpolated, vec3(0,0,1))); return;
 	color.xyz = rough_component; return;
 	vec3 metallic_component=mirror_BRDF(camera_direction, normal_interpolated);
 	base_color = mix(rough_component, metallic_component, metallic_factor);

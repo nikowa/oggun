@@ -7,6 +7,7 @@ layout(location = 1) uniform mat4 camera_position_matrix;
 layout(location = 2) uniform mat4 camera_projection_matrix;
 out vec3 position_interpolated;
 out vec3 scr_position_interpolated;
+out vec3 scr_normal_interpolated;
 out vec2 texcoord_interpolated;
 out vec3 normal_interpolated;
 out vec2 lightmap_texcoord_interpolated;
@@ -19,5 +20,7 @@ void main(void) {
 	texcoord_interpolated = vec2(texcoord.x, 1 - texcoord.y);
 	lightmap_texcoord_interpolated = vec2(lightmap_texcoord.x, 1 - lightmap_texcoord.y);
 	gl_Position = (camera_projection_matrix * position_matrix) * vec4(position, 1);
+	// scr_normal_interpolated = normalize((inverse(position_matrix) * vec4(normal, 1)).xyz - (inverse(position_matrix) * vec4(0, 0, 0, 1)).xyz);
+	scr_normal_interpolated = normalize(transpose(inverse(mat3x3(camera_position_matrix))) * normal);
 	// gl_Position = vec4(position, 1);
 	scr_position_interpolated = gl_Position.xyz; }

@@ -31,6 +31,7 @@ Model :: struct {
 	normals: [][3]f32,
 	texcoords: [][2]f32,
 	lightmap_texcoords: [][2]f32,
+	base_color: Image
 // 	material: ^Material,
 // 	triangles_map: Texture,
 // thickness_map: Texture

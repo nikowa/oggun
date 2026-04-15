@@ -79,6 +79,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	gx.init_and_upload_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
 	swamp_effect: gx.Effect
 	gx.init_and_upload_effect(&swamp_effect, { "effect:swamp", { { 1, 1 }, { 1, 1 }, { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-swamp.glsl", "string:feffect-swamp.glsl", context.allocator)
+	test_effect: gx.Effect
+	gx.init_and_upload_effect(&test_effect, { "effect:test", { { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-test.glsl", "string:feffect-test.glsl", context.allocator)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
 	camera.sensor_size *= 10
@@ -90,6 +92,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	model_node.node.translate.z = -0
 	explosion_effect_node := scn.make_effect_node(scn.default_node_config(name = "explosion-effect", id = 2), &explosion_effect, context.allocator)
 	swamp_effect_node := scn.make_effect_node(scn.default_node_config(name = "swamp-effect", id = 2), &swamp_effect, context.allocator)
+	test_effect_node := scn.make_effect_node(scn.default_node_config(name = "test-effect", id = 2), &test_effect, context.allocator)
 	cube_mesh := msh.make_line_cube_mesh(context.allocator, 0.5)
 	ground_mesh := msh.make_line_ground_mesh(context.allocator, 8)
 	msh.upload_mesh(&cube_mesh)
@@ -101,9 +104,12 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	cube_mesh_node.node.translate = translate
 	scn.scene_attach(&scene, &camera_node.node)
 	scn.scene_attach(&scene, &model_node.node)
-	scn.scene_attach(&scene, &explosion_effect_node.node)
-	scn.scene_attach(&scene, &swamp_effect_node.node)
-	scn.scene_attach(&scene, &cube_mesh_node.node)
+	model_node.node.translate.y = 4
+	model_node.node.scale = 4
+	// scn.scene_attach(&scene, &explosion_effect_node.node)
+	// scn.scene_attach(&scene, &swamp_effect_node.node)
+	// scn.scene_attach(&scene, &test_effect_node.node)
+	// scn.scene_attach(&scene, &cube_mesh_node.node)
 	scn.scene_attach(&scene, &ground_mesh_node.node)
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)

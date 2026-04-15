@@ -1,4 +1,5 @@
 
+- Make all the noise functions transition smoothly from one seed to the next, ie. make them animatable.
 - Make a GLSL library of noise generators
 - Texture advection swamp shader
 - Pass the existing tests
