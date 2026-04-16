@@ -266,6 +266,7 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 	// gx_mngr.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 	// DICK
 	gx_mngr.canvas_rb = make_render_buffer(1 * gx_mngr.window_size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
+	as.register_asset_kind(as_mngr, Image_Asset, { command = image_asset_command })
 	bs.zero_stopwatch(&gx_mngr.stopwatch)
 	return nil }
 
@@ -663,9 +664,9 @@ render_rect :: proc(gx_mngr: ^Graphics_Context, rect: r.Rect, fill_color: [4]f32
 	set_shader_param(RES, la.array_cast(gx_mngr.active_resolution, f32))
 	draw_triangles(6) }
 
-render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image, rect: r.Rect, depth: f32 = 0.0) {
+render_image :: proc(gx_mngr: ^Graphics_Context, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
 	using Image_Uniforms
-	if ! image_loaded(image) do upload_image(image)
+	assert(image_loaded(image))
 	use_shader(&gx_mngr.image_shader)
 	gl.BindVertexArray(gx_mngr.vertex_array)
 	gl.BindBuffer(gl.ARRAY_BUFFER, gx_mngr.vertex_buffer)

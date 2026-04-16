@@ -1,6 +1,6 @@
-# Database
+# Asset Manager
 
-_TODO:_ Rename to asset manager.
+### Overview
 
 ![dataflow-image](../dataflow.png)
 
@@ -10,7 +10,110 @@ Assets are identified by a string URL. The URL has the form `<kind>:<name>`. The
 
 By setting the `watch` field on `Asset_Manager_Config`, you can enable the asset manager to watch for changes and automatically read, import, or load assets. This can allow you to edit assets while the game is running and see changes in real time.
 
+### Asset representations
+
+An asset can have up to five representations. None of these is mandatory.
+
+ - `Source_Directory` --- The source file from which the asset is imported.
+ - `Database_File` --- The binary file where the database stores its contents.
+ - `Database` --- The in-memory contents of the database.
+ - `Main_Memory` --- The primary in-memory representation of the asset.
+ - `GPU_Memory` --- The GPU representation of the asset.
+
+### Asset commands
+
+ - `Validate` --- Check if the asset is initialized with valid contents.
+ - `Query_Location` --- Checks which locations Updates the `location` field with the current locationns of the asset.
+ - `Import` --- Produces a database representation from a source representation.
+ - `Export` --- Produces a source representation from a database representation.
+ - `Load` --- Produces a default representation from a database representation.
+ - `Save` --- Produces a database representation from a default representation.
+ - `Upload` --- Produces a GPU representation from a default representation.
+ - `Download` --- Produces a representation from a GPU representation.
+
+### Making custom asset types
+
+To make a custom asset type, you need to do these four things:
+
+1. Define a struct type that derives from `Asset`.
+
+```c
+My_Asset :: struct {
+	using asset: Asset,
+	... }
+```
+
+2. Call `init_assset` on the `Asset` field, whenever your custom asset type is initialized.
+
+```c
+init_my_asset :: proc(
+		as_mngr: ^Asset_Manager,
+		my_asset: ^My_Asset,
+		config: Asset_Config) {
+	init_asset(as_mngr, &string_asset.asset, config)
+	... }
+```
+
+3. Define an `Asset_Command_Proc` procedure for your custom asset type.
+
+```c
+my_asset_command :: proc(
+		as_mngr: ^Asset_Manager,
+		asset: ^Asset,
+		command: Asset_Command,
+		watch: bool = false) -> (ok: bool) {
+	my_asset := asset_object(asset, My_Asset, "asset")
+	switch command {
+	case .Validate: ...
+	case .Query_Location: ...
+	case .Import: ...
+	case .Export: ...
+	case .Load: ...
+	case .Save: ...
+	case .Upload: ...
+	case .Download: ...
+	return false }
+```
+
+4. Register your custom asset type.
+
+```c
+register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
+```
+
+
+
 ### Types
+
+#### `Asset_Manager`
+
+```c
+Asset_Manager :: struct {
+	using database: Database,
+	assets: [dynamic]^Asset,
+	asset_kinds: map[typeid]Asset_Kind }
+```
+
+<details><summary>Description</summary>
+Asset manager.
+</details>
+
+#### `Asset_Command`
+
+```c
+Asset_Command :: enum {
+	Validate,
+	Initialize,
+	Query_Location,
+	Import,
+	Export,
+	Read,
+	Write,
+	Load,
+	Save,
+	Upload,
+	Download }
+```
 
 #### `URL`
 
@@ -68,6 +171,96 @@ Deserialize_Proc :: #type proc(
 	bytes: []u8,
 	allocator: rt.Allocator) -> (data: rawptr, size: u32, err: os.Error)
 ```
+
+
+
+### Procedures
+
+#### `asset_command`
+
+```c
+asset_command :: proc(
+	as_mngr: ^Asset_Manager,
+	Asset_Type: typeid,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -> (ok: bool)
+```
+
+<details><summary>Description</summary>
+Execute an asset command. <code>Asset_Type</code> must be a type that derives from <code>Asset</code>, and <code>asset</code> must be a pointer to a field in an object of that type. If <code>watch</code> is true, the command will be exucted only if the source is more recent than the target.
+</details>
+
+
+
+#### `init_asset`
+
+```c
+init_asset :: proc(
+	as_mngr: ^Asset_Manager,
+	asset: ^Asset,
+	config: Asset_Config)
+```
+
+<details><summary>Description</summary>
+Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>.
+</details>
+
+
+
+#### `asset_object`
+
+```c
+asset_object :: proc(
+	asset: ^Asset,
+	$T: typeid,
+	$field_name: string) -> (^T)
+```
+
+<details><summary>Description</summary>
+If <code>asset</code> is a pointer to a field named <code>field_name</code> in a struct of type <code>T</code>, produce a pointer to the object whose field this is.
+</details>
+
+#### `make_asset_manager`
+
+```c
+make_asset_manager :: proc(
+	config: Asset_Manager_Config,
+	allocator: rt.Allocator) -> (asset_manager: Asset_Manager)
+```
+
+<details><summary>Description</summary>
+The <code>Asset_Manager</code> constructor.
+</details>
+
+
+
+#### `register_asset_kind`
+
+```c
+register_asset_kind :: proc(
+	manager: ^Asset_Manager,
+	$Type: typeid,
+	kind: Asset_Kind)
+```
+
+<details><summary>Description</summary>
+Register a new asset kind. An asset kind must be registered for any asset type before asset commands can be executed on instances of that type.
+</details>
+
+
+
+#### `watch_assets`
+
+```c
+watch_assets :: proc(
+	manager: ^Asset_Manager)
+```
+
+<details><summary>Description</summary>
+Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
+</details>
+
 
 
 #### `make_database`

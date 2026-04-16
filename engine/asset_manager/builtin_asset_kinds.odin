@@ -21,7 +21,10 @@ String_Asset :: struct {
 	str: string }
 
 init_string_asset :: proc(as_mngr: ^Asset_Manager, string_asset: ^String_Asset, config: Asset_Config) {
+	config := config
+	config.derived_type = String_Asset
 	init_asset(as_mngr, &string_asset.asset, config)
+	// (TODO): `init_asset` should execute `.Query_Location` by default.
 	string_asset_command(as_mngr, &string_asset.asset, .Query_Location) }
 
 // (NOTE): If the "watch" field is set, then the command is called by a watcher, and it should only be executed if the source
@@ -66,7 +69,7 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 		// 	log.warnf("Loading string:\n%s\n", string_asset.str) }
 		asset.location += { .Main_Memory }
 		return true
-	case .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:
+	case .Export, .Save, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for asset kind \"string\".", command)
 		return false }
 	return false }

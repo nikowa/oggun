@@ -427,7 +427,7 @@ shader_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, comma
 		assert(as.string_asset_command(as_mngr, &shader_asset.frag_asset, .Load))
 		err := compile_shader(as_mngr, shader_asset)
 		return err == nil
-	case .Validate, .Query_Location, .Load, .Initialize, .Export, .Read, .Write, .Save, .Upload, .Download:
+	case .Validate, .Query_Location, .Load, .Export, .Save, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)
 		return false }
 	return false }

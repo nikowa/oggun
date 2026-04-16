@@ -25,12 +25,10 @@ Asset_Manager :: struct {
 
 Asset_Command :: enum {
 	Validate,
-	Initialize,
+	// Initialize,
 	Query_Location,
 	Import,
 	Export,
-	Read,
-	Write,
 	Load,
 	Save,
 	Upload,
@@ -92,4 +90,5 @@ watch_assets :: proc(manager: ^Asset_Manager) {
 		asset_kind, ok := manager.asset_kinds[asset.derived_type]
 		assert(ok)
 		asset_kind.command(manager, asset, .Import, true)
-		asset_kind.command(manager, asset, .Load, true) } }
+		asset_kind.command(manager, asset, .Load, true)
+		asset_kind.command(manager, asset, .Upload, true) } }

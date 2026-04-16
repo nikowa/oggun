@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-eee55b58.js";
+            window.path_to_searchindex_js = "searchindex-71df519a.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-67184962.js"></script>
+        <script src="toc-24371e6a.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -284,13 +284,100 @@ lock_push_pop :: proc(
 	lock: ^Lock) -&gt; bool
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="database"><a class="header" href="#database">Database</a></h1>
-<p><em>TODO:</em> Rename to asset manager.</p>
+<h1 id="asset-manager"><a class="header" href="#asset-manager">Asset Manager</a></h1>
+<h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
 <p><img src="dataflow.png" alt="dataflow-image"></p>
 <p>Database is an abstraction layer between the in-memory and on-disk representations of assets. It’s purpose is to make it so you don’t have to think about where the assets are coming from and to automate updating and reloading them.</p>
 <p>Assets are identified by a string URL. The URL has the form <code>&lt;kind&gt;:&lt;name&gt;</code>. The intended way of managing assets is by registering their kinds at initialization time, then loading them and then saving them at deinitialization time; The database will automatically do the importing, reading, and writing for you. However, if you want, you can also import, read, or write manually.</p>
 <p>By setting the <code>watch</code> field on <code>Asset_Manager_Config</code>, you can enable the asset manager to watch for changes and automatically read, import, or load assets. This can allow you to edit assets while the game is running and see changes in real time.</p>
+<h3 id="asset-representations"><a class="header" href="#asset-representations">Asset representations</a></h3>
+<p>An asset can have up to five representations. None of these is mandatory.</p>
+<ul>
+<li><code>Source_Directory</code> — The source file from which the asset is imported.</li>
+<li><code>Database_File</code> — The binary file where the database stores its contents.</li>
+<li><code>Database</code> — The in-memory contents of the database.</li>
+<li><code>Main_Memory</code> — The primary in-memory representation of the asset.</li>
+<li><code>GPU_Memory</code> — The GPU representation of the asset.</li>
+</ul>
+<h3 id="asset-commands"><a class="header" href="#asset-commands">Asset commands</a></h3>
+<ul>
+<li><code>Validate</code> — Check if the asset is initialized with valid contents.</li>
+<li><code>Query_Location</code> — Checks which locations Updates the <code>location</code> field with the current locationns of the asset.</li>
+<li><code>Import</code> — Produces a database representation from a source representation.</li>
+<li><code>Export</code> — Produces a source representation from a database representation.</li>
+<li><code>Load</code> — Produces a default representation from a database representation.</li>
+<li><code>Save</code> — Produces a database representation from a default representation.</li>
+<li><code>Upload</code> — Produces a GPU representation from a default representation.</li>
+<li><code>Download</code> — Produces a representation from a GPU representation.</li>
+</ul>
+<h3 id="making-custom-asset-types"><a class="header" href="#making-custom-asset-types">Making custom asset types</a></h3>
+<p>To make a custom asset type, you need to do these four things:</p>
+<ol>
+<li>Define a struct type that derives from <code>Asset</code>.</li>
+</ol>
+<pre><code class="language-c">My_Asset :: struct {
+	using asset: Asset,
+	... }
+</code></pre>
+<ol start="2">
+<li>Call <code>init_assset</code> on the <code>Asset</code> field, whenever your custom asset type is initialized.</li>
+</ol>
+<pre><code class="language-c">init_my_asset :: proc(
+		as_mngr: ^Asset_Manager,
+		my_asset: ^My_Asset,
+		config: Asset_Config) {
+	init_asset(as_mngr, &amp;string_asset.asset, config)
+	... }
+</code></pre>
+<ol start="3">
+<li>Define an <code>Asset_Command_Proc</code> procedure for your custom asset type.</li>
+</ol>
+<pre><code class="language-c">my_asset_command :: proc(
+		as_mngr: ^Asset_Manager,
+		asset: ^Asset,
+		command: Asset_Command,
+		watch: bool = false) -&gt; (ok: bool) {
+	my_asset := asset_object(asset, My_Asset, "asset")
+	switch command {
+	case .Validate: ...
+	case .Query_Location: ...
+	case .Import: ...
+	case .Export: ...
+	case .Load: ...
+	case .Save: ...
+	case .Upload: ...
+	case .Download: ...
+	return false }
+</code></pre>
+<ol start="4">
+<li>Register your custom asset type.</li>
+</ol>
+<pre><code class="language-c">register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
+</code></pre>
 <h3 id="types-1"><a class="header" href="#types-1">Types</a></h3>
+<h4 id="asset_manager"><a class="header" href="#asset_manager"><code>Asset_Manager</code></a></h4>
+<pre><code class="language-c">Asset_Manager :: struct {
+	using database: Database,
+	assets: [dynamic]^Asset,
+	asset_kinds: map[typeid]Asset_Kind }
+</code></pre>
+<details><summary>Description</summary>
+Asset manager.
+</details>
+<h4 id="asset_command"><a class="header" href="#asset_command"><code>Asset_Command</code></a></h4>
+<pre><code class="language-c">Asset_Command :: enum {
+	Validate,
+	Initialize,
+	Query_Location,
+	Import,
+	Export,
+	Read,
+	Write,
+	Load,
+	Save,
+	Upload,
+	Download }
+</code></pre>
 <h4 id="url"><a class="header" href="#url"><code>URL</code></a></h4>
 <pre><code class="language-c">URL :: distinct string
 </code></pre>
@@ -299,7 +386,7 @@ lock_push_pop :: proc(
 	relpath: string,
 	source_directory_relpath: string }
 </code></pre>
-<h4 id="database-1"><a class="header" href="#database-1"><code>Database</code></a></h4>
+<h4 id="database"><a class="header" href="#database"><code>Database</code></a></h4>
 <pre><code class="language-c">Database :: struct {
 	using config: Database_Config,
 	entries: [dynamic]Entry,
@@ -327,6 +414,60 @@ lock_push_pop :: proc(
 	bytes: []u8,
 	allocator: rt.Allocator) -&gt; (data: rawptr, size: u32, err: os.Error)
 </code></pre>
+<h3 id="procedures-1"><a class="header" href="#procedures-1">Procedures</a></h3>
+<h4 id="asset_command-1"><a class="header" href="#asset_command-1"><code>asset_command</code></a></h4>
+<pre><code class="language-c">asset_command :: proc(
+	as_mngr: ^Asset_Manager,
+	Asset_Type: typeid,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<details><summary>Description</summary>
+Execute an asset command. <code>Asset_Type</code> must be a type that derives from <code>Asset</code>, and <code>asset</code> must be a pointer to a field in an object of that type. If <code>watch</code> is true, the command will be exucted only if the source is more recent than the target.
+</details>
+<h4 id="init_asset"><a class="header" href="#init_asset"><code>init_asset</code></a></h4>
+<pre><code class="language-c">init_asset :: proc(
+	as_mngr: ^Asset_Manager,
+	asset: ^Asset,
+	config: Asset_Config)
+</code></pre>
+<details><summary>Description</summary>
+Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>.
+</details>
+<h4 id="asset_object"><a class="header" href="#asset_object"><code>asset_object</code></a></h4>
+<pre><code class="language-c">asset_object :: proc(
+	asset: ^Asset,
+	$T: typeid,
+	$field_name: string) -&gt; (^T)
+</code></pre>
+<details><summary>Description</summary>
+If <code>asset</code> is a pointer to a field named <code>field_name</code> in a struct of type <code>T</code>, produce a pointer to the object whose field this is.
+</details>
+<h4 id="make_asset_manager"><a class="header" href="#make_asset_manager"><code>make_asset_manager</code></a></h4>
+<pre><code class="language-c">make_asset_manager :: proc(
+	config: Asset_Manager_Config,
+	allocator: rt.Allocator) -&gt; (asset_manager: Asset_Manager)
+</code></pre>
+<details><summary>Description</summary>
+The <code>Asset_Manager</code> constructor.
+</details>
+<h4 id="register_asset_kind"><a class="header" href="#register_asset_kind"><code>register_asset_kind</code></a></h4>
+<pre><code class="language-c">register_asset_kind :: proc(
+	manager: ^Asset_Manager,
+	$Type: typeid,
+	kind: Asset_Kind)
+</code></pre>
+<details><summary>Description</summary>
+Register a new asset kind. An asset kind must be registered for any asset type before asset commands can be executed on instances of that type.
+</details>
+<h4 id="watch_assets"><a class="header" href="#watch_assets"><code>watch_assets</code></a></h4>
+<pre><code class="language-c">watch_assets :: proc(
+	manager: ^Asset_Manager)
+</code></pre>
+<details><summary>Description</summary>
+Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
+</details>
 <h4 id="make_database"><a class="header" href="#make_database"><code>make_database</code></a></h4>
 <p>Database constructor.</p>
 <pre><code class="language-c">make_database :: proc(
@@ -549,7 +690,7 @@ for {
 	buffer: [2]T,
 	len: u8 }
 </code></pre>
-<h3 id="procedures-1"><a class="header" href="#procedures-1">Procedures</a></h3>
+<h3 id="procedures-2"><a class="header" href="#procedures-2">Procedures</a></h3>
 <h4 id="init"><a class="header" href="#init"><code>init</code></a></h4>
 <pre><code class="language-c">init :: proc(two_stack: ^Two_Stack($T))
 </code></pre>
@@ -594,7 +735,7 @@ for {
 	url: db.URL,
 	using image: im.Image }
 </code></pre>
-<h3 id="procedures-2"><a class="header" href="#procedures-2">Procedures</a></h3>
+<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
 <h4 id="image_equiv"><a class="header" href="#image_equiv"><code>image_equiv</code></a></h4>
 <pre><code class="language-c">image_equiv :: proc(
 	a: ^Image,
@@ -825,7 +966,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	node: Node,
 	using model: ^gx.Model }
 </code></pre>
-<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
+<h3 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h3>
 <h4 id="make_scene"><a class="header" href="#make_scene"><code>make_scene</code></a></h4>
 <p>The intended way to construct a <code>Scene</code>.</p>
 <pre><code class="language-c">make_scene :: proc(
@@ -1000,7 +1141,7 @@ example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	dll_relpath: string,
 	modification_time: tm.Time }
 </code></pre>
-<h3 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h3>
+<h3 id="procedures-5"><a class="header" href="#procedures-5">Procedures</a></h3>
 <h4 id="make_dll"><a class="header" href="#make_dll"><code>make_dll</code></a></h4>
 <pre><code class="language-c">make_dll :: proc(
 	$T: typeid,

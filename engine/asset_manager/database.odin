@@ -390,7 +390,12 @@ url_search_source :: proc(database: ^Database, url: URL, allocator: rt.Allocator
 	url_name = url_split(url, context.temp_allocator)[1]
 	source_directory_path = relpath_to_path(database.source_directory_relpath, allocator)
 	file_infos = os.read_directory_by_path(source_directory_path, -1, context.temp_allocator) or_return
-	for file_info in file_infos do if sp.name(file_info.name, false, context.temp_allocator) == url_name do return str.clone(file_info.fullpath, allocator), os.General_Error.None
+	if os.ext(url_name) == "" {
+		for file_info in file_infos do if sp.name(file_info.name, false, context.temp_allocator) == url_name {
+			return str.clone(file_info.fullpath, allocator), os.General_Error.None } }
+	else {
+		for file_info in file_infos do if file_info.name == url_name {
+			return str.clone(file_info.fullpath, allocator), os.General_Error.None } }
 	return "", os.General_Error.Not_Exist }
 
 @(private="file")

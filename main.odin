@@ -39,7 +39,7 @@ main :: proc() {
 entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	entry: ^as.Entry
 	ok: bool
-	image: gx.Image
+	image: gx.Image_Asset
 	model: gx.Model
 	err: os.Error
 	model_node: ^scn.Model_Node
@@ -72,7 +72,13 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	gx.graphics_init(&gx_mngr, &as_mngr, gx.DEFAULT_GRAPHICS_CONFIG, "Willow")
 	// gx.graphics_init(&gx_mngr, &as_mngr, { window_size = { 1920, 1080 } }, "Willow")
-	image, _ = gx.import_or_retreive_image(&as_mngr, "image:kitten", context.allocator)
+
+
+// DICK
+	gx.init_image(&as_mngr, &image, { url = "image:kitten.png" })
+	assert(gx.image_asset_command(&as_mngr, &image, .Import))
+	assert(gx.image_asset_command(&as_mngr, &image, .Load))
+	assert(gx.image_asset_command(&as_mngr, &image, .Upload))
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
 	explosion_effect: gx.Effect
@@ -129,7 +135,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		gx.graphics_tick(&gx_mngr)
 		// log.info(string_asset.str)
 		// gx.render_rect(&gx_mngr, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
-		// gx.render_image(&gx_mngr, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
+		gx.render_image(&gx_mngr, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
 		scn.render_scene(&gx_mngr, &scene, camera_node) }
 	as.write(&as_mngr, context.allocator)
 	return }
