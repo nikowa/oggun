@@ -14,7 +14,11 @@ release:
 	./build.exe -release
 
 test:
-	odin test engine/tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
+	odin test shared/willow/tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
 
 doc:
-	mdbook serve engine\doc
+	mdbook serve shared/willow\doc
+
+lib:
+	odin build shared/willow -out:willow.exe -subsystem:console -debug -max-error-count:8
+	./willow.exe install
