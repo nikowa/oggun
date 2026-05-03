@@ -76,21 +76,10 @@ Surfer_State :: enum {
 	// Camera on surf, surfer standing on surf. //
 	STANDING             = 0b0010_0000 }
 
-
 Control :: enum { SURF, SURFER }
-
-
-Material :: struct {
-	name:               string,
-	metallic_factor:    f32,
-	roughness_factor:   f32,
-	base_color_texture: Texture }
-
 
 Draw_Flag :: enum {
 	EFFECTS,
 	MODELS }
 
-
 Draw_Mask :: bit_set[Draw_Flag]
-

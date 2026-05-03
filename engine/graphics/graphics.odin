@@ -245,11 +245,11 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 	init_shader_asset(&gx_mngr.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, gx_mngr, as_mngr) or_return
 	init_shader_asset(&gx_mngr.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, gx_mngr, as_mngr) or_return
 	init_shader_asset(&gx_mngr.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }, gx_mngr, as_mngr) or_return
-	assert(shader_asset_command(as_mngr, &gx_mngr.rect_shader.asset, .Import))
-	assert(shader_asset_command(as_mngr, &gx_mngr.image_shader.asset, .Import))
-	assert(shader_asset_command(as_mngr, &gx_mngr.model_shader.asset, .Import))
-	assert(shader_asset_command(as_mngr, &gx_mngr.mesh_shader.asset, .Import))
-	assert(shader_asset_command(as_mngr, &gx_mngr.buffer_shader.asset, .Import))
+	assert(as.asset_command(as_mngr, Shader_Asset, &gx_mngr.rect_shader.asset, .Import))
+	assert(as.asset_command(as_mngr, Shader_Asset, &gx_mngr.image_shader.asset, .Import))
+	assert(as.asset_command(as_mngr, Shader_Asset, &gx_mngr.model_shader.asset, .Import))
+	assert(as.asset_command(as_mngr, Shader_Asset, &gx_mngr.mesh_shader.asset, .Import))
+	assert(as.asset_command(as_mngr, Shader_Asset, &gx_mngr.buffer_shader.asset, .Import))
 	// gx_mngr.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 	// gx_mngr.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 	// gx_mngr.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
@@ -267,6 +267,7 @@ graphics_init :: proc(gx_mngr: ^Graphics_Context, as_mngr: ^as.Asset_Manager, co
 	// DICK
 	gx_mngr.canvas_rb = make_render_buffer(1 * gx_mngr.window_size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 	as.register_asset_kind(as_mngr, Image_Asset, { command = image_asset_command })
+	as.register_asset_kind(as_mngr, Material_Asset, { command = image_asset_command })
 	bs.zero_stopwatch(&gx_mngr.stopwatch)
 	return nil }
 

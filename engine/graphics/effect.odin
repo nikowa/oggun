@@ -28,7 +28,7 @@ init_effect :: proc(effect: ^Effect, config: Effect_Config, gx_mngr: ^Graphics_C
 	for res, i in config.surface_res do msh.builder_append_2d_square_grid(&mesh_builder, grid_size = res)
 	effect.mesh = msh.mesh_from_builder(mesh_builder)
 	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url }, gx_mngr, as_mngr)
-	assert(shader_asset_command(as_mngr, &effect.shader.asset, .Import)) }
+	as.asset_commands(as_mngr, Shader_Asset, &effect.shader.asset, { .Import, .Load, .Upload }) }
 
 upload_effect :: proc(effect: ^Effect) -> bool {
 	if effect.mesh.verts_handle != 0 do download_effect(effect)

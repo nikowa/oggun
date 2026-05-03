@@ -63,6 +63,11 @@ asset_command :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset
 	when ODIN_DEBUG do asset_kind.command(manager, asset, .Validate, false)
 	return asset_kind.command(manager, asset, command, watch) }
 
+asset_commands :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, commands: []Asset_Command, watch: bool = false) -> (ok: bool) {
+	ok = true
+	for command in commands do ok &&= asset_command(manager, Asset_Type, asset, command, watch)
+	return ok }
+
 init_asset :: proc(manager: ^Asset_Manager, asset: ^Asset, config: Asset_Config) {
 	// log.info("Initializing asset of type", type_info_of(config.derived_type).id)
 	asset.asset_config = config

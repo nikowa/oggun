@@ -55,6 +55,7 @@ image_modification_time :: proc(as_mngr: ^as.Asset_Manager, image: ^Image_Asset,
 		return image.gpu_modification_time }
 	return {} }
 
+@private
 image_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, command: as.Asset_Command, watch: bool = false) -> (ok: bool) {
 	image := as.asset_object(asset, Image_Asset, "asset")
 	switch command {

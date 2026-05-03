@@ -415,19 +415,23 @@ shader_asset_command :: proc(as_mngr: ^as.Asset_Manager, asset: ^as.Asset, comma
 	assert((as_mngr != nil) && (assert != nil))
 	shader_asset := as.asset_object(asset, Shader_Asset, "asset")
 	switch command {
+	case .Validate:
+		return true
 	case .Import:
 		if watch {
 			if ! shader_outdated(shader_asset, as_mngr) do return
 			// If one of the strings' modification times are newer than the shader's modification time, update the shader with
 			// the new strings.
 		}
-		assert(as.string_asset_command(as_mngr, &shader_asset.vert_asset, .Import))
-		assert(as.string_asset_command(as_mngr, &shader_asset.frag_asset, .Import))
-		assert(as.string_asset_command(as_mngr, &shader_asset.vert_asset, .Load))
-		assert(as.string_asset_command(as_mngr, &shader_asset.frag_asset, .Load))
+		assert(as.asset_command(as_mngr, as.String_Asset, &shader_asset.vert_asset, .Import))
+		assert(as.asset_command(as_mngr, as.String_Asset, &shader_asset.frag_asset, .Import))
+		return true
+	case .Load:
+		assert(as.asset_command(as_mngr, as.String_Asset, &shader_asset.vert_asset, .Load))
+		assert(as.asset_command(as_mngr, as.String_Asset, &shader_asset.frag_asset, .Load))
 		err := compile_shader(as_mngr, shader_asset)
 		return err == nil
-	case .Validate, .Query_Location, .Load, .Export, .Save, .Upload, .Download:
+	case .Query_Location, .Export, .Save, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)
 		return false }
 	return false }

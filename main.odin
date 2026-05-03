@@ -72,13 +72,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	gx.graphics_init(&gx_mngr, &as_mngr, gx.DEFAULT_GRAPHICS_CONFIG, "Willow")
 	// gx.graphics_init(&gx_mngr, &as_mngr, { window_size = { 1920, 1080 } }, "Willow")
-
-
-// DICK
 	gx.init_image(&as_mngr, &image, { url = "image:kitten.png" })
-	assert(gx.image_asset_command(&as_mngr, &image, .Import))
-	assert(gx.image_asset_command(&as_mngr, &image, .Load))
-	assert(gx.image_asset_command(&as_mngr, &image, .Upload))
+	assert(as.asset_commands(&as_mngr, gx.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
 	explosion_effect: gx.Effect
@@ -120,8 +115,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	if err != nil do log.error(err)
 	ipt.input_init(&input_context)
 	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })
-	assert(as.string_asset_command(&as_mngr, &string_asset, .Import))
-	assert(as.string_asset_command(&as_mngr, &string_asset, .Load))
+	assert(as.asset_commands(&as_mngr, as.String_Asset, &string_asset, { .Import, .Load }))
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! gx_mngr.window_closed {
 		time = bs.read_stopwatch(&stopwatch)
