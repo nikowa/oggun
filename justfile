@@ -39,3 +39,6 @@ lib:
 
 example_input:
 	odin run examples/input -debug
+
+example_gui:
+	odin run examples/gui -debug

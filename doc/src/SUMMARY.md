@@ -1,6 +1,7 @@
 # Summary
 
 - [Overview](./overview.md)
+- [CLI](./CLI.md)
 - [API](./API.md)
   - [Base](./API/base.md)
   - [Asset Manager](./API/asset_manager.md)

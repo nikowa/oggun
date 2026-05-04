@@ -3,6 +3,7 @@ import "shared:willow/base"
 import "shared:willow/graphics"
 import "shared:willow/input"
 import "shared:willow/window"
+import "shared:willow/gui"
 import "core:fmt"
 import "core:log"
 

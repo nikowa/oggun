@@ -1,13 +1,9 @@
 #+feature using-stmt
 package rect
 
-
-
 Rect :: struct {
 	pos:  [2]f32,
 	size: [2]f32 }
-
-
 
 rect_left :: proc(rect: Rect) -> f32 {
 	return rect.pos.x - rect.size.x / 2 }

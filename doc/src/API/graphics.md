@@ -1,5 +1,7 @@
 # Graphics
 
+`graphics.tick` is called *at the beginning of the frame*!
+
 ### Types
 
 #### `Image`

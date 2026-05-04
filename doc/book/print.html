@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-344a34ae.js";
+            window.path_to_searchindex_js = "searchindex-d63ab02e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-5558fee4.js"></script>
+        <script src="toc-8b987a48.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -210,6 +210,30 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 <pre><code class="language-c">
 </code></pre>
 <h2 id="start"><a class="header" href="#start">Start</a></h2>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cli"><a class="header" href="#cli">CLI</a></h1>
+<p><code>~/Willow/willow.exe</code> is a command-line utility which provides some commands that should make it easier to install and use Willow. It is entirely optional.</p>
+<h3 id="install"><a class="header" href="#install">Install</a></h3>
+<p>The <code>install</code> command copies the Willow library from Willow’s installation directory to the <code>shared/</code> folder in the Odin installation directory on your machine. You need to do this once, before using Willow in your Odin package. Alternatively, you can manually copy <code>~/Willow/shared/willow</code> to <code>~/Odin/shared/willow</code>.</p>
+<pre><code>willow install
+</code></pre>
+<h3 id="init"><a class="header" href="#init">Init</a></h3>
+<p>The <code>init</code> command initializes a starter project directory using the Willow engine. It creates a new directory, copies to it the contents of <code>~/Willow/starter</code>, and initializes a Git repo in it.</p>
+<pre><code>willow init &lt;directory-name&gt;
+</code></pre>
+<p>Invoking <code>willow init game</code> will create the following directory structure:</p>
+<pre><code>game/
+├─ data/
+│  ├─ ...
+├─ .git
+├─ main.odin
+├─ README.md
+</code></pre>
+<h3 id="check"><a class="header" href="#check">Check</a></h3>
+<p>The <code>check</code> command runs the Willow preprocessor on a given Odin package, to check whether or not Willow’s thread synchronization rules are followed.</p>
+<pre><code>willow check &lt;directory-name&gt; [-r]
+</code></pre>
+<p>If the <code>-r</code> option is enabled, Willow will also preprocess all imported packages recursively, excluding the ones from the Odin standard library.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="api"><a class="header" href="#api">API</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -691,7 +715,7 @@ for {
 	len: u8 }
 </code></pre>
 <h3 id="procedures-2"><a class="header" href="#procedures-2">Procedures</a></h3>
-<h4 id="init"><a class="header" href="#init"><code>init</code></a></h4>
+<h4 id="init-1"><a class="header" href="#init-1"><code>init</code></a></h4>
 <pre><code class="language-c">init :: proc(two_stack: ^Two_Stack($T))
 </code></pre>
 <h4 id="len"><a class="header" href="#len"><code>len</code></a></h4>
@@ -729,6 +753,7 @@ for {
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="graphics"><a class="header" href="#graphics">Graphics</a></h1>
+<p><code>graphics.tick</code> is called <em>at the beginning of the frame</em>!</p>
 <h3 id="types-3"><a class="header" href="#types-3">Types</a></h3>
 <h4 id="image"><a class="header" href="#image"><code>Image</code></a></h4>
 <pre><code class="language-c">Image :: struct {
@@ -987,7 +1012,7 @@ input_sys.process(&amp;in_mngr)
 	input: Input,
 	$variant: Query_Variant) -&gt; bool
 </code></pre>
-<h4 id="init-1"><a class="header" href="#init-1"><code>init</code></a></h4>
+<h4 id="init-2"><a class="header" href="#init-2"><code>init</code></a></h4>
 <pre><code class="language-c">init :: proc(
 	im: ^Input_Manager,
 	window: glfw.WindowHandle)
