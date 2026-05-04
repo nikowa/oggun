@@ -33,6 +33,7 @@ doc:
 	mdbook serve doc
 
 lib:
+	cls
 	odin build shared/willow -out:willow.exe -subsystem:console -debug -max-error-count:8
 	./willow.exe install
 

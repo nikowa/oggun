@@ -28,8 +28,8 @@ Example_DLL :: struct {
 	dev_tick: proc(camera_node: ^scn.Camera_Node, done_onces: ^map[rt.Source_Code_Location]bool, time: f32) }
 
 as_mngr: as.Asset_Manager
-gx_mngr: gx.Graphics_Context
-in_mngr: input.Input_Manager
+graphics_manager: gx.Graphics_Context
+input_manager: input.Input_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -70,18 +70,18 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		source_directory_relpath = "data",
 		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	gx.graphics_init(&gx_mngr, &as_mngr, gx.DEFAULT_GRAPHICS_CONFIG, "Willow")
-	// gx.graphics_init(&gx_mngr, &as_mngr, { window_size = { 1920, 1080 } }, "Willow")
+	gx.graphics_init(&graphics_manager, &as_mngr, gx.DEFAULT_GRAPHICS_CONFIG, "Willow")
+	// gx.graphics_init(&graphics_manager, &as_mngr, { window_size = { 1920, 1080 } }, "Willow")
 	gx.init_image(&as_mngr, &image, { url = "image:kitten.png" })
 	assert(as.asset_commands(&as_mngr, gx.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
 	explosion_effect: gx.Effect
-	gx.init_and_upload_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &gx_mngr, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
+	gx.init_and_upload_effect(&explosion_effect, { "effect:explosion", { { 24, 24 }, { 16, 16 } } }, &graphics_manager, &as_mngr, "string:veffect-explosion.glsl", "string:feffect-explosion.glsl", context.allocator)
 	swamp_effect: gx.Effect
-	gx.init_and_upload_effect(&swamp_effect, { "effect:swamp", { { 1, 1 }, { 1, 1 }, { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-swamp.glsl", "string:feffect-swamp.glsl", context.allocator)
+	gx.init_and_upload_effect(&swamp_effect, { "effect:swamp", { { 1, 1 }, { 1, 1 }, { 1, 1 } } }, &graphics_manager, &as_mngr, "string:veffect-swamp.glsl", "string:feffect-swamp.glsl", context.allocator)
 	test_effect: gx.Effect
-	gx.init_and_upload_effect(&test_effect, { "effect:test", { { 1, 1 } } }, &gx_mngr, &as_mngr, "string:veffect-test.glsl", "string:feffect-test.glsl", context.allocator)
+	gx.init_and_upload_effect(&test_effect, { "effect:test", { { 1, 1 } } }, &graphics_manager, &as_mngr, "string:veffect-test.glsl", "string:feffect-test.glsl", context.allocator)
 	scene = scn.make_scene("scene:castle")
 	camera = scn.DEFAULT_CAMERA
 	camera.sensor_size *= 10
@@ -113,25 +113,25 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	// scn.scene_attach(&scene, &cube_mesh_node.node)
 	scn.scene_attach(&scene, &ground_mesh_node.node)
 	if err != nil do log.error(err)
-	input.input_init(&in_mngr, gx_mngr.window)
+	input.input_init(&input_manager, graphics_manager.window)
 	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })
 	assert(as.asset_commands(&as_mngr, as.String_Asset, &string_asset, { .Import, .Load }))
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
-	for ! gx_mngr.window_closed {
+	for ! graphics_manager.window_closed {
 		time = bs.read_stopwatch(&stopwatch)
 		example_dll.dev_tick(camera_node, &done_onces, time)
 		dll.watch_dll(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		as.watch_assets(&as_mngr) // TEMP
 		// as.autosave(&as_mngr) // TEMP
-		input.input_tick(&in_mngr)
+		input.input_tick(&input_manager)
 		scn.tick_scene(&scene)
-		gx.graphics_tick(&gx_mngr)
+		gx.graphics_tick(&graphics_manager)
 		// log.info(string_asset.str)
-		// gx.render_rect(&gx_mngr, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
-		gx.render_image(&gx_mngr, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
-		if input.input_down(&in_mngr, .W) do fmt.println("W")
-		scn.render_scene(&gx_mngr, &scene, camera_node) }
+		// gx.render_rect(&graphics_manager, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
+		gx.render_image(&graphics_manager, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
+		if input.input_down(&input_manager, .W) do fmt.println("W")
+		scn.render_scene(&graphics_manager, &scene, camera_node) }
 	as.write(&as_mngr, context.allocator)
 	return }
 

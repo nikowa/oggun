@@ -1,12 +1,14 @@
 package example_input
 import "shared:willow/base"
-import "shared:willow/graphics_sys"
-import "shared:willow/input_sys"
+import "shared:willow/graphics"
+import "shared:willow/input"
+import "shared:willow/window"
 import "core:fmt"
 import "core:log"
 
-gx_mngr: graphics_sys.Graphics_Context
-in_mngr: input_sys.Input_Manager
+graphics_manager: graphics.Graphics_Context
+input_manager: input.Input_Manager
+window_manager: window.Window_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -18,13 +20,17 @@ query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
 @(export)
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	context.logger = log.create_console_logger()
-	input_sys.init(&in_mngr, gx_mngr.window)
-	input_sys.raw_input_init()
-	graphics_sys.init(gx_mngr = &gx_mngr, in_mngr = &in_mngr, config = graphics_sys.DEFAULT_GRAPHICS_CONFIG, title = "Willow")
-	for ! gx_mngr.window_closed {
-		input_sys.process(&in_mngr)
-		graphics_sys.tick(&gx_mngr)
-		if input_sys.query(&in_mngr, .W, .Pressed) do fmt.println("W")
+	window.init(&window_manager, window.WINDOW_CONFIG_DEFAULT)
+	input.init(&input_manager, &window_manager)
+	input.raw_input_init()
+	graphics.init(
+		graphics_manager = &graphics_manager,
+		graphics_config = { window_manager = &window_manager },
+		title = "Willow")
+	for ! graphics_manager.window_closed {
+		input.process(&input_manager)
+		graphics.tick(&graphics_manager)
+		if input.query(&input_manager, .W, .Pressed) do fmt.println("W")
 		}
 	k: f32 = query().scalar
 	return }
