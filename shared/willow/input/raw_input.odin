@@ -2,21 +2,24 @@ package input
 import "../window"
 import "core:fmt"
 import "core:sys/windows"
+import glfw "vendor:glfw"
 
 Raw_Input_Manager :: struct {
-
 }
 
-Raw_Mouse :: struct {
-}
+// Raw_Mouse :: struct {
+// }
 
-Raw_Keyboard :: struct {
-}
+// Raw_Keyboard :: struct {
+// }
 
-raw_input_init :: proc() {
-	// Configure GLFW //
-	// glfw.SetInputMode(graphics_manager.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
-
+raw_input_init :: proc(raw_input_manager: ^Raw_Input_Manager, input_manager: ^Input_Manager, window_manager: ^window.Window_Manager) {
+	switch window_manager.backend {
+	case .GLFW:
+		glfw.SetInputMode(auto_cast window_manager.handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+		assert(auto_cast glfw.RawMouseMotionSupported())
+		glfw.SetInputMode(auto_cast window_manager.handle, glfw.RAW_MOUSE_MOTION, auto_cast true)
+	case .Win32:
 	// Get handles //
 	devices: []windows.RAWINPUTDEVICELIST
 	n_devices: u32
@@ -58,4 +61,4 @@ raw_input_init :: proc() {
 
 	// "Note that an application can register a device that is not currently attached to the system. When this device is attached, the Windows Manager will automatically send the raw input to the application." //
 
-	assert(cast(bool)windows.RegisterRawInputDevices(&raw_input_devices[0], cast(u32)len(raw_input_devices), size_of(raw_input_devices[0]))) }
+	assert(cast(bool)windows.RegisterRawInputDevices(&raw_input_devices[0], cast(u32)len(raw_input_devices), size_of(raw_input_devices[0]))) } }

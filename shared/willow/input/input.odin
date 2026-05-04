@@ -7,7 +7,11 @@ import "base:runtime"
 import "vendor:glfw"
 import "core:container/bit_array"
 
+Input_Config :: struct #all_or_none {
+	raw_input: bool }
+
 Input_Manager :: struct {
+	using input_config: Input_Config,
 	mouse_position: [2]f32,
 	mouse_delta: [2]f32,
 	scroll_delta: f32,
@@ -18,7 +22,8 @@ Input_Manager :: struct {
 Input_Manager_Private :: struct {
 	inputs_pressed: bit_array.Bit_Array,
 	old_inputs_pressed: bit_array.Bit_Array,
-	inputs_switched: bit_array.Bit_Array }
+	inputs_switched: bit_array.Bit_Array,
+	raw_input_manager: ^Raw_Input_Manager }
 
 Input :: enum uint {
 	Space = 32,
@@ -260,7 +265,8 @@ query :: proc(input_manager: ^Input_Manager, input: Input, $variant: Query_Varia
 // 	just_switched = input_switched(input_manager, input)
 // 	return state, just_switched }
 
-init :: proc(input_manager: ^Input_Manager, window_manager: ^window.Window_Manager) {
+init :: proc(input_manager: ^Input_Manager, window_manager: ^window.Window_Manager, input_config: Input_Config) {
+	input_manager.input_config = input_config
 	init_bits_array(&input_manager.inputs_pressed)
 	init_bits_array(&input_manager.old_inputs_pressed)
 	init_bits_array(&input_manager.inputs_switched)
@@ -278,7 +284,9 @@ init :: proc(input_manager: ^Input_Manager, window_manager: ^window.Window_Manag
 		// glfw.SetDropCallback(draw.window, drop_callback)
 		// glfw.SetInputMode(draw.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
-	case .Win32:
-	}
+	case .Win32: }
+	if input_config.raw_input {
+		input_manager.raw_input_manager = new(Raw_Input_Manager)
+		raw_input_init(input_manager.raw_input_manager, input_manager, window_manager) }
 // 	if glfw.JoystickPresent(glfw.JOYSTICK_1) && glfw.JoystickIsGamepad(glfw.JOYSTICK_1) {}
 }

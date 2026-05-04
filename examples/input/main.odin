@@ -21,8 +21,7 @@ query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	context.logger = log.create_console_logger()
 	window.init(&window_manager, window.WINDOW_CONFIG_DEFAULT)
-	input.init(&input_manager, &window_manager)
-	input.raw_input_init()
+	input.init(&input_manager, &window_manager, { raw_input = true })
 	graphics.init(
 		graphics_manager = &graphics_manager,
 		graphics_config = { window_manager = &window_manager },
