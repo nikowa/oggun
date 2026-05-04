@@ -6,10 +6,9 @@ layout(location = 3) uniform vec4 fill_color;
 layout(location = 4) uniform float rounding;
 in vec2 tex_coord;
 
-
-
 void main(void) {
 	color = fill_color;
+	gl_FragDepth = 0.5;
 	return;
 	vec2 p=gl_FragCoord.xy-res*0.5-pos;
 	vec2 b=size/2-vec2(rounding);
@@ -18,4 +17,3 @@ void main(void) {
 	if(dist<rounding) { color=fill_color; }
 	if(dist>(rounding-2)) { color.xyz=vec3(1); }
 	if(dist>(rounding-1)) { color.xyz=vec3(0); } }
-

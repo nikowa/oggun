@@ -35,7 +35,7 @@ CYAN: [4]f32 : {0, 1, 1, 1}
 Graphics_Config :: struct #all_or_none {
 	window_manager: ^window.Window_Manager }
 
-Graphics_Context :: struct {
+Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
 	window_closed: bool,
 // 	fullscreen:                      bool,
@@ -106,7 +106,7 @@ Render_Buffer :: struct {
 // 	buffers:                  [][]u8 }
 
 init :: proc(
-	graphics_manager: ^Graphics_Context = nil,
+	graphics_manager: ^Graphics_Manager = nil,
 	as_mngr: ^asset_manager.Asset_Manager = nil,
 	graphics_config: Graphics_Config = {},
 	title: string = "") -> (err: os.Error) {
@@ -152,7 +152,7 @@ init :: proc(
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.FrontFace(gl.CCW)
-	gl.Enable(gl.CULL_FACE)
+	// gl.Enable(gl.CULL_FACE) // (TODO): Some shaders are rendered the wrong way around, so this is disabled termporarily.
 	gl.CullFace(gl.FRONT)
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -254,7 +254,7 @@ init :: proc(
 	bs.zero_stopwatch(&graphics_manager.stopwatch)
 	return nil }
 
-select_render_buffer :: proc(graphics_manager: ^Graphics_Context, render_buffer: ^Render_Buffer) {
+select_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer: ^Render_Buffer) {
 	if render_buffer == nil { select_frame_buffer(graphics_manager, 0) }
 	graphics_manager.active_resolution = render_buffer.size
 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
@@ -265,7 +265,7 @@ clear_render_buffer :: proc(render_buffer: ^Render_Buffer) {
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 	gl.Clear(gl.DEPTH_BUFFER_BIT) }
 
-select_frame_buffer :: proc(graphics_manager: ^Graphics_Context, frame_buffer_handle: u32) {
+select_frame_buffer :: proc(graphics_manager: ^Graphics_Manager, frame_buffer_handle: u32) {
 	graphics_manager.active_resolution = graphics_manager.window_manager.size
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
 	gl.Viewport(0, 0, cast(i32)graphics_manager.window_manager.size.x, cast(i32)graphics_manager.window_manager.size.y) }
@@ -364,7 +364,6 @@ init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]f32, internal
 			gl.BindTexture(gl.TEXTURE_2D, 0)
 			gl.FramebufferTexture2D(gl.FRAMEBUFFER, cast(u32)(gl.COLOR_ATTACHMENT0+i), gl.TEXTURE_2D, cast(u32)render_buffer.texture_handles[i], 0) } }
 	status := gl.CheckFramebufferStatus(gl.FRAMEBUFFER)
-	log.error(status)
 	assert(status == gl.FRAMEBUFFER_COMPLETE)
 	gl.GenRenderbuffers(1, cast(^u32)&render_buffer.render_buffer_handle)
 	if depth_component {
@@ -638,17 +637,17 @@ set_depth_test :: proc(value: bool) {
 // 	render_rect_outlined(draw, pos = pos + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
 // 	render_rect_outlined(draw, pos = pos + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-render_rect :: proc(graphics_manager: ^Graphics_Context, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
+render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
 	using Rect_Shader_Uniforms
 	use_shader(&graphics_manager.rect_shader)
 	set_shader_param(POS, rect.pos)
 	set_shader_param(SIZE, rect.size)
 	set_shader_param(FILL_COLOR, fill_color)
 	set_shader_param(ROUNDING, rounding)
-	set_shader_param(RES, la.array_cast(graphics_manager.active_resolution, f32))
+	set_shader_param(RES, graphics_manager.active_resolution)
 	draw_triangles(6) }
 
-render_image :: proc(graphics_manager: ^Graphics_Context, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
+render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
 	using Image_Uniforms
 	assert(image_loaded(image))
 	use_shader(&graphics_manager.image_shader)
@@ -661,7 +660,7 @@ render_image :: proc(graphics_manager: ^Graphics_Context, image: ^Image_Asset, r
 	texture_filtering(gl.NEAREST)
 	draw_triangles(6) }
 
-render_render_buffer :: proc(graphics_manager: ^Graphics_Context, render_buffer: ^Render_Buffer, channel: u32) {
+render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer: ^Render_Buffer, channel: u32) {
 	using Buffer_Shader_Uniforms
 	use_shader(&graphics_manager.buffer_shader)
 	set_shader_param(RES, la.array_cast(graphics_manager.active_resolution, f32))
@@ -882,7 +881,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Context, render_buffer:
 
 
 // DICK
-// get_hovered_id :: proc(graphics_manager: ^Graphics_Context, mouse_pos: [2]f32) -> u32 {
+// get_hovered_id :: proc(graphics_manager: ^Graphics_Manager, mouse_pos: [2]f32) -> u32 {
 // 	result: u8
 // 	pos:    [2]f32
 
@@ -1140,7 +1139,7 @@ error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, leng
 // 	return ptr }
 
 @(deferred_in=tick_end)
-tick :: proc(graphics_manager: ^Graphics_Context) {
+tick :: proc(graphics_manager: ^Graphics_Manager) {
 	tick_begin(graphics_manager) }
 
 // // TODO: Make sure that whenever this job is created, these filters are applied. //
@@ -1155,7 +1154,7 @@ tick :: proc(graphics_manager: ^Graphics_Context) {
 // 	working_directory_path: string }
 // draw_tick_filters: Thread_Filters : { .MAIN_THREAD }
 // @(tag = "job")
-tick_begin :: proc(graphics_manager: ^Graphics_Context) {
+tick_begin :: proc(graphics_manager: ^Graphics_Manager) {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	glfw.PollEvents()
 	clear_frame_buffer(0)
@@ -1164,7 +1163,7 @@ tick_begin :: proc(graphics_manager: ^Graphics_Context) {
 	clear_render_buffer(&graphics_manager.canvas_rb)
 	set_depth_test(true) }
 
-tick_end :: proc(graphics_manager: ^Graphics_Context) {
+tick_end :: proc(graphics_manager: ^Graphics_Manager) {
 	set_depth_test(false)
 	select_frame_buffer(graphics_manager, 0)
 	if graphics_manager.buffer_shader.handle != 0 do render_render_buffer(graphics_manager, &graphics_manager.canvas_rb, 0)

@@ -34,7 +34,7 @@ import im "core:image"
 // 	handle: u32,
 // 	using image: im.Image }
 
-// add_texture :: proc(graphics_context: ^Graphics_Context, texture: Texture) -> (texture_ptr: ^Texture) {
+// add_texture :: proc(graphics_context: ^Graphics_Manager, texture: Texture) -> (texture_ptr: ^Texture) {
 // 	append(&graphics_context.textures, texture)
 // 	texture_ptr = &graphics_context.textures[len(graphics_context.textures) - 1]
 // 	graphics_context.textures_map[url] = texture_ptr
@@ -110,7 +110,7 @@ import im "core:image"
 // 	texture.image = { width = size.x, height = size.y, channels = channels, depth = depth, pixels = buffer }
 // 	return true }
 
-// init_texture_from_url :: proc(graphics_context: ^Graphics_Context, config: Texture_Config) -> (err: os.Error) {
+// init_texture_from_url :: proc(graphics_context: ^Graphics_Manager, config: Texture_Config) -> (err: os.Error) {
 // 	texture: Texture
 // 	path: string
 // 	texture_image: ^im.Image

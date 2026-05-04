@@ -3,11 +3,13 @@ set shell := ["powershell.exe", "-c"]
 
 default: run
 
+flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
+
 build:
-	odin build . -out:main.exe -subsystem:console -debug -max-error-count:8
+	odin build . -out:main.exe {{flags}}
 
 run:
-	odin run . -out:main.exe -subsystem:console -debug -max-error-count:8 -extra-linker-flags:"/ignore:4099"
+	odin run . -out:main.exe {{flags}}
 
 release:
 	make -C ./build
@@ -34,11 +36,13 @@ doc:
 
 lib:
 	cls
-	odin build shared/willow -out:willow.exe -subsystem:console -debug -max-error-count:8
+	odin build shared/willow -out:willow.exe  {{flags}}
 	./willow.exe install
 
 example_input:
-	odin run examples/input -debug
+	odin build examples/input -out:examples/input/input.exe {{flags}}
+	examples/input/input.exe
 
 example_gui:
-	odin run examples/gui -debug
+	odin build examples/gui -out:examples/gui/gui.exe {{flags}}
+	examples/gui/gui.exe

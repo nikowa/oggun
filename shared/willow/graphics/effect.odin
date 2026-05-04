@@ -20,7 +20,7 @@ Effect :: struct {
 	shader: Shader_Asset,
 	mesh: msh.Mesh(2) }
 
-init_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Context, as_mngr: ^asset_manager.Asset_Manager, vert_url, frag_url: asset_manager.URL, allocator: rt.Allocator) {
+init_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Manager, as_mngr: ^asset_manager.Asset_Manager, vert_url, frag_url: asset_manager.URL, allocator: rt.Allocator) {
 	err: os.Error
 	mesh_builder: msh.Mesh_Builder(2)
 	effect.config = config
@@ -40,7 +40,7 @@ upload_effect :: proc(effect: ^Effect) -> bool {
 	gl.BufferData(gl.ARRAY_BUFFER, len(effect.mesh.surface_indexes) * size_of(effect.mesh.surface_indexes[0]), &effect.mesh.surface_indexes[0], gl.STATIC_DRAW)
 	return true }
 
-init_and_upload_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Context, as_mngr: ^asset_manager.Asset_Manager, vert_url, frag_url: asset_manager.URL, allocator: rt.Allocator) {
+init_and_upload_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Manager, as_mngr: ^asset_manager.Asset_Manager, vert_url, frag_url: asset_manager.URL, allocator: rt.Allocator) {
 	init_effect(effect, config, graphics_manager, as_mngr, vert_url, frag_url, allocator)
 	upload_effect(effect) }
 

@@ -208,7 +208,7 @@ GLSL_Builder :: struct {
 	macros: [dynamic]string,
 	global_variables: [dynamic][2]string }
 
-init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: asset_manager.Asset_Config, config: Shader_Config, graphics_context: ^Graphics_Context, manager: ^asset_manager.Asset_Manager) -> (err: os.Error) {
+init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: asset_manager.Asset_Config, config: Shader_Config, graphics_context: ^Graphics_Manager, manager: ^asset_manager.Asset_Manager) -> (err: os.Error) {
 	asset_manager.init_asset(manager, &shader.asset, asset_config)
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader.shader_config = config

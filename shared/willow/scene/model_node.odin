@@ -17,7 +17,7 @@ make_model_node :: proc(node_config: Node_Config, model: ^gx.Model, allocator: r
 	model_node.model = model
 	return model_node }
 
-render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_model_node :: proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	using gx.Model_Shader_Uniforms
 	assert(graphics_context != nil)
 	assert(node != nil)
@@ -55,7 +55,7 @@ render_model_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene,
 	// bind_texture(3, draw.textures_map["skybox"].handle)
 	gx.draw_triangles(cast(i32)(len(model_node.positions) * 3)) }
 
-// model_node_bake_position :: proc(graphics_manager: ^gx.Graphics_Context, node: ^Model_Node, size: [2]int) {
+// model_node_bake_position :: proc(graphics_manager: ^gx.Graphics_Manager, node: ^Model_Node, size: [2]int) {
 // 	texture_size:     [2]int
 // 	iterator:         Texel_Iterator
 // 	texture_name:     string

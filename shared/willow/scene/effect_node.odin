@@ -18,7 +18,7 @@ make_effect_node :: proc(node_config: Node_Config, effect: ^gx.Effect, allocator
 	effect_node.effect = effect
 	return effect_node }
 
-render_effect_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_effect_node :: proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	using gx.Effect_Shader_Uniforms
 	// (TODO): Render a bounding box. Effect must be bound to the bounding box.
 	assert(graphics_context != nil)

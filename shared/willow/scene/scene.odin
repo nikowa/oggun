@@ -29,7 +29,7 @@ scene_attach :: proc(scene: ^Scene, child: ^Node) {
 Tree :: struct {
 	root: ^Node }
 
-Node_Render_Proc :: #type proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
+Node_Render_Proc :: #type proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
 
 Node_Tick_Proc :: #type proc(node: ^Node)
 
@@ -98,7 +98,7 @@ Node_Transform :: struct {
 
 // node_transform_cumulative :: proc(node: ^Node) -> (transform: Node_Transform) { }
 
-render_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_node :: proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	if node.render_proc == nil do return
 	node.render_proc(graphics_context, scene, camera_node, node) }
 
@@ -108,7 +108,7 @@ tick_node :: proc(node: ^Node) {
 
 // (TODO): A default tick_node proc, which calculates the cumulative transform.
 
-render_scene :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node) {
+render_scene :: proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node) {
 	render_node(graphics_context, scene, nil, &camera_node.node) }
 
 tick_scene :: proc(scene: ^Scene) {

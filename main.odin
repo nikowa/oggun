@@ -28,7 +28,7 @@ Example_DLL :: struct {
 	dev_tick: proc(camera_node: ^scn.Camera_Node, done_onces: ^map[rt.Source_Code_Location]bool, time: f32) }
 
 as_mngr: as.Asset_Manager
-graphics_manager: gx.Graphics_Context
+graphics_manager: gx.Graphics_Manager
 input_manager: input.Input_Manager
 
 main :: proc() {

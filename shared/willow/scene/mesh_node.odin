@@ -19,7 +19,7 @@ make_mesh_node :: proc(node_config: Node_Config, mesh: ^msh.Mesh(3), allocator: 
 	mesh_node.mesh = mesh
 	return mesh_node }
 
-render_mesh_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_mesh_node :: proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	using gx.Mesh_Shader_Uniforms
 	assert(graphics_context != nil)
 	assert(node != nil)

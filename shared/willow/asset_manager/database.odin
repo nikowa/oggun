@@ -187,7 +187,7 @@ equiv :: proc(database_a, database_b: ^Database) -> bool {
 	return true }
 
 relpath_to_path :: proc(relpath: string, allocator: rt.Allocator) -> (path: string) {
-	base, _ := os.get_working_directory(allocator = allocator)
+	base, _ := os.get_executable_directory(allocator = allocator)
 	path, _ = os.join_path({ base, relpath }, allocator = allocator)
 	return path }
 
@@ -196,7 +196,7 @@ relpath_to_source_path :: proc(database: ^Database, relpath: string, allocator: 
 	return path }
 
 path_to_relpath :: proc(path: string, allocator: rt.Allocator) -> (relpath: string) {
-	base, _ := os.get_working_directory(allocator = allocator)
+	base, _ := os.get_executable_directory(allocator = allocator)
 	relpath, _ = os.get_relative_path(base, path, allocator = allocator)
 	return relpath }
 
@@ -345,7 +345,7 @@ relpath_from_url :: proc(database: ^Database, url: URL, allocator: rt.Allocator)
 	source_directory: string
 
 	url_components: []string = url_split(url, allocator)
-	working_directory, _ := os.get_working_directory(allocator)
+	working_directory, _ := os.get_executable_directory(allocator)
 	extension: string = ""
 	for type_extension in URL_TYPE_EXTENSIONS do if url_components[0] == type_extension[0] {
 		extension = type_extension[1]

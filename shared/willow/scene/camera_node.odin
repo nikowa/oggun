@@ -18,7 +18,7 @@ make_camera_node :: proc(node_config: Node_Config, camera: ^Camera, allocator: r
 
 // (NODE): The camera node's render proc is the only one that should be called directly, unless you're not using any cameras,
 // because it will render everything.
-render_camera_node :: proc(graphics_context: ^gx.Graphics_Context, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_camera_node :: proc(graphics_context: ^gx.Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	tree_iterator: Tree_Iterator
 
 	assert(graphics_context != nil)

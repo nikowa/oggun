@@ -61,6 +61,7 @@ asset_command :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset
 	assert(Asset_Type in manager.asset_kinds)
 	asset_kind := manager.asset_kinds[Asset_Type]
 	when ODIN_DEBUG do asset_kind.command(manager, asset, .Validate, false)
+	assert(asset_kind.command != nil)
 	return asset_kind.command(manager, asset, command, watch) }
 
 asset_commands :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, commands: []Asset_Command, watch: bool = false) -> (ok: bool) {
@@ -85,7 +86,7 @@ make_asset_manager :: proc(config: Asset_Manager_Config, allocator: rt.Allocator
 	return asset_manager }
 
 register_asset_kind :: proc(manager: ^Asset_Manager, $Type: typeid, kind: Asset_Kind) {
-	log.info("Registering type ", type_info_of(Type).id)
+	// log.info("Registering type ", type_info_of(Type).id)
 	manager.asset_kinds[Type] = kind }
 
 // assert(as.asset_command(manager, as.String_Asset, &shader.frag_asset.asset, .Load))

@@ -7,7 +7,7 @@ import "shared:willow/gui"
 import "core:fmt"
 import "core:log"
 
-graphics_manager: graphics.Graphics_Context
+graphics_manager: graphics.Graphics_Manager
 input_manager: input.Input_Manager
 window_manager: window.Window_Manager
 
