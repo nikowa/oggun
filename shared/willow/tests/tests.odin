@@ -130,8 +130,8 @@ two_stack_test :: proc(t_context: ^tst.T) {
 @(test)
 image_test :: proc(t_context: ^tst.T) {
 	allocator: rt.Allocator
-	image: gx.Image
-	deserialized_image: gx.Image
+	image: gx.Image_Asset
+	deserialized_image: gx.Image_Asset
 	relpath: string
 	path: string
 	url: as.URL

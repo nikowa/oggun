@@ -11,7 +11,7 @@ import dl "core:dynlib"
 import tm "core:time"
 import as "shared/willow/asset_manager"
 import gx "shared/willow/graphics"
-import ipt "shared/willow/input"
+import "shared/willow/input"
 import r "shared/willow/container/rect"
 import scn "shared/willow/scene"
 import dll "shared/willow/dll"
@@ -29,7 +29,7 @@ Example_DLL :: struct {
 
 as_mngr: as.Asset_Manager
 gx_mngr: gx.Graphics_Context
-input_context: ipt.Input_Context
+in_mngr: input.Input_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -113,7 +113,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	// scn.scene_attach(&scene, &cube_mesh_node.node)
 	scn.scene_attach(&scene, &ground_mesh_node.node)
 	if err != nil do log.error(err)
-	ipt.input_init(&input_context)
+	input.input_init(&in_mngr, gx_mngr.window)
 	as.init_string_asset(&as_mngr, &string_asset, { "string:test-string.txt", as.String_Asset })
 	assert(as.asset_commands(&as_mngr, as.String_Asset, &string_asset, { .Import, .Load }))
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
@@ -124,12 +124,13 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		as.watch_assets(&as_mngr) // TEMP
 		// as.autosave(&as_mngr) // TEMP
-		ipt.input_tick(&input_context)
+		input.input_tick(&in_mngr)
 		scn.tick_scene(&scene)
 		gx.graphics_tick(&gx_mngr)
 		// log.info(string_asset.str)
 		// gx.render_rect(&gx_mngr, r.Rect{ { 0, 0 }, { 400, 20 } }, gx.RED, 0.0)
 		gx.render_image(&gx_mngr, &image, r.Rect{ { 0, 20 }, { 400, 400 } })
+		if input.input_down(&in_mngr, .W) do fmt.println("W")
 		scn.render_scene(&gx_mngr, &scene, camera_node) }
 	as.write(&as_mngr, context.allocator)
 	return }

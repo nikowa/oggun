@@ -9,7 +9,7 @@ import sp "core:path/slashpath"
 import fm "core:fmt"
 import str "core:strings"
 import log "core:log"
-import as "../asset_manager"
+import as "../asset_sys"
 
 
 

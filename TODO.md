@@ -1,4 +1,6 @@
 
+- Input package
+- GUI package
 - Implement material asset
 - Add materials to imported models
 - Make all the noise functions transition smoothly from one seed to the next, ie. make them animatable.
