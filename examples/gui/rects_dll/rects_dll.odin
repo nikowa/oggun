@@ -131,8 +131,8 @@ make_rects :: proc(keyboard_rect: rect.Rect, allocator: runtime.Allocator) -> []
 	gui.rects_merge_range(&rects, { 106, 108 })
 	gui.rects_merge_range_retaining(&rects, { 105, 109 })
 
-	// n := len(rects)
-	// for rect in rects[0:n] do append(&rects, key_margins(rect))
+	n := len(rects)
+	for rect in rects[0:n] do append(&rects, key_margins(rect))
 
 	// gui.rect_grid_append(rect_left, { 2, 4 }, &rects)
 	// gui.rect_slice_v_append(rect_right, 80, 4, &rects)

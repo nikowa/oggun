@@ -80,7 +80,8 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 
 		rects := rects_dll.make_rects(keyboard_rect, context.temp_allocator)
 
-		for rect, i in rects do graphics.render_rect(&graphics_manager, rect, colors[i])
+		for rect, i in rects do graphics.render_rect_hollow(&graphics_manager, rect, graphics.WHITE/*colors[i]*/)
+
 		dll.watch_dll(&rects_dll)
 		free_all(context.temp_allocator) }
 	k: f32 = query().scalar

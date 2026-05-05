@@ -223,12 +223,13 @@ init :: proc(
 		asset_manager.register_asset_kind(as_mngr, Shader_Asset, { command = shader_asset_command })
 		graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
 		init_shader_asset(&graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }, graphics_manager, as_mngr) or_return
-		// init_shader_asset(&graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }, graphics_manager, as_mngr) or_return
+		init_shader_asset(&graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }, graphics_manager, as_mngr) or_return
 		assert(asset_manager.asset_command(as_mngr, Shader_Asset, &graphics_manager.rect_shader.asset, .Import))
+		assert(asset_manager.asset_command(as_mngr, Shader_Asset, &graphics_manager.line_shader.asset, .Import))
 		assert(asset_manager.asset_command(as_mngr, Shader_Asset, &graphics_manager.image_shader.asset, .Import))
 		assert(asset_manager.asset_command(as_mngr, Shader_Asset, &graphics_manager.model_shader.asset, .Import))
 		assert(asset_manager.asset_command(as_mngr, Shader_Asset, &graphics_manager.mesh_shader.asset, .Import))
@@ -650,6 +651,16 @@ render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_colo
 	set_shader_param(RES, graphics_manager.active_resolution)
 	draw_triangles(6) }
 
+render_rect_hollow :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, color: [4]f32 = BLACK, depth: f32 = 0.0) {
+	a: [2]f32 = { rect.pos.x - rect.size.x / 2, rect.pos.y - rect.size.y / 2 }
+	b: [2]f32 = { rect.pos.x + rect.size.x / 2, rect.pos.y - rect.size.y / 2 }
+	c: [2]f32 = { rect.pos.x - rect.size.x / 2, rect.pos.y + rect.size.y / 2 }
+	d: [2]f32 = { rect.pos.x + rect.size.x / 2, rect.pos.y + rect.size.y / 2 }
+	render_line(graphics_manager, { a, b }, color, depth)
+	render_line(graphics_manager, { b, d }, color, depth)
+	render_line(graphics_manager, { d, c }, color, depth)
+	render_line(graphics_manager, { c, a }, color, depth) }
+
 render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: [4]f32 = BLACK, depth: f32 = 0.0) {
 	using Line_Shader_Uniforms
 	use_shader(&graphics_manager.line_shader)
@@ -657,7 +668,8 @@ render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, colo
 	set_shader_param(RES, graphics_manager.active_resolution)
 	set_shader_param(COLOR, color)
 	set_shader_param(DEPTH, depth)
-	draw_triangles(6) }
+	polygon_mode(.Line)
+	draw_lines(2) }
 
 render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
 	using Image_Uniforms
@@ -691,7 +703,6 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	bind_texture(1, draw.textures_map["normal-corner-pack"].handle)
 // 	draw_triangles(6) }
 
-
 // render_rect_wireframe :: proc(draw: ^Draw, pos: [2]f32, size: [2]f32, fill_color: [4]f32 = BLACK) {
 // 	shader := use_shader(draw.rect_shader)
 // 	set_shader_param(shader.pos, pos)
@@ -700,7 +711,6 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	set_shader_param(shader.res, la.array_cast(draw.active_resolution, f32))
 // 	polygon_mode(.Line)
 // 	draw_triangles(6) }
-
 
 // render_rect_outlined :: proc(draw: ^Draw, pos: [2]f32, size: [2]f32, fill_color: [4]f32 = BLACK, outline_color: [4]f32 = WHITE) {
 // 	shader := use_shader(draw.rect_shader)
@@ -712,23 +722,6 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	set_shader_param(shader.fill_color, fill_color)
 // 	set_shader_param(shader.size, size)
 // 	draw_triangles(6) }
-
-
-// render_rect_hollow :: proc(draw: ^Draw, pos: [2]f32, size: [2]f32, color: [4]f32 = BLACK, dashed: bool = false, thickness: f32 = 1, glue_side: bit_set[Compass] = {}) {
-// 	a: [2]f32
-// 	b: [2]f32
-// 	c: [2]f32
-// 	d: [2]f32
-
-// 	a = { pos.x - size.x / 2, pos.y - size.y / 2 }
-// 	b = { pos.x + size.x / 2, pos.y - size.y / 2 }
-// 	c = { pos.x - size.x / 2, pos.y + size.y / 2 }
-// 	d = { pos.x + size.x / 2, pos.y + size.y / 2 }
-// 	if !(.SOUTH in glue_side) { render_line(draw, a, b, color, dashed, thickness) }
-// 	if !(.EAST in glue_side)  { render_line(draw, b, d, color, dashed, thickness) }
-// 	if !(.NORTH in glue_side) { render_line(draw, d, c, color, dashed, thickness) }
-// 	if !(.WEST in glue_side)  { render_line(draw, c, a, color, dashed, thickness) } }
-
 
 // render_triangle :: proc(draw: ^Draw, points: [3][2]f32, color: [4]f32 = BLACK, dashed: bool = false, thickness: f32 = 1) {
 // 	render_line(draw, points[0], points[1], color, dashed, thickness)
