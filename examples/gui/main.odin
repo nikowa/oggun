@@ -57,10 +57,12 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	graphics.init_image(&asset_man, &image, { url = "image:keyboard-layout.png" })
 	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	colors: [][4]f32 = make([][4]f32, 64)
-	for _, i in colors do colors[i] = graphics.color_random()
+	colors: [][4]f32 = make([][4]f32, 256)
+	for _, i in colors {
+		colors[i] = graphics.color_random()
+		colors[i].a = 0.75 }
 
-	// 1. render image as reference
+	// 1. line shader
 	// 2. draw ui on top of it
 	// 3. copy the stuff to the input example and make the keys light up when they're pressed
 
@@ -74,7 +76,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 
 		rect_screen := gui.rect_screen(&graphics_manager)
 		keyboard_rect: rect.Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }
-		graphics.render_image(&graphics_manager, &image, keyboard_rect)
+		// graphics.render_image(&graphics_manager, &image, keyboard_rect)
 
 		rects := rects_dll.make_rects(keyboard_rect, context.temp_allocator)
 

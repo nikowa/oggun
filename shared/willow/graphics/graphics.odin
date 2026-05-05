@@ -62,6 +62,7 @@ Graphics_Manager :: struct {
 // 	curvature_shader:                ^Curvature_Shader,
 // 	font_shader:                     ^Font_Shader,
 	rect_shader: Shader_Asset,
+	line_shader: Shader_Asset,
 // 	point_shader:                    ^Point_Shader,
 // 	line_shader:                     ^Line_Shader,
 // 	physics_shader:                  ^Physics_Shader,
@@ -222,6 +223,7 @@ init :: proc(
 		asset_manager.register_asset_kind(as_mngr, Shader_Asset, { command = shader_asset_command })
 		graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
 		init_shader_asset(&graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }, graphics_manager, as_mngr) or_return
+		// init_shader_asset(&graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, graphics_manager, as_mngr) or_return
@@ -646,6 +648,15 @@ render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_colo
 	set_shader_param(ROUNDING, rounding)
 	set_shader_param(DEPTH, depth)
 	set_shader_param(RES, graphics_manager.active_resolution)
+	draw_triangles(6) }
+
+render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: [4]f32 = BLACK, depth: f32 = 0.0) {
+	using Line_Shader_Uniforms
+	use_shader(&graphics_manager.line_shader)
+	set_shader_param(POINTS, [4]f32{ points[0].x, points[0].y, points[1].x, points[1].y })
+	set_shader_param(RES, graphics_manager.active_resolution)
+	set_shader_param(COLOR, color)
+	set_shader_param(DEPTH, depth)
 	draw_triangles(6) }
 
 render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {

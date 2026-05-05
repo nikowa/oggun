@@ -12,6 +12,7 @@ rect_margins :: proc(rect_in: rect.Rect, margins: f32) -> (rect_out: rect.Rect) 
 	rect_out.size.y -= margins * 2
 	return rect_out }
 
+// Rename this to "_split_ratio" and add a second one "_split_interval" which splits at a specified point on the X-axis.
 rect_split_h :: proc(rect_in: rect.Rect, ratio: f32, margin: f32) -> (rect_left: rect.Rect, rect_right: rect.Rect) {
 	rect_left  = rect_in
 	rect_right = rect_in
@@ -157,3 +158,29 @@ rects_mirror_x_edit :: proc(rects: []rect.Rect, center: f32) {
 
 rects_mirror_y_edit :: proc(rects: []rect.Rect, center: f32) {
 	for &rect, i in rects do rect = rect_mirror_y(rect, center) }
+
+rects_merge :: proc(rect_a: rect.Rect, rect_b: rect.Rect) -> (rect_out: rect.Rect) {
+	x0: f32 = min(rect_a.pos.x - rect_a.size.x / 2, rect_b.pos.x - rect_b.size.x / 2)
+	x1: f32 = max(rect_a.pos.x + rect_a.size.x / 2, rect_b.pos.x + rect_b.size.x / 2)
+	y0: f32 = min(rect_a.pos.y - rect_a.size.y / 2, rect_b.pos.y - rect_b.size.y / 2)
+	y1: f32 = max(rect_a.pos.y + rect_a.size.y / 2, rect_b.pos.y + rect_b.size.y / 2)
+	rect_out = {
+		pos = { (x0 + x1) / 2, (y0 + y1) / 2 },
+		size = { (x1 - x0), (y1 - y0) } }
+	return rect_out }
+
+rects_remove_range :: proc(rects: ^[dynamic]rect.Rect, range: [2]int) {
+	for i, j in range[0] ..< range[1] {
+		ordered_remove(rects, i - j) } }
+
+rects_merge_range :: proc(rects: ^[dynamic]rect.Rect, range: [2]int) {
+	rect_a := rects[range[0]]
+	rect_b := rects[range[1] - 1]
+	rects_remove_range(rects, { range.x + 1, range.y })
+	rects[range.x] = rects_merge(rect_a, rect_b) }
+
+rects_merge_range_retaining :: proc(rects: ^[dynamic]rect.Rect, range: [2]int) {
+	rect_a := rects[range[0]]
+	rect_b := rects[range[1] - 1]
+	ordered_remove(rects, range.y - 1)
+	rects[range.x] = rects_merge(rect_a, rect_b) }

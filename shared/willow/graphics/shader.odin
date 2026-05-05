@@ -60,6 +60,12 @@ Rect_Shader_Uniforms :: enum {
 	ROUNDING   = 4,
 	DEPTH      = 5 }
 
+Line_Shader_Uniforms :: enum {
+	POINTS = 0,
+	RES    = 1,
+	COLOR  = 2,
+	DEPTH  = 3 }
+
 Model_Shader_Uniforms :: enum {
 	MODEL_MATRIX             = 0,
 	CAMERA_POSITION_MATRIX   = 1,
@@ -100,17 +106,6 @@ Buffer_Shader_Uniforms :: enum {
 // 	size:            i32,
 // 	fill_color:      i32,
 // 	this_buffer_res: i32 }
-
-
-// Line_Shader :: struct {
-// 	using shader:    Shader,
-// 	line:            i32,
-// 	this_buffer_res: i32,
-// 	line_color:      i32,
-// 	dashed:          i32,
-// 	animate:         i32,
-// 	time:            i32,
-// 	mask:            i32 }
 
 Image_Uniforms :: enum {
 	POS  = 0,
