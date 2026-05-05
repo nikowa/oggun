@@ -57,7 +57,8 @@ Rect_Shader_Uniforms :: enum {
 	SIZE       = 1,
 	RES        = 2,
 	FILL_COLOR = 3,
-	ROUNDING   = 4 }
+	ROUNDING   = 4,
+	DEPTH      = 5 }
 
 Model_Shader_Uniforms :: enum {
 	MODEL_MATRIX             = 0,

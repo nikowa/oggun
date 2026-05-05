@@ -436,3 +436,9 @@ file_was_modified :: proc(relpath: string, modification_time: ^tm.Time) -> (was_
 		modification_time^ = current_modification_time
 		return true }
 	else do return false }
+
+remove_file :: proc(relpath: string, allocator: rt.Allocator) -> (err: os.Error)  {
+	return os.remove(relpath_to_path(relpath, allocator)) }
+
+rename_file :: proc(old_relpath: string, new_relpath: string, allocator: rt.Allocator) -> (err: os.Error) {
+	return os.rename(relpath_to_path(old_relpath, allocator), relpath_to_path(new_relpath, allocator)) }

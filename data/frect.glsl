@@ -4,11 +4,12 @@ layout(location = 1) uniform vec2 size;
 layout(location = 2) uniform vec2 res;
 layout(location = 3) uniform vec4 fill_color;
 layout(location = 4) uniform float rounding;
+layout(location = 5) uniform float depth;
 in vec2 tex_coord;
 
 void main(void) {
 	color = fill_color;
-	gl_FragDepth = 0.5;
+	gl_FragDepth = depth;
 	return;
 	vec2 p=gl_FragCoord.xy-res*0.5-pos;
 	vec2 b=size/2-vec2(rounding);

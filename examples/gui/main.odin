@@ -6,6 +6,8 @@ import "shared:willow/window"
 import "shared:willow/gui"
 import "shared:willow/asset_manager"
 import "shared:willow/container/rect"
+import "shared:willow/dll"
+import "base:runtime"
 import "core:fmt"
 import "core:log"
 import "core:time"
@@ -17,7 +19,11 @@ graphics_manager: graphics.Graphics_Manager
 input_manager: input.Input_Manager
 window_manager: window.Window_Manager
 stopwatch: time.Stopwatch
-MARGIN :: 8
+rects_dll: Rects_DLL
+
+Rects_DLL :: struct {
+	using base: dll.DLL,
+	make_rects: proc(keyboard_rect: rect.Rect, allocator: runtime.Allocator) -> []rect.Rect }
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -29,6 +35,7 @@ query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
 @(export)
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	context.logger = log.create_console_logger()
+
 	asset_man = asset_manager.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "../../data",
@@ -40,26 +47,39 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		as_mngr = &asset_man,
 		graphics_config = { window_manager = &window_manager },
 		title = "Willow")
+
+	// dll_path := asset_manager.relpath_to_path("rects_dll/rects_dll.odin", context.allocator)
+	// rects_dll, _ = dll.make_dll(Rects_DLL, dll_path)
+	rects_dll, _ = dll.make_dll(Rects_DLL, "rects_dll/rects_dll.odin")
+	assert(rects_dll.make_rects != nil)
+
+	image: graphics.Image_Asset
+	graphics.init_image(&asset_man, &image, { url = "image:keyboard-layout.png" })
+	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+
 	colors: [][4]f32 = make([][4]f32, 64)
 	for _, i in colors do colors[i] = graphics.color_random()
+
+	// 1. render image as reference
+	// 2. draw ui on top of it
+	// 3. copy the stuff to the input example and make the keys light up when they're pressed
+
 	base.zero_stopwatch(&stopwatch)
+	ASPECT_RATIO :: 3.5
 	for ! graphics_manager.window_closed {
 		time := base.read_stopwatch(&stopwatch)
 		osc := 32 * linalg.sin(16 * time)
-		rects := make_dynamic_array([dynamic]rect.Rect, allocator = context.temp_allocator)
 		asset_manager.watch_assets(&asset_man)
 		graphics.tick(&graphics_manager)
-		rect := gui.rect_screen(&graphics_manager)
-		rect = gui.rect_margins(rect, MARGIN)
-		rect_left, rect_right := gui.rect_split_h(rect, 0.25, MARGIN)
-		// append(&rects, rect_left)
-		// append(&rects, rect_right)
 
-// keyboard-layout
-		gui.rect_grid_append(rect_left, { 2, 4 }, &rects)
-		gui.rect_slice_v_append(rect_right, 80, 4, &rects)
-		gui.rects_mirror_x(rects[:], -100)
-		for rect, i in rects do graphics.render_rect(&graphics_manager, rect, colors[i], 0.0)
+		rect_screen := gui.rect_screen(&graphics_manager)
+		keyboard_rect: rect.Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }
+		graphics.render_image(&graphics_manager, &image, keyboard_rect)
+
+		rects := rects_dll.make_rects(keyboard_rect, context.temp_allocator)
+
+		for rect, i in rects do graphics.render_rect(&graphics_manager, rect, colors[i])
+		dll.watch_dll(&rects_dll)
 		free_all(context.temp_allocator) }
 	k: f32 = query().scalar
 	return }

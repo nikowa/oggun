@@ -637,13 +637,14 @@ set_depth_test :: proc(value: bool) {
 // 	render_rect_outlined(draw, pos = pos + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
 // 	render_rect_outlined(draw, pos = pos + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0) {
+render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0) {
 	using Rect_Shader_Uniforms
 	use_shader(&graphics_manager.rect_shader)
 	set_shader_param(POS, rect.pos)
 	set_shader_param(SIZE, rect.size)
 	set_shader_param(FILL_COLOR, fill_color)
 	set_shader_param(ROUNDING, rounding)
+	set_shader_param(DEPTH, depth)
 	set_shader_param(RES, graphics_manager.active_resolution)
 	draw_triangles(6) }
 
