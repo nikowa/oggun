@@ -46,3 +46,7 @@ example_input:
 example_gui:
 	odin build examples/gui -out:examples/gui/gui.exe {{flags}}
 	examples/gui/gui.exe
+
+example_sprites:
+	odin build examples/sprites -out:examples/sprites/sprites.exe {{flags}}
+	examples/sprites/sprites.exe

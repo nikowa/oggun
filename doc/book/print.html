@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d63ab02e.js";
+            window.path_to_searchindex_js = "searchindex-1f36b030.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-8b987a48.js"></script>
@@ -176,6 +176,8 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
+<p><img src="willow-tree.jpg" alt="willow-tree"></p>
+<p><em>Willow</em> is a game engine, made for my games <em>Bogwalker</em> and <em>The Blue Break</em> (and other games I might make in the future). It is very unstable and has many missing features.</p>
 <p>At the start you give a fixed <em>memory cap</em> number to <code>base.init</code> and this is the maximum amount of memory that your threads will be able to allocate.</p>
 <p>You also give it a fixed <em>readonly memory cap</em> which is used to allocate a range of read-only memory, which will be accessible by all threads without the need for synchronization. The readonly memory must be initialized before you call <code>base.start</code>, and then <code>base.start</code> will hash it and in debug mode this hash will be used to verify the integrity of this read-only memory.</p>
 <p><code>base.start</code> will determine the optimal number of threads and create that many threads and call <code>entry_point</code> on all those threads including the main thread. Do not touch <code>context.user_ptr</code>, that’s where <code>thread_data</code> is stored, and it’s needed.</p>

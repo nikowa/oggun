@@ -56,15 +56,16 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	image: graphics.Image_Asset
 	graphics.init_image(&asset_man, &image, { url = "image:keyboard-layout.png" })
 	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	font: graphics.Bitmap_Font
+	graphics.bitmap_font_init(&asset_man, &font, graphics.DEFAULT_BITMAP_FONT_CONFIG)
+	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
 
 	colors: [][4]f32 = make([][4]f32, 256)
 	for _, i in colors {
 		colors[i] = graphics.color_random()
 		colors[i].a = 0.75 }
 
-	// 1. line shader
-	// 2. draw ui on top of it
-	// 3. copy the stuff to the input example and make the keys light up when they're pressed
+	// - text rendering
 
 	base.zero_stopwatch(&stopwatch)
 	ASPECT_RATIO :: 3.5

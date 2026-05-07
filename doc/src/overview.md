@@ -1,5 +1,9 @@
 # Overview
 
+![willow-tree](willow-tree.jpg)
+
+_Willow_ is a game engine, made for my games _Bogwalker_ and _The Blue Break_ (and other games I might make in the future). It is very unstable and has many missing features.
+
 At the start you give a fixed *memory cap* number to `base.init` and this is the maximum amount of memory that your threads will be able to allocate.
 
 You also give it a fixed *readonly memory cap* which is used to allocate a range of read-only memory, which will be accessible by all threads without the need for synchronization. The readonly memory must be initialized before you call `base.start`, and then `base.start` will hash it and in debug mode this hash will be used to verify the integrity of this read-only memory.

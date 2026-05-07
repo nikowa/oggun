@@ -1,4 +1,6 @@
 
+- Tickrate controller
+- Normalized vs Absolute coordinates for 2D rendering instructions.
 - Make sure the built-in shader assets are imported by `graphics.init`, or make `graphics.use_shader` import the shader if it's not yet imported. Currently, the shaders are only imported by `asset_manager.watch_assets`.
 - Input package
 - GUI package

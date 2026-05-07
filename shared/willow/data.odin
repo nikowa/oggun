@@ -48,12 +48,6 @@ package willow
 // 	period:    f32,
 // 	amplitude: f32 }
 
-
-// Font :: struct {
-// 	name:        string,
-// 	symbol_size: [2]f32 }
-
-
 // Compass :: enum {
 // 	EAST,
 // 	WEST,

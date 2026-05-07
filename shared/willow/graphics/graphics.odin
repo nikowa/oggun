@@ -1128,7 +1128,6 @@ error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, leng
 // 	name = fmt.tprintf("cover_%4d",i)
 // 	render_texture(draw, name = name, pos = { 0, 0 }, size_override = { COVER_RATIO * 180, 180 }) }
 
-
 // load_font :: proc(draw: ^Draw, working_directory_path: string, path: string) -> (ptr: ^Font) {
 // 	font: Font
 // 	texture: ^Texture

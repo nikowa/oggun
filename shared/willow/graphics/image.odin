@@ -13,8 +13,6 @@ import log "core:log"
 import tm "core:time"
 import gl "vendor:OpenGL"
 
-
-
 Image_Asset :: struct {
 	using asset: asset_manager.Asset,
 	using image: im.Image,
