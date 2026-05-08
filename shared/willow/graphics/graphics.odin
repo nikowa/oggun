@@ -3,8 +3,8 @@ package graphics
 import "../asset_manager"
 import "../window"
 import "base:runtime"
-import glfw "vendor:glfw"
 import gl "vendor:OpenGL"
+import glfw "vendor:glfw"
 import str "core:strings"
 import os "core:os"
 import "../input"
@@ -27,10 +27,17 @@ import r "../container/rect"
 
 BLACK: [4]f32 : {0, 0, 0, 1}
 WHITE: [4]f32 : {1, 1, 1, 1}
-RED: [4]f32 : {1, 0, 0, 1}
+RED:   [4]f32 : {1, 0, 0, 1}
 GREEN: [4]f32 : {0, 1, 0, 1}
-BLUE: [4]f32 : {0, 0, 1, 1}
-CYAN: [4]f32 : {0, 1, 1, 1}
+BLUE:  [4]f32 : {0, 0, 1, 1}
+CYAN:  [4]f32 : {0, 1, 1, 1}
+
+BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
+
+Graphics_Backend :: enum {
+	WGPU,
+	Vulkan,
+	OpenGL }
 
 Graphics_Config :: struct #all_or_none {
 	window_manager: ^window.Window_Manager }
@@ -110,9 +117,10 @@ Render_Buffer :: struct {
 init :: proc(
 	graphics_manager: ^Graphics_Manager = nil,
 	as_mngr: ^asset_manager.Asset_Manager = nil,
-	graphics_config: Graphics_Config = {},
-	title: string = "") -> (err: os.Error) {
+	graphics_config: Graphics_Config = {}) -> (err: os.Error) {
 	graphics_manager.graphics_config = graphics_config
+	when BACKEND == .OpenGL do init_opengl(graphics_manager)
+
 // 	width:         i32
 // 	height:        i32
 // 	ok:            bool
@@ -137,29 +145,14 @@ init :: proc(
 // 	draw.fonts_map = make(map[string]^Font)
 // 	draw.haze_color = { 181.0 / 255, 217.0 / 255, 255.0 / 255 }
 // 	draw.draw_mask = { .MODELS, .EFFECTS }
-	// glfw.SetErrorCallback(glfw_error_callback)
 
 	// DICK
 
+
+
 	graphics_manager.active_resolution = graphics_manager.window_manager.size
-	gl.DebugMessageCallback(error_callback, nil)
-	gl.Viewport(0, 0, cast(i32)graphics_manager.window_manager.size.x, cast(i32)graphics_manager.window_manager.size.y)
-	gl.GenVertexArrays(1, &graphics_manager.vertex_array)
-	gl.BindVertexArray(graphics_manager.vertex_array)
-	gl.GenBuffers(1, &graphics_manager.vertex_buffer)
-	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_manager.vertex_buffer)
-	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-	gl.ClearColor(0, 0, 0, 1)
-	polygon_mode(.Fill)
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
-	gl.FrontFace(gl.CCW)
-	// gl.Enable(gl.CULL_FACE) // (TODO): Some shaders are rendered the wrong way around, so this is disabled termporarily.
-	gl.CullFace(gl.FRONT)
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	gl.Enable(gl.MULTISAMPLE)
-	gl.Enable(gl.DEBUG_OUTPUT)
+
+
 // 	draw.default_sb, ok = make_scene_buffer_static(draw.resolution)
 // 	assert(ok)
 // 	draw.upscale_sb, ok = make_render_buffer_static(draw.window_size,1,{gl.RGBA8},{gl.RGBA})
@@ -678,24 +671,42 @@ render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, colo
 	polygon_mode(.Line)
 	draw_lines(2) }
 
+Render_Image_Command :: struct {
+	using params: Render_Image_Params,
+	using group_params: Render_Image_Group_Params }
+
 Render_Image_Params :: struct {
 	rect: r.Rect,
 	depth: f32 }
 
-Render_Image_Batch_Params :: struct {
+Render_Image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
 	image: ^Image_Asset }
 
 render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
-	batch_params: Render_Image_Batch_Params = {
+	command: Render_Image_Command = {
 		render_buffer = render_buffer,
-		image = image }
-	params: Render_Image_Params = {
+		image = image,
 		rect = rect,
 		depth = depth }
-	command_buffer_record(&graphics_man.command_buffer, .RENDER_IMAGE, { render_image = batch_params }, { render_image = params }) }
+	command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_IMAGE, render_image = command }) }
 
-render_image_batch :: proc(graphics_man: ^Graphics_Manager, batch: Command_Batch) {
+// (NOTE): This will do the batching. //
+submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: ^Command) {
+	using Image_Uniforms
+	assert(image_loaded(command.image))
+	use_shader(&graphics_man.image_shader)
+	gl.BindVertexArray(graphics_man.vertex_array)
+	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_man.vertex_buffer)
+	set_shader_param(POS, command.rect.pos)
+	set_shader_param(SIZE, command.rect.size)
+	set_shader_param(RES, la.array_cast(graphics_man.active_resolution, f32))
+	bind_texture(0, command.image.handle)
+	texture_filtering(gl.NEAREST)
+	draw_triangles(6)
+
+	// Command_Buffer
+
 	// using Image_Uniforms
 	// assert(image_loaded(image))
 	// use_shader(&graphics_manager.image_shader)
@@ -1210,10 +1221,11 @@ tick_begin :: proc(graphics_manager: ^Graphics_Manager) {
 	clear_render_buffer(&graphics_manager.canvas_rb)
 	set_depth_test(true) }
 
-tick_end :: proc(graphics_manager: ^Graphics_Manager) {
+tick_end :: proc(graphics_man: ^Graphics_Manager) {
+	command_buffer_submit(graphics_man, &graphics_man.command_buffer)
 	set_depth_test(false)
-	select_frame_buffer(graphics_manager, 0)
-	if graphics_manager.buffer_shader.handle != 0 do render_render_buffer(graphics_manager, &graphics_manager.canvas_rb, 0)
+	select_frame_buffer(graphics_man, 0)
+	if graphics_man.buffer_shader.handle != 0 do render_render_buffer(graphics_man, &graphics_man.canvas_rb, 0)
 
 // 	if .MODELS in draw.draw_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.draw_mask {
@@ -1281,14 +1293,14 @@ tick_end :: proc(graphics_manager: ^Graphics_Manager) {
 // 	// set_blend(false)
 // 	// get_hovered_index()
 // 	// cap_fps()
-	glfw.SwapBuffers(cast(glfw.WindowHandle)graphics_manager.window_manager.handle)
-	if glfw.WindowShouldClose(cast(glfw.WindowHandle)graphics_manager.window_manager.handle) do graphics_manager.window_closed = true
+	glfw.SwapBuffers(cast(glfw.WindowHandle)graphics_man.window_manager.handle)
+	if glfw.WindowShouldClose(cast(glfw.WindowHandle)graphics_man.window_manager.handle) do graphics_man.window_closed = true
 
 // 	// TODO: Add a draw_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //
 // 	watch_models(draw, "beach")
 // 	{ lock_guard(&physics.lock); physics.d_surf, physics.d_surf_displaced, physics.d_surfer, physics.n_surf, physics.n_surf_displaced = read_physics_render_buffer(draw) }
 // 	{ lock_guard(&input.lock); if key_was_pressed(input, .J) do recompile_shaders(unwrap(draw), working_directory_path) }
-	graphics_manager.frame_count += 1 }
+	graphics_man.frame_count += 1 }
 	// DICK
 
 

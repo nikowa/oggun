@@ -50,15 +50,14 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	graphics.init(
 		graphics_manager = &graphics_man,
 		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_man },
-		title = "Willow")
+		graphics_config = { window_manager = &window_man })
 	base.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
 	image: graphics.Image_Asset
 	graphics.init_image(&asset_man, &image, { url = "image:kitten.png" })
 	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	sprites := make([]Sprite, 10_000)
+	sprites := make([]Sprite, 1_000)
 	for &sprite in sprites do sprite_init(&sprite)
 
 	base.zero_stopwatch(&stopwatch)
