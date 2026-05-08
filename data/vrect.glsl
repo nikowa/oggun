@@ -1,6 +1,9 @@
-layout(location = 0) uniform vec2 pos;
-layout(location = 1) uniform vec2 size;
-layout(location = 2) uniform vec2 res;
+layout(location = 0) in vec2 pos;
+layout(location = 1) in vec2 size;
+layout(location = 0) uniform vec2 res;
+// layout(location = 0) uniform vec2 pos;
+// layout(location = 1) uniform vec2 size;
+// layout(location = 2) uniform vec2 res;
 out vec2 tex_coord;
 
 void main(void) {

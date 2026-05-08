@@ -37,6 +37,7 @@ Graphics_Config :: struct #all_or_none {
 
 Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
+	command_buffer: Command_Buffer,
 	window_closed: bool,
 // 	fullscreen:                      bool,
 	active_resolution: [2]f32,
@@ -607,6 +608,12 @@ use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
 set_depth_test :: proc(value: bool) {
 	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
 
+// upload_vertex_buffer_data :: proc(attribute_index: u32, vbo_index: VBO_Index,type:u32,data:^$T,n_commands:int) {
+// 	// DICK
+// 	bind_vertex_buffer(int(vbo_index))
+// 	gl.BufferData(gl.ARRAY_BUFFER,n_commands*size_of(T),data,gl.DYNAMIC_DRAW)
+// 	gl.VertexAttribPointer(attribute_index,i32(len(T) when intrinsics.type_is_array(T) else 1),type,false,0,0)
+// 	gl.EnableVertexAttribArray(attribute_index) }
 
 // Plot :: struct {
 // 	x0: f32,
@@ -671,18 +678,54 @@ render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, colo
 	polygon_mode(.Line)
 	draw_lines(2) }
 
-render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
-	using Image_Uniforms
-	assert(image_loaded(image))
-	use_shader(&graphics_manager.image_shader)
-	gl.BindVertexArray(graphics_manager.vertex_array)
-	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_manager.vertex_buffer)
-	set_shader_param(POS, rect.pos)
-	set_shader_param(SIZE, rect.size)
-	set_shader_param(RES, la.array_cast(graphics_manager.active_resolution, f32))
-	bind_texture(0, image.handle)
-	texture_filtering(gl.NEAREST)
-	draw_triangles(6) }
+Render_Image_Params :: struct {
+	rect: r.Rect,
+	depth: f32 }
+
+Render_Image_Batch_Params :: struct {
+	render_buffer: Maybe(^Render_Buffer),
+	image: ^Image_Asset }
+
+render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
+	batch_params: Render_Image_Batch_Params = {
+		render_buffer = render_buffer,
+		image = image }
+	params: Render_Image_Params = {
+		rect = rect,
+		depth = depth }
+	command_buffer_record(&graphics_man.command_buffer, .RENDER_IMAGE, { render_image = batch_params }, { render_image = params }) }
+
+render_image_batch :: proc(graphics_man: ^Graphics_Manager, batch: Command_Batch) {
+	// using Image_Uniforms
+	// assert(image_loaded(image))
+	// use_shader(&graphics_manager.image_shader)
+	// // gl.GenBuffers(1, &model.positions_handle)
+	// // gl.GenBuffers(1, &model.normals_handle)
+	// // gl.GenBuffers(1, &model.texcoords_handle)
+	// // gl.GenBuffers(1, &model.lightmap_texcoords_handle)
+	// // gl.BindBuffer(gl.ARRAY_BUFFER, model.positions_handle)
+	// // gl.BufferData(gl.ARRAY_BUFFER, len(model.positions) * size_of(model.positions[0]), &model.positions[0], gl.STATIC_DRAW)
+	// // DICK
+	// set_shader_param(POS, rect.pos)
+	// set_shader_param(SIZE, rect.size)
+	// set_shader_param(RES, la.array_cast(graphics_manager.active_resolution, f32))
+	// bind_texture(0, image.handle)
+	// texture_filtering(gl.NEAREST)
+	// draw_triangles(6)
+}
+
+// render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
+// 	using Image_Uniforms
+// 	assert(image_loaded(image))
+// 	use_shader(&graphics_manager.image_shader)
+// 	gl.BindVertexArray(graphics_manager.vertex_array)
+// 	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_manager.vertex_buffer)
+// 	set_shader_param(POS, rect.pos)
+// 	set_shader_param(SIZE, rect.size)
+// 	set_shader_param(RES, la.array_cast(graphics_manager.active_resolution, f32))
+// 	bind_texture(0, image.handle)
+// 	texture_filtering(gl.NEAREST)
+// 	draw_triangles(6) }
 
 render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer: ^Render_Buffer, channel: u32) {
 	using Buffer_Shader_Uniforms
