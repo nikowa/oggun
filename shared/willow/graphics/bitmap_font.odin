@@ -1,5 +1,6 @@
 package graphics
 import "../asset_manager"
+import gl "vendor:OpenGL"
 import "core:fmt"
 import "core:strings"
 import "core:strconv"
@@ -88,5 +89,46 @@ render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: st
 		sym_pos.x += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
 		command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_BITMAP_TEXT, render_bitmap_text = command }) } }
 
-submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: ^Command) {
+submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
+	buffers: [4]u32
+	index_max: int = index + 1
+	for ; index_max < len(graphics_man.command_buffer.commands); index_max += 1 {
+		command_max := graphics_man.command_buffer.commands[index_max]
+		if command_max.render_bitmap_text.render_bitmap_text_group_params != command.render_bitmap_text.render_bitmap_text_group_params do break
+		command_max.submitted = true }
+	commands: []Command = graphics_man.command_buffer.commands[index:index_max]
+	gl.GenBuffers(4, &buffers[0]); defer gl.DeleteBuffers(4, &buffers[0])
+	n: int = 6 * len(commands)
+	scale_factor := make([]f32, n)
+	color := make([][4]f32, n)
+	symbol := make([]i32, n)
+	position := make([][3]f32, n)
+	for command, i in commands do for j in 0 ..< 6 {
+		k := 6 * i + j
+		scale_factor[k] = command.scale_factor
+		color[k] = command.color
+		symbol[k] = command.symbol
+		position[k] = command.position }
+	upload_vertex_buffer_data(0, buffers[0], gl.FLOAT, scale_factor)
+	upload_vertex_buffer_data(1, buffers[1], gl.FLOAT, color)
+	upload_vertex_buffer_data(2, buffers[2], gl.INT, symbol)
+	upload_vertex_buffer_data(3, buffers[3], gl.FLOAT, position)
 }
+
+// render_text_group::proc(name:Font_Name) {
+// 	when TRACY_ENABLE { tracy.ZoneNC("render text group",0xFF0000) }
+// 	use_shader(state.font_shader)
+// 	commands:=&state.text_draw_commands[name]
+// 	font:=&state.fonts[name]
+// 	n:=len(commands); if n==0 do return
+// 	set_shader_param(state.font_shader.this_buffer_res,cast_array(state.resolution,f32))
+// 	set_shader_param(state.font_shader.symbol_size,[2]f32{f32(font.symbol_size.x),f32(font.symbol_size.y)})
+// 	bind_vertex_array(0)
+// 	i:int=0
+// 	upload_vertex_buffer_data(Attribute_Index(i),VBO_Index(i),gl.FLOAT,&commands.symbols[0],n); i+=1
+// 	upload_vertex_buffer_data(Attribute_Index(i),VBO_Index(i),gl.FLOAT,&commands.positions[0],n); i+=1
+// 	upload_vertex_buffer_data(Attribute_Index(i),VBO_Index(i),gl.FLOAT,&commands.scale_factors[0],n); i+=1
+// 	upload_vertex_buffer_data(Attribute_Index(i),VBO_Index(i),gl.FLOAT,&commands.colors[0],n)
+// 	bind_texture(gl.TEXTURE0,state.textures[font.name].handle)
+// 	texture_filtering(gl.LINEAR)
+// 	draw_triangles(i32(6*n)) }

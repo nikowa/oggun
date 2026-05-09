@@ -58,12 +58,12 @@ Command_Variant :: enum {
 command_buffer_record :: proc(buffer: ^Command_Buffer, config: Command_Config) {
 	append(&buffer.commands, Command{ config = config, submitted = false }) }
 
-command_submit :: proc(graphics_man: ^Graphics_Manager, command: ^Command) {
+command_submit :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
 	if command.submitted do return
 	switch command.variant {
-	case .RENDER_IMAGE: submit_render_image(graphics_man, command)
-	case .RENDER_BITMAP_TEXT: submit_render_bitmap_text(graphics_man, command) }
-	command.submitted = true }
+	case .RENDER_IMAGE: submit_render_image(graphics_man, command, index)
+	case .RENDER_BITMAP_TEXT: submit_render_bitmap_text(graphics_man, command, index) }
+	graphics_man.command_buffer.commands[index].submitted = true }
 
 command_buffer_submit :: proc(graphics_man: ^Graphics_Manager, command_buffer: ^Command_Buffer) {
-	for &command in command_buffer.commands do command_submit(graphics_man, &command) }
+	for command, index in command_buffer.commands do command_submit(graphics_man, command, index) }

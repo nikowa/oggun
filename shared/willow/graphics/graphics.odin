@@ -3,6 +3,7 @@ package graphics
 import "../asset_manager"
 import "../window"
 import "base:runtime"
+import "base:intrinsics"
 import gl "vendor:OpenGL"
 import glfw "vendor:glfw"
 import str "core:strings"
@@ -607,12 +608,11 @@ use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
 set_depth_test :: proc(value: bool) {
 	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
 
-// upload_vertex_buffer_data :: proc(attribute_index: u32, vbo_index: VBO_Index,type:u32,data:^$T,n_commands:int) {
-// 	// DICK
-// 	bind_vertex_buffer(int(vbo_index))
-// 	gl.BufferData(gl.ARRAY_BUFFER,n_commands*size_of(T),data,gl.DYNAMIC_DRAW)
-// 	gl.VertexAttribPointer(attribute_index,i32(len(T) when intrinsics.type_is_array(T) else 1),type,false,0,0)
-// 	gl.EnableVertexAttribArray(attribute_index) }
+upload_vertex_buffer_data :: proc(attribute_index: u32, buffer: u32, type: u32, data: []$T) {
+	gl.BindBuffer(gl.ARRAY_BUFFER, buffer)
+	gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(T), &data[0], gl.DYNAMIC_DRAW)
+	gl.VertexAttribPointer(attribute_index, i32(len(T) when intrinsics.type_is_array(T) else 1), type, false, 0, 0)
+	gl.EnableVertexAttribArray(attribute_index) }
 
 // Plot :: struct {
 // 	x0: f32,
@@ -698,7 +698,7 @@ render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect:
 	command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_IMAGE, render_image = command }) }
 
 // (NOTE): This will do the batching. //
-submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: ^Command) {
+submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
 	using Image_Uniforms
 	assert(image_loaded(command.image))
 	use_shader(&graphics_man.image_shader)
