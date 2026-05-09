@@ -53,12 +53,10 @@ Shader_Asset :: struct {
 // 	text_color:      i32 }
 
 Rect_Shader_Uniforms :: enum {
-	POS        = 0,
-	SIZE       = 1,
-	RES        = 2,
-	FILL_COLOR = 3,
-	ROUNDING   = 4,
-	DEPTH      = 5 }
+	RES        = 0,
+	DEPTH      = 1,
+	FILL_COLOR = 2,
+	ROUNDING   = 3 }
 
 Line_Shader_Uniforms :: enum {
 	POINTS = 0,
@@ -108,9 +106,7 @@ Buffer_Shader_Uniforms :: enum {
 // 	this_buffer_res: i32 }
 
 Image_Uniforms :: enum {
-	POS  = 0,
-	SIZE = 1,
-	RES  = 2 }
+	RES = 0 }
 
 // Chromatic_Aberration_Shader :: struct {
 // 	using shader: Shader }

@@ -1,7 +1,7 @@
 #+feature using-stmt
 package rect
 
-Rect :: struct {
+Rect :: struct #packed {
 	pos:  [2]f32,
 	size: [2]f32 }
 

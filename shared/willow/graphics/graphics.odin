@@ -12,7 +12,7 @@ import "../input"
 import la "core:math/linalg"
 import fmt "core:fmt"
 import tm "core:time"
-import log "core:log"
+import "core:log"
 import bs "../base"
 import r "../container/rect"
 
@@ -32,6 +32,8 @@ RED:   [4]f32 : {1, 0, 0, 1}
 GREEN: [4]f32 : {0, 1, 0, 1}
 BLUE:  [4]f32 : {0, 0, 1, 1}
 CYAN:  [4]f32 : {0, 1, 1, 1}
+
+QUAD_VERTS_LEN :: 6
 
 BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
 
@@ -585,14 +587,13 @@ bind_texture :: proc(binding_index: u32, handle: u32) {
 	gl.ActiveTexture(gl.TEXTURE0 + binding_index)
 	gl.BindTexture(gl.TEXTURE_2D, cast(u32)handle) }
 
-
+// (TODO): Make count be the number of triangles. //
 draw_triangles :: proc(count: i32) {
     gl.DrawArrays(gl.TRIANGLES, 0, count) }
 
-
+// (TODO): Make count be the number of lines. //
 draw_lines :: proc(count: i32) {
     gl.DrawArrays(gl.LINES, 0, count) }
-
 
 draw_points :: proc(count: i32) {
     gl.DrawArrays(gl.POINTS, 0, count) }
@@ -608,11 +609,27 @@ use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
 set_depth_test :: proc(value: bool) {
 	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
 
-upload_vertex_buffer_data :: proc(attribute_index: u32, buffer: u32, type: u32, data: []$T) {
+upload_vertex_buffer_data :: proc(attribute_index: u32, buffer: u32, components: i32, type: u32, data: []$T) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, buffer)
 	gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(T), &data[0], gl.DYNAMIC_DRAW)
-	gl.VertexAttribPointer(attribute_index, i32(len(T) when intrinsics.type_is_array(T) else 1), type, false, 0, 0)
+	gl.VertexAttribPointer(attribute_index, components, type, false, 0, 0)
 	gl.EnableVertexAttribArray(attribute_index) }
+
+new_buffer :: proc() -> (buffer: u32) {
+	gl.GenBuffers(1, &buffer)
+	return buffer }
+
+delete_buffer :: proc(buffer: u32) {
+	buffer := buffer
+	gl.DeleteBuffers(1, &buffer) }
+
+make_buffers :: proc($count: int) -> (buffers: [count]u32) {
+	gl.GenBuffers(cast(i32)count, &buffers[0])
+	return buffers }
+
+delete_buffers :: proc(buffers: [$N]u32) {
+	buffers := buffers
+	gl.DeleteBuffers(cast(i32)N, &buffers[0]) }
 
 // Plot :: struct {
 // 	x0: f32,
@@ -649,8 +666,6 @@ upload_vertex_buffer_data :: proc(attribute_index: u32, buffer: u32, type: u32, 
 render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0) {
 	using Rect_Shader_Uniforms
 	use_shader(&graphics_manager.rect_shader)
-	set_shader_param(POS, rect.pos)
-	set_shader_param(SIZE, rect.size)
 	set_shader_param(FILL_COLOR, fill_color)
 	set_shader_param(ROUNDING, rounding)
 	set_shader_param(DEPTH, depth)
@@ -699,37 +714,41 @@ render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect:
 
 // (NOTE): This will do the batching. //
 submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
+	// using Image_Uniforms
+	// assert(image_loaded(command.image))
+	// use_shader(&graphics_man.image_shader)
+	// gl.BindVertexArray(graphics_man.vertex_array)
+	// gl.BindBuffer(gl.ARRAY_BUFFER, graphics_man.vertex_buffer)
+	// set_shader_param(POS, command.rect.pos)
+	// set_shader_param(SIZE, command.rect.size)
+	// bind_texture(0, command.image.handle)
+	// texture_filtering(gl.NEAREST)
+	// draw_triangles(6)
+
 	using Image_Uniforms
 	assert(image_loaded(command.image))
 	use_shader(&graphics_man.image_shader)
-	gl.BindVertexArray(graphics_man.vertex_array)
-	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_man.vertex_buffer)
-	set_shader_param(POS, command.rect.pos)
-	set_shader_param(SIZE, command.rect.size)
 	set_shader_param(RES, la.array_cast(graphics_man.active_resolution, f32))
+
+	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(command_0, command_1: Command) -> bool {
+		return command_0.render_image_group_params == command_1.render_image_group_params })
+	buffers := make_buffers(4)
+	defer delete_buffers(buffers)
+	// log.infof("Grouping %v render_image commands.", len(commands))
+
+	n: int = QUAD_VERTS_LEN * len(commands)
+	rect := make([]r.Rect, n)
+	depth := make([]f32, n)
+	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
+		k := QUAD_VERTS_LEN * i + j
+		rect[k] = _command.rect
+		depth[k] = _command.depth }
+	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
+	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
+
 	bind_texture(0, command.image.handle)
 	texture_filtering(gl.NEAREST)
-	draw_triangles(6)
-
-	// Command_Buffer
-
-	// using Image_Uniforms
-	// assert(image_loaded(image))
-	// use_shader(&graphics_manager.image_shader)
-	// // gl.GenBuffers(1, &model.positions_handle)
-	// // gl.GenBuffers(1, &model.normals_handle)
-	// // gl.GenBuffers(1, &model.texcoords_handle)
-	// // gl.GenBuffers(1, &model.lightmap_texcoords_handle)
-	// // gl.BindBuffer(gl.ARRAY_BUFFER, model.positions_handle)
-	// // gl.BufferData(gl.ARRAY_BUFFER, len(model.positions) * size_of(model.positions[0]), &model.positions[0], gl.STATIC_DRAW)
-	// // DICK
-	// set_shader_param(POS, rect.pos)
-	// set_shader_param(SIZE, rect.size)
-	// set_shader_param(RES, la.array_cast(graphics_manager.active_resolution, f32))
-	// bind_texture(0, image.handle)
-	// texture_filtering(gl.NEAREST)
-	// draw_triangles(6)
-}
+	draw_triangles(cast(i32)n) }
 
 // render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: r.Rect, depth: f32 = 0.0) {
 // 	using Image_Uniforms

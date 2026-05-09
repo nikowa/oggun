@@ -57,7 +57,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	graphics.init_image(&asset_man, &image, { url = "image:kitten.png" })
 	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	sprites := make([]Sprite, 1_000)
+	sprites := make([]Sprite, 100_000)
 	for &sprite in sprites do sprite_init(&sprite)
 
 	base.zero_stopwatch(&stopwatch)

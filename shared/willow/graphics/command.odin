@@ -1,5 +1,6 @@
 package graphics
 import "base:runtime"
+import "core:log"
 
 // Command_Buffer :: struct {
 // 	allocator: runtime.Allocator,
@@ -66,4 +67,15 @@ command_submit :: proc(graphics_man: ^Graphics_Manager, command: Command, index:
 	graphics_man.command_buffer.commands[index].submitted = true }
 
 command_buffer_submit :: proc(graphics_man: ^Graphics_Manager, command_buffer: ^Command_Buffer) {
-	for command, index in command_buffer.commands do command_submit(graphics_man, command, index) }
+	// log.infof("Submitting %v commands.", len(command_buffer.commands))
+	for command, index in command_buffer.commands do command_submit(graphics_man, command, index)
+	clear(&command_buffer.commands) }
+
+command_buffer_get_group :: proc(command_buffer: ^Command_Buffer, index: int, cond: proc(command_0, command_1: Command) -> bool) -> ([]Command) {
+	index_max: int = index + 1
+	command := command_buffer.commands[index]
+	for ; index_max < len(command_buffer.commands); index_max += 1 {
+		command_max := &command_buffer.commands[index_max]
+		if ! (cond(command, command_max^)) do break
+		command_max.submitted = true }
+	return command_buffer.commands[index:index_max] }

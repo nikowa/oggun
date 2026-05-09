@@ -90,14 +90,10 @@ render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: st
 		command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_BITMAP_TEXT, render_bitmap_text = command }) } }
 
 submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
-	buffers: [4]u32
-	index_max: int = index + 1
-	for ; index_max < len(graphics_man.command_buffer.commands); index_max += 1 {
-		command_max := graphics_man.command_buffer.commands[index_max]
-		if command_max.render_bitmap_text.render_bitmap_text_group_params != command.render_bitmap_text.render_bitmap_text_group_params do break
-		command_max.submitted = true }
-	commands: []Command = graphics_man.command_buffer.commands[index:index_max]
-	gl.GenBuffers(4, &buffers[0]); defer gl.DeleteBuffers(4, &buffers[0])
+	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(command_0, command_1: Command) -> bool {
+		return command_0.render_bitmap_text_group_params == command_1.render_bitmap_text_group_params })
+	buffers := make_buffers(4)
+	defer delete_buffers(buffers)
 	n: int = 6 * len(commands)
 	scale_factor := make([]f32, n)
 	color := make([][4]f32, n)
@@ -109,11 +105,10 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: Comm
 		color[k] = command.color
 		symbol[k] = command.symbol
 		position[k] = command.position }
-	upload_vertex_buffer_data(0, buffers[0], gl.FLOAT, scale_factor)
-	upload_vertex_buffer_data(1, buffers[1], gl.FLOAT, color)
-	upload_vertex_buffer_data(2, buffers[2], gl.INT, symbol)
-	upload_vertex_buffer_data(3, buffers[3], gl.FLOAT, position)
-}
+	upload_vertex_buffer_data(0, buffers[0], 1, gl.FLOAT, scale_factor)
+	upload_vertex_buffer_data(1, buffers[1], 4, gl.FLOAT, color)
+	upload_vertex_buffer_data(2, buffers[2], 1, gl.INT, symbol)
+	upload_vertex_buffer_data(3, buffers[3], 3, gl.FLOAT, position) }
 
 // render_text_group::proc(name:Font_Name) {
 // 	when TRACY_ENABLE { tracy.ZoneNC("render text group",0xFF0000) }
