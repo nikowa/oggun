@@ -14,6 +14,7 @@ import "core:time"
 import "core:math"
 import "core:math/rand"
 import "core:math/linalg"
+import "core:slice"
 
 asset_man: asset_manager.Asset_Manager
 graphics_man: graphics.Graphics_Manager
@@ -53,11 +54,20 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		graphics_config = { window_manager = &window_man })
 	base.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
-	image: graphics.Image_Asset
-	graphics.init_image(&asset_man, &image, { url = "image:kitten.png" })
-	assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	images: [5]graphics.Image_Asset
+	graphics.init_image(&asset_man, &images[0], { url = "image:kitten-1.png" })
+	graphics.init_image(&asset_man, &images[1], { url = "image:kitten-2.png" })
+	graphics.init_image(&asset_man, &images[2], { url = "image:kitten-3.png" })
+	graphics.init_image(&asset_man, &images[3], { url = "image:kitten-4.png" })
+	graphics.init_image(&asset_man, &images[4], { url = "image:kitten-5.png" })
+	for &image in images do assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	N :: 1_000
+	splits: [5]int
+	for &split in splits do split = rand.int_max(N)
+	slice.sort(splits[:])
+	splits[4] = N
 
-	sprites := make([]Sprite, 100_000)
+	sprites := make([]Sprite, N)
 	for &sprite in sprites do sprite_init(&sprite)
 
 	base.zero_stopwatch(&stopwatch)
@@ -70,7 +80,8 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 			// fmt.printfln("fps: %v", cast(int)tick_man.frame_rate)
 			graphics.tick(&graphics_man)
 			rect_screen := gui.rect_screen(&graphics_man)
-			for &sprite in sprites {
+			image_index: int = 0
+			for &sprite, i in sprites {
 				sprite.position += tick_man.delta_time * sprite.speed * sprite.direction
 				if sprite.position.x > 1 {
 					sprite.position.x = 1
@@ -85,7 +96,8 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
 				sprite_rect: rect.Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				graphics.render_image(&graphics_man, &image, sprite_rect)
+				graphics.render_image(&graphics_man, &images[image_index], sprite_rect)
+				if i > splits[image_index] do image_index += 1
 			}
 		}
 
