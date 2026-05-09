@@ -44,14 +44,16 @@ Command_Buffer :: struct {
 Command_Config :: struct {
 	variant: Command_Variant,
 	using _: struct #raw_union {
-		using render_image: Render_Image_Command } }
+		using render_image: Render_Image_Command,
+		using render_bitmap_text: Render_Bitmap_Text_Command } }
 
 Command :: struct {
 	using config: Command_Config,
 	submitted: bool }
 
 Command_Variant :: enum {
-	RENDER_IMAGE }
+	RENDER_IMAGE,
+	RENDER_BITMAP_TEXT }
 
 command_buffer_record :: proc(buffer: ^Command_Buffer, config: Command_Config) {
 	append(&buffer.commands, Command{ config = config, submitted = false }) }
@@ -59,7 +61,8 @@ command_buffer_record :: proc(buffer: ^Command_Buffer, config: Command_Config) {
 command_submit :: proc(graphics_man: ^Graphics_Manager, command: ^Command) {
 	if command.submitted do return
 	switch command.variant {
-	case .RENDER_IMAGE: submit_render_image(graphics_man, command) }
+	case .RENDER_IMAGE: submit_render_image(graphics_man, command)
+	case .RENDER_BITMAP_TEXT: submit_render_bitmap_text(graphics_man, command) }
 	command.submitted = true }
 
 command_buffer_submit :: proc(graphics_man: ^Graphics_Manager, command_buffer: ^Command_Buffer) {

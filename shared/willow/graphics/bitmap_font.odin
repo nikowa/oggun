@@ -43,38 +43,50 @@ bitmap_font_init :: proc(asset_man: ^asset_manager.Asset_Manager, font: ^Bitmap_
 		advance: int; advance, ok = strconv.parse_int(tokens[2])
 		if ok do font.advances[rune(tokens[0][0])] = u8(advance) } }
 
-// render_text::proc(args:..any,sep:string="",pos:[2]f32={0,0},color:[4]f32=BLACK,scale_multiplier:f32=1.0,pivot:bit_set[Compass]={},font_name:Font_Name=.MAIN_FONT_4,shadow:bool=true,spacing:f32=1.0,waviness:f32=0.0,cursor_pos:int=-1) {
-// 	using state
-// 	when TRACY_ENABLE { tracy.ZoneNC("draw text",0xFF0000) }
-// 	font:=&fonts[font_name]
-// 	commands:=&state.text_draw_commands[font_name]
-// 	if cap(commands)==0 do commands^=make_soa_dynamic_array_len_cap(#soa[dynamic]Text_Draw_Command,length=0,capacity=TEXT_COMMANDS_CAP)
-// 	text:=fmt.aprint(..args,sep=sep)
-// 	pos:=pos
-// 	width:f32=0.0
-// 	for c,i in text {
-// 		width+=f32(font.advances[c]-font.bearings[c])*scale_multiplier+spacing }
-// 	height:f32=f32(font.symbol_size.y)
-// 	// render_rect_hollow(position=pos,size={width,height},color=RED)
-// 	// render_rect(position={0,rect_size/2.5},size={8,8},fill_color=RED)
-// 	pos=pos-0.5*{width,height}
-// 	if .EAST in pivot { pos.x-=0.5*width }
-// 	if .WEST in pivot { pos.x+=0.5*width }
-// 	if .NORTH in pivot { pos.y-=0.5*height }
-// 	if .SOUTH in pivot { pos.y+=0.5*height }
-// 	use_shader(state.font_shader)
-// 	set_shader_param(state.font_shader.this_buffer_res,cast_array(state.resolution,f32))
-// 	set_shader_param(state.font_shader.symbol_size,[2]f32{f32(font.symbol_size.x),f32(font.symbol_size.y)})
-// 	sym_pos:[2]f32=pos
-// 	for c,i in text {
-// 		command:Text_Draw_Command
-// 		command.symbols=f32(c)
-// 		wavy_offset:f32=waviness*f32(math.sin(3.12*state.net_time+f32(i))+math.cos(7.31*state.net_time+f32(i)))
-// 		command.positions=[3]f32{f32(sym_pos.x),f32(sym_pos.y+wavy_offset),0}
-// 		if i==cursor_pos do if (cast(int)(state.net_time*2))%2==0 {
-// 			render_rect(position=command.positions.xy+{0,0.5*height},size={4,height},fill_color=WHITE) }
-// 		command.positions[0]-=f32(font.bearings[c])*scale_multiplier
-// 		command.scale_factors=f32(scale_multiplier)
-// 		command.colors=cast_array(color,f32)
-// 		sym_pos.x+=f32(font.advances[c]-font.bearings[c])*scale_multiplier+spacing
-// 		for _ in 0..<QUAD_VERTS do append_soa_elem(commands,command) }}
+Render_Bitmap_Text_Command :: struct {
+	using render_bitmap_text_params: Render_Bitmap_Text_Params,
+	using render_bitmap_text_group_params: Render_Bitmap_Text_Group_Params }
+
+Render_Bitmap_Text_Group_Params :: struct {
+	font: ^Bitmap_Font,
+	res: [2]f32,
+	symbol_size: [2]f32 }
+
+Render_Bitmap_Text_Params :: struct {
+	scale_factor: f32,
+	color: [4]f32,
+	symbol: i32,
+	position: [3]f32 }
+
+render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: string = "", pos: [2]f32 = { 0, 0 }, color: [4]f32 = BLACK, scale_factor: f32 = 1.0, pivot: bit_set[Compass] = {}, font: ^Bitmap_Font = nil, shadow: bool = true, spacing: f32 = 1.0, waviness: f32 = 0.0, cursor_pos: int = -1) {
+	text := fmt.aprint(..args, sep = sep)
+	pos := pos
+	width: f32 = 0.0
+	for c, i in text {
+		width += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing }
+	height: f32 = f32(font.symbol_size.y)
+	pos = pos - 0.5 * { width, height }
+	if .East in pivot  do pos.x -= 0.5 * width
+	if .West in pivot  do pos.x += 0.5 * width
+	if .North in pivot do pos.y -= 0.5 * height
+	if .South in pivot do pos.y += 0.5 * height
+	group_command: Render_Bitmap_Text_Command = {
+		font = font,
+		res = graphics_man.active_resolution,
+		scale_factor = scale_factor,
+		color = color }
+	sym_pos:[2]f32=pos
+	for c,i in text {
+		command := group_command
+		command.symbol = cast(i32)c
+		wavy_offset: f32 = 0.0
+		// wavy_offset: f32 = waviness * f32(math.sin(3.12 * state.net_time + f32(i)) + math.cos(7.31 * state.net_time + f32(i)))
+		command.position = [3]f32{ f32(sym_pos.x), f32(sym_pos.y + wavy_offset), 0 }
+		command.position.x -= f32(font.bearings[c]) * scale_factor
+		command.scale_factor = f32(scale_factor)
+		command.color = color
+		sym_pos.x += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
+		command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_BITMAP_TEXT, render_bitmap_text = command }) } }
+
+submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: ^Command) {
+}

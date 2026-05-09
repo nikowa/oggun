@@ -94,6 +94,12 @@ Graphics_Manager :: struct {
 // 	cubemap:                         Cubemap
 }
 
+Compass :: enum u8 {
+	East,
+	West,
+	North,
+	South }
+
 Render_Buffer :: struct {
 	initialized: bool,
 	frame_buffer_handle: u32,
@@ -672,8 +678,8 @@ render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, colo
 	draw_lines(2) }
 
 Render_Image_Command :: struct {
-	using params: Render_Image_Params,
-	using group_params: Render_Image_Group_Params }
+	using render_image_params: Render_Image_Params,
+	using render_image_group_params: Render_Image_Group_Params }
 
 Render_Image_Params :: struct {
 	rect: r.Rect,
