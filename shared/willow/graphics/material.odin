@@ -25,7 +25,7 @@ Material_Asset :: struct {
 init_material :: proc(as_mngr: ^asset_manager.Asset_Manager, material: ^Material_Asset, config: asset_manager.Asset_Config, base_color_url: asset_manager.URL) {
 	config := config
 	config.derived_type = Material_Asset
-	asset_manager.init_asset(as_mngr, &material.asset, config)
+	asset_manager.init_asset(as_mngr, Material_Asset, &material.asset, config)
 	init_image(as_mngr, &material.base_color, { url = base_color_url }) }
 
 material_asset_command :: proc(as_mngr: ^asset_manager.Asset_Manager, asset: ^asset_manager.Asset, command: asset_manager.Asset_Command, watch: bool = false) -> (ok: bool) {

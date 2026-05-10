@@ -108,6 +108,10 @@ Buffer_Shader_Uniforms :: enum {
 Image_Uniforms :: enum {
 	RES = 0 }
 
+Bitmap_Text_Uniforms :: enum {
+	RES = 0,
+	SYMBOL_SIZE = 1 }
+
 // Chromatic_Aberration_Shader :: struct {
 // 	using shader: Shader }
 
@@ -201,12 +205,13 @@ GLSL_Builder :: struct {
 	global_variables: [dynamic][2]string }
 
 init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: asset_manager.Asset_Config, config: Shader_Config, graphics_context: ^Graphics_Manager, manager: ^asset_manager.Asset_Manager) -> (err: os.Error) {
-	asset_manager.init_asset(manager, &shader.asset, asset_config)
+	asset_manager.init_asset(manager, Shader_Asset, &shader.asset, asset_config)
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader.shader_config = config
 	asset_manager.init_string_asset(manager, &shader.vert_asset, { config.vert_url, asset_manager.String_Asset })
 	asset_manager.init_string_asset(manager, &shader.frag_asset, { config.frag_url, asset_manager.String_Asset })
 	append(&graphics_context.shaders, shader) or_return
+	assert(asset_manager.asset_commands(manager, Shader_Asset, shader, { .Import, .Load }))
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -398,9 +403,10 @@ preprocess_glsl :: proc(database: ^asset_manager.Asset_Manager, working_director
 	return {}, os.General_Error.None }
 
 shader_outdated :: proc(shader_asset: ^Shader_Asset, as_mngr: ^asset_manager.Asset_Manager) -> (outdated: bool) {
-	latest_modification_time: tm.Time = base.time_max(
-		(asset_manager.get_entry(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
-		(asset_manager.get_entry(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
+	outdated = true
+	vert_entry := asset_manager.get_entry(&as_mngr.database, shader_asset.vert_asset.url) or_return
+	frag_entry := asset_manager.get_entry(&as_mngr.database, shader_asset.frag_asset.url) or_return
+	latest_modification_time: tm.Time = base.time_max(vert_entry.modification_time, frag_entry.modification_time)
 	return tm.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
 shader_asset_command :: proc(as_mngr: ^asset_manager.Asset_Manager, asset: ^asset_manager.Asset, command: asset_manager.Asset_Command, watch: bool = false) -> (ok: bool) {
@@ -409,6 +415,11 @@ shader_asset_command :: proc(as_mngr: ^asset_manager.Asset_Manager, asset: ^asse
 	switch command {
 	case .Validate:
 		return true
+	case .Query_Location:
+		assert(asset_manager.asset_command(as_mngr, asset_manager.String_Asset, &shader_asset.vert_asset, .Query_Location))
+		assert(asset_manager.asset_command(as_mngr, asset_manager.String_Asset, &shader_asset.frag_asset, .Query_Location))
+		assert(.Source_Directory in shader_asset.vert_asset.location)
+		assert(.Source_Directory in shader_asset.frag_asset.location)
 	case .Import:
 		if watch {
 			if ! shader_outdated(shader_asset, as_mngr) do return
@@ -417,13 +428,14 @@ shader_asset_command :: proc(as_mngr: ^asset_manager.Asset_Manager, asset: ^asse
 		}
 		assert(asset_manager.asset_command(as_mngr, asset_manager.String_Asset, &shader_asset.vert_asset, .Import))
 		assert(asset_manager.asset_command(as_mngr, asset_manager.String_Asset, &shader_asset.frag_asset, .Import))
+		asset.location += { .Database }
 		return true
 	case .Load:
 		assert(asset_manager.asset_command(as_mngr, asset_manager.String_Asset, &shader_asset.vert_asset, .Load))
 		assert(asset_manager.asset_command(as_mngr, asset_manager.String_Asset, &shader_asset.frag_asset, .Load))
 		err := compile_shader(as_mngr, shader_asset)
 		return err == nil
-	case .Query_Location, .Export, .Save, .Upload, .Download:
+	case .Export, .Save, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)
 		return false }
 	return false }

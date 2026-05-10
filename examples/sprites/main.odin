@@ -30,10 +30,12 @@ main :: proc() {
 Sprite :: struct {
 	position: [2]f32,
 	direction: [2]f32,
+	depth: f32,
 	speed: f32 }
 
 sprite_init :: proc(sprite: ^Sprite) {
 	sprite.position = { rand.float32(), rand.float32() }
+	sprite.depth = rand.float32()
 	angle: f32 = 2 * math.PI * rand.float32()
 	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
 	sprite.speed = 0.1 * (1 + rand.float32()) }
@@ -61,11 +63,14 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	graphics.init_image(&asset_man, &images[3], { url = "image:kitten-4.png" })
 	graphics.init_image(&asset_man, &images[4], { url = "image:kitten-5.png" })
 	for &image in images do assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
-	N :: 1_000
+	N :: 1000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
 	slice.sort(splits[:])
 	splits[4] = N
+
+	font: graphics.Bitmap_Font
+	graphics.bitmap_font_init(&asset_man, &font, { name = "font-12pt", default_bearing = 0, default_advance = 0 })
 
 	sprites := make([]Sprite, N)
 	for &sprite in sprites do sprite_init(&sprite)
@@ -96,10 +101,9 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
 				sprite_rect: rect.Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				graphics.render_image(&graphics_man, &images[image_index], sprite_rect)
-				if i > splits[image_index] do image_index += 1
-			}
-		}
+				// graphics.render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
+				if i > splits[image_index] do image_index += 1 }
+			graphics.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = graphics.WHITE, scale_factor = 2.0) }
 
 		free_all(context.temp_allocator) }
 	return }

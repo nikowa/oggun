@@ -66,6 +66,7 @@ Graphics_Manager :: struct {
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
 	image_shader: Shader_Asset,
+	bitmap_text_shader: Shader_Asset,
 	buffer_shader: Shader_Asset,
 // 	upscale_pass1_shader:            ^Upscale_Pass1_Shader,
 // 	upscale_pass2_shader:            ^Upscale_Pass2_Shader,
@@ -228,6 +229,7 @@ init :: proc(
 		init_shader_asset(&graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, graphics_manager, as_mngr) or_return
+		init_shader_asset(&graphics_manager.bitmap_text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }, graphics_manager, as_mngr) or_return
@@ -612,7 +614,11 @@ set_depth_test :: proc(value: bool) {
 upload_vertex_buffer_data :: proc(attribute_index: u32, buffer: u32, components: i32, type: u32, data: []$T) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, buffer)
 	gl.BufferData(gl.ARRAY_BUFFER, len(data) * size_of(T), &data[0], gl.DYNAMIC_DRAW)
-	gl.VertexAttribPointer(attribute_index, components, type, false, 0, 0)
+	switch type {
+	case gl.INT, gl.UNSIGNED_INT:
+		gl.VertexAttribIPointer(attribute_index, components, type, 0, 0)
+	case:
+		gl.VertexAttribPointer(attribute_index, components, type, false, 0, 0) }
 	gl.EnableVertexAttribArray(attribute_index) }
 
 new_buffer :: proc() -> (buffer: u32) {
@@ -732,6 +738,7 @@ submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: Command, i
 
 	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(command_0, command_1: Command) -> bool {
 		return command_0.render_image_group_params == command_1.render_image_group_params })
+
 	buffers := make_buffers(4)
 	defer delete_buffers(buffers)
 	// log.infof("Grouping %v render_image commands.", len(commands))

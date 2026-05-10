@@ -23,7 +23,7 @@ String_Asset :: struct {
 init_string_asset :: proc(as_mngr: ^Asset_Manager, string_asset: ^String_Asset, config: Asset_Config) {
 	config := config
 	config.derived_type = String_Asset
-	init_asset(as_mngr, &string_asset.asset, config)
+	init_asset(as_mngr, String_Asset, &string_asset.asset, config)
 	// (TODO): `init_asset` should execute `.Query_Location` by default.
 	string_asset_command(as_mngr, &string_asset.asset, .Query_Location) }
 
@@ -40,6 +40,7 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 	case .Query_Location:
 		path := path_from_url(&as_mngr.database, asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
+		return true
 	case .Import:
 		// There is a problem here: watch imports this every time
 		if .Source_Directory not_in asset.location do return false
@@ -54,7 +55,9 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 		asset.location += { .Database }
 		return true
 	case .Load:
-		if .Database not_in asset.location do return false
+		if .Database not_in asset.location {
+			log.errorf("Failed to load string %s because it hasn't been imported.", asset.url)
+			return false }
 		entry := get_entry(&as_mngr.database, asset.url) or_return
 		if watch do if string_asset.str == cast(string)entry.data do return true
 		string_asset.str = str.clone_from_bytes(entry.data)

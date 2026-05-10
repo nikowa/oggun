@@ -69,10 +69,17 @@ asset_commands :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asse
 	for command in commands do ok &&= asset_command(manager, Asset_Type, asset, command, watch)
 	return ok }
 
-init_asset :: proc(manager: ^Asset_Manager, asset: ^Asset, config: Asset_Config) {
+@(deferred_in=init_asset_end)
+init_asset :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
+	init_asset_begin(manager, Asset_Type, asset, config) }
+
+init_asset_begin :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
 	// log.info("Initializing asset of type", type_info_of(config.derived_type).id)
 	asset.asset_config = config
 	append(&manager.assets, asset) }
+
+init_asset_end :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
+	asset_commands(manager, Asset_Type, asset, { .Validate, .Query_Location }) }
 
 asset_object :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 	offset: uintptr = offset_of_by_string(T, field_name)

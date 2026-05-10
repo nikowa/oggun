@@ -32,7 +32,7 @@ image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 init_image :: proc(as_mngr: ^asset_manager.Asset_Manager, image: ^Image_Asset, config: asset_manager.Asset_Config) {
 	config := config
 	config.derived_type = Image_Asset
-	asset_manager.init_asset(as_mngr, &image.asset, config) }
+	asset_manager.init_asset(as_mngr, Image_Asset, &image.asset, config) }
 
 image_modification_time :: proc(as_mngr: ^asset_manager.Asset_Manager, image: ^Image_Asset, location: asset_manager.Asset_Location_Field) -> (modification_time: tm.Time) {
 	switch location {
