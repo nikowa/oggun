@@ -34,17 +34,17 @@ bitmap_font_init :: proc(asset_man: ^asset_manager.Asset_Manager, font: ^Bitmap_
 	font.symbol_size = { f32(font.bitmap_image.width / 16), f32(font.bitmap_image.height / 16) }
 	font.bearings = font.default_bearing
 	font.advances = font.default_advance
-	// asset_manager.init_string_asset(asset_man, &font.positions_string, { auto_cast fmt.aprintf("string:%s.baf", font.name), asset_manager.String_Asset })
-	// assert(asset_manager.asset_commands(asset_man, asset_manager.String_Asset, &font.positions_string.asset, { .Import, .Load }))
-	// lines: []string = strings.split_lines(font.positions_string.str)
-	// for line in lines {
-	// 	tokens: []string = strings.split(line, " ")
-	// 	if len(tokens) != 3 do continue
-	// 	bearing, ok := strconv.parse_int(tokens[1])
-	// 	if ok do font.bearings[rune(tokens[0][0])] = u8(bearing)
-	// 	advance: int; advance, ok = strconv.parse_int(tokens[2])
-	// 	if ok do font.advances[rune(tokens[0][0])] = u8(advance) }
-}
+	asset_manager.init_string_asset(asset_man, &font.positions_string, { auto_cast fmt.aprintf("string:%s.baf", font.name), asset_manager.String_Asset })
+	assert(asset_manager.asset_commands(asset_man, asset_manager.String_Asset, &font.positions_string.asset, { .Import, .Load }))
+	lines: []string = strings.split_lines(font.positions_string.str)
+	for line in lines {
+		tokens: []string = strings.split(line, " ")
+		if len(tokens) != 3 do continue
+		bearing, ok := strconv.parse_int(tokens[1])
+		if ok do font.bearings[rune(tokens[0][0])] = u8(bearing)
+		advance: int; advance, ok = strconv.parse_int(tokens[2])
+		if ok do font.advances[rune(tokens[0][0])] = u8(advance)
+} }
 
 Render_Bitmap_Text_Command :: struct {
 	using render_bitmap_text_params: Render_Bitmap_Text_Params,
@@ -61,6 +61,7 @@ Render_Bitmap_Text_Params :: struct {
 	scale_factor: f32,
 	position: [3]f32 }
 
+// (TODO): Set a font-wide "bearing_y" param measuring the distance from the lower left corner of the sigil rectangle to the base horizontal line. Then write an algorithm that scans a font and generates a BAF by looking at where the font begins and ends on this base line.
 render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: string = "", pos: [2]f32 = { 0, 0 }, color: [4]f32 = BLACK, scale_factor: f32 = 1.0, pivot: bit_set[Compass] = {}, font: ^Bitmap_Font = nil, shadow: bool = true, spacing: f32 = 1.0, waviness: f32 = 0.0, cursor_pos: int = -1) {
 	text := fmt.aprint(..args, sep = sep)
 	pos := pos

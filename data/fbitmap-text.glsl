@@ -15,4 +15,6 @@ void main(void) {
 	uv.x += float(_symbol % 16) / 16;
 	uv.y += float(_symbol / 16) / 16;
 	color = texture(samp, uv);
-	color *= _text_color; }
+	color *= _text_color;
+	if (color.w == 0.0) {
+		gl_FragDepth = 1.0; } }
