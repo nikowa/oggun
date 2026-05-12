@@ -24,7 +24,7 @@ init_opengl :: proc(graphics_man: ^Graphics_Manager) {
 	gl.GenBuffers(1, &graphics_man.vertex_buffer)
 	gl.BindBuffer(gl.ARRAY_BUFFER, graphics_man.vertex_buffer)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-	gl.ClearColor(0.5, 0.5, 0.5, 1)
+	gl.ClearColor(graphics_man.clear_color.r, graphics_man.clear_color.g, graphics_man.clear_color.b, 1)
 	polygon_mode(.Fill)
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)

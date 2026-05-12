@@ -53,4 +53,10 @@ Informally, the rules are:
 
 ```
 
+## Allocators and Mutexes
+
+- No global state allowed
+- Every mutex is associated with a memory interval
+- Function is not allowed to take as inputs pointers from memory intervals outside of the intervals of the two mutexes they've acquired
+
 ## Start

@@ -1,7 +1,5 @@
 package asset_manager
 
-
-
 Watcher :: struct {
 	data: rawptr,
 	outdated_proc: Outdated_Proc,

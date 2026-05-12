@@ -16,6 +16,7 @@ import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
 
+settings_man: base.Settings_Manager
 asset_man: asset_manager.Asset_Manager
 graphics_man: graphics.Graphics_Manager
 input_man: input.Input_Manager
@@ -40,9 +41,21 @@ sprite_init :: proc(sprite: ^Sprite) {
 	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
 	sprite.speed = 0.1 * (1 + rand.float32()) }
 
+Settings :: struct {
+	player_name: string,
+	resolution: [2]f32,
+	fullscreen: bool }
+
 @(export)
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	context.logger = log.create_console_logger()
+
+	settings: Settings = {
+		player_name = "Destroyer",
+		resolution = { 1920, 1080 },
+		fullscreen = true }
+	base.init_settings_manager(&settings_man, "Sprites")
+	base.settings_manager_write(&settings_man, &settings)
 
 	asset_man = asset_manager.make_asset_manager({
 		relpath = "Data.bin",
@@ -101,9 +114,10 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
 				sprite_rect: rect.Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				// graphics.render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
+				graphics.render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
 				if i > splits[image_index] do image_index += 1 }
-			graphics.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = graphics.WHITE, scale_factor = 4.0) }
+			// graphics.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = graphics.WHITE, scale_factor = 2.0)
+		}
 
 		free_all(context.temp_allocator) }
 	return }

@@ -32,6 +32,7 @@ RED:   [4]f32 : {1, 0, 0, 1}
 GREEN: [4]f32 : {0, 1, 0, 1}
 BLUE:  [4]f32 : {0, 0, 1, 1}
 CYAN:  [4]f32 : {0, 1, 1, 1}
+GRAY:  [4]f32 : {0.5, 0.5, 0.5, 1}
 
 QUAD_VERTS_LEN :: 6
 
@@ -43,7 +44,8 @@ Graphics_Backend :: enum {
 	OpenGL }
 
 Graphics_Config :: struct #all_or_none {
-	window_manager: ^window.Window_Manager }
+	window_manager: ^window.Window_Manager,
+	clear_color: [4]f32 }
 
 Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
@@ -944,18 +946,18 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 		set_shader_param(shader.radius, capsule.r)
 // 		set_shader_param(shader.height, capsule.l)
 // 		set_shader_param(shader.sdf_id, cast(i32)SDF_ID.CAPSULE_Z)
-// 	case SDF_Ground_Triangle:
+// 	case SDF_Triangle:
 // 		ground_triangle := variant
 // 		set_shader_param(shader.point_a, ground_triangle.a)
 // 		set_shader_param(shader.point_b, ground_triangle.b)
 // 		set_shader_param(shader.point_c, ground_triangle.c)
 // 		set_shader_param(shader.sdf_id, cast(i32)SDF_ID.GROUND_TRIANGLE)
-// 	case SDF_Ground:
+// 	case SDF_Triangle_Mesh:
 // 		ground := variant
-// 		panic("SDF_Ground renderer unimplemented.")
-// 	case SDF_Mesh:
+// 		panic("SDF_Triangle_Mesh renderer unimplemented.")
+// 	case SDF_Plane_Mesh:
 // 		mesh := variant
-// 		panic("SDF_Mesh renderer unimplemented.") }
+// 		panic("SDF_Plane_Mesh renderer unimplemented.") }
 // 	draw_triangles(6) }
 
 
@@ -1082,6 +1084,11 @@ Polygon_Mode :: enum {
 
 polygon_mode :: proc(mode: Polygon_Mode) {
 	gl.PolygonMode(gl.FRONT_AND_BACK, cast(u32)mode) }
+
+// (TODO): Use this on the function below:
+Texture_Filtering :: enum {
+	Linear = gl.LINEAR,
+	Nearest = gl.NEAREST }
 
 texture_filtering :: proc(mode: i32) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mode)
@@ -1268,7 +1275,7 @@ tick_end :: proc(graphics_man: ^Graphics_Manager) {
 // 		// c:[3]f32=physics.surfer_position
 // 		// render_sdf_surface(draw, camera, clock.net_time, SDF_Sphere{ c=c,r=0.2 },color=physics.collision_distance>0?{0,0,1}:{1,0,1})
 // 		// for surface in physics.collision_surfaces do render_sdf_surface(draw, camera, clock.net_time, surface,color={1,0,0})
-// 		// render_sdf_surface(draw, camera, clock.net_time, SDF_Ground_Triangle{ a={8,0,0}, b={0,8,2}, c={0,0,4} },color={0,1,0})
+// 		// render_sdf_surface(draw, camera, clock.net_time, SDF_Triangle{ a={8,0,0}, b={0,8,2}, c={0,0,4} },color={0,1,0})
 // 	}
 // 	set_depth_test(false)
 // 	// render_cover()

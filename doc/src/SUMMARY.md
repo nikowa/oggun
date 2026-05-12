@@ -1,12 +1,17 @@
 # Summary
 
 - [Overview](./overview.md)
+- [Examples](./examples.md)
 - [CLI](./CLI.md)
 - [API](./API.md)
   - [Base](./API/base.md)
   - [Asset Manager](./API/asset_manager.md)
   - [Container](./API/container.md)
+    - [Bary](./API/bary.md)
+    - [Rect](./API/rect.md)
+    - [SDF](./API/sdf.md)
   - [Graphics](./API/graphics.md)
+  - [GUI](./API/gui.md)
   - [Input](./API/input.md)
   - [Model](./API/model.md)
   - [Scene](./API/scene.md)

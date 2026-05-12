@@ -2,6 +2,7 @@
 package graphics
 import "../asset_manager"
 import gl "vendor:OpenGL"
+import "core:os"
 import "core:fmt"
 import "core:strings"
 import "core:strconv"
@@ -12,6 +13,8 @@ Bitmap_Font_Config :: struct #all_or_none {
 	name: string,
 	default_bearing: u8,
 	default_advance: u8 }
+	// height: u8,
+	// center_height: u8 }
 
 DEFAULT_BITMAP_FONT_CONFIG: Bitmap_Font_Config : {
 	name = "font",
@@ -34,7 +37,9 @@ bitmap_font_init :: proc(asset_man: ^asset_manager.Asset_Manager, font: ^Bitmap_
 	font.symbol_size = { f32(font.bitmap_image.width / 16), f32(font.bitmap_image.height / 16) }
 	font.bearings = font.default_bearing
 	font.advances = font.default_advance
-	asset_manager.init_string_asset(asset_man, &font.positions_string, { auto_cast fmt.aprintf("string:%s.baf", font.name), asset_manager.String_Asset })
+	baf_path: string = fmt.aprintf("string:%s.baf", font.name)
+	if os.exists(asset_manager.path_from_url(&asset_man.database, cast(asset_manager.URL)baf_path, context.temp_allocator)) {
+	asset_manager.init_string_asset(asset_man, &font.positions_string, { auto_cast baf_path, asset_manager.String_Asset })
 	assert(asset_manager.asset_commands(asset_man, asset_manager.String_Asset, &font.positions_string.asset, { .Import, .Load }))
 	lines: []string = strings.split_lines(font.positions_string.str)
 	for line in lines {
@@ -43,8 +48,7 @@ bitmap_font_init :: proc(asset_man: ^asset_manager.Asset_Manager, font: ^Bitmap_
 		bearing, ok := strconv.parse_int(tokens[1])
 		if ok do font.bearings[rune(tokens[0][0])] = u8(bearing)
 		advance: int; advance, ok = strconv.parse_int(tokens[2])
-		if ok do font.advances[rune(tokens[0][0])] = u8(advance)
-} }
+		if ok do font.advances[rune(tokens[0][0])] = u8(advance) } } }
 
 Render_Bitmap_Text_Command :: struct {
 	using render_bitmap_text_params: Render_Bitmap_Text_Params,
@@ -123,7 +127,9 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: Comm
 	upload_vertex_buffer_data(3, buffers[3], 3, gl.FLOAT, position)
 
 	bind_texture(0, command.font.bitmap_image.handle)
-	texture_filtering(gl.NEAREST)
+	// texture_filtering(gl.NEAREST)
+	texture_filtering(gl.LINEAR)
+	polygon_mode(.Fill)
 	draw_triangles(cast(i32)n) }
 
 // render_text_group::proc(name:Font_Name) {

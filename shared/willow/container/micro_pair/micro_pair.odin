@@ -4,8 +4,6 @@ import rt "base:runtime"
 import fmt "core:fmt"
 import mb "core:math/bits"
 
-
-
 Micro_Pair :: [2]u32
 
 EMPTY :: mb.U32_MAX

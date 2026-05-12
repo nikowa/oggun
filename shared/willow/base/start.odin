@@ -6,14 +6,33 @@ import tr "core:thread"
 import win "core:sys/windows"
 import log "core:log"
 
-
 WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
 
+Entry_Point :: #type proc(data: ^Thread_Data)
 
+@(private="file")
+MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
+Thread_Data :: struct {
+	index: u32,
+	_magic_number: u32,
+	_entry_point: Entry_Point }
+
+make_thread_data :: proc(entry_point: Entry_Point, index: u32) -> (thread_data: ^Thread_Data) {
+	thread_data = new(Thread_Data)
+	thread_data._magic_number = MAGIC_NUMBER
+	thread_data._entry_point = entry_point
+	thread_data.index = index
+	return thread_data }
+
+get_thread_data :: #force_inline proc() -> (thread_data: ^Thread_Data) {
+	thread_data = cast(^Thread_Data)context.user_ptr
+	assert(thread_data._magic_number == MAGIC_NUMBER)
+	return thread_data }
+
+@private
 worker_proc :: proc(data: rawptr) {
 	thread_data: ^Thread_Data = cast(^Thread_Data)data
 	thread_data._entry_point(thread_data) }
-
 
 start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 	log.info("Starting engine.")

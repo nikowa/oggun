@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-1f36b030.js";
+            window.path_to_searchindex_js = "../searchindex-25c0e644.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-8b987a48.js"></script>
+        <script src="../toc-a7da5da1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -177,12 +177,43 @@
                         <h1 id="container"><a class="header" href="#container">Container</a></h1>
 <p>Various containers used throughout Willow.</p>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
+<h4 id="bary"><a class="header" href="#bary"><code>Bary</code></a></h4>
+<pre><code class="language-c">Bary :: [3]f32
+</code></pre>
 <h4 id="two_stack"><a class="header" href="#two_stack"><code>Two_Stack</code></a></h4>
 <pre><code class="language-c">Two_Stack :: struct($T: typeid) {
 	buffer: [2]T,
 	len: u8 }
 </code></pre>
 <h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
+<h4 id="bary_from_point"><a class="header" href="#bary_from_point"><code>bary_from_point</code></a></h4>
+<pre><code class="language-c">bary_from_point :: proc { bary_from_point2 }
+bary_from_point2 :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; (bary: Bary)
+</code></pre>
+<details><summary>Description</summary>
+Convert Euclidean coordinates to barycentric coordinates relative to a given triangle.
+</details>
+<h4 id="bary_to_point"><a class="header" href="#bary_to_point"><code>bary_to_point</code></a></h4>
+<pre><code class="language-c">bary_to_point :: proc { bary_to_point2, bary_to_point3 }
+bary_to_point2 :: proc(bary: Bary, triangle: [3][2]f32) -&gt; (point: [2]f32)
+bary_to_point3 :: proc(bary: Bary, triangle: [3][3]f32) -&gt; (point: [3]f32)
+</code></pre>
+<details><summary>Description</summary>
+Convert barycentric coordinates relative to a given triangle to Euclidean coordinates.
+</details>
+<h4 id="bary_inside"><a class="header" href="#bary_inside"><code>bary_inside</code></a></h4>
+<pre><code class="language-c">bary_inside :: proc(bary: Bary) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if the given barycentrric point is inside the triangle relative to which it is defined.
+</details>
+<h4 id="point_inside_triangle"><a class="header" href="#point_inside_triangle"><code>point_inside_triangle</code></a></h4>
+<pre><code class="language-c">point_inside_triangle :: proc { point2_inside_triangle }
+point2_inside_triangle :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if the given Euclidean point is inside the given triangle.
+</details>
 <h4 id="init"><a class="header" href="#init"><code>init</code></a></h4>
 <pre><code class="language-c">init :: proc(two_stack: ^Two_Stack($T))
 </code></pre>
@@ -219,6 +250,33 @@
 <h4 id="contains"><a class="header" href="#contains"><code>contains</code></a></h4>
 <pre><code class="language-c">contains :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; (ok: bool)
 </code></pre>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 
                     </main>
 
@@ -228,7 +286,7 @@
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../API/graphics.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../API/bary.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -242,7 +300,7 @@
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../API/graphics.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../API/bary.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>

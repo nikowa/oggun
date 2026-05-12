@@ -99,7 +99,7 @@ physics_init :: proc(physics: ^Physics, model_instances: ^[dynamic]Model_Instanc
 		a: [3]f32 = { ground_model.positions[9 * i + 0], ground_model.positions[9 * i + 1], ground_model.positions[9 * i + 2]}
 		b: [3]f32 = { ground_model.positions[9 * i + 3], ground_model.positions[9 * i + 4], ground_model.positions[9 * i + 5]}
 		c: [3]f32 = { ground_model.positions[9 * i + 6], ground_model.positions[9 * i + 7], ground_model.positions[9 * i + 8]}
-		triangle: SDF_Ground_Triangle = {
+		triangle: SDF_Triangle = {
 			a = apply_transform(a, ground_instance.transform),
 			b = apply_transform(b, ground_instance.transform),
 			c = apply_transform(c, ground_instance.transform) }

@@ -12,8 +12,8 @@ rect_margins :: proc(rect_in: rect.Rect, margins: f32) -> (rect_out: rect.Rect) 
 	rect_out.size.y -= margins * 2
 	return rect_out }
 
-// Rename this to "_split_ratio" and add a second one "_split_interval" which splits at a specified point on the X-axis.
-rect_split_h :: proc(rect_in: rect.Rect, ratio: f32, margin: f32) -> (rect_left: rect.Rect, rect_right: rect.Rect) {
+// Add a version of this called "_split_interval" which splits at a specified point on the X-axis.
+rect_split_ratio_h :: proc(rect_in: rect.Rect, ratio: f32, margin: f32) -> (rect_left: rect.Rect, rect_right: rect.Rect) {
 	rect_left  = rect_in
 	rect_right = rect_in
 
@@ -25,7 +25,7 @@ rect_split_h :: proc(rect_in: rect.Rect, ratio: f32, margin: f32) -> (rect_left:
 
 	return rect_left, rect_right }
 
-rect_split_v :: proc(rect_in: rect.Rect, ratio: f32, margin: f32) -> (rect_top: rect.Rect, rect_bottom: rect.Rect) {
+rect_split_ratio_v :: proc(rect_in: rect.Rect, ratio: f32, margin: f32) -> (rect_top: rect.Rect, rect_bottom: rect.Rect) {
 	rect_top    = rect_in
 	rect_bottom = rect_in
 

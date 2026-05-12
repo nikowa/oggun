@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-1f36b030.js";
+            window.path_to_searchindex_js = "../searchindex-25c0e644.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-8b987a48.js"></script>
+        <script src="../toc-a7da5da1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -176,7 +176,48 @@
                     <main>
                         <h1 id="base"><a class="header" href="#base">Base</a></h1>
 <p>This is the base layer, responsible mainly for initialization, synchronization, and configuration.</p>
+<h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
+<h4 id="willow_version"><a class="header" href="#willow_version"><code>WILLOW_VERSION</code></a></h4>
+<pre><code>WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
+</code></pre>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
+<h4 id="tick_manager"><a class="header" href="#tick_manager"><code>Tick_Manager</code></a></h4>
+<pre><code class="language-c">Tick_Manager :: struct {
+	using tick_manager_config: Tick_Manager_Config,
+	stopwatch:                 time.Stopwatch,
+	tick_period_nsec:          i64,
+	tick_period_sec:           f32,
+	accumulation_to_now:       i64,
+	accumulation_to_last_tick: i64,
+	delta_time:                f32,
+	frame_rate:                f32,
+	flag:                      bool }
+</code></pre>
+<details><summary>Description</summary>
+Tick manager. Used for tracking frame-rate, calculating delta time, and limiting frame-rate. You can use this if you want something to happen at roughly equal time intervals, and to keep track of those intervals.
+</details>
+<h4 id="tick_manager_config"><a class="header" href="#tick_manager_config"><code>Tick_Manager_Config</code></a></h4>
+<pre><code class="language-c">Tick_Manager_Config :: struct {
+	tickrate_setting: Tickrate_Setting }
+</code></pre>
+<h4 id="tickrate_setting"><a class="header" href="#tickrate_setting"><code>Tickrate_Setting</code></a></h4>
+<pre><code class="language-c">Tickrate_Setting :: enum {
+	LIMITED_30_FPS = 0,
+	LIMITED_60_FPS,
+	LIMITED_120_FPS,
+	LIMITED_144_FPS,
+	LIMITED_240_FPS,
+	LIMITED_540_FPS,
+	UNLIMITED }
+</code></pre>
+<h4 id="settings_manager"><a class="header" href="#settings_manager"><code>Settings_Manager</code></a></h4>
+<pre><code class="language-c">Settings_Manager :: struct {
+	settings_path: string,
+	_map: map[string]map[string]string }
+</code></pre>
+<details><summary>Description</summary>
+A helper class for game settings. Can compile an INI file from an arbitrary number of structs, and vice-versa.
+</details>
 <h4 id="thread_data"><a class="header" href="#thread_data"><code>Thread_Data</code></a></h4>
 <pre><code class="language-c">Thread_Data :: struct {
 	index: u32,
@@ -187,6 +228,73 @@
 </code></pre>
 <p>The default mutex type.</p>
 <h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
+<h4 id="init_tick_manager"><a class="header" href="#init_tick_manager"><code>init_tick_manager</code></a></h4>
+<pre><code class="language-c">init_tick_manager :: proc(
+	tick_man: ^Tick_Manager,
+	config: Tick_Manager_Config)
+</code></pre>
+<h4 id="tick_manager_tick"><a class="header" href="#tick_manager_tick"><code>tick_manager_tick</code></a></h4>
+<pre><code class="language-c">tick_manager_tick :: proc(
+	tick_man: ^Tick_Manager) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Returns true if enough time has passed since the previous frame that a new frame should be processed. Must call <code>tick_manager_reset</code> after the frame has been processed.
+</details>
+<h4 id="tick_manager_reset"><a class="header" href="#tick_manager_reset"><code>tick_manager_reset</code></a></h4>
+<pre><code class="language-c">tick_manager_reset :: proc(
+	tick_man: ^Tick_Manager)
+</code></pre>
+<h4 id="zero_stopwatch"><a class="header" href="#zero_stopwatch"><code>zero_stopwatch</code></a></h4>
+<pre><code class="language-c">zero_stopwatch :: proc(
+	timer: ^time.Stopwatch)
+</code></pre>
+<details><summary>Description</summary>
+Stopwatch helper function. Zeroes and starts the stopwatch.
+</details>
+<h4 id="read_stopwatch"><a class="header" href="#read_stopwatch"><code>read_stopwatch</code></a></h4>
+<pre><code class="language-c">read_stopwatch :: proc(
+	timer: ^time.Stopwatch) -&gt; f32
+</code></pre>
+<details><summary>Description</summary>
+Stopwatch helper function. Reads the stopwatch, in seconds.
+</details>
+<h4 id="init_settings_manager"><a class="header" href="#init_settings_manager"><code>init_settings_manager</code></a></h4>
+<pre><code class="language-c">init_settings_manager :: proc(
+	settings: ^Settings_Manager,
+	application_name: string)
+</code></pre>
+<details><summary>Description</summary>
+Initialize a <code>Settings_Manager</code>. <code>application_name</code> is the name of a folder in <code>~/AppData/Local</code> where the setting will be saved.
+</details>
+<h4 id="settings_manager_write"><a class="header" href="#settings_manager_write"><code>settings_manager_write</code></a></h4>
+<pre><code class="language-c">settings_manager_write :: proc(
+	settings: ^Settings_Manager,
+	value: ^$Type) where intrinsics.type_is_struct(Type)
+</code></pre>
+<details><summary>Description</summary>
+Write the contents of an arbitrary struct to the settings. The settings will be added under a new section named after type <code>Type</code>.
+</details>
+<h4 id="settings_manager_read"><a class="header" href="#settings_manager_read"><code>settings_manager_read</code></a></h4>
+<pre><code class="language-c">settings_manager_read :: proc(
+	settings: ^Settings_Manager,
+	value: ^$Type) where intrinsics.type_is_struct(Type)
+</code></pre>
+<h4 id="settings_manager_export"><a class="header" href="#settings_manager_export"><code>settings_manager_export</code></a></h4>
+<pre><code class="language-c">settings_manager_export :: proc(
+	settings: ^Settings_Manager)
+</code></pre>
+<h4 id="settings_manager_import"><a class="header" href="#settings_manager_import"><code>settings_manager_import</code></a></h4>
+<pre><code class="language-c">settings_manager_import :: proc(
+	settings: ^Settings_Manager)
+</code></pre>
+<h4 id="start"><a class="header" href="#start"><code>start</code></a></h4>
+<pre><code class="language-c">start :: proc(
+	entry_point: Entry_Point,
+	n_workers_override: Maybe(u32) = nil)
+</code></pre>
+<details><summary>Description</summary>
+Create and start a number of threads with the same entry procedure. The number of threads will be equal to the number of logical cores minus 3, however you can override this by setting <code>n_workers_override</code>.
+</details>
 <h4 id="make_thread_data"><a class="header" href="#make_thread_data"><code>make_thread_data</code></a></h4>
 <pre><code class="language-c">make_thread_data :: proc(
 	entry_point: Entry_Point,
@@ -195,55 +303,33 @@
 <h4 id="get_thread_data"><a class="header" href="#get_thread_data"><code>get_thread_data</code></a></h4>
 <pre><code class="language-c">get_thread_data :: proc() -&gt; (thread_data: ^Thread_Data)
 </code></pre>
-<h4 id="lock_acquire_unmanaged"><a class="header" href="#lock_acquire_unmanaged"><code>lock_acquire_unmanaged</code></a></h4>
-<pre><code class="language-c">lock_acquire_unmanaged :: proc(
-	lock: ^Lock)
-</code></pre>
-<h4 id="lock_release_unmanaged"><a class="header" href="#lock_release_unmanaged"><code>lock_release_unmanaged</code></a></h4>
-<pre><code class="language-c">lock_release_unmanaged :: proc(
-	lock: ^Lock)
-</code></pre>
-<h4 id="lock_guard_unmanaged"><a class="header" href="#lock_guard_unmanaged"><code>lock_guard_unmanaged</code></a></h4>
-<pre><code class="language-c">lock_guard_unmanaged :: proc(
-	lock: ^Lock)
-</code></pre>
-<h4 id="lock_acquire"><a class="header" href="#lock_acquire"><code>lock_acquire</code></a></h4>
-<p>If there is a free lock register in the current thread context, acquire the given lock and add it to a register. Return <code>false</code> if there is no free lock register.</p>
-<pre><code class="language-c">lock_acquire :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_release"><a class="header" href="#lock_release"><code>lock_release</code></a></h4>
-<p>If the given lock is in a lock register in the current thread context, release it and remove it from the register. Return <code>false</code> if the given lock wasn’t in a lock register.</p>
-<pre><code class="language-c">lock_release :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_acquire_release"><a class="header" href="#lock_acquire_release"><code>lock_acquire_release</code></a></h4>
-<p>Call <code>lock_acquire</code> on the given lock. At the end of scope, call <code>lock_release</code> on the same lock.</p>
-<pre><code class="language-c">@(deferred_in=lock_release)
-lock_acquire_release :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_release_acquire"><a class="header" href="#lock_release_acquire"><code>lock_release_acquire</code></a></h4>
-<p>Call <code>lock_release</code> on the given lock. At the end of scope, call <code>lock_acquire</code> on the same lock.</p>
-<pre><code class="language-c">@(deferred_in=lock_acquire)
-lock_release_acquire :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_push"><a class="header" href="#lock_push"><code>lock_push</code></a></h4>
-<p>If the given lock is in a lock register in the current thread context, release it, remove it from the register, and push it to the lock stack. If the lock isn’t in a lock register, do nothing and return <code>false</code>.</p>
-<pre><code class="language-c">lock_push :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_pop"><a class="header" href="#lock_pop"><code>lock_pop</code></a></h4>
-<pre><code class="language-c">lock_pop :: proc() -&gt; bool
-</code></pre>
-<p>If the lock stack in the current thread context is not empty and there is an empty register in the current thread context, pop the top lock from it, acquire it, and</p>
-<h4 id="lock_push_pop"><a class="header" href="#lock_push_pop"><code>lock_push_pop</code></a></h4>
-<p>Call <code>lock_push</code> on the given lock. At the end of scope, call <code>lock_pop</code>.</p>
-<pre><code class="language-c">@(deferred_in=lock_pop)
-lock_push_pop :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 
                     </main>
 

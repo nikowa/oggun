@@ -81,9 +81,27 @@ my_asset_command :: proc(
 register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
 ```
 
+### Constants
 
+#### `DEFAULT_AUTOSAVE_INTERVAL`
+
+```c
+DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
+```
+
+#### `DEFAULT_AUTOSAVE_CAP`
+
+```c
+DEFAULT_AUTOSAVE_CAP :: 10
+```
 
 ### Types
+
+#### `Asset_Manager_Config`
+
+```c
+Asset_Manager_Config :: Database_Config
+```
 
 #### `Asset_Manager`
 
@@ -103,16 +121,71 @@ Asset manager.
 ```c
 Asset_Command :: enum {
 	Validate,
-	Initialize,
 	Query_Location,
 	Import,
 	Export,
-	Read,
-	Write,
 	Load,
 	Save,
 	Upload,
 	Download }
+```
+
+#### `Asset_Location`
+
+```c
+Asset_Location :: bit_set[Asset_Location_Field]
+```
+
+#### `Asset_Location_Field`
+
+```c
+Asset_Location_Field :: enum {
+	Source_Directory,
+	Database_File,
+	Database,
+	Main_Memory,
+	GPU_Memory }
+```
+
+#### `Asset_Command_Proc`
+
+```c
+Asset_Command_Proc :: #type proc(
+	manager: ^Asset_Manager,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -> (ok: bool)
+```
+
+#### `Asset_Config`
+
+```c
+Asset_Config :: struct {
+	url: URL,
+	derived_type: typeid }
+```
+
+#### `Asset`
+
+```c
+Asset :: struct {
+	using asset_config: Asset_Config,
+	location: Asset_Location }
+```
+
+#### `Asset_Kind`
+
+```c
+Asset_Kind :: struct {
+	command: Asset_Command_Proc }
+```
+
+#### `String_Asset`
+
+```c
+String_Asset :: struct {
+	using asset: Asset,
+	str: string }
 ```
 
 #### `URL`
@@ -126,16 +199,22 @@ URL :: distinct string
 ```c
 Database_Config :: struct {
 	relpath: string,
-	source_directory_relpath: string }
+	source_directory_relpath: string,
+	autosave_interval: tm.Duration,
+	autosave_cap: u32 }
 ```
 
 #### `Database`
 
 ```c
 Database :: struct {
-	using config: Database_Config,
-	entries: [dynamic]Entry,
-	entries_map: map[URL]^Entry }
+	using config:           Database_Config,
+	spec_modification_time: tm.Time,
+	last_autosave_time:     tm.Time,
+	modification_time:      tm.Time,
+	entries:                [dynamic]Entry,
+	entries_map:            map[URL]^Entry,
+	spec_modified:          bool }
 ```
 
 #### `Entry_Config`
@@ -152,27 +231,30 @@ Entry_Config :: struct {
 
 ```c
 Entry :: struct {
-	using config: Entry_Config }
+	using config: Entry_Config,
+	hash: u32 }
 ```
 
-#### `Serialize_Proc`
+#### `Watcher`
 
-```
-Serialize_Proc :: #type proc(
+```c
+Watcher :: struct {
 	data: rawptr,
-	size: u32,
-	allocator: rt.Allocator) -> (bytes: []u8, err: os.Error)
+	outdated_proc: Outdated_Proc,
+	update_proc: Update_Proc }
 ```
 
-#### `Deserialize_Proc`
+#### `Outdated_Proc`
 
-```
-Deserialize_Proc :: #type proc(
-	bytes: []u8,
-	allocator: rt.Allocator) -> (data: rawptr, size: u32, err: os.Error)
+```c
+Outdated_Proc :: #type proc(data: rawptr) -> bool
 ```
 
+#### `Update_Proc`
 
+```c
+Update_Proc :: #type proc(data: rawptr)
+```
 
 ### Procedures
 
@@ -180,7 +262,7 @@ Deserialize_Proc :: #type proc(
 
 ```c
 asset_command :: proc(
-	as_mngr: ^Asset_Manager,
+	manager: ^Asset_Manager,
 	Asset_Type: typeid,
 	asset: ^Asset,
 	command: Asset_Command,
@@ -191,22 +273,31 @@ asset_command :: proc(
 Execute an asset command. <code>Asset_Type</code> must be a type that derives from <code>Asset</code>, and <code>asset</code> must be a pointer to a field in an object of that type. If <code>watch</code> is true, the command will be exucted only if the source is more recent than the target.
 </details>
 
+#### `asset_commands`
 
+```c
+asset_commands :: proc(
+	manager: ^Asset_Manager,
+	Asset_Type: typeid,
+	asset: ^Asset,
+	commands: []Asset_Command,
+	watch: bool = false) -> (ok: bool)
+```
 
 #### `init_asset`
 
 ```c
+@(deferred_in=_init_asset_end)
 init_asset :: proc(
-	as_mngr: ^Asset_Manager,
+	manager: ^Asset_Manager,
+	Asset_Type: typeid,
 	asset: ^Asset,
 	config: Asset_Config)
 ```
 
 <details><summary>Description</summary>
-Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>.
+Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>. <code>_init_asset_end</code> executes the <code>.Validate</code> and <code>.Query_Location</code> asset commands.
 </details>
-
-
 
 #### `asset_object`
 
@@ -226,14 +317,12 @@ If <code>asset</code> is a pointer to a field named <code>field_name</code> in a
 ```c
 make_asset_manager :: proc(
 	config: Asset_Manager_Config,
-	allocator: rt.Allocator) -> (asset_manager: Asset_Manager)
+	allocator: runtime.Allocator) -> (asset_manager: Asset_Manager)
 ```
 
 <details><summary>Description</summary>
 The <code>Asset_Manager</code> constructor.
 </details>
-
-
 
 #### `register_asset_kind`
 
@@ -248,8 +337,6 @@ register_asset_kind :: proc(
 Register a new asset kind. An asset kind must be registered for any asset type before asset commands can be executed on instances of that type.
 </details>
 
-
-
 #### `watch_assets`
 
 ```c
@@ -261,7 +348,38 @@ watch_assets :: proc(
 Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
 </details>
 
+#### `autosave`
 
+```c
+autosave :: proc(
+	database: ^Asset_Manager)
+```
+
+#### `init_string_asset`
+
+```c
+init_string_asset :: proc(
+	as_mngr: ^Asset_Manager,
+	string_asset: ^String_Asset,
+	config: Asset_Config)
+```
+
+#### `string_asset_command`
+
+```c
+string_asset_command :: proc(
+	as_mngr: ^Asset_Manager,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -> (ok: bool)
+```
+
+#### `register_builtin_asset_kinds`
+
+```c
+register_builtin_asset_kinds :: proc(
+	as_mngr: ^Asset_Manager)
+```
 
 #### `make_database`
 
@@ -280,7 +398,7 @@ Database destructor.
 ```c
 delete_database :: proc(
 	database: Database,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator)
 ```
 
 #### `make_entry`
@@ -291,7 +409,7 @@ Entry constructor.
 make_entry :: proc(
 	url: URL,
 	data: []u8,
-	modification_time: tm.Time = { },
+	modification_time: time.Time = { },
 	compressed: b8 = false) -> (entry: Entry)
 ```
 
@@ -302,7 +420,7 @@ Entry destructor.
 ```c
 delete_entry :: proc(
 	entry: Entry,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator)
 ```
 
 #### `entry_equiv`
@@ -325,6 +443,22 @@ entry_from_url :: proc(
 	url: URL) -> (entry: ^Entry, ok: bool)
 ```
 
+#### `get_entry`
+
+```c
+get_entry :: proc(
+	database: ^Database,
+	url: URL) -> (entry: ^Entry, ok: bool)
+```
+
+#### `get_or_make_entry`
+
+```c
+get_or_make_entry :: proc(
+	database: ^Database,
+	url: URL) -> (entry: ^Entry, existed: bool)
+```
+
 #### `contains_entry`
 
 Check if database contains entry with given URL.
@@ -335,6 +469,20 @@ contains_entry :: proc(
 	url: URL) -> bool
 ```
 
+#### `log_database`
+
+```c
+log_database :: proc(
+	database: ^Database)
+```
+
+#### `entry_integrity`
+
+```c
+entry_integrity :: proc(
+	entry: ^Entry) -> (ok: bool)
+```
+
 #### `add_entry`
 
 Add entry to database.
@@ -342,7 +490,8 @@ Add entry to database.
 ```c
 add_entry :: proc(
 	database: ^Database,
-	entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error)
+	entry_config: Entry_Config,
+	modified: bool) -> (entry_ptr: ^Entry, err: os.Error)
 ```
 
 #### `add_or_update_entry`
@@ -352,7 +501,8 @@ Add entry to database; If exists, update it.
 ```c
 add_or_update_entry :: proc(
 	database: ^Database,
-	entry_config: Entry_Config) -> (entry_ptr: ^Entry, err: os.Error)
+	entry_config: Entry_Config,
+	modified: bool) -> (entry_ptr: ^Entry, err: os.Error)
 ```
 
 #### `remove_entry`
@@ -442,16 +592,18 @@ Read the database at the given relative path.
 
 ```c
 read :: proc(
-	relpath: string,
-	allocator: rt.Allocator) -> (database: Database)
+	config: Database_Config,
+	allocator: runtime.Allocator,
+	relpath_override: string = "") -> (database: Database)
 ```
 
 #### `write`
 
 ```c
-compress_and_write :: proc(
+write :: proc(
 	database: ^Database,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator,
+	relpath_override: string = "")
 ```
 
 #### `remove_database`
@@ -501,24 +653,26 @@ path_from_url :: proc(
 	allocator: rt.Allocator) -> (path: string)
 ```
 
-#### `entry_outdated`
+#### `entry_was_modified`
 
 Check if the source of the given entry has been updated since the entry was imported to the database.
 
 ```c
-entry_outdated :: proc(
+entry_was_modified :: proc(
 	database: ^Database,
 	entry: ^Entry) -> (outdated: bool)
 ```
 
-#### `entry_update`
+#### `update_entry`
 
 Update the contents of an entry.
 
 ```c
-entry_update :: proc(
+update_entry :: proc(
+	database: ^Database,
 	entry: ^Entry,
-	config: Entry_Config)
+	config: Entry_Config,
+	modified: bool)
 ```
 
 #### `url_search_source`
@@ -554,6 +708,29 @@ for {
 
 </details>
 
+#### `remove_file`
+
+```c
+remove_file :: proc(
+	relpath: string,
+	allocator: runtime.Allocator) -> (err: os.Error)
+```
+
+#### `rename_file`
+
+```c
+rename_file :: proc(
+	old_relpath: string,
+	new_relpath: string,
+	allocator: runtime.Allocator) -> (err: os.Error)
+```
+
+#### `watcher_tick`
+
+```c
+watcher_tick :: proc(watcher: ^Watcher)
+```
+
 <pre>
 
 
@@ -579,26 +756,4 @@ for {
 
 
 
-
-
-
-
-
-
-
 </pre>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

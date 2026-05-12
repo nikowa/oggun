@@ -50,3 +50,7 @@ example_gui:
 example_sprites:
 	odin build examples/sprites -out:examples/sprites/sprites.exe {{flags}}
 	examples/sprites/sprites.exe
+
+example_sync:
+	odin build examples/sync -out:examples/sync/sync.exe {{flags}}
+	examples/sync/sync.exe

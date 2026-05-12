@@ -1,9 +1,12 @@
-# Rendering Roadmap
+
+# Roadmap
 
 - [x] OpenGL rendering backend
-- [ ] Sprites demo
+- [x] Sprites demo
 - [ ] Input demo
+- [ ] Graph demo
 - [ ] GUI demo
+- [ ] Sync demo
 - [ ] Node-based effect editor demo
 - [ ] Multi-threaded physics demo
 - [ ] Fixed-camera platformer demo
@@ -12,11 +15,3 @@
 - [ ] WGPU rendering backend
 - [ ] DirectX rendering backend
 - [ ] API refactor
-
-# Parallelism Roadmap
-
-- [ ] Sync module
-- [ ] Checker
-
-# Physics Roadmap
-- [ ] None

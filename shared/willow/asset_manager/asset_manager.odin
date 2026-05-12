@@ -1,20 +1,6 @@
 package asset_manager
-import intr "base:intrinsics"
-import rt "base:runtime"
-import fmt "core:fmt"
-import tm "core:time"
-import os "core:os"
-import b "core:bytes"
-import mem "core:mem"
-import io "core:io"
-import sl "core:slice"
-import lz4 "vendor:compress/lz4"
-import log "core:log"
-import str "core:strings"
-import base "../base"
-import sp "core:path/slashpath"
-
-
+import "base:runtime"
+import "core:log"
 
 Asset_Manager_Config :: Database_Config
 
@@ -69,23 +55,25 @@ asset_commands :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asse
 	for command in commands do ok &&= asset_command(manager, Asset_Type, asset, command, watch)
 	return ok }
 
-@(deferred_in=init_asset_end)
+@(deferred_in=_init_asset_end)
 init_asset :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
-	init_asset_begin(manager, Asset_Type, asset, config) }
+	_init_asset_begin(manager, Asset_Type, asset, config) }
 
-init_asset_begin :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
+@private
+_init_asset_begin :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
 	// log.info("Initializing asset of type", type_info_of(config.derived_type).id)
 	asset.asset_config = config
 	append(&manager.assets, asset) }
 
-init_asset_end :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
+@private
+_init_asset_end :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
 	asset_commands(manager, Asset_Type, asset, { .Validate, .Query_Location }) }
 
 asset_object :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 	offset: uintptr = offset_of_by_string(T, field_name)
 	return cast(^T)(uintptr(asset) - offset) }
 
-make_asset_manager :: proc(config: Asset_Manager_Config, allocator: rt.Allocator) -> (asset_manager: Asset_Manager) {
+make_asset_manager :: proc(config: Asset_Manager_Config, allocator: runtime.Allocator) -> (asset_manager: Asset_Manager) {
 	asset_manager.database = make_or_read_database(config, allocator)
 	asset_manager.asset_kinds = make(map[typeid]Asset_Kind, allocator)
 	asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32, allocator)

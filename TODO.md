@@ -1,9 +1,17 @@
 
-- Tickrate controller
+- Implement settings and savefile modules. Settings as a human-readable INI file, and savefile as a database.
+- Update the documentation
+- Start working on Bogwalker
+
+- Pixel-perfect font positioning
+- Port the font filtering from staffmaster
+- GUI demo
+- Rename "container" module to "helper"
+- Fix rect shader
+- Add font depth
 - Normalized vs Absolute coordinates for 2D rendering instructions.
 - Make sure the built-in shader assets are imported by `graphics.init`, or make `graphics.use_shader` import the shader if it's not yet imported. Currently, the shaders are only imported by `asset_manager.watch_assets`.
 - Input package
-- GUI package
 - Implement material asset
 - Add materials to imported models
 - Make all the noise functions transition smoothly from one seed to the next, ie. make them animatable.

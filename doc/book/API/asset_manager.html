@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-1f36b030.js";
+            window.path_to_searchindex_js = "../searchindex-25c0e644.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-8b987a48.js"></script>
+        <script src="../toc-a7da5da1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -244,7 +244,17 @@
 </ol>
 <pre><code class="language-c">register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
 </code></pre>
+<h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
+<h4 id="default_autosave_interval"><a class="header" href="#default_autosave_interval"><code>DEFAULT_AUTOSAVE_INTERVAL</code></a></h4>
+<pre><code class="language-c">DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
+</code></pre>
+<h4 id="default_autosave_cap"><a class="header" href="#default_autosave_cap"><code>DEFAULT_AUTOSAVE_CAP</code></a></h4>
+<pre><code class="language-c">DEFAULT_AUTOSAVE_CAP :: 10
+</code></pre>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
+<h4 id="asset_manager_config"><a class="header" href="#asset_manager_config"><code>Asset_Manager_Config</code></a></h4>
+<pre><code class="language-c">Asset_Manager_Config :: Database_Config
+</code></pre>
 <h4 id="asset_manager"><a class="header" href="#asset_manager"><code>Asset_Manager</code></a></h4>
 <pre><code class="language-c">Asset_Manager :: struct {
 	using database: Database,
@@ -257,16 +267,50 @@ Asset manager.
 <h4 id="asset_command"><a class="header" href="#asset_command"><code>Asset_Command</code></a></h4>
 <pre><code class="language-c">Asset_Command :: enum {
 	Validate,
-	Initialize,
 	Query_Location,
 	Import,
 	Export,
-	Read,
-	Write,
 	Load,
 	Save,
 	Upload,
 	Download }
+</code></pre>
+<h4 id="asset_location"><a class="header" href="#asset_location"><code>Asset_Location</code></a></h4>
+<pre><code class="language-c">Asset_Location :: bit_set[Asset_Location_Field]
+</code></pre>
+<h4 id="asset_location_field"><a class="header" href="#asset_location_field"><code>Asset_Location_Field</code></a></h4>
+<pre><code class="language-c">Asset_Location_Field :: enum {
+	Source_Directory,
+	Database_File,
+	Database,
+	Main_Memory,
+	GPU_Memory }
+</code></pre>
+<h4 id="asset_command_proc"><a class="header" href="#asset_command_proc"><code>Asset_Command_Proc</code></a></h4>
+<pre><code class="language-c">Asset_Command_Proc :: #type proc(
+	manager: ^Asset_Manager,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<h4 id="asset_config"><a class="header" href="#asset_config"><code>Asset_Config</code></a></h4>
+<pre><code class="language-c">Asset_Config :: struct {
+	url: URL,
+	derived_type: typeid }
+</code></pre>
+<h4 id="asset"><a class="header" href="#asset"><code>Asset</code></a></h4>
+<pre><code class="language-c">Asset :: struct {
+	using asset_config: Asset_Config,
+	location: Asset_Location }
+</code></pre>
+<h4 id="asset_kind"><a class="header" href="#asset_kind"><code>Asset_Kind</code></a></h4>
+<pre><code class="language-c">Asset_Kind :: struct {
+	command: Asset_Command_Proc }
+</code></pre>
+<h4 id="string_asset"><a class="header" href="#string_asset"><code>String_Asset</code></a></h4>
+<pre><code class="language-c">String_Asset :: struct {
+	using asset: Asset,
+	str: string }
 </code></pre>
 <h4 id="url"><a class="header" href="#url"><code>URL</code></a></h4>
 <pre><code class="language-c">URL :: distinct string
@@ -274,13 +318,19 @@ Asset manager.
 <h4 id="database_config"><a class="header" href="#database_config"><code>Database_Config</code></a></h4>
 <pre><code class="language-c">Database_Config :: struct {
 	relpath: string,
-	source_directory_relpath: string }
+	source_directory_relpath: string,
+	autosave_interval: tm.Duration,
+	autosave_cap: u32 }
 </code></pre>
 <h4 id="database"><a class="header" href="#database"><code>Database</code></a></h4>
 <pre><code class="language-c">Database :: struct {
-	using config: Database_Config,
-	entries: [dynamic]Entry,
-	entries_map: map[URL]^Entry }
+	using config:           Database_Config,
+	spec_modification_time: tm.Time,
+	last_autosave_time:     tm.Time,
+	modification_time:      tm.Time,
+	entries:                [dynamic]Entry,
+	entries_map:            map[URL]^Entry,
+	spec_modified:          bool }
 </code></pre>
 <h4 id="entry_config"><a class="header" href="#entry_config"><code>Entry_Config</code></a></h4>
 <pre><code class="language-c">Entry_Config :: struct {
@@ -291,23 +341,25 @@ Asset manager.
 </code></pre>
 <h4 id="entry"><a class="header" href="#entry"><code>Entry</code></a></h4>
 <pre><code class="language-c">Entry :: struct {
-	using config: Entry_Config }
+	using config: Entry_Config,
+	hash: u32 }
 </code></pre>
-<h4 id="serialize_proc"><a class="header" href="#serialize_proc"><code>Serialize_Proc</code></a></h4>
-<pre><code>Serialize_Proc :: #type proc(
+<h4 id="watcher"><a class="header" href="#watcher"><code>Watcher</code></a></h4>
+<pre><code class="language-c">Watcher :: struct {
 	data: rawptr,
-	size: u32,
-	allocator: rt.Allocator) -&gt; (bytes: []u8, err: os.Error)
+	outdated_proc: Outdated_Proc,
+	update_proc: Update_Proc }
 </code></pre>
-<h4 id="deserialize_proc"><a class="header" href="#deserialize_proc"><code>Deserialize_Proc</code></a></h4>
-<pre><code>Deserialize_Proc :: #type proc(
-	bytes: []u8,
-	allocator: rt.Allocator) -&gt; (data: rawptr, size: u32, err: os.Error)
+<h4 id="outdated_proc"><a class="header" href="#outdated_proc"><code>Outdated_Proc</code></a></h4>
+<pre><code class="language-c">Outdated_Proc :: #type proc(data: rawptr) -&gt; bool
+</code></pre>
+<h4 id="update_proc"><a class="header" href="#update_proc"><code>Update_Proc</code></a></h4>
+<pre><code class="language-c">Update_Proc :: #type proc(data: rawptr)
 </code></pre>
 <h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
 <h4 id="asset_command-1"><a class="header" href="#asset_command-1"><code>asset_command</code></a></h4>
 <pre><code class="language-c">asset_command :: proc(
-	as_mngr: ^Asset_Manager,
+	manager: ^Asset_Manager,
 	Asset_Type: typeid,
 	asset: ^Asset,
 	command: Asset_Command,
@@ -316,14 +368,24 @@ Asset manager.
 <details><summary>Description</summary>
 Execute an asset command. <code>Asset_Type</code> must be a type that derives from <code>Asset</code>, and <code>asset</code> must be a pointer to a field in an object of that type. If <code>watch</code> is true, the command will be exucted only if the source is more recent than the target.
 </details>
+<h4 id="asset_commands"><a class="header" href="#asset_commands"><code>asset_commands</code></a></h4>
+<pre><code class="language-c">asset_commands :: proc(
+	manager: ^Asset_Manager,
+	Asset_Type: typeid,
+	asset: ^Asset,
+	commands: []Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
 <h4 id="init_asset"><a class="header" href="#init_asset"><code>init_asset</code></a></h4>
-<pre><code class="language-c">init_asset :: proc(
-	as_mngr: ^Asset_Manager,
+<pre><code class="language-c">@(deferred_in=_init_asset_end)
+init_asset :: proc(
+	manager: ^Asset_Manager,
+	Asset_Type: typeid,
 	asset: ^Asset,
 	config: Asset_Config)
 </code></pre>
 <details><summary>Description</summary>
-Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>.
+Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>. <code>_init_asset_end</code> executes the <code>.Validate</code> and <code>.Query_Location</code> asset commands.
 </details>
 <h4 id="asset_object"><a class="header" href="#asset_object"><code>asset_object</code></a></h4>
 <pre><code class="language-c">asset_object :: proc(
@@ -337,7 +399,7 @@ If <code>asset</code> is a pointer to a field named <code>field_name</code> in a
 <h4 id="make_asset_manager"><a class="header" href="#make_asset_manager"><code>make_asset_manager</code></a></h4>
 <pre><code class="language-c">make_asset_manager :: proc(
 	config: Asset_Manager_Config,
-	allocator: rt.Allocator) -&gt; (asset_manager: Asset_Manager)
+	allocator: runtime.Allocator) -&gt; (asset_manager: Asset_Manager)
 </code></pre>
 <details><summary>Description</summary>
 The <code>Asset_Manager</code> constructor.
@@ -358,6 +420,27 @@ Register a new asset kind. An asset kind must be registered for any asset type b
 <details><summary>Description</summary>
 Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
 </details>
+<h4 id="autosave"><a class="header" href="#autosave"><code>autosave</code></a></h4>
+<pre><code class="language-c">autosave :: proc(
+	database: ^Asset_Manager)
+</code></pre>
+<h4 id="init_string_asset"><a class="header" href="#init_string_asset"><code>init_string_asset</code></a></h4>
+<pre><code class="language-c">init_string_asset :: proc(
+	as_mngr: ^Asset_Manager,
+	string_asset: ^String_Asset,
+	config: Asset_Config)
+</code></pre>
+<h4 id="string_asset_command"><a class="header" href="#string_asset_command"><code>string_asset_command</code></a></h4>
+<pre><code class="language-c">string_asset_command :: proc(
+	as_mngr: ^Asset_Manager,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<h4 id="register_builtin_asset_kinds"><a class="header" href="#register_builtin_asset_kinds"><code>register_builtin_asset_kinds</code></a></h4>
+<pre><code class="language-c">register_builtin_asset_kinds :: proc(
+	as_mngr: ^Asset_Manager)
+</code></pre>
 <h4 id="make_database"><a class="header" href="#make_database"><code>make_database</code></a></h4>
 <p>Database constructor.</p>
 <pre><code class="language-c">make_database :: proc(
@@ -368,21 +451,21 @@ Check all registered assets for updates. If the source is more recent than the d
 <p>Database destructor.</p>
 <pre><code class="language-c">delete_database :: proc(
 	database: Database,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator)
 </code></pre>
 <h4 id="make_entry"><a class="header" href="#make_entry"><code>make_entry</code></a></h4>
 <p>Entry constructor.</p>
 <pre><code class="language-c">make_entry :: proc(
 	url: URL,
 	data: []u8,
-	modification_time: tm.Time = { },
+	modification_time: time.Time = { },
 	compressed: b8 = false) -&gt; (entry: Entry)
 </code></pre>
 <h4 id="delete_entry"><a class="header" href="#delete_entry"><code>delete_entry</code></a></h4>
 <p>Entry destructor.</p>
 <pre><code class="language-c">delete_entry :: proc(
 	entry: Entry,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator)
 </code></pre>
 <h4 id="entry_equiv"><a class="header" href="#entry_equiv"><code>entry_equiv</code></a></h4>
 <p>Check if two entries are equivalent (equivalent URL, equivalent data, equivalent compressedness state).</p>
@@ -396,23 +479,43 @@ Check all registered assets for updates. If the source is more recent than the d
 	database: ^Database,
 	url: URL) -&gt; (entry: ^Entry, ok: bool)
 </code></pre>
+<h4 id="get_entry"><a class="header" href="#get_entry"><code>get_entry</code></a></h4>
+<pre><code class="language-c">get_entry :: proc(
+	database: ^Database,
+	url: URL) -&gt; (entry: ^Entry, ok: bool)
+</code></pre>
+<h4 id="get_or_make_entry"><a class="header" href="#get_or_make_entry"><code>get_or_make_entry</code></a></h4>
+<pre><code class="language-c">get_or_make_entry :: proc(
+	database: ^Database,
+	url: URL) -&gt; (entry: ^Entry, existed: bool)
+</code></pre>
 <h4 id="contains_entry"><a class="header" href="#contains_entry"><code>contains_entry</code></a></h4>
 <p>Check if database contains entry with given URL.</p>
 <pre><code class="language-c">contains_entry :: proc(
 	database: ^Database,
 	url: URL) -&gt; bool
 </code></pre>
+<h4 id="log_database"><a class="header" href="#log_database"><code>log_database</code></a></h4>
+<pre><code class="language-c">log_database :: proc(
+	database: ^Database)
+</code></pre>
+<h4 id="entry_integrity"><a class="header" href="#entry_integrity"><code>entry_integrity</code></a></h4>
+<pre><code class="language-c">entry_integrity :: proc(
+	entry: ^Entry) -&gt; (ok: bool)
+</code></pre>
 <h4 id="add_entry"><a class="header" href="#add_entry"><code>add_entry</code></a></h4>
 <p>Add entry to database.</p>
 <pre><code class="language-c">add_entry :: proc(
 	database: ^Database,
-	entry_config: Entry_Config) -&gt; (entry_ptr: ^Entry, err: os.Error)
+	entry_config: Entry_Config,
+	modified: bool) -&gt; (entry_ptr: ^Entry, err: os.Error)
 </code></pre>
 <h4 id="add_or_update_entry"><a class="header" href="#add_or_update_entry"><code>add_or_update_entry</code></a></h4>
 <p>Add entry to database; If exists, update it.</p>
 <pre><code class="language-c">add_or_update_entry :: proc(
 	database: ^Database,
-	entry_config: Entry_Config) -&gt; (entry_ptr: ^Entry, err: os.Error)
+	entry_config: Entry_Config,
+	modified: bool) -&gt; (entry_ptr: ^Entry, err: os.Error)
 </code></pre>
 <h4 id="remove_entry"><a class="header" href="#remove_entry"><code>remove_entry</code></a></h4>
 <p>Remove entry from database.</p>
@@ -466,13 +569,15 @@ Check all registered assets for updates. If the source is more recent than the d
 <h4 id="read"><a class="header" href="#read"><code>read</code></a></h4>
 <p>Read the database at the given relative path.</p>
 <pre><code class="language-c">read :: proc(
-	relpath: string,
-	allocator: rt.Allocator) -&gt; (database: Database)
+	config: Database_Config,
+	allocator: runtime.Allocator,
+	relpath_override: string = "") -&gt; (database: Database)
 </code></pre>
 <h4 id="write"><a class="header" href="#write"><code>write</code></a></h4>
-<pre><code class="language-c">compress_and_write :: proc(
+<pre><code class="language-c">write :: proc(
 	database: ^Database,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator,
+	relpath_override: string = "")
 </code></pre>
 <h4 id="remove_database"><a class="header" href="#remove_database"><code>remove_database</code></a></h4>
 <p>Remove the database file from disk.</p>
@@ -503,17 +608,19 @@ Check all registered assets for updates. If the source is more recent than the d
 	url: URL,
 	allocator: rt.Allocator) -&gt; (path: string)
 </code></pre>
-<h4 id="entry_outdated"><a class="header" href="#entry_outdated"><code>entry_outdated</code></a></h4>
+<h4 id="entry_was_modified"><a class="header" href="#entry_was_modified"><code>entry_was_modified</code></a></h4>
 <p>Check if the source of the given entry has been updated since the entry was imported to the database.</p>
-<pre><code class="language-c">entry_outdated :: proc(
+<pre><code class="language-c">entry_was_modified :: proc(
 	database: ^Database,
 	entry: ^Entry) -&gt; (outdated: bool)
 </code></pre>
-<h4 id="entry_update"><a class="header" href="#entry_update"><code>entry_update</code></a></h4>
+<h4 id="update_entry"><a class="header" href="#update_entry"><code>update_entry</code></a></h4>
 <p>Update the contents of an entry.</p>
-<pre><code class="language-c">entry_update :: proc(
+<pre><code class="language-c">update_entry :: proc(
+	database: ^Database,
 	entry: ^Entry,
-	config: Entry_Config)
+	config: Entry_Config,
+	modified: bool)
 </code></pre>
 <h4 id="url_search_source"><a class="header" href="#url_search_source"><code>url_search_source</code></a></h4>
 <pre><code class="language-c">url_search_source :: proc(
@@ -537,6 +644,20 @@ for {
 	if file_was_modified(relpath, &amp;modification_time) do do_something() }
 </code></pre>
 </details>
+<h4 id="remove_file"><a class="header" href="#remove_file"><code>remove_file</code></a></h4>
+<pre><code class="language-c">remove_file :: proc(
+	relpath: string,
+	allocator: runtime.Allocator) -&gt; (err: os.Error)
+</code></pre>
+<h4 id="rename_file"><a class="header" href="#rename_file"><code>rename_file</code></a></h4>
+<pre><code class="language-c">rename_file :: proc(
+	old_relpath: string,
+	new_relpath: string,
+	allocator: runtime.Allocator) -&gt; (err: os.Error)
+</code></pre>
+<h4 id="watcher_tick"><a class="header" href="#watcher_tick"><code>watcher_tick</code></a></h4>
+<pre><code class="language-c">watcher_tick :: proc(watcher: ^Watcher)
+</code></pre>
 <pre>
 
 
@@ -562,15 +683,7 @@ for {
 
 
 
-
-
-
-
-
-
-
 </pre>
-
 
                     </main>
 

@@ -1,20 +1,8 @@
 package asset_manager
-import fmt "core:fmt"
-import rt "base:runtime"
-import tm "core:time"
-import os "core:os"
-import b "core:bytes"
-import mem "core:mem"
-import io "core:io"
-import sl "core:slice"
-import lz4 "vendor:compress/lz4"
-import log "core:log"
-import str "core:strings"
-import base "../base"
-import sp "core:path/slashpath"
-import hsh "core:crypto/hash"
-
-
+import "core:os"
+import "core:log"
+import "core:strings"
+import "../base"
 
 String_Asset :: struct {
 	using asset: Asset,
@@ -60,7 +48,7 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 			return false }
 		entry := get_entry(&as_mngr.database, asset.url) or_return
 		if watch do if string_asset.str == cast(string)entry.data do return true
-		string_asset.str = str.clone_from_bytes(entry.data)
+		string_asset.str = strings.clone_from_bytes(entry.data)
 		asset.location += { .Main_Memory }
 		return true
 	case .Export, .Save, .Upload, .Download:

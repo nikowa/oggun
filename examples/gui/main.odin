@@ -45,8 +45,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	graphics.init(
 		graphics_manager = &graphics_manager,
 		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_manager },
-		title = "Willow")
+		graphics_config = { window_manager = &window_manager })
 
 	// dll_path := asset_manager.relpath_to_path("rects_dll/rects_dll.odin", context.allocator)
 	// rects_dll, _ = dll.make_dll(Rects_DLL, dll_path)

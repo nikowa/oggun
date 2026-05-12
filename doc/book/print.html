@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-1f36b030.js";
+            window.path_to_searchindex_js = "searchindex-25c0e644.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-8b987a48.js"></script>
+        <script src="toc-a7da5da1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -211,7 +211,18 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 </ul>
 <pre><code class="language-c">
 </code></pre>
+<h2 id="allocators-and-mutexes"><a class="header" href="#allocators-and-mutexes">Allocators and Mutexes</a></h2>
+<ul>
+<li>No global state allowed</li>
+<li>Every mutex is associated with a memory interval</li>
+<li>Function is not allowed to take as inputs pointers from memory intervals outside of the intervals of the two mutexes they’ve acquired</li>
+</ul>
 <h2 id="start"><a class="header" href="#start">Start</a></h2>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
+<h2 id="sync"><a class="header" href="#sync">Sync</a></h2>
+<p><img src="example-sync.png" alt="example-sync"></p>
+<p>The sync example demonstrates the <code>willow/multi</code> module. It is a multi-threaded agent-based simulation, where numerous entities are simulated in parallel, exhibiting complex behavior and exchanging state at arbitrary moments of interaction.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="cli"><a class="header" href="#cli">CLI</a></h1>
 <p><code>~/Willow/willow.exe</code> is a command-line utility which provides some commands that should make it easier to install and use Willow. It is entirely optional.</p>
@@ -241,7 +252,48 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="base"><a class="header" href="#base">Base</a></h1>
 <p>This is the base layer, responsible mainly for initialization, synchronization, and configuration.</p>
+<h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
+<h4 id="willow_version"><a class="header" href="#willow_version"><code>WILLOW_VERSION</code></a></h4>
+<pre><code>WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
+</code></pre>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
+<h4 id="tick_manager"><a class="header" href="#tick_manager"><code>Tick_Manager</code></a></h4>
+<pre><code class="language-c">Tick_Manager :: struct {
+	using tick_manager_config: Tick_Manager_Config,
+	stopwatch:                 time.Stopwatch,
+	tick_period_nsec:          i64,
+	tick_period_sec:           f32,
+	accumulation_to_now:       i64,
+	accumulation_to_last_tick: i64,
+	delta_time:                f32,
+	frame_rate:                f32,
+	flag:                      bool }
+</code></pre>
+<details><summary>Description</summary>
+Tick manager. Used for tracking frame-rate, calculating delta time, and limiting frame-rate. You can use this if you want something to happen at roughly equal time intervals, and to keep track of those intervals.
+</details>
+<h4 id="tick_manager_config"><a class="header" href="#tick_manager_config"><code>Tick_Manager_Config</code></a></h4>
+<pre><code class="language-c">Tick_Manager_Config :: struct {
+	tickrate_setting: Tickrate_Setting }
+</code></pre>
+<h4 id="tickrate_setting"><a class="header" href="#tickrate_setting"><code>Tickrate_Setting</code></a></h4>
+<pre><code class="language-c">Tickrate_Setting :: enum {
+	LIMITED_30_FPS = 0,
+	LIMITED_60_FPS,
+	LIMITED_120_FPS,
+	LIMITED_144_FPS,
+	LIMITED_240_FPS,
+	LIMITED_540_FPS,
+	UNLIMITED }
+</code></pre>
+<h4 id="settings_manager"><a class="header" href="#settings_manager"><code>Settings_Manager</code></a></h4>
+<pre><code class="language-c">Settings_Manager :: struct {
+	settings_path: string,
+	_map: map[string]map[string]string }
+</code></pre>
+<details><summary>Description</summary>
+A helper class for game settings. Can compile an INI file from an arbitrary number of structs, and vice-versa.
+</details>
 <h4 id="thread_data"><a class="header" href="#thread_data"><code>Thread_Data</code></a></h4>
 <pre><code class="language-c">Thread_Data :: struct {
 	index: u32,
@@ -252,6 +304,73 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 </code></pre>
 <p>The default mutex type.</p>
 <h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
+<h4 id="init_tick_manager"><a class="header" href="#init_tick_manager"><code>init_tick_manager</code></a></h4>
+<pre><code class="language-c">init_tick_manager :: proc(
+	tick_man: ^Tick_Manager,
+	config: Tick_Manager_Config)
+</code></pre>
+<h4 id="tick_manager_tick"><a class="header" href="#tick_manager_tick"><code>tick_manager_tick</code></a></h4>
+<pre><code class="language-c">tick_manager_tick :: proc(
+	tick_man: ^Tick_Manager) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Returns true if enough time has passed since the previous frame that a new frame should be processed. Must call <code>tick_manager_reset</code> after the frame has been processed.
+</details>
+<h4 id="tick_manager_reset"><a class="header" href="#tick_manager_reset"><code>tick_manager_reset</code></a></h4>
+<pre><code class="language-c">tick_manager_reset :: proc(
+	tick_man: ^Tick_Manager)
+</code></pre>
+<h4 id="zero_stopwatch"><a class="header" href="#zero_stopwatch"><code>zero_stopwatch</code></a></h4>
+<pre><code class="language-c">zero_stopwatch :: proc(
+	timer: ^time.Stopwatch)
+</code></pre>
+<details><summary>Description</summary>
+Stopwatch helper function. Zeroes and starts the stopwatch.
+</details>
+<h4 id="read_stopwatch"><a class="header" href="#read_stopwatch"><code>read_stopwatch</code></a></h4>
+<pre><code class="language-c">read_stopwatch :: proc(
+	timer: ^time.Stopwatch) -&gt; f32
+</code></pre>
+<details><summary>Description</summary>
+Stopwatch helper function. Reads the stopwatch, in seconds.
+</details>
+<h4 id="init_settings_manager"><a class="header" href="#init_settings_manager"><code>init_settings_manager</code></a></h4>
+<pre><code class="language-c">init_settings_manager :: proc(
+	settings: ^Settings_Manager,
+	application_name: string)
+</code></pre>
+<details><summary>Description</summary>
+Initialize a <code>Settings_Manager</code>. <code>application_name</code> is the name of a folder in <code>~/AppData/Local</code> where the setting will be saved.
+</details>
+<h4 id="settings_manager_write"><a class="header" href="#settings_manager_write"><code>settings_manager_write</code></a></h4>
+<pre><code class="language-c">settings_manager_write :: proc(
+	settings: ^Settings_Manager,
+	value: ^$Type) where intrinsics.type_is_struct(Type)
+</code></pre>
+<details><summary>Description</summary>
+Write the contents of an arbitrary struct to the settings. The settings will be added under a new section named after type <code>Type</code>.
+</details>
+<h4 id="settings_manager_read"><a class="header" href="#settings_manager_read"><code>settings_manager_read</code></a></h4>
+<pre><code class="language-c">settings_manager_read :: proc(
+	settings: ^Settings_Manager,
+	value: ^$Type) where intrinsics.type_is_struct(Type)
+</code></pre>
+<h4 id="settings_manager_export"><a class="header" href="#settings_manager_export"><code>settings_manager_export</code></a></h4>
+<pre><code class="language-c">settings_manager_export :: proc(
+	settings: ^Settings_Manager)
+</code></pre>
+<h4 id="settings_manager_import"><a class="header" href="#settings_manager_import"><code>settings_manager_import</code></a></h4>
+<pre><code class="language-c">settings_manager_import :: proc(
+	settings: ^Settings_Manager)
+</code></pre>
+<h4 id="start-1"><a class="header" href="#start-1"><code>start</code></a></h4>
+<pre><code class="language-c">start :: proc(
+	entry_point: Entry_Point,
+	n_workers_override: Maybe(u32) = nil)
+</code></pre>
+<details><summary>Description</summary>
+Create and start a number of threads with the same entry procedure. The number of threads will be equal to the number of logical cores minus 3, however you can override this by setting <code>n_workers_override</code>.
+</details>
 <h4 id="make_thread_data"><a class="header" href="#make_thread_data"><code>make_thread_data</code></a></h4>
 <pre><code class="language-c">make_thread_data :: proc(
 	entry_point: Entry_Point,
@@ -260,55 +379,33 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 <h4 id="get_thread_data"><a class="header" href="#get_thread_data"><code>get_thread_data</code></a></h4>
 <pre><code class="language-c">get_thread_data :: proc() -&gt; (thread_data: ^Thread_Data)
 </code></pre>
-<h4 id="lock_acquire_unmanaged"><a class="header" href="#lock_acquire_unmanaged"><code>lock_acquire_unmanaged</code></a></h4>
-<pre><code class="language-c">lock_acquire_unmanaged :: proc(
-	lock: ^Lock)
-</code></pre>
-<h4 id="lock_release_unmanaged"><a class="header" href="#lock_release_unmanaged"><code>lock_release_unmanaged</code></a></h4>
-<pre><code class="language-c">lock_release_unmanaged :: proc(
-	lock: ^Lock)
-</code></pre>
-<h4 id="lock_guard_unmanaged"><a class="header" href="#lock_guard_unmanaged"><code>lock_guard_unmanaged</code></a></h4>
-<pre><code class="language-c">lock_guard_unmanaged :: proc(
-	lock: ^Lock)
-</code></pre>
-<h4 id="lock_acquire"><a class="header" href="#lock_acquire"><code>lock_acquire</code></a></h4>
-<p>If there is a free lock register in the current thread context, acquire the given lock and add it to a register. Return <code>false</code> if there is no free lock register.</p>
-<pre><code class="language-c">lock_acquire :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_release"><a class="header" href="#lock_release"><code>lock_release</code></a></h4>
-<p>If the given lock is in a lock register in the current thread context, release it and remove it from the register. Return <code>false</code> if the given lock wasn’t in a lock register.</p>
-<pre><code class="language-c">lock_release :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_acquire_release"><a class="header" href="#lock_acquire_release"><code>lock_acquire_release</code></a></h4>
-<p>Call <code>lock_acquire</code> on the given lock. At the end of scope, call <code>lock_release</code> on the same lock.</p>
-<pre><code class="language-c">@(deferred_in=lock_release)
-lock_acquire_release :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_release_acquire"><a class="header" href="#lock_release_acquire"><code>lock_release_acquire</code></a></h4>
-<p>Call <code>lock_release</code> on the given lock. At the end of scope, call <code>lock_acquire</code> on the same lock.</p>
-<pre><code class="language-c">@(deferred_in=lock_acquire)
-lock_release_acquire :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_push"><a class="header" href="#lock_push"><code>lock_push</code></a></h4>
-<p>If the given lock is in a lock register in the current thread context, release it, remove it from the register, and push it to the lock stack. If the lock isn’t in a lock register, do nothing and return <code>false</code>.</p>
-<pre><code class="language-c">lock_push :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
-<h4 id="lock_pop"><a class="header" href="#lock_pop"><code>lock_pop</code></a></h4>
-<pre><code class="language-c">lock_pop :: proc() -&gt; bool
-</code></pre>
-<p>If the lock stack in the current thread context is not empty and there is an empty register in the current thread context, pop the top lock from it, acquire it, and</p>
-<h4 id="lock_push_pop"><a class="header" href="#lock_push_pop"><code>lock_push_pop</code></a></h4>
-<p>Call <code>lock_push</code> on the given lock. At the end of scope, call <code>lock_pop</code>.</p>
-<pre><code class="language-c">@(deferred_in=lock_pop)
-lock_push_pop :: proc(
-	lock: ^Lock) -&gt; bool
-</code></pre>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="asset-manager"><a class="header" href="#asset-manager">Asset Manager</a></h1>
 <h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
@@ -380,7 +477,17 @@ lock_push_pop :: proc(
 </ol>
 <pre><code class="language-c">register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
 </code></pre>
+<h3 id="constants-1"><a class="header" href="#constants-1">Constants</a></h3>
+<h4 id="default_autosave_interval"><a class="header" href="#default_autosave_interval"><code>DEFAULT_AUTOSAVE_INTERVAL</code></a></h4>
+<pre><code class="language-c">DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
+</code></pre>
+<h4 id="default_autosave_cap"><a class="header" href="#default_autosave_cap"><code>DEFAULT_AUTOSAVE_CAP</code></a></h4>
+<pre><code class="language-c">DEFAULT_AUTOSAVE_CAP :: 10
+</code></pre>
 <h3 id="types-1"><a class="header" href="#types-1">Types</a></h3>
+<h4 id="asset_manager_config"><a class="header" href="#asset_manager_config"><code>Asset_Manager_Config</code></a></h4>
+<pre><code class="language-c">Asset_Manager_Config :: Database_Config
+</code></pre>
 <h4 id="asset_manager"><a class="header" href="#asset_manager"><code>Asset_Manager</code></a></h4>
 <pre><code class="language-c">Asset_Manager :: struct {
 	using database: Database,
@@ -393,16 +500,50 @@ Asset manager.
 <h4 id="asset_command"><a class="header" href="#asset_command"><code>Asset_Command</code></a></h4>
 <pre><code class="language-c">Asset_Command :: enum {
 	Validate,
-	Initialize,
 	Query_Location,
 	Import,
 	Export,
-	Read,
-	Write,
 	Load,
 	Save,
 	Upload,
 	Download }
+</code></pre>
+<h4 id="asset_location"><a class="header" href="#asset_location"><code>Asset_Location</code></a></h4>
+<pre><code class="language-c">Asset_Location :: bit_set[Asset_Location_Field]
+</code></pre>
+<h4 id="asset_location_field"><a class="header" href="#asset_location_field"><code>Asset_Location_Field</code></a></h4>
+<pre><code class="language-c">Asset_Location_Field :: enum {
+	Source_Directory,
+	Database_File,
+	Database,
+	Main_Memory,
+	GPU_Memory }
+</code></pre>
+<h4 id="asset_command_proc"><a class="header" href="#asset_command_proc"><code>Asset_Command_Proc</code></a></h4>
+<pre><code class="language-c">Asset_Command_Proc :: #type proc(
+	manager: ^Asset_Manager,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<h4 id="asset_config"><a class="header" href="#asset_config"><code>Asset_Config</code></a></h4>
+<pre><code class="language-c">Asset_Config :: struct {
+	url: URL,
+	derived_type: typeid }
+</code></pre>
+<h4 id="asset"><a class="header" href="#asset"><code>Asset</code></a></h4>
+<pre><code class="language-c">Asset :: struct {
+	using asset_config: Asset_Config,
+	location: Asset_Location }
+</code></pre>
+<h4 id="asset_kind"><a class="header" href="#asset_kind"><code>Asset_Kind</code></a></h4>
+<pre><code class="language-c">Asset_Kind :: struct {
+	command: Asset_Command_Proc }
+</code></pre>
+<h4 id="string_asset"><a class="header" href="#string_asset"><code>String_Asset</code></a></h4>
+<pre><code class="language-c">String_Asset :: struct {
+	using asset: Asset,
+	str: string }
 </code></pre>
 <h4 id="url"><a class="header" href="#url"><code>URL</code></a></h4>
 <pre><code class="language-c">URL :: distinct string
@@ -410,13 +551,19 @@ Asset manager.
 <h4 id="database_config"><a class="header" href="#database_config"><code>Database_Config</code></a></h4>
 <pre><code class="language-c">Database_Config :: struct {
 	relpath: string,
-	source_directory_relpath: string }
+	source_directory_relpath: string,
+	autosave_interval: tm.Duration,
+	autosave_cap: u32 }
 </code></pre>
 <h4 id="database"><a class="header" href="#database"><code>Database</code></a></h4>
 <pre><code class="language-c">Database :: struct {
-	using config: Database_Config,
-	entries: [dynamic]Entry,
-	entries_map: map[URL]^Entry }
+	using config:           Database_Config,
+	spec_modification_time: tm.Time,
+	last_autosave_time:     tm.Time,
+	modification_time:      tm.Time,
+	entries:                [dynamic]Entry,
+	entries_map:            map[URL]^Entry,
+	spec_modified:          bool }
 </code></pre>
 <h4 id="entry_config"><a class="header" href="#entry_config"><code>Entry_Config</code></a></h4>
 <pre><code class="language-c">Entry_Config :: struct {
@@ -427,23 +574,25 @@ Asset manager.
 </code></pre>
 <h4 id="entry"><a class="header" href="#entry"><code>Entry</code></a></h4>
 <pre><code class="language-c">Entry :: struct {
-	using config: Entry_Config }
+	using config: Entry_Config,
+	hash: u32 }
 </code></pre>
-<h4 id="serialize_proc"><a class="header" href="#serialize_proc"><code>Serialize_Proc</code></a></h4>
-<pre><code>Serialize_Proc :: #type proc(
+<h4 id="watcher"><a class="header" href="#watcher"><code>Watcher</code></a></h4>
+<pre><code class="language-c">Watcher :: struct {
 	data: rawptr,
-	size: u32,
-	allocator: rt.Allocator) -&gt; (bytes: []u8, err: os.Error)
+	outdated_proc: Outdated_Proc,
+	update_proc: Update_Proc }
 </code></pre>
-<h4 id="deserialize_proc"><a class="header" href="#deserialize_proc"><code>Deserialize_Proc</code></a></h4>
-<pre><code>Deserialize_Proc :: #type proc(
-	bytes: []u8,
-	allocator: rt.Allocator) -&gt; (data: rawptr, size: u32, err: os.Error)
+<h4 id="outdated_proc"><a class="header" href="#outdated_proc"><code>Outdated_Proc</code></a></h4>
+<pre><code class="language-c">Outdated_Proc :: #type proc(data: rawptr) -&gt; bool
+</code></pre>
+<h4 id="update_proc"><a class="header" href="#update_proc"><code>Update_Proc</code></a></h4>
+<pre><code class="language-c">Update_Proc :: #type proc(data: rawptr)
 </code></pre>
 <h3 id="procedures-1"><a class="header" href="#procedures-1">Procedures</a></h3>
 <h4 id="asset_command-1"><a class="header" href="#asset_command-1"><code>asset_command</code></a></h4>
 <pre><code class="language-c">asset_command :: proc(
-	as_mngr: ^Asset_Manager,
+	manager: ^Asset_Manager,
 	Asset_Type: typeid,
 	asset: ^Asset,
 	command: Asset_Command,
@@ -452,14 +601,24 @@ Asset manager.
 <details><summary>Description</summary>
 Execute an asset command. <code>Asset_Type</code> must be a type that derives from <code>Asset</code>, and <code>asset</code> must be a pointer to a field in an object of that type. If <code>watch</code> is true, the command will be exucted only if the source is more recent than the target.
 </details>
+<h4 id="asset_commands"><a class="header" href="#asset_commands"><code>asset_commands</code></a></h4>
+<pre><code class="language-c">asset_commands :: proc(
+	manager: ^Asset_Manager,
+	Asset_Type: typeid,
+	asset: ^Asset,
+	commands: []Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
 <h4 id="init_asset"><a class="header" href="#init_asset"><code>init_asset</code></a></h4>
-<pre><code class="language-c">init_asset :: proc(
-	as_mngr: ^Asset_Manager,
+<pre><code class="language-c">@(deferred_in=_init_asset_end)
+init_asset :: proc(
+	manager: ^Asset_Manager,
+	Asset_Type: typeid,
 	asset: ^Asset,
 	config: Asset_Config)
 </code></pre>
 <details><summary>Description</summary>
-Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>.
+Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>. <code>_init_asset_end</code> executes the <code>.Validate</code> and <code>.Query_Location</code> asset commands.
 </details>
 <h4 id="asset_object"><a class="header" href="#asset_object"><code>asset_object</code></a></h4>
 <pre><code class="language-c">asset_object :: proc(
@@ -473,7 +632,7 @@ If <code>asset</code> is a pointer to a field named <code>field_name</code> in a
 <h4 id="make_asset_manager"><a class="header" href="#make_asset_manager"><code>make_asset_manager</code></a></h4>
 <pre><code class="language-c">make_asset_manager :: proc(
 	config: Asset_Manager_Config,
-	allocator: rt.Allocator) -&gt; (asset_manager: Asset_Manager)
+	allocator: runtime.Allocator) -&gt; (asset_manager: Asset_Manager)
 </code></pre>
 <details><summary>Description</summary>
 The <code>Asset_Manager</code> constructor.
@@ -494,6 +653,27 @@ Register a new asset kind. An asset kind must be registered for any asset type b
 <details><summary>Description</summary>
 Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
 </details>
+<h4 id="autosave"><a class="header" href="#autosave"><code>autosave</code></a></h4>
+<pre><code class="language-c">autosave :: proc(
+	database: ^Asset_Manager)
+</code></pre>
+<h4 id="init_string_asset"><a class="header" href="#init_string_asset"><code>init_string_asset</code></a></h4>
+<pre><code class="language-c">init_string_asset :: proc(
+	as_mngr: ^Asset_Manager,
+	string_asset: ^String_Asset,
+	config: Asset_Config)
+</code></pre>
+<h4 id="string_asset_command"><a class="header" href="#string_asset_command"><code>string_asset_command</code></a></h4>
+<pre><code class="language-c">string_asset_command :: proc(
+	as_mngr: ^Asset_Manager,
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<h4 id="register_builtin_asset_kinds"><a class="header" href="#register_builtin_asset_kinds"><code>register_builtin_asset_kinds</code></a></h4>
+<pre><code class="language-c">register_builtin_asset_kinds :: proc(
+	as_mngr: ^Asset_Manager)
+</code></pre>
 <h4 id="make_database"><a class="header" href="#make_database"><code>make_database</code></a></h4>
 <p>Database constructor.</p>
 <pre><code class="language-c">make_database :: proc(
@@ -504,21 +684,21 @@ Check all registered assets for updates. If the source is more recent than the d
 <p>Database destructor.</p>
 <pre><code class="language-c">delete_database :: proc(
 	database: Database,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator)
 </code></pre>
 <h4 id="make_entry"><a class="header" href="#make_entry"><code>make_entry</code></a></h4>
 <p>Entry constructor.</p>
 <pre><code class="language-c">make_entry :: proc(
 	url: URL,
 	data: []u8,
-	modification_time: tm.Time = { },
+	modification_time: time.Time = { },
 	compressed: b8 = false) -&gt; (entry: Entry)
 </code></pre>
 <h4 id="delete_entry"><a class="header" href="#delete_entry"><code>delete_entry</code></a></h4>
 <p>Entry destructor.</p>
 <pre><code class="language-c">delete_entry :: proc(
 	entry: Entry,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator)
 </code></pre>
 <h4 id="entry_equiv"><a class="header" href="#entry_equiv"><code>entry_equiv</code></a></h4>
 <p>Check if two entries are equivalent (equivalent URL, equivalent data, equivalent compressedness state).</p>
@@ -532,23 +712,43 @@ Check all registered assets for updates. If the source is more recent than the d
 	database: ^Database,
 	url: URL) -&gt; (entry: ^Entry, ok: bool)
 </code></pre>
+<h4 id="get_entry"><a class="header" href="#get_entry"><code>get_entry</code></a></h4>
+<pre><code class="language-c">get_entry :: proc(
+	database: ^Database,
+	url: URL) -&gt; (entry: ^Entry, ok: bool)
+</code></pre>
+<h4 id="get_or_make_entry"><a class="header" href="#get_or_make_entry"><code>get_or_make_entry</code></a></h4>
+<pre><code class="language-c">get_or_make_entry :: proc(
+	database: ^Database,
+	url: URL) -&gt; (entry: ^Entry, existed: bool)
+</code></pre>
 <h4 id="contains_entry"><a class="header" href="#contains_entry"><code>contains_entry</code></a></h4>
 <p>Check if database contains entry with given URL.</p>
 <pre><code class="language-c">contains_entry :: proc(
 	database: ^Database,
 	url: URL) -&gt; bool
 </code></pre>
+<h4 id="log_database"><a class="header" href="#log_database"><code>log_database</code></a></h4>
+<pre><code class="language-c">log_database :: proc(
+	database: ^Database)
+</code></pre>
+<h4 id="entry_integrity"><a class="header" href="#entry_integrity"><code>entry_integrity</code></a></h4>
+<pre><code class="language-c">entry_integrity :: proc(
+	entry: ^Entry) -&gt; (ok: bool)
+</code></pre>
 <h4 id="add_entry"><a class="header" href="#add_entry"><code>add_entry</code></a></h4>
 <p>Add entry to database.</p>
 <pre><code class="language-c">add_entry :: proc(
 	database: ^Database,
-	entry_config: Entry_Config) -&gt; (entry_ptr: ^Entry, err: os.Error)
+	entry_config: Entry_Config,
+	modified: bool) -&gt; (entry_ptr: ^Entry, err: os.Error)
 </code></pre>
 <h4 id="add_or_update_entry"><a class="header" href="#add_or_update_entry"><code>add_or_update_entry</code></a></h4>
 <p>Add entry to database; If exists, update it.</p>
 <pre><code class="language-c">add_or_update_entry :: proc(
 	database: ^Database,
-	entry_config: Entry_Config) -&gt; (entry_ptr: ^Entry, err: os.Error)
+	entry_config: Entry_Config,
+	modified: bool) -&gt; (entry_ptr: ^Entry, err: os.Error)
 </code></pre>
 <h4 id="remove_entry"><a class="header" href="#remove_entry"><code>remove_entry</code></a></h4>
 <p>Remove entry from database.</p>
@@ -602,13 +802,15 @@ Check all registered assets for updates. If the source is more recent than the d
 <h4 id="read"><a class="header" href="#read"><code>read</code></a></h4>
 <p>Read the database at the given relative path.</p>
 <pre><code class="language-c">read :: proc(
-	relpath: string,
-	allocator: rt.Allocator) -&gt; (database: Database)
+	config: Database_Config,
+	allocator: runtime.Allocator,
+	relpath_override: string = "") -&gt; (database: Database)
 </code></pre>
 <h4 id="write"><a class="header" href="#write"><code>write</code></a></h4>
-<pre><code class="language-c">compress_and_write :: proc(
+<pre><code class="language-c">write :: proc(
 	database: ^Database,
-	allocator: rt.Allocator)
+	allocator: runtime.Allocator,
+	relpath_override: string = "")
 </code></pre>
 <h4 id="remove_database"><a class="header" href="#remove_database"><code>remove_database</code></a></h4>
 <p>Remove the database file from disk.</p>
@@ -639,17 +841,19 @@ Check all registered assets for updates. If the source is more recent than the d
 	url: URL,
 	allocator: rt.Allocator) -&gt; (path: string)
 </code></pre>
-<h4 id="entry_outdated"><a class="header" href="#entry_outdated"><code>entry_outdated</code></a></h4>
+<h4 id="entry_was_modified"><a class="header" href="#entry_was_modified"><code>entry_was_modified</code></a></h4>
 <p>Check if the source of the given entry has been updated since the entry was imported to the database.</p>
-<pre><code class="language-c">entry_outdated :: proc(
+<pre><code class="language-c">entry_was_modified :: proc(
 	database: ^Database,
 	entry: ^Entry) -&gt; (outdated: bool)
 </code></pre>
-<h4 id="entry_update"><a class="header" href="#entry_update"><code>entry_update</code></a></h4>
+<h4 id="update_entry"><a class="header" href="#update_entry"><code>update_entry</code></a></h4>
 <p>Update the contents of an entry.</p>
-<pre><code class="language-c">entry_update :: proc(
+<pre><code class="language-c">update_entry :: proc(
+	database: ^Database,
 	entry: ^Entry,
-	config: Entry_Config)
+	config: Entry_Config,
+	modified: bool)
 </code></pre>
 <h4 id="url_search_source"><a class="header" href="#url_search_source"><code>url_search_source</code></a></h4>
 <pre><code class="language-c">url_search_source :: proc(
@@ -673,6 +877,20 @@ for {
 	if file_was_modified(relpath, &amp;modification_time) do do_something() }
 </code></pre>
 </details>
+<h4 id="remove_file"><a class="header" href="#remove_file"><code>remove_file</code></a></h4>
+<pre><code class="language-c">remove_file :: proc(
+	relpath: string,
+	allocator: runtime.Allocator) -&gt; (err: os.Error)
+</code></pre>
+<h4 id="rename_file"><a class="header" href="#rename_file"><code>rename_file</code></a></h4>
+<pre><code class="language-c">rename_file :: proc(
+	old_relpath: string,
+	new_relpath: string,
+	allocator: runtime.Allocator) -&gt; (err: os.Error)
+</code></pre>
+<h4 id="watcher_tick"><a class="header" href="#watcher_tick"><code>watcher_tick</code></a></h4>
+<pre><code class="language-c">watcher_tick :: proc(watcher: ^Watcher)
+</code></pre>
 <pre>
 
 
@@ -698,25 +916,48 @@ for {
 
 
 
-
-
-
-
-
-
-
 </pre>
-
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="container"><a class="header" href="#container">Container</a></h1>
 <p>Various containers used throughout Willow.</p>
 <h3 id="types-2"><a class="header" href="#types-2">Types</a></h3>
+<h4 id="bary"><a class="header" href="#bary"><code>Bary</code></a></h4>
+<pre><code class="language-c">Bary :: [3]f32
+</code></pre>
 <h4 id="two_stack"><a class="header" href="#two_stack"><code>Two_Stack</code></a></h4>
 <pre><code class="language-c">Two_Stack :: struct($T: typeid) {
 	buffer: [2]T,
 	len: u8 }
 </code></pre>
 <h3 id="procedures-2"><a class="header" href="#procedures-2">Procedures</a></h3>
+<h4 id="bary_from_point"><a class="header" href="#bary_from_point"><code>bary_from_point</code></a></h4>
+<pre><code class="language-c">bary_from_point :: proc { bary_from_point2 }
+bary_from_point2 :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; (bary: Bary)
+</code></pre>
+<details><summary>Description</summary>
+Convert Euclidean coordinates to barycentric coordinates relative to a given triangle.
+</details>
+<h4 id="bary_to_point"><a class="header" href="#bary_to_point"><code>bary_to_point</code></a></h4>
+<pre><code class="language-c">bary_to_point :: proc { bary_to_point2, bary_to_point3 }
+bary_to_point2 :: proc(bary: Bary, triangle: [3][2]f32) -&gt; (point: [2]f32)
+bary_to_point3 :: proc(bary: Bary, triangle: [3][3]f32) -&gt; (point: [3]f32)
+</code></pre>
+<details><summary>Description</summary>
+Convert barycentric coordinates relative to a given triangle to Euclidean coordinates.
+</details>
+<h4 id="bary_inside"><a class="header" href="#bary_inside"><code>bary_inside</code></a></h4>
+<pre><code class="language-c">bary_inside :: proc(bary: Bary) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if the given barycentrric point is inside the triangle relative to which it is defined.
+</details>
+<h4 id="point_inside_triangle"><a class="header" href="#point_inside_triangle"><code>point_inside_triangle</code></a></h4>
+<pre><code class="language-c">point_inside_triangle :: proc { point2_inside_triangle }
+point2_inside_triangle :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if the given Euclidean point is inside the given triangle.
+</details>
 <h4 id="init-1"><a class="header" href="#init-1"><code>init</code></a></h4>
 <pre><code class="language-c">init :: proc(two_stack: ^Two_Stack($T))
 </code></pre>
@@ -753,16 +994,402 @@ for {
 <h4 id="contains"><a class="header" href="#contains"><code>contains</code></a></h4>
 <pre><code class="language-c">contains :: proc(two_stack: ^Two_Stack($T), elem: T) -&gt; (ok: bool)
 </code></pre>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="bary-1"><a class="header" href="#bary-1">Bary</a></h1>
+<p>Various containers used throughout Willow.</p>
+<h3 id="types-3"><a class="header" href="#types-3">Types</a></h3>
+<h4 id="bary-1-1"><a class="header" href="#bary-1-1"><code>Bary</code></a></h4>
+<pre><code class="language-c">Bary :: [3]f32
+</code></pre>
+<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
+<h4 id="bary_from_point-1"><a class="header" href="#bary_from_point-1"><code>bary_from_point</code></a></h4>
+<pre><code class="language-c">bary_from_point :: proc { bary_from_point2 }
+bary_from_point2 :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; (bary: Bary)
+</code></pre>
+<details><summary>Description</summary>
+Convert Euclidean coordinates to barycentric coordinates relative to a given triangle.
+</details>
+<h4 id="bary_to_point-1"><a class="header" href="#bary_to_point-1"><code>bary_to_point</code></a></h4>
+<pre><code class="language-c">bary_to_point :: proc { bary_to_point2, bary_to_point3 }
+bary_to_point2 :: proc(bary: Bary, triangle: [3][2]f32) -&gt; (point: [2]f32)
+bary_to_point3 :: proc(bary: Bary, triangle: [3][3]f32) -&gt; (point: [3]f32)
+</code></pre>
+<details><summary>Description</summary>
+Convert barycentric coordinates relative to a given triangle to Euclidean coordinates.
+</details>
+<h4 id="bary_inside-1"><a class="header" href="#bary_inside-1"><code>bary_inside</code></a></h4>
+<pre><code class="language-c">bary_inside :: proc(bary: Bary) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if the given barycentrric point is inside the triangle relative to which it is defined.
+</details>
+<h4 id="point_inside_triangle-1"><a class="header" href="#point_inside_triangle-1"><code>point_inside_triangle</code></a></h4>
+<pre><code class="language-c">point_inside_triangle :: proc { point2_inside_triangle }
+point2_inside_triangle :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if the given Euclidean point is inside the given triangle.
+</details>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="rect"><a class="header" href="#rect">Rect</a></h1>
+<h3 id="types-4"><a class="header" href="#types-4">Types</a></h3>
+<h4 id="rect-1"><a class="header" href="#rect-1"><code>Rect</code></a></h4>
+<pre><code class="language-c">Rect :: struct #packed {
+	pos:  [2]f32,
+	size: [2]f32 }
+</code></pre>
+<h3 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h3>
+<h4 id="make_rect"><a class="header" href="#make_rect"><code>make_rect</code></a></h4>
+<pre><code class="language-c">make_rect :: proc(pos_x, pos_y, size_x, size_y: f32) -&gt; Rect
+</code></pre>
+<h4 id="left"><a class="header" href="#left"><code>left</code></a></h4>
+<pre><code class="language-c">left :: proc(rect: Rect) -&gt; f32
+</code></pre>
+<details><summary>Description</summary>
+Get the x-coordinate of the left wall of the given rectangle.
+</details>
+<h4 id="right"><a class="header" href="#right"><code>right</code></a></h4>
+<pre><code class="language-c">right :: proc(rect: Rect) -&gt; f32
+</code></pre>
+<details><summary>Description</summary>
+Get the x-coordinate of the right wall of the given rectangle.
+</details>
+<h4 id="bottom"><a class="header" href="#bottom"><code>bottom</code></a></h4>
+<pre><code class="language-c">bottom :: proc(rect: Rect) -&gt; f32
+</code></pre>
+<details><summary>Description</summary>
+Get the y-coordinate of the bottom wall of the given rectangle.
+</details>
+<h4 id="top"><a class="header" href="#top"><code>top</code></a></h4>
+<pre><code class="language-c">top :: proc(rect: Rect) -&gt; f32
+</code></pre>
+<details><summary>Description</summary>
+Get the y-coordinate of the top wall of the given rectangle.
+</details>
+<h4 id="contains_point"><a class="header" href="#contains_point"><code>contains_point</code></a></h4>
+<pre><code class="language-c">contains_point :: proc(rect: Rect, point: [2]f32) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Check if a given point is either <i>in</i> or <i>on</i> the given rectangle.
+</details>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sdf"><a class="header" href="#sdf">SDF</a></h1>
+<h2 id="constants-2"><a class="header" href="#constants-2">Constants</a></h2>
+<h4 id="sdf_clear"><a class="header" href="#sdf_clear"><code>SDF_CLEAR</code></a></h4>
+<pre><code class="language-c">SDF_CLEAR :: 1000000
+</code></pre>
+<h4 id="collision_epsilon"><a class="header" href="#collision_epsilon"><code>COLLISION_EPSILON</code></a></h4>
+<pre><code class="language-c">COLLISION_EPSILON :: 0.05
+</code></pre>
+<h2 id="types-5"><a class="header" href="#types-5">Types</a></h2>
+<h4 id="distance"><a class="header" href="#distance"><code>Distance</code></a></h4>
+<pre><code class="language-c">Distance :: f32
+</code></pre>
+<h4 id="sdf_id"><a class="header" href="#sdf_id"><code>SDF_ID</code></a></h4>
+<pre><code class="language-c">SDF_ID :: enum {
+	PLANE           = 0,
+	SPHERE          = 1,
+	CAPSULE_Z       = 2,
+	GROUND_TRIANGLE = 3,
+	GROUND          = 4,
+	MESH            = 5 }
+</code></pre>
+<h4 id="sdf_surface"><a class="header" href="#sdf_surface"><code>SDF_Surface</code></a></h4>
+<pre><code class="language-c">SDF_Surface :: union {
+	SDF_Plane,
+	SDF_Sphere,
+	SDF_Capsule_Z,
+	SDF_Triangle,
+	SDF_Triangle_Mesh,
+	SDF_Plane_Mesh }
+</code></pre>
+<h4 id="sdf_plane"><a class="header" href="#sdf_plane"><code>SDF_Plane</code></a></h4>
+<pre><code class="language-c">SDF_Plane :: struct {
+	c: [3]f32,
+	n: [3]f32,
+	h: f32 }
+</code></pre>
+<details><summary>Description</summary>
+A plane defined by a center point <code>c</code>, a normal vector <code>n</code>, and an offset <code>h</code> along the normal.
+</details>
+<h4 id="sdf_sphere"><a class="header" href="#sdf_sphere"><code>SDF_Sphere</code></a></h4>
+<pre><code class="language-c">SDF_Sphere :: struct {
+	c: [3]f32,
+	r: f32 }
+</code></pre>
+<details><summary>Description</summary>
+A sphere defined by a center point <code>c</code>, and a radius <code>r</code>.
+</details>
+<h4 id="sdf_capsule_z"><a class="header" href="#sdf_capsule_z"><code>SDF_Capsule_Z</code></a></h4>
+<pre><code class="language-c">SDF_Capsule_Z :: struct {
+	c: [3]f32,
+	r: f32,
+	l: f32 }
+</code></pre>
+<details><summary>Description</summary>
+A capsule oriented along the Z axis, defined by a center point <code>c</code>, a radius <code>r</code>, and a length <code>l</code>.
+</details>
+<h4 id="sdf_triangle"><a class="header" href="#sdf_triangle"><code>SDF_Triangle</code></a></h4>
+<pre><code class="language-c">SDF_Triangle :: struct {
+	a: [3]f32,
+	b: [3]f32,
+	c: [3]f32 }
+</code></pre>
+<details><summary>Description</summary>
+A triangle defined by three points.
+</details>
+<h4 id="sdf_triangle_mesh"><a class="header" href="#sdf_triangle_mesh"><code>SDF_Triangle_Mesh</code></a></h4>
+<pre><code class="language-c">SDF_Triangle_Mesh :: struct {
+	triangles: []SDF_Triangle }
+</code></pre>
+<details><summary>Description</summary>
+A hollow triangular mesh, defined as the union of a set of triangles.
+</details>
+<h4 id="sdf_plane_mesh"><a class="header" href="#sdf_plane_mesh"><code>SDF_Plane_Mesh</code></a></h4>
+<pre><code class="language-c">SDF_Plane_Mesh :: struct {
+	planes: []SDF_Plane }
+</code></pre>
+<details><summary>Description</summary>
+A solid convex mesh, defined as the intersection of a set of planes.
+</details>
+<h4 id="collider"><a class="header" href="#collider"><code>Collider</code></a></h4>
+<pre><code class="language-c">Collider :: struct {
+	surface: SDF_Surface,
+	bounds:  SDF_Sphere }
+</code></pre>
+<details><summary>Description</summary>
+A surface with a bounding sphere.
+</details>
+<h2 id="procedures-5"><a class="header" href="#procedures-5">Procedures</a></h2>
+<h4 id="sdf_plane-1"><a class="header" href="#sdf_plane-1"><code>sdf_plane</code></a></h4>
+<pre><code class="language-c">sdf_plane :: proc(
+	p: [3]f32,
+	plane: SDF_Plane) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Plane</code>.
+</details>
+<h4 id="sdf_sphere-1"><a class="header" href="#sdf_sphere-1"><code>sdf_sphere</code></a></h4>
+<pre><code class="language-c">sdf_sphere :: proc(
+	p: [3]f32,
+	sphere: SDF_Sphere) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Sphere</code>.
+</details>
+<h4 id="sdf_capsule_z-1"><a class="header" href="#sdf_capsule_z-1"><code>sdf_capsule_z</code></a></h4>
+<pre><code class="language-c">sdf_capsule_z :: proc(
+	p: [3]f32,
+	capsule: SDF_Capsule_Z) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Capsule_Z</code>.
+</details>
+<h4 id="sdf_triangle-1"><a class="header" href="#sdf_triangle-1"><code>sdf_triangle</code></a></h4>
+<pre><code class="language-c">sdf_triangle :: proc(
+	p: [3]f32,
+	triangle: SDF_Triangle) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Triangle</code>.
+</details>
+<h4 id="sdf_triangle_mesh-1"><a class="header" href="#sdf_triangle_mesh-1"><code>sdf_triangle_mesh</code></a></h4>
+<pre><code class="language-c">sdf_triangle_mesh :: proc(
+	p: [3]f32,
+	mesh: SDF_Triangle_Mesh) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Triangle_Mesh</code>.
+</details>
+<h4 id="sdf_plane_mesh-1"><a class="header" href="#sdf_plane_mesh-1"><code>sdf_plane_mesh</code></a></h4>
+<pre><code class="language-c">sdf_plane_mesh :: proc(
+	p: [3]f32,
+	mesh: SDF_Plane_Mesh) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Plane_Mesh</code>.
+</details>
+<h4 id="sdf_surface-1"><a class="header" href="#sdf_surface-1"><code>sdf_surface</code></a></h4>
+<pre><code class="language-c">sdf_surface :: proc(
+	p: [3]f32,
+	surface: SDF_Surface) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to an <code>SDF_Surface</code>.
+</details>
+<h4 id="sdf_collision_surfaces"><a class="header" href="#sdf_collision_surfaces"><code>sdf_collision_surfaces</code></a></h4>
+<pre><code class="language-c">sdf_collision_surfaces :: proc(
+	p: [3]f32,
+	collision_surfaces: ^[dynamic]SDF_Surface) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Compute the signed distance from a point to the union of a set of <code>SDF_Surface</code>s.
+</details>
+<h4 id="nf_collision_surfaces"><a class="header" href="#nf_collision_surfaces"><code>nf_collision_surfaces</code></a></h4>
+<pre><code class="language-c">nf_collision_surfaces :: proc(
+	p: [3]f32,
+	collision_surfaces: ^[dynamic]SDF_Surface) -&gt; [3]f32
+</code></pre>
+<details><summary>Description</summary>
+Compute the normal of the union of a set of <code>SDF_Surface</code>s at the nearest point to point <code>p</code>.
+</details>
+<h4 id="sdf_inside"><a class="header" href="#sdf_inside"><code>sdf_inside</code></a></h4>
+<pre><code class="language-c">sdf_inside :: proc(
+	d: Distance) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Is point inside surface?
+</details>
+<h4 id="sdf_outside"><a class="header" href="#sdf_outside"><code>sdf_outside</code></a></h4>
+<pre><code class="language-c">sdf_outside :: proc(
+	d: Distance) -&gt; bool
+</code></pre>
+<details><summary>Description</summary>
+Is point outside surface?
+</details>
+<h4 id="sdf_sect"><a class="header" href="#sdf_sect"><code>sdf_sect</code></a></h4>
+<pre><code class="language-c">sdf_sect :: proc(
+	d_a, d_b: Distance) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Intersection.
+</details>
+<h4 id="sdf_smooth_sect"><a class="header" href="#sdf_smooth_sect"><code>sdf_smooth_sect</code></a></h4>
+<pre><code class="language-c">sdf_smooth_sect :: proc(
+	d_a, d_b: Distance, k: f32) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Smooth intersection.
+</details>
+<h4 id="sdf_union"><a class="header" href="#sdf_union"><code>sdf_union</code></a></h4>
+<pre><code class="language-c">sdf_union :: proc(
+	d_a, d_b: Distance) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Union.
+</details>
+<h4 id="sdf_smooth_union"><a class="header" href="#sdf_smooth_union"><code>sdf_smooth_union</code></a></h4>
+<pre><code class="language-c">sdf_smooth_union :: proc(
+	d_a, d_b: Distance,
+	k: f32) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Smooth union.
+</details>
+<h4 id="sdf_diff"><a class="header" href="#sdf_diff"><code>sdf_diff</code></a></h4>
+<pre><code class="language-c">sdf_diff :: proc(
+	d_a, d_b: Distance) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Difference.
+</details>
+<h4 id="sdf_smooth_diff"><a class="header" href="#sdf_smooth_diff"><code>sdf_smooth_diff</code></a></h4>
+<pre><code class="language-c">sdf_smooth_diff :: proc(
+	d_a, d_b: Distance,
+	k: f32) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Smooth difference.
+</details>
+<h4 id="sdf_round"><a class="header" href="#sdf_round"><code>sdf_round</code></a></h4>
+<pre><code class="language-c">sdf_round :: proc(
+	d: Distance,
+	r: f32) -&gt; Distance
+</code></pre>
+<details><summary>Description</summary>
+Rounding.
+</details>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="graphics"><a class="header" href="#graphics">Graphics</a></h1>
 <p><code>graphics.tick</code> is called <em>at the beginning of the frame</em>!</p>
-<h3 id="types-3"><a class="header" href="#types-3">Types</a></h3>
+<h3 id="types-6"><a class="header" href="#types-6">Types</a></h3>
 <h4 id="image"><a class="header" href="#image"><code>Image</code></a></h4>
 <pre><code class="language-c">Image :: struct {
 	url: db.URL,
 	using image: im.Image }
 </code></pre>
-<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
+<h3 id="procedures-6"><a class="header" href="#procedures-6">Procedures</a></h3>
 <h4 id="image_equiv"><a class="header" href="#image_equiv"><code>image_equiv</code></a></h4>
 <pre><code class="language-c">image_equiv :: proc(
 	a: ^Image,
@@ -821,6 +1448,17 @@ Release the GPU memory associated with the image.
 Check if the image has been uploaded to the GPU.
 </details>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="gui"><a class="header" href="#gui">GUI</a></h1>
+<h2 id="procedures-7"><a class="header" href="#procedures-7">Procedures</a></h2>
+<h4 id="rect_margins"><a class="header" href="#rect_margins"><code>rect_margins</code></a></h4>
+<pre><code class="language-c">rect_margins :: proc(
+	rect_in: rect.Rect,
+	margins: f32) -&gt; (rect_out: rect.Rect)
+</code></pre>
+<details><summary>Description</summary>
+Add margins to rectangle on all sides.
+</details>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="input"><a class="header" href="#input">Input</a></h1>
 <pre><code class="language-c">package input_sys
 </code></pre>
@@ -835,7 +1473,7 @@ Check if the image has been uploaded to the GPU.
 <p>After the inputs system has collected all the inputs, they need to be processed. You do this by calling <code>input_sys.process</code>.</p>
 <p>Once the inputs have been processed, you can query information about them <code>input_sys.query</code>.</p>
 <hr>
-<h3 id="examples"><a class="header" href="#examples">Examples</a></h3>
+<h3 id="examples-1"><a class="header" href="#examples-1">Examples</a></h3>
 <p>To check if WASD are pressed down:</p>
 <pre><code class="language-c">w, a, s, d := input_down(.W), input_down(.A), input_down(.S), input_down(.D)
 </code></pre>
@@ -853,7 +1491,7 @@ input_sys.process(&amp;in_mngr)
 <pre><code class="language-c">input_sys.query(.W, .Up)
 </code></pre>
 <hr>
-<h3 id="types-4"><a class="header" href="#types-4">Types</a></h3>
+<h3 id="types-7"><a class="header" href="#types-7">Types</a></h3>
 <h4 id="input_manager"><a class="header" href="#input_manager"><code>Input_Manager</code></a></h4>
 <pre><code class="language-c">Input_Manager :: struct {
 	mouse_position: [2]f32,
@@ -997,7 +1635,7 @@ input_sys.process(&amp;in_mngr)
 	Pressed,
 	Released }
 </code></pre>
-<h3 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h3>
+<h3 id="procedures-8"><a class="header" href="#procedures-8">Procedures</a></h3>
 <h4 id="process"><a class="header" href="#process"><code>process</code></a></h4>
 <pre><code class="language-c">process :: proc(
 	im: ^Input_Manager)
@@ -1021,7 +1659,7 @@ input_sys.process(&amp;in_mngr)
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="model"><a class="header" href="#model">Model</a></h1>
-<h3 id="types-5"><a class="header" href="#types-5">Types</a></h3>
+<h3 id="types-8"><a class="header" href="#types-8">Types</a></h3>
 <h4 id="model-1"><a class="header" href="#model-1"><code>Model</code></a></h4>
 <pre><code class="language-c">Model :: struct {
 	... }
@@ -1117,7 +1755,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 <h2 id="positioning-nodes"><a class="header" href="#positioning-nodes">Positioning nodes</a></h2>
 <p>The <code>translate</code>, <code>rotate</code>, and <code>scale</code> fields of <code>Node</code> are meant to be used to describe the position, orientation, and size of the node’s contents, relative to it’s parent node. The graphics system does not use those fields, instead it uses contents of the <code>transform</code> field. If you want, you can write to <code>transform</code> directly, or you can use the <code>node_update_transform</code> procedure to update <code>transform</code> based on the contents of <code>translate</code>, <code>rotate</code>, and <code>scale</code>. You can also use <code>tree_update_transforms</code> to update the transforms of all nodes in the tree in the aforementioned way.</p>
 <p>Every node has a <code>Transform</code> field.</p>
-<h3 id="types-6"><a class="header" href="#types-6">Types</a></h3>
+<h3 id="types-9"><a class="header" href="#types-9">Types</a></h3>
 <h4 id="scene_config"><a class="header" href="#scene_config"><code>Scene_Config</code></a></h4>
 <pre><code class="language-c">Scene_Config :: struct {
 	url: db.URL,
@@ -1192,7 +1830,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	node: Node,
 	using model: ^gx.Model }
 </code></pre>
-<h3 id="procedures-5"><a class="header" href="#procedures-5">Procedures</a></h3>
+<h3 id="procedures-9"><a class="header" href="#procedures-9">Procedures</a></h3>
 <h4 id="make_scene"><a class="header" href="#make_scene"><code>make_scene</code></a></h4>
 <p>The intended way to construct a <code>Scene</code>.</p>
 <pre><code class="language-c">make_scene :: proc(
@@ -1359,7 +1997,7 @@ example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 <pre><code class="language-c">dll.watch_dll(&amp;example_dll)
 </code></pre>
 <p>While the DLL is being reloaded, the proc pointers in it will become temporarily invalid. Thus make sure this isn’t called while any of those procs is in use.</p>
-<h3 id="types-7"><a class="header" href="#types-7">Types</a></h3>
+<h3 id="types-10"><a class="header" href="#types-10">Types</a></h3>
 <h4 id="dll-1"><a class="header" href="#dll-1"><code>DLL</code></a></h4>
 <pre><code class="language-c">DLL :: struct {
 	lib: dl.Library,
@@ -1367,7 +2005,7 @@ example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	dll_relpath: string,
 	modification_time: tm.Time }
 </code></pre>
-<h3 id="procedures-6"><a class="header" href="#procedures-6">Procedures</a></h3>
+<h3 id="procedures-10"><a class="header" href="#procedures-10">Procedures</a></h3>
 <h4 id="make_dll"><a class="header" href="#make_dll"><code>make_dll</code></a></h4>
 <pre><code class="language-c">make_dll :: proc(
 	$T: typeid,
