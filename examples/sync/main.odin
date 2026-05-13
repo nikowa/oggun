@@ -1,13 +1,5 @@
 package example_input
-import "shared:willow/base"
-import "shared:willow/multi"
-import "shared:willow/graphics"
-import "shared:willow/input"
-import "shared:willow/window"
-import "shared:willow/gui"
-import "shared:willow/asset_manager"
-import "shared:willow/container/rect"
-import "shared:willow/dll"
+import "shared:willow"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -18,21 +10,20 @@ import "core:math/linalg"
 import "core:slice"
 import "core:container/intrusive/list"
 
-settings_man: base.Settings_Manager
-asset_man: asset_manager.Asset_Manager
-graphics_man: graphics.Graphics_Manager
-input_man: input.Input_Manager
-window_man: window.Window_Manager
+settings_man: willow.Settings_Manager
+asset_man: willow.Asset_Manager
+graphics_man: willow.Graphics_Manager
+window_man: willow.Window_Manager
 stopwatch: time.Stopwatch
-tick_man: base.Tick_Manager
-rect_screen: rect.Rect
-images: [dynamic]^graphics.Image_Asset
-background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: graphics.Image_Asset
-font: graphics.Bitmap_Font
+tick_man: willow.Tick_Manager
+rect_screen: willow.Rect
+images: [dynamic]^willow.Image_Asset
+background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
+font: willow.Bitmap_Font
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	base.start(entry_point, n_workers_override = 1) }
+	willow.start(entry_point, n_workers_override = 1) }
 
 Sprite :: struct {
 	position: [2]f32,
@@ -109,7 +100,7 @@ swing :: proc() -> f32 {
 render_entity :: proc(entity: ^Entity) {
 	screen_position: [2]f32
 	screen_position = entity.position * rect_screen.size / 2
-	image: ^graphics.Image_Asset
+	image: ^willow.Image_Asset
 	image_size: [2]f32
 	label: string
 	#partial switch variant in entity.variant {
@@ -121,71 +112,71 @@ render_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	graphics.render_image(&graphics_man, image, { screen_position, image_size }, depth = entity.depth)
-	graphics.render_bitmap_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = graphics.WHITE, scale_factor = 1.0) }
+	willow.render_image(&graphics_man, image, { screen_position, image_size }, depth = entity.depth)
+	willow.render_bitmap_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = willow.WHITE, scale_factor = 1.0) }
 
 @(export)
-entry_point :: proc(thread_data: ^base.Thread_Data) {
-	sync_context: multi.Context = multi.make_context()
+entry_point :: proc(thread_data: ^willow.Thread_Data) {
+	sync_context: willow.Context = willow.make_context()
 
 	context.logger = log.create_console_logger()
 
-	asset_man = asset_manager.make_asset_manager({
+	asset_man = willow.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "../../data",
-		autosave_interval = asset_manager.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = asset_manager.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	window_config: window.Window_Config = window.WINDOW_CONFIG_DEFAULT
+		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
+		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
+	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT
 
 	window_config.size = { 1664, 936 }
 	window_config.position = [2]f32{ 0, 0 }
 	window_config.title = "Savanna"
-	window.init(&window_man, window_config)
-	graphics.init(
+	willow.window_init(&window_man, window_config)
+	willow.graphics_init(
 		graphics_manager = &graphics_man,
 		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_man })
-	base.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
-	rect_screen = gui.rect_screen(&graphics_man)
+		graphics_config = { window_manager = &window_man, clear_color = willow.BLACK })
+	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
+	rect_screen = willow.rect_screen(&graphics_man)
 
-	graphics.init_image(&asset_man, &background_image, { url = "image:savanna-background.png" })
+	willow.init_image(&asset_man, &background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
-	graphics.init_image(&asset_man, &car_image, { url = "image:car.png" })
+	willow.init_image(&asset_man, &car_image, { url = "image:car.png" })
 	append(&images, &car_image)
-	graphics.init_image(&asset_man, &tree_image, { url = "image:tree.png" })
+	willow.init_image(&asset_man, &tree_image, { url = "image:tree.png" })
 	append(&images, &tree_image)
-	graphics.init_image(&asset_man, &aardvark_image, { url = "image:aardvark.png" })
+	willow.init_image(&asset_man, &aardvark_image, { url = "image:aardvark.png" })
 	append(&images, &aardvark_image)
-	graphics.init_image(&asset_man, &meerkat_image, { url = "image:meerkat.png" })
+	willow.init_image(&asset_man, &meerkat_image, { url = "image:meerkat.png" })
 	append(&images, &meerkat_image)
-	graphics.init_image(&asset_man, &zebra_image, { url = "image:zebra.png" })
+	willow.init_image(&asset_man, &zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(asset_manager.asset_commands(&asset_man, graphics.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(willow.asset_commands(&asset_man, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	graphics.bitmap_font_init(&asset_man, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
+	willow.bitmap_font_init(&asset_man, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())
 
-	base.zero_stopwatch(&stopwatch)
+	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_man.window_closed {
-		time := base.read_stopwatch(&stopwatch)
-		asset_manager.watch_assets(&asset_man)
+		time := willow.read_stopwatch(&stopwatch)
+		willow.watch_assets(&asset_man)
 
-		if base.tick_manager_tick(&tick_man) {
-			defer base.tick_manager_reset(&tick_man)
-			graphics.tick(&graphics_man)
+		if willow.tick_manager_tick(&tick_man) {
+			defer willow.tick_manager_reset(&tick_man)
+			willow.tick(&graphics_man)
 
-			graphics.render_image(&graphics_man, &background_image, rect_screen, depth = 0.99)
+			willow.render_image(&graphics_man, &background_image, rect_screen, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
 				render_entity(entity) }
 
-			graphics.render_image(&graphics_man, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			graphics.render_image(&graphics_man, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// graphics.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = graphics.WHITE, scale_factor = 1.0)
+			willow.render_image(&graphics_man, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
+			willow.render_image(&graphics_man, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			// willow.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

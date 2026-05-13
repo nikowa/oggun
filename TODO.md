@@ -3,6 +3,7 @@
 - Update the documentation
 - Start working on Bogwalker
 
+- Remove all "shared:..." dependencies
 - Batch the line shader
 - Pixel-perfect font positioning
 - Port the font filtering from staffmaster

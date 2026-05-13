@@ -16,17 +16,8 @@ release:
 	./build.exe -release
 
 check:
-	odin check shared/willow/input_sys -no-entry-point
-	odin check shared/willow/graphics -no-entry-point
-	odin check shared/willow
-	odin check shared/willow/asset_manager -no-entry-point
-	odin check shared/willow/base -no-entry-point
-	odin check shared/willow/container/micro_pair -no-entry-point
-	odin check shared/willow/container/ordered_mutex -no-entry-point
-	odin check shared/willow/container/rect -no-entry-point
-	odin check shared/willow/container/sdf -no-entry-point
-	odin check shared/willow/container/two_stack -no-entry-point
-	odin check shared/willow/dll -no-entry-point
+	cls
+	odin check shared/willow -no-entry-point -max-error-count:8
 
 test:
 	odin test shared/willow/tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false

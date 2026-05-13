@@ -1,8 +1,6 @@
 package willow
 import os "core:os"
 import fmt "core:fmt"
-import bs "base"
-
 
 prompt: string :
 `Usage:
@@ -10,11 +8,9 @@ prompt: string :
 Commands:
 	install   Install the Willow library.`
 
-
 print_prompt :: proc() {
-	fmt.printfln("Willow %d.%d.%d--", bs.WILLOW_VERSION.x, bs.WILLOW_VERSION.y, bs.WILLOW_VERSION.z)
+	fmt.printfln("Willow %d.%d.%d--", WILLOW_VERSION.x, WILLOW_VERSION.y, WILLOW_VERSION.z)
 	fmt.println(prompt) }
-
 
 main :: proc() {
 	no_command: bool = false
@@ -30,4 +26,3 @@ main :: proc() {
 	case: no_command = true }
 	else do no_command = true
 	if no_command do print_prompt() }
-
