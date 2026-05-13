@@ -43,10 +43,10 @@ Command_Buffer :: struct {
 	commands: [dynamic]Command }
 
 Command_Config :: struct {
-	variant: Command_Variant,
-	using _: struct #raw_union {
-		using render_image: Render_Image_Command,
-		using render_bitmap_text: Render_Bitmap_Text_Command } }
+	variant: union {
+		Render_Image_Command,
+		Render_Bitmap_Text_Command,
+		Render_Rect_Command } }
 
 Command :: struct {
 	using config: Command_Config,
@@ -54,16 +54,18 @@ Command :: struct {
 
 Command_Variant :: enum {
 	RENDER_IMAGE,
-	RENDER_BITMAP_TEXT }
+	RENDER_BITMAP_TEXT,
+	RENDER_RECT }
 
 command_buffer_record :: proc(buffer: ^Command_Buffer, config: Command_Config) {
 	append(&buffer.commands, Command{ config = config, submitted = false }) }
 
 command_submit :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
 	if command.submitted do return
-	switch command.variant {
-	case .RENDER_IMAGE: submit_render_image(graphics_man, command, index)
-	case .RENDER_BITMAP_TEXT: submit_render_bitmap_text(graphics_man, command, index) }
+	switch variant in command.variant {
+	case Render_Image_Command:       submit_render_image(graphics_man, command, index)
+	case Render_Bitmap_Text_Command: submit_render_bitmap_text(graphics_man, command, index)
+	case Render_Rect_Command:        submit_render_rect(graphics_man, command, index) }
 	graphics_man.command_buffer.commands[index].submitted = true }
 
 command_buffer_submit :: proc(graphics_man: ^Graphics_Manager, command_buffer: ^Command_Buffer) {
@@ -79,3 +81,9 @@ command_buffer_get_group :: proc(command_buffer: ^Command_Buffer, index: int, co
 		if ! (cond(command, command_max^)) do break
 		command_max.submitted = true }
 	return command_buffer.commands[index:index_max] }
+
+commands_compare_params :: proc($Command_Type: typeid, _command_0, _command_1: Command) -> (ok: bool) {
+	ok = false
+	command_0 := _command_0.variant.(Command_Type)
+	command_1 := _command_1.variant.(Command_Type) or_return
+	return command_0.group_params == command_1.group_params }

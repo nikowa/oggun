@@ -51,8 +51,8 @@ bitmap_font_init :: proc(asset_man: ^asset_manager.Asset_Manager, font: ^Bitmap_
 		if ok do font.advances[rune(tokens[0][0])] = u8(advance) } } }
 
 Render_Bitmap_Text_Command :: struct {
-	using render_bitmap_text_params: Render_Bitmap_Text_Params,
-	using render_bitmap_text_group_params: Render_Bitmap_Text_Group_Params }
+	using params: Render_Bitmap_Text_Params,
+	using group_params: Render_Bitmap_Text_Group_Params }
 
 Render_Bitmap_Text_Group_Params :: struct {
 	font: ^Bitmap_Font,
@@ -94,17 +94,18 @@ render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: st
 		command.scale_factor = f32(scale_factor)
 		command.color = color
 		sym_pos.x += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
-		command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_BITMAP_TEXT, render_bitmap_text = command }) } }
+		command_buffer_record(&graphics_man.command_buffer, { variant = command }) } }
 
-submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
+submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
 	using Bitmap_Text_Uniforms
+
+	command := _command.variant.(Render_Bitmap_Text_Command)
 
 	use_shader(&graphics_man.bitmap_text_shader)
 	set_shader_param(RES, graphics_man.active_resolution)
 	set_shader_param(SYMBOL_SIZE, command.font.symbol_size)
 
-	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(command_0, command_1: Command) -> bool {
-		return command_0.render_bitmap_text_group_params == command_1.render_bitmap_text_group_params })
+	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Bitmap_Text_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(4)
 	defer delete_buffers(buffers)
@@ -114,7 +115,8 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, command: Comm
 	color := make([][4]f32, n)
 	symbol := make([]u32, n)
 	position := make([][3]f32, n)
-	for command, i in commands do for j in 0 ..< 6 {
+	for _command, i in commands do for j in 0 ..< 6 {
+		command := _command.variant.(Render_Bitmap_Text_Command)
 		k := 6 * i + j
 		scale_factor[k] = command.scale_factor
 		color[k] = command.color

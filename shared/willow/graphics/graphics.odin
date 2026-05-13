@@ -671,14 +671,74 @@ delete_buffers :: proc(buffers: [$N]u32) {
 // 	render_rect_outlined(draw, pos = pos + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
 // 	render_rect_outlined(draw, pos = pos + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0) {
+Render_Rect_Command :: struct {
+	using params: Render_Rect_Params,
+	using group_params: Render_Rect_Group_Params }
+
+Render_Rect_Params :: struct {
+	rect: r.Rect,
+	fill_color: [4]f32,
+	rounding: f32,
+	depth: f32 }
+
+Render_Rect_Group_Params :: struct {
+	render_buffer: Maybe(^Render_Buffer) }
+
+// layout(location = 0) in vec4 rect;
+// layout(location = 1) in float depth;
+// layout(location = 2) in vec4 fill_color;
+// layout(location = 3) in float rounding;
+
+render_rect :: proc(graphics_man: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
+	command: Render_Rect_Command = {
+		render_buffer = render_buffer,
+		rect = rect,
+		fill_color = fill_color,
+		rounding = rounding,
+		depth = depth }
+	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
+
+submit_render_rect :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
 	using Rect_Shader_Uniforms
-	use_shader(&graphics_manager.rect_shader)
-	set_shader_param(FILL_COLOR, fill_color)
-	set_shader_param(ROUNDING, rounding)
-	set_shader_param(DEPTH, depth)
-	set_shader_param(RES, graphics_manager.active_resolution)
-	draw_triangles(6) }
+
+	command := _command.variant.(Render_Rect_Command)
+
+	use_shader(&graphics_man.rect_shader)
+	set_shader_param(RES, graphics_man.active_resolution)
+
+	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Rect_Command, _command_0, _command_1) })
+
+	buffers := make_buffers(4)
+	defer delete_buffers(buffers)
+
+	n: int = QUAD_VERTS_LEN * len(commands)
+	rect := make([]r.Rect, n)
+	depth := make([]f32, n)
+	fill_color := make([][4]f32, n)
+	rounding := make([]f32, n)
+	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
+		command := _command.variant.(Render_Rect_Command)
+		k := QUAD_VERTS_LEN * i + j
+		rect[k] = command.rect
+		depth[k] = command.depth
+		fill_color[k] = command.fill_color
+		rounding[k] = command.rounding }
+	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
+	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
+	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, fill_color)
+	upload_vertex_buffer_data(3, buffers[3], 1, gl.FLOAT, rounding)
+
+	polygon_mode(.Fill)
+	draw_triangles(cast(i32)n) }
+
+// render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, fill_color: [4]f32 = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0) {
+// 	using Rect_Shader_Uniforms
+// 	use_shader(&graphics_manager.rect_shader)
+// 	set_shader_param(FILL_COLOR, fill_color)
+// 	set_shader_param(ROUNDING, rounding)
+// 	set_shader_param(DEPTH, depth)
+// 	set_shader_param(RES, graphics_manager.active_resolution)
+// 	draw_triangles(6) }
 
 render_rect_hollow :: proc(graphics_manager: ^Graphics_Manager, rect: r.Rect, color: [4]f32 = BLACK, depth: f32 = 0.0) {
 	a: [2]f32 = { rect.pos.x - rect.size.x / 2, rect.pos.y - rect.size.y / 2 }
@@ -701,8 +761,8 @@ render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, colo
 	draw_lines(2) }
 
 Render_Image_Command :: struct {
-	using render_image_params: Render_Image_Params,
-	using render_image_group_params: Render_Image_Group_Params }
+	using params: Render_Image_Params,
+	using group_params: Render_Image_Group_Params }
 
 Render_Image_Params :: struct {
 	rect: r.Rect,
@@ -718,10 +778,10 @@ render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect:
 		image = image,
 		rect = rect,
 		depth = depth }
-	command_buffer_record(&graphics_man.command_buffer, { variant = .RENDER_IMAGE, render_image = command }) }
+	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 
 // (NOTE): This will do the batching. //
-submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
+submit_render_image :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
 	// using Image_Uniforms
 	// assert(image_loaded(command.image))
 	// use_shader(&graphics_man.image_shader)
@@ -733,29 +793,32 @@ submit_render_image :: proc(graphics_man: ^Graphics_Manager, command: Command, i
 	// texture_filtering(gl.NEAREST)
 	// draw_triangles(6)
 
-	using Image_Uniforms
+	using Image_Shader_Uniforms
+
+	command := _command.variant.(Render_Image_Command)
+
 	assert(image_loaded(command.image))
 	use_shader(&graphics_man.image_shader)
 	set_shader_param(RES, la.array_cast(graphics_man.active_resolution, f32))
 
-	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(command_0, command_1: Command) -> bool {
-		return command_0.render_image_group_params == command_1.render_image_group_params })
+	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Image_Command, _command_0, _command_1) })
 
-	buffers := make_buffers(4)
+	buffers := make_buffers(2)
 	defer delete_buffers(buffers)
-	// log.infof("Grouping %v render_image commands.", len(commands))
 
 	n: int = QUAD_VERTS_LEN * len(commands)
 	rect := make([]r.Rect, n)
 	depth := make([]f32, n)
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
+		command := _command.variant.(Render_Image_Command)
 		k := QUAD_VERTS_LEN * i + j
-		rect[k] = _command.rect
-		depth[k] = _command.depth }
+		rect[k] = command.rect
+		depth[k] = command.depth }
 	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
 	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
 
 	bind_texture(0, command.image.handle)
+	polygon_mode(.Fill)
 	texture_filtering(gl.NEAREST)
 	draw_triangles(cast(i32)n) }
 

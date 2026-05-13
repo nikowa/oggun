@@ -105,7 +105,7 @@ Buffer_Shader_Uniforms :: enum {
 // 	fill_color:      i32,
 // 	this_buffer_res: i32 }
 
-Image_Uniforms :: enum {
+Image_Shader_Uniforms :: enum {
 	RES = 0 }
 
 Bitmap_Text_Uniforms :: enum {

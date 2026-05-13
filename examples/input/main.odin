@@ -187,11 +187,17 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		"1", "2", "3", "<-'",
 		"0", "." }
 
+	colors: [][4]f32 = make([][4]f32, 512)
+	for _, i in colors {
+		colors[i] = graphics.color_random()
+		colors[i].a = 0.75 }
+
 	for ! graphics_man.window_closed {
 		input.process(&input_manager)
 		graphics.tick(&graphics_man)
 		for rect, i in rects {
-			graphics.render_image(&graphics_man, &image, rect, depth = 0.99)
+			// graphics.render_image(&graphics_man, &image, rect, depth = 0.99)
+			// graphics.render_rect(&graphics_man, rect, colors[i])
 			graphics.render_rect_hollow(&graphics_man, rect, graphics.GRAY)
 			if i < len(keys) do if keys[i] != "" do graphics.render_bitmap_text(&graphics_man, keys[i], pos = rect.pos, font = &font, color = graphics.WHITE, scale_factor = 1.0)
 		}

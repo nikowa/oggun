@@ -66,7 +66,7 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	graphics.init(
 		graphics_manager = &graphics_man,
 		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_man })
+		graphics_config = { window_manager = &window_man, clear_color = graphics.BLACK })
 	base.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
 	images: [5]graphics.Image_Asset
