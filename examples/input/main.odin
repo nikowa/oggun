@@ -140,8 +140,8 @@ make_rects :: proc(keyboard_rect: rect.Rect, allocator: runtime.Allocator) -> []
 	gui.rects_merge_range(&rects, { 106, 108 })
 	gui.rects_merge_range_retaining(&rects, { 105, 109 })
 
-	n := len(rects)
-	for rect in rects[0:n] do append(&rects, key_margins(rect))
+	// n := len(rects)
+	// for rect in rects[0:n] do append(&rects, key_margins(rect))
 
 	// gui.rect_grid_append(rect_left, { 2, 4 }, &rects)
 	// gui.rect_slice_v_append(rect_right, 80, 4, &rects)
@@ -174,18 +174,33 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 	keys: []string = {
 		"Esc", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
 		"PrtSc", "ScrLk", "Pause", "Cal", "Mute", "VolUp", "VolDn",
-		"~", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "<---",
+		"`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "<---",
 		"Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\",
 		"CapsLock", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "<--'",
 		"Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Shift",
 		"Ctrl", "Win", "Alt", "----", "Alt", "Win", "Fn", "Ctrl",
 		"Ins", "Home", "PgUp", "Del", "End", "PgDn",
 		"^", "<", "v", ">",
-		"Num", "/", "*", "-",
+		"NumLk", "/", "*", "-",
 		"7", "8", "9", "+",
 		"4", "5", "6",
 		"1", "2", "3", "<-'",
 		"0", "." }
+	inputs: []input.Input = {
+		.Escape, .F1, .F2, .F3, .F4, .F5, .F6, .F7, .F8, .F9, .F10, .F11, .F12,
+		.Print_Screen, .Scroll_Lock, .Pause, .None, .None, .None, .None,
+		.Backtick, .Num_1, .Num_2, .Num_3, .Num_4, .Num_5, .Num_6, .Num_7, .Num_8, .Num_9, .Num_0, .Minus, .Equal, .Backspace,
+		.Tab, .Q, .W, .E, .R, .T, .Y, .U, .I, .O, .P, .Left_Bracket, .Left_Bracket, .Backslash,
+		.Caps_Lock, .A, .S, .D, .F, .G, .H, .J, .K, .L, .Semicolon, .None, .Enter,
+		.Left_Shift, .Z, .X, .C, .V, .B, .N, .M, .Comma, .Period, .Slash, .None,
+		.Left_Control, .Left_Super, .Left_Alt, .Space, .None, .None, .None, .None,
+		.Insert, .Home, .Page_Up, .Delete, .End, .Page_Down,
+		.Up, .Left, .Down, .Right,
+		.Num_Lock, .Numpad_Divide, .Numpad_Multiply, .Numpad_Subtract,
+		.Numpad_7, .Numpad_8, .Numpad_9, .Numpad_Add,
+		.Numpad_4, .Numpad_5, .Numpad_6,
+		.Numpad_1, .Numpad_2, .Numpad_3, .Numpad_Enter,
+		.Numpad_0, .Numpad_Decimal }
 
 	colors: [][4]f32 = make([][4]f32, 512)
 	for _, i in colors {
@@ -197,11 +212,12 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 		graphics.tick(&graphics_man)
 		for rect, i in rects {
 			// graphics.render_image(&graphics_man, &image, rect, depth = 0.99)
-			// graphics.render_rect(&graphics_man, rect, colors[i])
-			graphics.render_rect_hollow(&graphics_man, rect, graphics.GRAY)
-			if i < len(keys) do if keys[i] != "" do graphics.render_bitmap_text(&graphics_man, keys[i], pos = rect.pos, font = &font, color = graphics.WHITE, scale_factor = 1.0)
-		}
-		// if input.query(&input_manager, .W, .Pressed) do fmt.println("W")
-		}
+			down: bool = false
+			if inputs[i] != .None do down = input.query(&input_manager, inputs[i], .Down)
+			down_offset: [2]f32 = { 0, down ? -4 : 0 }
+			if down do graphics.render_rect(&graphics_man, rect, graphics.DARK_GRAY, depth = 0.99)
+			graphics.render_rect_hollow(&graphics_man, rect, graphics.WHITE)
+			graphics.render_rect_hollow(&graphics_man, gui.rect_offset(key_margins(rect), down_offset), graphics.GRAY)
+			graphics.render_bitmap_text(&graphics_man, keys[i], pos = rect.pos + down_offset, font = &font, color = graphics.WHITE, scale_factor = 1.0) } }
 	k: f32 = query().scalar
 	return }

@@ -3,6 +3,7 @@
 - Update the documentation
 - Start working on Bogwalker
 
+- Batch the line shader
 - Pixel-perfect font positioning
 - Port the font filtering from staffmaster
 - GUI demo

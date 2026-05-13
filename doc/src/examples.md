@@ -1,5 +1,11 @@
 # Examples
 
+## Input
+
+![example-input](example-input.png)
+
+The input example demonstrates how to handle inputs using the `input` module, and how to use the `graphics/gui` module to draw a keyboard that responds to your inputs.
+
 ## Sync
 
 ![example-sync](example-sync.png)

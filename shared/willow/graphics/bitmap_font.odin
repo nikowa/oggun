@@ -4,6 +4,7 @@ import "../asset_manager"
 import gl "vendor:OpenGL"
 import "core:os"
 import "core:fmt"
+import "core:math"
 import "core:strings"
 import "core:strconv"
 
@@ -94,6 +95,8 @@ render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: st
 		command.scale_factor = f32(scale_factor)
 		command.color = color
 		sym_pos.x += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
+		command.position.x = math.round_f32(command.position.x + 0.3)
+		command.position.y = math.round_f32(command.position.y + 0.3)
 		command_buffer_record(&graphics_man.command_buffer, { variant = command }) } }
 
 submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
@@ -106,6 +109,7 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 	set_shader_param(SYMBOL_SIZE, command.font.symbol_size)
 
 	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Bitmap_Text_Command, _command_0, _command_1) })
+	// for command in commands do fmt.printfln("%c -- %v", command.variant.(Render_Bitmap_Text_Command).symbol, command.variant.(Render_Bitmap_Text_Command).position)
 
 	buffers := make_buffers(4)
 	defer delete_buffers(buffers)

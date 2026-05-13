@@ -26,6 +26,7 @@ Input_Manager_Private :: struct {
 	raw_input_manager: ^Raw_Input_Manager }
 
 Input :: enum uint {
+	None = 0,
 	Space = 32,
 	Apostrophe = 39,
 	Comma = 44,

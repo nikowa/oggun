@@ -184,3 +184,8 @@ rects_merge_range_retaining :: proc(rects: ^[dynamic]rect.Rect, range: [2]int) {
 	rect_b := rects[range[1] - 1]
 	ordered_remove(rects, range.y - 1)
 	rects[range.x] = rects_merge(rect_a, rect_b) }
+
+rect_offset :: proc(rect_in: rect.Rect, offset: [2]f32) -> (rect_out: rect.Rect) {
+	rect_out = rect_in
+	rect_out.pos += offset
+	return rect_out }
