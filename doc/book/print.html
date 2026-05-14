@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-84bd3037.js";
+            window.path_to_searchindex_js = "searchindex-d2219489.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-a7da5da1.js"></script>
+        <script src="toc-96a63566.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -410,7 +410,7 @@ Create and start a number of threads with the same entry procedure. The number o
 </pre>
 
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="asset-manager"><a class="header" href="#asset-manager">Asset Manager</a></h1>
+<h1 id="asset"><a class="header" href="#asset">Asset</a></h1>
 <h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
 <p><img src="dataflow.png" alt="dataflow-image"></p>
 <p>Database is an abstraction layer between the in-memory and on-disk representations of assets. It’s purpose is to make it so you don’t have to think about where the assets are coming from and to automate updating and reloading them.</p>
@@ -534,7 +534,7 @@ Asset manager.
 	url: URL,
 	derived_type: typeid }
 </code></pre>
-<h4 id="asset"><a class="header" href="#asset"><code>Asset</code></a></h4>
+<h4 id="asset-1"><a class="header" href="#asset-1"><code>Asset</code></a></h4>
 <pre><code class="language-c">Asset :: struct {
 	using asset_config: Asset_Config,
 	location: Asset_Location }

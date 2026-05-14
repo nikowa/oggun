@@ -1,4 +1,7 @@
 
+- Fix the tests
+- Complete all TODO tasks
+
 - Implement settings and savefile modules. Settings as a human-readable INI file, and savefile as a database.
 - Update the documentation
 - Start working on Bogwalker

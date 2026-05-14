@@ -12,15 +12,11 @@ import "core:crypto/hash"
 import "vendor:compress/lz4"
 import "core:path/slashpath"
 
-
-
 // * Used-defined asset type, derived from `Asset`.
 // * User-defined asset functions.
 // * User registers the type.
 
-
 // (TODO): Do not compress/decompress individual entries, instead compress/decompress the whole database. //
-
 
 URL :: distinct string
 

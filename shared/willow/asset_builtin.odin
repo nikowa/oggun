@@ -10,9 +10,7 @@ String_Asset :: struct {
 init_string_asset :: proc(as_mngr: ^Asset_Manager, string_asset: ^String_Asset, config: Asset_Config) {
 	config := config
 	config.derived_type = String_Asset
-	init_asset(as_mngr, String_Asset, &string_asset.asset, config)
-	// (TODO): `init_asset` should execute `.Query_Location` by default.
-	string_asset_command(as_mngr, &string_asset.asset, .Query_Location) }
+	init_asset(as_mngr, String_Asset, &string_asset.asset, config) }
 
 // (NOTE): If the "watch" field is set, then the command is called by a watcher, and it should only be executed if the source
 // location is outdated. For assets that do not implement outdatedness checking, the command should be ignored if "watch" is

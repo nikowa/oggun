@@ -5,7 +5,7 @@
 - [CLI](./CLI.md)
 - [API](./API.md)
   - [Base](./API/base.md)
-  - [Asset Manager](./API/asset_manager.md)
+  - [Asset](./API/asset.md)
   - [Container](./API/container.md)
     - [Bary](./API/bary.md)
     - [Rect](./API/rect.md)

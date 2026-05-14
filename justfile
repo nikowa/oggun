@@ -20,7 +20,8 @@ check:
 	odin check shared/willow -no-entry-point -max-error-count:8
 
 test:
-	odin test shared/willow/tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
+	cls
+	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
 
 doc:
 	mdbook serve doc
@@ -45,3 +46,7 @@ example_sprites:
 example_sync:
 	odin build examples/sync -out:examples/sync/sync.exe {{flags}}
 	examples/sync/sync.exe
+
+example_graph:
+	odin build examples/graph -out:examples/graph/graph.exe {{flags}}
+	examples/graph/graph.exe
