@@ -123,7 +123,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	asset_man = willow.make_asset_manager({
 		relpath = "Data.bin",
-		source_directory_relpath = "../../data",
+		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT

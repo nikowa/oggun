@@ -43,8 +43,8 @@ image_modification_time :: proc(as_mngr: ^Asset_Manager, image: ^Image_Asset, lo
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database:
-		entry, ok := get_entry(&as_mngr.database, image.url)
-		return ok ? entry.modification_time : {}
+		entry := get_entry(&as_mngr.database, image.url)
+		return (entry != nil) ? entry.modification_time : {}
 	case .Main_Memory:
 		return image.modification_time
 	case .GPU_Memory:
@@ -60,10 +60,8 @@ image_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: Ass
 		path := path_from_url(&as_mngr.database, asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
-		path: string
 		err: os.Error
-		if path, err = url_search_source(as_mngr, img.url, context.allocator); err != nil {
-			log.errorf("Could not find source for image \"%s\".", img.url); return false }
+		path := path_from_url(&as_mngr.database, img.url, context.allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		if time.diff(img.modification_time, modification_time) <= 0 do return true
 		loader_proc: image.Loader_Proc
@@ -80,7 +78,7 @@ image_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: Ass
 		img.image = image_temp^
 		free(image_temp)
 		bytes, _ = image_serialize(img, context.allocator)
-		add_or_update_entry(as_mngr, make_entry(img.url, bytes, modification_time), true)
+		add_or_update_entry(as_mngr, make_entry(img.url, bytes, modification_time))
 		asset.location += { .Database, .Main_Memory }
 		img.modification_time = modification_time
 		return true

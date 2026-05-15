@@ -1,15 +1,15 @@
 
 set shell := ["powershell.exe", "-c"]
 
-default: run
+default: current
+
+current: example_input
+	examples/input.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
 
-build:
+cli:
 	odin build . -out:main.exe {{flags}}
-
-run:
-	odin run . -out:main.exe {{flags}}
 
 release:
 	make -C ./build
@@ -31,22 +31,19 @@ lib:
 	odin build shared/willow -out:willow.exe  {{flags}}
 	./willow.exe install
 
-example_input:
-	odin build examples/input -out:examples/input/input.exe {{flags}}
-	examples/input/input.exe
+example_input: lib
+	odin build examples/input -out:examples/input.exe {{flags}}
 
-example_gui:
-	odin build examples/gui -out:examples/gui/gui.exe {{flags}}
-	examples/gui/gui.exe
+example_gui: lib
+	odin build examples/gui -out:examples/gui.exe {{flags}}
 
-example_sprites:
-	odin build examples/sprites -out:examples/sprites/sprites.exe {{flags}}
-	examples/sprites/sprites.exe
+example_sprites: lib
+	odin build examples/sprites -out:examples/sprites.exe {{flags}}
 
-example_sync:
-	odin build examples/sync -out:examples/sync/sync.exe {{flags}}
-	examples/sync/sync.exe
+example_sync: lib
+	odin build examples/sync -out:examples/sync.exe {{flags}}
 
-example_graph:
-	odin build examples/graph -out:examples/graph/graph.exe {{flags}}
-	examples/graph/graph.exe
+example_graph: lib
+	odin build examples/graph -out:examples/graph.exe {{flags}}
+
+examples: example_input example_gui example_sprites example_sync example_graph

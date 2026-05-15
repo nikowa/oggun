@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-d2219489.js";
+            window.path_to_searchindex_js = "../searchindex-cb6380fc.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-96a63566.js"></script>
@@ -244,6 +244,34 @@
 </ol>
 <pre><code class="language-c">register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
 </code></pre>
+<h3 id="database-binary-format"><a class="header" href="#database-binary-format">Database Binary Format</a></h3>
+<h4 id="database"><a class="header" href="#database"><code>Database</code></a></h4>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th style="text-align: left">Name</th><th style="text-align: left">Type</th></tr>
+</thead>
+<tbody>
+<tr><td style="text-align: left"><code>header</code></td><td style="text-align: left"><code>_Database_Binary_Header</code></td></tr>
+<tr><td style="text-align: left"><code>entries</code></td><td style="text-align: left"><code>[^]u8</code></td></tr>
+</tbody>
+</table>
+</div>
+<h4 id="entry"><a class="header" href="#entry"><code>Entry</code></a></h4>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th style="text-align: left">Name</th><th style="text-align: left">Type</th></tr>
+</thead>
+<tbody>
+<tr><td style="text-align: left"><code>url_len</code></td><td style="text-align: left"><code>u8</code></td></tr>
+<tr><td style="text-align: left"><code>url</code></td><td style="text-align: left"><code>[^]u8</code></td></tr>
+<tr><td style="text-align: left"><code>modification_time</code></td><td style="text-align: left"><code>time.Time</code></td></tr>
+<tr><td style="text-align: left"><code>data_len</code></td><td style="text-align: left"><code>u32</code></td></tr>
+<tr><td style="text-align: left"><code>data</code></td><td style="text-align: left"><code>[^]u8</code></td></tr>
+</tbody>
+</table>
+</div>
 <h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
 <h4 id="default_autosave_interval"><a class="header" href="#default_autosave_interval"><code>DEFAULT_AUTOSAVE_INTERVAL</code></a></h4>
 <pre><code class="language-c">DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
@@ -322,16 +350,21 @@ Asset manager.
 	autosave_interval: tm.Duration,
 	autosave_cap: u32 }
 </code></pre>
-<h4 id="database"><a class="header" href="#database"><code>Database</code></a></h4>
+<h4 id="database-1"><a class="header" href="#database-1"><code>Database</code></a></h4>
 <pre><code class="language-c">Database :: struct {
-	using config:           Database_Config,
-	spec_modification_time: tm.Time,
-	last_autosave_time:     tm.Time,
-	modification_time:      tm.Time,
-	entries:                [dynamic]Entry,
-	entries_map:            map[URL]^Entry,
-	spec_modified:          bool }
+	using config: Database_Config,
+	allocator: runtime.Allocator,
+	last_autosave_time: time.Time,
+	modification_time: time.Time,
+	entries: list.List,
+	entries_map: map[URL]^Entry,
+	spec_modified: bool
+	_arena: mem.Arena }
 </code></pre>
+<details><summary>Description</summary>
+<code>allocator</code> — the allocator which allocates the entries<br>
+<code>modification_time</code> — the last time an entry was added or removed, not counting the adding of entries on database reading
+</details>
 <h4 id="entry_config"><a class="header" href="#entry_config"><code>Entry_Config</code></a></h4>
 <pre><code class="language-c">Entry_Config :: struct {
 	url: URL,
@@ -339,7 +372,7 @@ Asset manager.
 	compressed: b8,
 	data: []u8 }
 </code></pre>
-<h4 id="entry"><a class="header" href="#entry"><code>Entry</code></a></h4>
+<h4 id="entry-1"><a class="header" href="#entry-1"><code>Entry</code></a></h4>
 <pre><code class="language-c">Entry :: struct {
 	using config: Entry_Config,
 	hash: u32 }

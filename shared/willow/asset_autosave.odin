@@ -29,7 +29,7 @@ autosave :: proc(database: ^Asset_Manager) {
 	if time.diff(database.last_autosave_time, time_now) > database.autosave_interval {
 		relpath = fmt.tprintf("cache/Data-%d.bin", time.time_to_unix_nano(time_now))
 		log.infof("Autosaving %s to %s.", database.relpath, relpath)
-		write(database, context.temp_allocator, relpath)
+		database_write(database, context.temp_allocator, relpath)
 		database.last_autosave_time = time_now
 		file_infos, err = os.read_directory_by_path(relpath_to_path("cache", context.temp_allocator), -1, context.temp_allocator)
 		file_info_oldest.creation_time = { bits.I64_MAX }

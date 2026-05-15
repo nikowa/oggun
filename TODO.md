@@ -1,4 +1,6 @@
 
+- Make consistent names
+  - "as_mngr" -> "asset_man"
 - Fix the tests
 - Complete all TODO tasks
 

@@ -239,9 +239,7 @@ compile_shader :: proc(as_mngr: ^Asset_Manager, shader_asset: ^Shader_Asset, all
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
-	shader_asset.last_modification_time = time_max(
-		(get_entry(&as_mngr.database, shader_asset.vert_asset.url) or_else {}).modification_time,
-		(get_entry(&as_mngr.database, shader_asset.frag_asset.url) or_else {}).modification_time)
+	shader_asset.last_modification_time = time_max(get_entry(&as_mngr.database, shader_asset.vert_asset.url).modification_time, get_entry(&as_mngr.database, shader_asset.frag_asset.url).modification_time)
 	return os.General_Error.None }
 
 
@@ -385,8 +383,8 @@ preprocess_glsl :: proc(database: ^Asset_Manager, working_directory_path: string
 
 shader_outdated :: proc(shader_asset: ^Shader_Asset, as_mngr: ^Asset_Manager) -> (outdated: bool) {
 	outdated = true
-	vert_entry := get_entry(&as_mngr.database, shader_asset.vert_asset.url) or_return
-	frag_entry := get_entry(&as_mngr.database, shader_asset.frag_asset.url) or_return
+	vert_entry := get_entry(&as_mngr.database, shader_asset.vert_asset.url)
+	frag_entry := get_entry(&as_mngr.database, shader_asset.frag_asset.url)
 	latest_modification_time: time.Time = time_max(vert_entry.modification_time, frag_entry.modification_time)
 	return time.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 

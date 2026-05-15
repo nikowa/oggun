@@ -3,6 +3,11 @@ package willow
 import "base:runtime"
 import "core:time"
 import "core:strings"
+import "core:mem"
+import "core:container/intrusive/list"
+import "core:slice"
+import "core:log"
+import "vendor:compress/lz4"
 
 time_max :: proc(a, b: time.Time) -> (time.Time) {
 	return time.diff(b, a) >= 0 ? a : b }
@@ -12,6 +17,35 @@ once :: proc(done_onces: ^map[runtime.Source_Code_Location]bool, this_once := #c
 		done_onces[this_once] = true
 		return true }
 	else do return false }
+
+list_len :: proc(l: list.List, $T: typeid, $field_name: string) -> (n: int) {
+	iter := list.iterator_head(l, T, field_name)
+	for _ in list.iterate_next(&iter) do n += 1
+	return n }
+
+compress :: proc(bytes: []u8, allocator: runtime.Allocator) -> (compressed_bytes: []u8) {
+	compress_bound: i32 = lz4.compressBound(cast(i32)len(bytes))
+	compressed_bytes_buffer: []u8 = make([]u8, cast(int)compress_bound, allocator)
+	compressed_size: i32 = lz4.compress_default(&bytes[0], &compressed_bytes_buffer[0], cast(i32)len(bytes), compress_bound)
+	assert(compressed_size != 0)
+	compressed_bytes = slice.clone(compressed_bytes_buffer[0:compressed_size], allocator)
+	delete(compressed_bytes_buffer, allocator)
+	return compressed_bytes }
+
+decompress :: proc(compressed_bytes: []u8, allocator: runtime.Allocator) -> (bytes: []u8) {
+	estimated_compression_ratio: f32 = 0.35
+	for {
+		decompress_bound: i32 = cast(i32)(cast(f32)len(compressed_bytes) / estimated_compression_ratio)
+		bytes_buffer: []u8 = make([]u8, cast(int)decompress_bound, allocator)
+		decompressed_size: i32 = lz4.decompress_safe(&compressed_bytes[0], &bytes_buffer[0], cast(i32)len(compressed_bytes), decompress_bound)
+		if decompressed_size < 0 {
+			log.warn("Decompress bound", decompress_bound, "not sufficient.")
+			estimated_compression_ratio /= 2.0
+			delete(bytes_buffer, allocator)
+			continue }
+		bytes = slice.clone(bytes_buffer[0:decompressed_size], allocator)
+		delete(bytes_buffer, allocator)
+		return bytes } }
 
 /*
 print_log :: proc(args: ..any, sep := " ", flush := true) -> int{

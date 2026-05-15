@@ -4,8 +4,11 @@ import "base:runtime"
 import "core:thread"
 import "core:sys/windows"
 import "core:log"
+import "core:mem"
 
 WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
+nil_stub: rawptr
+NIL_STUB_SIZE :: 1 * mem.Megabyte
 
 Entry_Point :: #type proc(data: ^Thread_Data)
 
@@ -33,10 +36,15 @@ worker_proc :: proc(data: rawptr) {
 	thread_data: ^Thread_Data = cast(^Thread_Data)data
 	thread_data._entry_point(thread_data) }
 
+ptr_is_nil :: proc(ptr: ^$T) -> bool {
+	return (ptr == nil) || (ptr == nil_stub) }
+
 start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 	log.info("Starting engine.")
 
-	////////////////////////////
+	stub := make([]u8, NIL_STUB_SIZE)
+	nil_stub = cast(rawptr)&stub[0]
+
 	// Determine worker count //
 	HEADROOM: u32 : 3
 	system_info: windows.SYSTEM_INFO
@@ -51,7 +59,6 @@ start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 	n_workers: u32 = n_logical_cores - HEADROOM
 	if n_workers_override != nil do n_workers = n_workers_override.(u32)
 
-	///////////////////
 	// Start workers //
 	for i in 0 ..< n_workers {
 		data: ^Thread_Data = make_thread_data(entry_point, i)

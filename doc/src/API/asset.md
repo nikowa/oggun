@@ -81,6 +81,25 @@ my_asset_command :: proc(
 register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })
 ```
 
+### Database Binary Format
+
+#### `Database`
+
+| Name                | Type                      |
+| :------------------ | :------------------------ |
+| `header`            | `_Database_Binary_Header` |
+| `entries`           | `[^]u8`                   |
+
+#### `Entry`
+
+| Name                | Type        |
+| :------------------ | :---------- |
+| `url_len`           | `u8`        |
+| `url`               | `[^]u8`     |
+| `modification_time` | `time.Time` |
+| `data_len`          | `u32`       |
+| `data`              | `[^]u8`     |
+
 ### Constants
 
 #### `DEFAULT_AUTOSAVE_INTERVAL`
@@ -208,14 +227,20 @@ Database_Config :: struct {
 
 ```c
 Database :: struct {
-	using config:           Database_Config,
-	spec_modification_time: tm.Time,
-	last_autosave_time:     tm.Time,
-	modification_time:      tm.Time,
-	entries:                [dynamic]Entry,
-	entries_map:            map[URL]^Entry,
-	spec_modified:          bool }
+	using config: Database_Config,
+	allocator: runtime.Allocator,
+	last_autosave_time: time.Time,
+	modification_time: time.Time,
+	entries: list.List,
+	entries_map: map[URL]^Entry,
+	spec_modified: bool
+	_arena: mem.Arena }
 ```
+
+<details><summary>Description</summary>
+<code>allocator</code> — the allocator which allocates the entries<br>
+<code>modification_time</code> — the last time an entry was added or removed, not counting the adding of entries on database reading
+</details>
 
 #### `Entry_Config`
 

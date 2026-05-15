@@ -30,12 +30,12 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 		// There is a problem here: watch imports this every time
 		if .Source_Directory not_in asset.location do return false
 		err: os.Error
-		entry, existed := get_or_make_entry(&as_mngr.database, asset.url)
+		entry, existed := get_or_add_entry(&as_mngr.database, asset.url)
 		if ! existed || entry_was_modified(&as_mngr.database, entry) {
 			path := path_from_url(&as_mngr.database, asset.url, context.temp_allocator)
 			bytes: []u8; bytes, err = os.read_entire_file_from_path(path, context.allocator)
 			modification_time, _ := os.modification_time_by_path(path)
-			_, err = add_or_update_entry(&as_mngr.database, make_entry(asset.url, bytes, modification_time), true)
+			add_or_update_entry(&as_mngr.database, make_entry(asset.url, bytes, modification_time))
 			assert(entry_integrity(entry)) }
 		asset.location += { .Database }
 		return true
@@ -43,7 +43,7 @@ string_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: As
 		if .Database not_in asset.location {
 			log.errorf("Failed to load string %s because it hasn't been imported.", asset.url)
 			return false }
-		entry := get_entry(&as_mngr.database, asset.url) or_return
+		entry := get_entry(&as_mngr.database, asset.url)
 		if watch do if string_asset.str == cast(string)entry.data do return true
 		string_asset.str = strings.clone_from_bytes(entry.data)
 		asset.location += { .Main_Memory }
