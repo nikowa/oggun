@@ -373,18 +373,18 @@ watch_assets :: proc(
 Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
 </details>
 
-#### `autosave`
+#### `asset_manager_autosave`
 
 ```c
-autosave :: proc(
-	database: ^Asset_Manager)
+asset_manager_autosave :: proc(
+	asset_manager: ^Asset_Manager)
 ```
 
 #### `init_string_asset`
 
 ```c
 init_string_asset :: proc(
-	as_mngr: ^Asset_Manager,
+	asset_manager: ^Asset_Manager,
 	string_asset: ^String_Asset,
 	config: Asset_Config)
 ```

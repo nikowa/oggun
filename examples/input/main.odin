@@ -203,7 +203,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	for ! graphics_man.window_closed {
 		willow.process(&input_manager)
-		willow.tick(&graphics_man)
+		willow.tick_graphics_manager(&graphics_man)
 		for rect, i in rects {
 			// willow.render_image(&graphics_man, &image, rect, depth = 0.99)
 			down: bool = false

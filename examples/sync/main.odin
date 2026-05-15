@@ -166,7 +166,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 		if willow.tick_manager_tick(&tick_man) {
 			defer willow.tick_manager_reset(&tick_man)
-			willow.tick(&graphics_man)
+			willow.tick_graphics_manager(&graphics_man)
 
 			willow.render_image(&graphics_man, &background_image, rect_screen, depth = 0.99)
 

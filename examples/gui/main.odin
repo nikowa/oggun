@@ -64,7 +64,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		time := willow.read_stopwatch(&stopwatch)
 		osc := 32 * linalg.sin(16 * time)
 		willow.watch_assets(&asset_man)
-		willow.tick(&graphics_manager)
+		willow.tick_graphics_manager(&graphics_manager)
 
 		rect_screen := willow.rect_screen(&graphics_manager)
 		keyboard_rect: willow.Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }

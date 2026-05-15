@@ -1,7 +1,10 @@
 package willow
 import "base:runtime"
 
-Asset_Manager_Config :: Database_Config
+// (TODO): Why do "Database" and "Asset_Manager" have the same config? //
+Asset_Manager_Config :: struct {
+	using _: Database_Config,
+	watch: bool }
 
 Asset_Manager :: struct {
 	using database: Database,
@@ -10,7 +13,6 @@ Asset_Manager :: struct {
 
 Asset_Command :: enum {
 	Validate,
-	// Initialize,
 	Query_Location,
 	Import,
 	Export,
@@ -60,7 +62,6 @@ init_asset :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, c
 
 @private
 _init_asset_begin :: proc(manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
-	// log.info("Initializing asset of type", type_info_of(config.derived_type).id)
 	asset.asset_config = config
 	append(&manager.assets, asset) }
 
@@ -83,10 +84,9 @@ register_asset_kind :: proc(manager: ^Asset_Manager, $Type: typeid, kind: Asset_
 	// log.info("Registering type ", type_info_of(Type).id)
 	manager.asset_kinds[Type] = kind }
 
-// assert(as.asset_command(manager, as.String_Asset, &shader.frag_asset.asset, .Load))
-watch_assets :: proc(manager: ^Asset_Manager) {
+tick_asset_manager :: proc(manager: ^Asset_Manager) {
+	if ! manager.watch do return
 	for asset in manager.assets {
-		// log.infof("Watching asset %s of type %v", asset.url, type_info_of(asset.derived_type).id)
 		asset_kind, ok := manager.asset_kinds[asset.derived_type]
 		assert(ok)
 		asset_kind.command(manager, asset, .Import, true)

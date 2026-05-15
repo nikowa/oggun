@@ -1294,9 +1294,9 @@ error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, leng
 // 	draw.fonts_map[font.name] = ptr
 // 	return ptr }
 
-@(deferred_in=tick_end)
-tick :: proc(graphics_manager: ^Graphics_Manager) {
-	tick_begin(graphics_manager) }
+@(deferred_in=tick_graphics_manager_end)
+tick_graphics_manager :: proc(graphics_manager: ^Graphics_Manager) {
+	tick_graphics_manager_begin(graphics_manager) }
 
 // // TODO: Make sure that whenever this job is created, these filters are applied. //
 // // TODO: Create "Draw_Tick_Args" cast to "rawptr" as argument instead of array of "any"s.
@@ -1310,7 +1310,7 @@ tick :: proc(graphics_manager: ^Graphics_Manager) {
 // 	working_directory_path: string }
 // draw_tick_filters: Thread_Filters : { .MAIN_THREAD }
 // @(tag = "job")
-tick_begin :: proc(graphics_manager: ^Graphics_Manager) {
+tick_graphics_manager_begin :: proc(graphics_manager: ^Graphics_Manager) {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	glfw.PollEvents()
 	clear_frame_buffer(0)

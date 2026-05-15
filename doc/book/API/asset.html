@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-cb6380fc.js";
+            window.path_to_searchindex_js = "../searchindex-226f4f02.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-96a63566.js"></script>
@@ -453,13 +453,13 @@ Register a new asset kind. An asset kind must be registered for any asset type b
 <details><summary>Description</summary>
 Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
 </details>
-<h4 id="autosave"><a class="header" href="#autosave"><code>autosave</code></a></h4>
-<pre><code class="language-c">autosave :: proc(
-	database: ^Asset_Manager)
+<h4 id="asset_manager_autosave"><a class="header" href="#asset_manager_autosave"><code>asset_manager_autosave</code></a></h4>
+<pre><code class="language-c">asset_manager_autosave :: proc(
+	asset_manager: ^Asset_Manager)
 </code></pre>
 <h4 id="init_string_asset"><a class="header" href="#init_string_asset"><code>init_string_asset</code></a></h4>
 <pre><code class="language-c">init_string_asset :: proc(
-	as_mngr: ^Asset_Manager,
+	asset_manager: ^Asset_Manager,
 	string_asset: ^String_Asset,
 	config: Asset_Config)
 </code></pre>

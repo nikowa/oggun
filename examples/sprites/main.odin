@@ -88,7 +88,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		if willow.tick_manager_tick(&tick_man) {
 			defer willow.tick_manager_reset(&tick_man)
 			// fmt.printfln("fps: %v", cast(int)tick_man.frame_rate)
-			willow.tick(&graphics_man)
+			willow.tick_graphics_manager(&graphics_man)
 			rect_screen := willow.rect_screen(&graphics_man)
 			image_index: int = 0
 			for &sprite, i in sprites {
