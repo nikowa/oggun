@@ -60,45 +60,39 @@ Render_Bitmap_Text_Group_Params :: struct {
 	symbol_size: [2]f32 }
 
 Render_Bitmap_Text_Params :: struct {
-	symbol: u32,
+	symbol: u8,
 	color: Color,
 	scale_factor: f32,
 	position: [3]f32 }
 
 // (TODO): Set a font-wide "bearing_y" param measuring the distance from the lower left corner of the sigil rectangle to the base horizontal line. Then write an algorithm that scans a font and generates a BAF by looking at where the font begins and ends on this base line.
-// (TODO): add depth param
 // (TODO): replace pos with rect
-render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: string = "", pos: [2]f32 = { 0, 0 }, color: Color = BLACK, scale_factor: f32 = 1.0, pivot: bit_set[Compass] = {}, font: ^Bitmap_Font = nil, shadow: bool = true, spacing: f32 = 1.0, waviness: f32 = 0.0, cursor_pos: int = -1) {
-	text := fmt.aprint(..args, sep = sep)
-	pos := pos
-	width: f32 = 0.0
-	for c, i in text {
-		width += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing }
-	height: f32 = f32(font.symbol_size.y)
-	pos = pos - 0.5 * { width, height }
-	if .East in pivot  do pos.x -= 0.5 * width
-	if .West in pivot  do pos.x += 0.5 * width
-	if .North in pivot do pos.y -= 0.5 * height
-	if .South in pivot do pos.y += 0.5 * height
-	group_command: Render_Bitmap_Text_Command = {
+
+Bitmap_Text_Style :: struct {
+	color: Color,
+	scale_factor: f32,
+	font: ^Bitmap_Font }
+
+DEFAULT_BITMAP_TEXT_STYLE: Bitmap_Text_Style : {
+	color = BLACK,
+	scale_factor = 1.0,
+	font = nil }
+
+render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Bitmap_Text_Style = DEFAULT_BITMAP_TEXT_STYLE) {
+	using style
+	command: Render_Bitmap_Text_Command = {
 		font = font,
 		res = graphics_man.active_resolution,
 		scale_factor = scale_factor,
 		color = color }
-	sym_pos:[2]f32=pos
-	for c,i in text {
-		command := group_command
-		command.symbol = cast(u32)c
-		wavy_offset: f32 = 0.0
-		// wavy_offset: f32 = waviness * f32(math.sin(3.12 * state.net_time + f32(i)) + math.cos(7.31 * state.net_time + f32(i)))
-		command.position = [3]f32{ f32(sym_pos.x), f32(sym_pos.y + wavy_offset), 0 }
-		command.position.x -= f32(font.bearings[c]) * scale_factor
-		command.scale_factor = f32(scale_factor)
-		command.color = color
-		sym_pos.x += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
-		command.position.x = math.round_f32(command.position.x + 0.3)
-		command.position.y = math.round_f32(command.position.y + 0.3)
-		command_buffer_record(&graphics_man.command_buffer, { variant = command }) } }
+	command.symbol = symbol
+	command.position = [3]f32{ f32(position.x), f32(position.y), depth }
+	command.position.x -= f32(font.bearings[symbol]) * scale_factor
+	command.scale_factor = f32(scale_factor)
+	command.color = color
+	command.position.x = math.round_f32(command.position.x + 0.3)
+	command.position.y = math.round_f32(command.position.y + 0.3)
+	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 
 submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
 	using Bitmap_Text_Uniforms
@@ -125,7 +119,7 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 		k := 6 * i + j
 		scale_factor[k] = command.scale_factor
 		color[k] = color_to_4f32(command.color)
-		symbol[k] = command.symbol
+		symbol[k] = cast(u32)command.symbol
 		position[k] = command.position }
 
 	upload_vertex_buffer_data(0, buffers[0], 1, gl.UNSIGNED_INT, symbol)

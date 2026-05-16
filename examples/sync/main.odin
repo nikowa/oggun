@@ -16,7 +16,7 @@ graphics_man: willow.Graphics_Manager
 window_man: willow.Window_Manager
 stopwatch: time.Stopwatch
 tick_man: willow.Tick_Manager
-rect_screen: willow.Rect
+gui_screen: willow.Rect
 images: [dynamic]^willow.Image_Asset
 background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
 font: willow.Bitmap_Font
@@ -99,7 +99,7 @@ swing :: proc() -> f32 {
 
 render_entity :: proc(entity: ^Entity) {
 	screen_position: [2]f32
-	screen_position = entity.position * rect_screen.size / 2
+	screen_position = entity.position * gui_screen.size / 2
 	image: ^willow.Image_Asset
 	image_size: [2]f32
 	label: string
@@ -138,7 +138,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		as_mngr = &asset_manager,
 		graphics_config = { window_manager = &window_man, clear_color = willow.BLACK })
 	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
-	rect_screen = willow.rect_screen(&graphics_man)
+	gui_screen = willow.gui_screen(&graphics_man)
 
 	willow.init_image(&asset_manager, &background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
@@ -169,7 +169,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer willow.tick_manager_reset(&tick_man)
 			willow.tick_graphics_manager(&graphics_man)
 
-			willow.render_image(&graphics_man, &background_image, rect_screen, depth = 0.99)
+			willow.render_image(&graphics_man, &background_image, gui_screen, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {

@@ -69,6 +69,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	font: willow.Bitmap_Font
 	willow.bitmap_font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	text_style: willow.Bitmap_Text_Style = { font = &font, color = fg_color, scale_factor = 1.0 }
 
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {
@@ -78,12 +79,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		if willow.tick_manager_tick(&tick_man) {
 			defer willow.tick_manager_reset(&tick_man)
 			willow.tick_graphics_manager(&graphics_manager)
-			rect_screen := willow.rect_screen(&graphics_manager)
-			rect := willow.make_rect(0, 0, 120, 80)
+			gui_screen := willow.gui_screen(&graphics_manager)
+			rect := willow.make_rect(0, 0, 200 + 150 * math.sin(time), 24)
 			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
-			willow.render_bitmap_text(&graphics_manager, "Hello, world!", pos = rect.pos, font = &font, color = fg_color, scale_factor = 1.0)
-		}
+			willow.gui_text_line(&graphics_manager, text_style, rect.pos, "Hello, my dear friend!", desired_width = rect.size.x) }
 
 		free_all(context.temp_allocator) }
 	return }

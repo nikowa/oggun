@@ -67,7 +67,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		willow.tick_asset_manager(&asset_manager)
 		willow.tick_graphics_manager(&graphics_manager)
 
-		rect_screen := willow.rect_screen(&graphics_manager)
+		gui_screen := willow.gui_screen(&graphics_manager)
 		keyboard_rect: willow.Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }
 		// willow.render_image(&graphics_manager, &image, keyboard_rect)
 
