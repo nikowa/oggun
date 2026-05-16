@@ -1,4 +1,7 @@
 
+- Add outline and rounding to rectangle shader
+- Switch color from [4]f32 to u32
+- Make all the 2D graphics primitives have pixel-perfect vertex coordinates, using "math.round_f32"
 - Make consistent names
   - "as_mngr" -> "asset_man"
 - Fix the tests

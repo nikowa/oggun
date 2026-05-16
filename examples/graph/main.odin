@@ -1,3 +1,4 @@
+#+feature using-stmt
 package example_input
 import "shared:willow"
 import "base:runtime"
@@ -10,8 +11,8 @@ import "core:math/linalg"
 import "core:slice"
 
 settings_man: willow.Settings_Manager
-asset_man: willow.Asset_Manager
-graphics_man: willow.Graphics_Manager
+asset_manager: willow.Asset_Manager
+graphics_manager: willow.Graphics_Manager
 window_man: willow.Window_Manager
 stopwatch: time.Stopwatch
 tick_man: willow.Tick_Manager
@@ -38,77 +39,50 @@ Settings :: struct {
 	resolution: [2]f32,
 	fullscreen: bool }
 
+Color :: struct {
+	name: string,
+	hex: u32 }
+
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.logger = log.create_console_logger()
 
-	settings: Settings = {
-		player_name = "Destroyer",
-		resolution = { 1920, 1080 },
-		fullscreen = true }
-	willow.init_settings_manager(&settings_man, "Sprites")
-	willow.settings_manager_write(&settings_man, &settings)
+	willow.neon_init()
+	using willow.Neon_Color_Row
+	fg_color := willow.neon_color_table_ms_light[Neutral_Foreground_1][0]
+	bg_color := willow.neon_color_table_ms_light[Neutral_Background_1][0]
+	bg2_color := willow.neon_color_table_ms_light[Neutral_Background_2][0]
+	bg3_color := willow.neon_color_table_ms_light[Neutral_Background_3][0]
+	stroke_color := willow.neon_color_table_ms_light[Neutral_Stroke_1][0]
 
-	asset_man = willow.make_asset_manager({
+	asset_manager = willow.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	willow.window_init(&window_man, willow.WINDOW_CONFIG_DEFAULT)
 	willow.graphics_init(
-		graphics_manager = &graphics_man,
-		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_man, clear_color = willow.BLACK })
+		graphics_manager = &graphics_manager,
+		as_mngr = &asset_manager,
+		graphics_config = { window_manager = &window_man, clear_color = bg_color })
 	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
-	images: [5]willow.Image_Asset
-	willow.init_image(&asset_man, &images[0], { url = "image:kitten-1.png" })
-	willow.init_image(&asset_man, &images[1], { url = "image:kitten-2.png" })
-	willow.init_image(&asset_man, &images[2], { url = "image:kitten-3.png" })
-	willow.init_image(&asset_man, &images[3], { url = "image:kitten-4.png" })
-	willow.init_image(&asset_man, &images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(willow.asset_commands(&asset_man, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
-	N :: 1000
-	splits: [5]int
-	for &split in splits do split = rand.int_max(N)
-	slice.sort(splits[:])
-	splits[4] = N
-
 	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
-
-	sprites := make([]Sprite, N)
-	for &sprite in sprites do sprite_init(&sprite)
+	willow.bitmap_font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 
 	willow.zero_stopwatch(&stopwatch)
-	for ! graphics_man.window_closed {
+	for ! graphics_manager.window_closed {
 		time := willow.read_stopwatch(&stopwatch)
-		willow.watch_assets(&asset_man)
+		willow.tick_asset_manager(&asset_manager)
 
 		if willow.tick_manager_tick(&tick_man) {
 			defer willow.tick_manager_reset(&tick_man)
-			// fmt.printfln("fps: %v", cast(int)tick_man.frame_rate)
-			willow.tick_graphics_manager(&graphics_man)
-			rect_screen := willow.rect_screen(&graphics_man)
-			image_index: int = 0
-			for &sprite, i in sprites {
-				sprite.position += tick_man.delta_time * sprite.speed * sprite.direction
-				if sprite.position.x > 1 {
-					sprite.position.x = 1
-					sprite.direction.x *= -1 }
-				if sprite.position.x < 0 {
-					sprite.position.x = 0
-					sprite.direction.x *= -1 }
-				if sprite.position.y > 1 {
-					sprite.position.y = 1
-					sprite.direction.y *= -1 }
-				if sprite.position.y < 0 {
-					sprite.position.y = 0
-					sprite.direction.y *= -1 }
-				sprite_rect: willow.Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				willow.render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
-				if i > splits[image_index] do image_index += 1 }
-			// willow.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 2.0)
+			willow.tick_graphics_manager(&graphics_manager)
+			rect_screen := willow.rect_screen(&graphics_manager)
+			rect := willow.make_rect(0, 0, 120, 80)
+			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
+			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
+			willow.render_bitmap_text(&graphics_manager, "Hello, world!", pos = rect.pos, font = &font, color = fg_color, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

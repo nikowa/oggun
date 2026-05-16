@@ -53,7 +53,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		relpath = "Data.bin",
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
+		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
+		watch = true }, context.allocator)
 	willow.window_init(&window_man, willow.WINDOW_CONFIG_DEFAULT)
 	willow.graphics_init(
 		graphics_manager = &graphics_man,
@@ -83,7 +84,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_man.window_closed {
 		time := willow.read_stopwatch(&stopwatch)
-		willow.watch_assets(&asset_man)
+		willow.tick_asset_manager(&asset_man)
 
 		if willow.tick_manager_tick(&tick_man) {
 			defer willow.tick_manager_reset(&tick_man)

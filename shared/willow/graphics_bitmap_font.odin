@@ -38,7 +38,7 @@ bitmap_font_init :: proc(asset_man: ^Asset_Manager, font: ^Bitmap_Font, config: 
 	font.bearings = font.default_bearing
 	font.advances = font.default_advance
 	baf_path: string = fmt.aprintf("string:%s.baf", font.name)
-	if os.exists(path_from_url(&asset_man.database, cast(URL)baf_path, context.temp_allocator)) {
+	if os.exists(path_from_url(asset_man, cast(URL)baf_path, context.temp_allocator)) {
 	init_string_asset(asset_man, &font.positions_string, { auto_cast baf_path, String_Asset })
 	assert(asset_commands(asset_man, String_Asset, &font.positions_string.asset, { .Import, .Load }))
 	lines: []string = strings.split_lines(font.positions_string.str)
@@ -61,12 +61,14 @@ Render_Bitmap_Text_Group_Params :: struct {
 
 Render_Bitmap_Text_Params :: struct {
 	symbol: u32,
-	color: [4]f32,
+	color: Color,
 	scale_factor: f32,
 	position: [3]f32 }
 
 // (TODO): Set a font-wide "bearing_y" param measuring the distance from the lower left corner of the sigil rectangle to the base horizontal line. Then write an algorithm that scans a font and generates a BAF by looking at where the font begins and ends on this base line.
-render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: string = "", pos: [2]f32 = { 0, 0 }, color: [4]f32 = BLACK, scale_factor: f32 = 1.0, pivot: bit_set[Compass] = {}, font: ^Bitmap_Font = nil, shadow: bool = true, spacing: f32 = 1.0, waviness: f32 = 0.0, cursor_pos: int = -1) {
+// (TODO): add depth param
+// (TODO): replace pos with rect
+render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, args: ..any, sep: string = "", pos: [2]f32 = { 0, 0 }, color: Color = BLACK, scale_factor: f32 = 1.0, pivot: bit_set[Compass] = {}, font: ^Bitmap_Font = nil, shadow: bool = true, spacing: f32 = 1.0, waviness: f32 = 0.0, cursor_pos: int = -1) {
 	text := fmt.aprint(..args, sep = sep)
 	pos := pos
 	width: f32 = 0.0
@@ -122,7 +124,7 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 		command := _command.variant.(Render_Bitmap_Text_Command)
 		k := 6 * i + j
 		scale_factor[k] = command.scale_factor
-		color[k] = command.color
+		color[k] = color_to_4f32(command.color)
 		symbol[k] = command.symbol
 		position[k] = command.position }
 

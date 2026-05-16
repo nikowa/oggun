@@ -210,8 +210,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			if inputs[i] != .None do down = willow.input_query(&input_manager, inputs[i], .Down)
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
 			if down do willow.render_rect(&graphics_man, rect, willow.DARK_GRAY, depth = 0.99)
-			willow.render_rect_hollow(&graphics_man, rect, willow.WHITE)
-			willow.render_rect_hollow(&graphics_man, willow.rect_offset(key_margins(rect), down_offset), willow.GRAY)
+			willow.render_rect_outline(&graphics_man, rect, willow.WHITE)
+			willow.render_rect_outline(&graphics_man, willow.rect_offset(key_margins(rect), down_offset), willow.GRAY)
 			willow.render_bitmap_text(&graphics_man, keys[i], pos = rect.pos + down_offset, font = &font, color = willow.WHITE, scale_factor = 1.0) } }
 	k: f32 = query().scalar
 	return }

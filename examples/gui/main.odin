@@ -7,7 +7,7 @@ import "core:time"
 import "core:math/linalg"
 import "core:math"
 
-asset_man: willow.Asset_Manager
+asset_manager: willow.Asset_Manager
 graphics_manager: willow.Graphics_Manager
 window_manager: willow.Window_Manager
 stopwatch: time.Stopwatch
@@ -28,15 +28,16 @@ query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.logger = log.create_console_logger()
 
-	asset_man = willow.make_asset_manager({
+	asset_manager = willow.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
+		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
+		watch = true }, context.allocator)
 	willow.window_init(&window_manager, willow.WINDOW_CONFIG_DEFAULT)
 	willow.graphics_init(
 		graphics_manager = &graphics_manager,
-		as_mngr = &asset_man,
+		as_mngr = &asset_manager,
 		graphics_config = { window_manager = &window_manager, clear_color = willow.BLACK })
 
 	// dll_path := willow.relpath_to_path("rects_dll/rects_dll.odin", context.allocator)
@@ -45,11 +46,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	assert(rects_dll.make_rects != nil)
 
 	image: willow.Image_Asset
-	willow.init_image(&asset_man, &image, { url = "image:keyboard-layout.png" })
-	assert(willow.asset_commands(&asset_man, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	willow.init_image(&asset_manager, &image, { url = "image:keyboard-layout.png" })
+	assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_man, &font, willow.DEFAULT_BITMAP_FONT_CONFIG)
-	assert(willow.asset_commands(&asset_man, willow.Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
+	willow.bitmap_font_init(&asset_manager, &font, willow.DEFAULT_BITMAP_FONT_CONFIG)
+	assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
 
 	colors: [][4]f32 = make([][4]f32, 256)
 	for _, i in colors {
@@ -63,7 +64,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for ! graphics_manager.window_closed {
 		time := willow.read_stopwatch(&stopwatch)
 		osc := 32 * linalg.sin(16 * time)
-		willow.watch_assets(&asset_man)
+		willow.tick_asset_manager(&asset_manager)
 		willow.tick_graphics_manager(&graphics_manager)
 
 		rect_screen := willow.rect_screen(&graphics_manager)
@@ -72,7 +73,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 		rects := rects_dll.make_rects(keyboard_rect, context.temp_allocator)
 
-		for rect, i in rects do willow.render_rect_hollow(&graphics_manager, rect, willow.WHITE/*colors[i]*/)
+		for rect, i in rects do willow.render_rect_outline(&graphics_manager, rect, willow.WHITE/*colors[i]*/)
 
 		willow.watch_dll(&rects_dll)
 		free_all(context.temp_allocator) }

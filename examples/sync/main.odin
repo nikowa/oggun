@@ -11,7 +11,7 @@ import "core:slice"
 import "core:container/intrusive/list"
 
 settings_man: willow.Settings_Manager
-asset_man: willow.Asset_Manager
+asset_manager: willow.Asset_Manager
 graphics_man: willow.Graphics_Manager
 window_man: willow.Window_Manager
 stopwatch: time.Stopwatch
@@ -121,11 +121,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	context.logger = log.create_console_logger()
 
-	asset_man = willow.make_asset_manager({
+	asset_manager = willow.make_asset_manager({
 		relpath = "Data.bin",
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
+		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
+		watch = true }, context.allocator)
 	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT
 
 	window_config.size = { 1664, 936 }
@@ -134,27 +135,27 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	willow.window_init(&window_man, window_config)
 	willow.graphics_init(
 		graphics_manager = &graphics_man,
-		as_mngr = &asset_man,
+		as_mngr = &asset_manager,
 		graphics_config = { window_manager = &window_man, clear_color = willow.BLACK })
 	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 	rect_screen = willow.rect_screen(&graphics_man)
 
-	willow.init_image(&asset_man, &background_image, { url = "image:savanna-background.png" })
+	willow.init_image(&asset_manager, &background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
-	willow.init_image(&asset_man, &car_image, { url = "image:car.png" })
+	willow.init_image(&asset_manager, &car_image, { url = "image:car.png" })
 	append(&images, &car_image)
-	willow.init_image(&asset_man, &tree_image, { url = "image:tree.png" })
+	willow.init_image(&asset_manager, &tree_image, { url = "image:tree.png" })
 	append(&images, &tree_image)
-	willow.init_image(&asset_man, &aardvark_image, { url = "image:aardvark.png" })
+	willow.init_image(&asset_manager, &aardvark_image, { url = "image:aardvark.png" })
 	append(&images, &aardvark_image)
-	willow.init_image(&asset_man, &meerkat_image, { url = "image:meerkat.png" })
+	willow.init_image(&asset_manager, &meerkat_image, { url = "image:meerkat.png" })
 	append(&images, &meerkat_image)
-	willow.init_image(&asset_man, &zebra_image, { url = "image:zebra.png" })
+	willow.init_image(&asset_manager, &zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(willow.asset_commands(&asset_man, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	willow.bitmap_font_init(&asset_man, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
+	willow.bitmap_font_init(&asset_manager, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())
@@ -162,7 +163,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_man.window_closed {
 		time := willow.read_stopwatch(&stopwatch)
-		willow.watch_assets(&asset_man)
+		willow.tick_asset_manager(&asset_manager)
 
 		if willow.tick_manager_tick(&tick_man) {
 			defer willow.tick_manager_reset(&tick_man)

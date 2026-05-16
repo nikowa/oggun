@@ -27,23 +27,23 @@ image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 		(a.metadata == b.metadata) &&
 		(a.which == b.which) }
 
-init_image :: proc(as_mngr: ^Asset_Manager, image: ^Image_Asset, config: Asset_Config) {
+init_image :: proc(asset_manager: ^Asset_Manager, image: ^Image_Asset, config: Asset_Config) {
 	config := config
 	config.derived_type = Image_Asset
-	init_asset(as_mngr, Image_Asset, &image.asset, config) }
+	init_asset(asset_manager, Image_Asset, &image.asset, config) }
 
-image_modification_time :: proc(as_mngr: ^Asset_Manager, image: ^Image_Asset, location: Asset_Location_Field) -> (modification_time: time.Time) {
+image_modification_time :: proc(asset_manager: ^Asset_Manager, image: ^Image_Asset, location: Asset_Location_Field) -> (modification_time: time.Time) {
 	switch location {
 	case .Source_Directory:
-		path := path_from_url(&as_mngr.database, image.url, context.temp_allocator)
+		path := path_from_url(asset_manager, image.url, context.temp_allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database_File:
-		path := relpath_to_path(as_mngr.database.relpath, context.temp_allocator)
+		path := relpath_to_path(asset_manager.relpath, context.temp_allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database:
-		entry := get_entry(&as_mngr.database, image.url)
+		entry := get_entry(asset_manager, image.url)
 		return (entry != nil) ? entry.modification_time : {}
 	case .Main_Memory:
 		return image.modification_time
@@ -52,16 +52,16 @@ image_modification_time :: proc(as_mngr: ^Asset_Manager, image: ^Image_Asset, lo
 	return {} }
 
 @private
-image_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+image_asset_command :: proc(asset_manager: ^Asset_Manager, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
 	img := asset_object(asset, Image_Asset, "asset")
 	switch command {
 	case .Validate:
 	case .Query_Location:
-		path := path_from_url(&as_mngr.database, asset.url, context.temp_allocator)
+		path := path_from_url(asset_manager, asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
 		err: os.Error
-		path := path_from_url(&as_mngr.database, img.url, context.allocator)
+		path := path_from_url(asset_manager, img.url, context.allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		if time.diff(img.modification_time, modification_time) <= 0 do return true
 		loader_proc: image.Loader_Proc
@@ -78,14 +78,14 @@ image_asset_command :: proc(as_mngr: ^Asset_Manager, asset: ^Asset, command: Ass
 		img.image = image_temp^
 		free(image_temp)
 		bytes, _ = image_serialize(img, context.allocator)
-		add_or_update_entry(as_mngr, make_entry(img.url, bytes, modification_time))
+		add_or_update_entry(asset_manager, make_entry(img.url, bytes, modification_time))
 		asset.location += { .Database, .Main_Memory }
 		img.modification_time = modification_time
 		return true
 	case .Export:
 	case .Load:
 	// DICK
-		return image_asset_command(as_mngr, asset, .Import, watch)
+		return image_asset_command(asset_manager, asset, .Import, watch)
 	case .Save:
 	case .Upload:
 		if img.handle != 0 do download_image(img)
