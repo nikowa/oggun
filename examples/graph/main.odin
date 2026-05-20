@@ -83,9 +83,14 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			willow.tick_graphics_manager(&graphics_manager)
 			gui_screen := willow.gui_screen(&graphics_manager)
 			rect := willow.make_rect(0, 0, 200 + 150 * math.sin(time), 24)
+			// willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
+			// willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
+			// willow.gui_text_line(&graphics_manager, text_style, rect.pos, "Hello, my dear friend!", desired_width = rect.size.x)
+			rect = willow.make_rect(0, 0, 200/* + 150 * math.sin(time)*/, 320)
 			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
-			willow.gui_text_line(&graphics_manager, text_style, rect.pos, "Hello, my dear friend!", desired_width = rect.size.x) }
-
+			text: string = "Also because of the new contract I have to send our accountant all these things and one of them is my older contracts from jobs because it's a government job and my salary is calculated based on years of experience among other things, so I had to get all my contracts from the magazine and you know how long I've been working for them????"
+			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Center, v_align = .Top)
+		}
 		free_all(context.temp_allocator) }
 	return }

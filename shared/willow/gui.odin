@@ -3,6 +3,7 @@ package willow
 import "base:runtime"
 import "core:math/linalg"
 import "core:fmt"
+import "core:strings"
 
 gui_margins :: proc(rect_in: Rect, margins: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
@@ -188,7 +189,7 @@ gui_offset :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 	rect_out.pos += offset
 	return rect_out }
 
-H_Align :: enum { Left, Center, Right }
+H_Align :: enum { Left, Center, Justify, Right }
 V_Align :: enum { Bottom, Center, Top }
 
 // (TODO): Make an iterator version of this, for looping till a certain width or space count is reached. //
@@ -199,15 +200,19 @@ gui_text_measure :: proc(style: Bitmap_Text_Style, text: string) -> (width: f32,
 		if c == ' ' do space_count += 1 }
 	return width, space_count }
 
+gui_text_measure_iterate :: proc(style: Bitmap_Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int) -> bool {
+	using style
+	if i^ >= len(text) do return false
+	c: u8 = text[i^]
+	width^ += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
+	if c == ' ' do space_count^ += 1
+	i^ += 1
+	return true }
+
 gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
 	using style
 	text := fmt.aprint(..args, sep = sep)
 	position := position
-	// width: f32 = 0.0
-	// space_count: int = 0
-	// for c, i in text {
-	// 	width += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
-	// 	if c == ' ' do space_count += 1 }
 	width, space_count := gui_text_measure(style, text)
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
@@ -224,7 +229,26 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 		symbol_position.x += f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + spacing
 		if symbol == ' ' do symbol_position.x += space_delta } }
 
+WHITESPACE_CUTSET :: "\t\n\v\f\r "
+
 gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
 	using style
-
-}
+	text := fmt.aprint(..args, sep = sep)
+	height: f32 = f32(font.symbol_size.y)
+	position: [2]f32 = rect.pos
+	if v_align == .Top do position.y += rect.size.y / 2 - height / 2
+	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
+	width: f32
+	for gui_text_measure_iterate(style, text, &curr_i, &width, &space_count) {
+		if width <= rect.size.x {
+			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' do prev_word_end_i = prev_i
+			prev_i = curr_i
+		} else {
+			if prev_word_end_i == line_start_i do prev_word_end_i = prev_i
+			gui_text_line(graphics_man, style, position, text[line_start_i:prev_word_end_i], desired_width = rect.size.x)
+			i: int = 0
+			for strings.is_space(cast(rune)text[prev_word_end_i + i]) do i += 1
+			line_start_i = prev_word_end_i + i
+			curr_i += i
+			width = 0
+			position.y -= height } } }
