@@ -191,15 +191,24 @@ gui_offset :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 H_Align :: enum { Left, Center, Right }
 V_Align :: enum { Bottom, Center, Top }
 
-gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, spacing: f32 = 1.0, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
+// (TODO): Make an iterator version of this, for looping till a certain width or space count is reached. //
+gui_text_measure :: proc(style: Bitmap_Text_Style, text: string) -> (width: f32, space_count: int) {
 	using style
-	text := fmt.aprint(..args, sep = sep)
-	position := position
-	width: f32 = 0.0
-	space_count: int = 0
 	for c, i in text {
 		width += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
 		if c == ' ' do space_count += 1 }
+	return width, space_count }
+
+gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
+	using style
+	text := fmt.aprint(..args, sep = sep)
+	position := position
+	// width: f32 = 0.0
+	// space_count: int = 0
+	// for c, i in text {
+	// 	width += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
+	// 	if c == ' ' do space_count += 1 }
+	width, space_count := gui_text_measure(style, text)
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
 	height: f32 = f32(font.symbol_size.y)

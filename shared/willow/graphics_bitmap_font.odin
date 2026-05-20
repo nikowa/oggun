@@ -71,12 +71,14 @@ Render_Bitmap_Text_Params :: struct {
 Bitmap_Text_Style :: struct {
 	color: Color,
 	scale_factor: f32,
-	font: ^Bitmap_Font }
+	font: ^Bitmap_Font,
+	spacing: f32 }
 
 DEFAULT_BITMAP_TEXT_STYLE: Bitmap_Text_Style : {
 	color = BLACK,
 	scale_factor = 1.0,
-	font = nil }
+	font = nil,
+	spacing = 1.0 }
 
 render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Bitmap_Text_Style = DEFAULT_BITMAP_TEXT_STYLE) {
 	using style

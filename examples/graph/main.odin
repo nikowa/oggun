@@ -69,7 +69,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	font: willow.Bitmap_Font
 	willow.bitmap_font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
-	text_style: willow.Bitmap_Text_Style = { font = &font, color = fg_color, scale_factor = 1.0 }
+	text_style: willow.Bitmap_Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
+	text_style.font = &font
+	text_style.color = fg_color
 
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {
