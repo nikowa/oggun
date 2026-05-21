@@ -195,6 +195,7 @@ V_Align :: enum { Bottom, Center, Top }
 @(private="file") text_measure :: proc(style: Bitmap_Text_Style, text: string) -> (width: f32, space_count: int) {
 	using style
 	for symbol, i in text {
+		if symbol == '_' do continue
 		symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if symbol == ' ' do symbol_delta *= spacing
 		width += symbol_delta
@@ -205,6 +206,9 @@ V_Align :: enum { Bottom, Center, Top }
 	using style
 	if i^ >= len(text) do return false
 	symbol: u8 = text[i^]
+	if symbol == '_' {
+		i^ += 1
+		return true }
 	symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 	if symbol == ' ' do symbol_delta *= spacing
 	width^ += symbol_delta
@@ -237,6 +241,8 @@ V_Align :: enum { Bottom, Center, Top }
 	shrink(&lines)
 	return lines[:] }
 
+SKIP_CUTSET :: "_*"
+
 gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
 	style := style
 	using style
@@ -254,7 +260,9 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 	if .South in pivot do position.y += 0.5 * height
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
-		style.italic = symbol > 'h'
+		if symbol == '_' {
+			style.italic = ! style.italic
+			continue }
 		render_bitmap_symbol(graphics_man, cast(u8)symbol, symbol_position, depth, style)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
