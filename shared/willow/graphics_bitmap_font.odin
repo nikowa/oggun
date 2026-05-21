@@ -64,10 +64,12 @@ Render_Bitmap_Text_Params :: struct {
 	symbol: u8,
 	color: Color,
 	scale_factor: f32,
-	position: [3]f32 }
+	position: [3]f32,
+	italic: bool }
 
 Bitmap_Text_Style :: struct {
 	color: Color,
+	italic: bool,
 	scale_factor: f32,
 	font: ^Bitmap_Font,
 	tracking: f32,
@@ -75,6 +77,7 @@ Bitmap_Text_Style :: struct {
 
 DEFAULT_BITMAP_TEXT_STYLE: Bitmap_Text_Style : {
 	color = BLACK,
+	italic = false,
 	scale_factor = 1.0,
 	font = nil,
 	tracking = 1.0,
@@ -94,6 +97,7 @@ render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, positi
 	command.color = color
 	command.position.x = math.round_f32(command.position.x + 0.3)
 	command.position.y = math.round_f32(command.position.y + 0.3)
+	command.italic = italic
 	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 
 submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
@@ -108,7 +112,7 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Bitmap_Text_Command, _command_0, _command_1) })
 	// for command in commands do fmt.printfln("%c -- %v", command.variant.(Render_Bitmap_Text_Command).symbol, command.variant.(Render_Bitmap_Text_Command).position)
 
-	buffers := make_buffers(4)
+	buffers := make_buffers(5)
 	defer delete_buffers(buffers)
 
 	n: int = 6 * len(commands)
@@ -116,18 +120,21 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 	color := make([][4]f32, n)
 	symbol := make([]u32, n)
 	position := make([][3]f32, n)
+	italic := make([]u32, n)
 	for _command, i in commands do for j in 0 ..< 6 {
 		command := _command.variant.(Render_Bitmap_Text_Command)
 		k := 6 * i + j
 		scale_factor[k] = command.scale_factor
 		color[k] = color_to_4f32(command.color)
 		symbol[k] = cast(u32)command.symbol
-		position[k] = command.position }
+		position[k] = command.position
+		italic[k] = cast(u32)command.italic }
 
 	upload_vertex_buffer_data(0, buffers[0], 1, gl.UNSIGNED_INT, symbol)
 	upload_vertex_buffer_data(1, buffers[1], 4, gl.FLOAT, color)
 	upload_vertex_buffer_data(2, buffers[2], 1, gl.FLOAT, scale_factor)
 	upload_vertex_buffer_data(3, buffers[3], 3, gl.FLOAT, position)
+	upload_vertex_buffer_data(4, buffers[4], 1, gl.UNSIGNED_INT, italic)
 
 	bind_texture(0, command.font.bitmap_image.handle)
 	// texture_filtering(gl.NEAREST)

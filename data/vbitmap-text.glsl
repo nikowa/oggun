@@ -2,6 +2,7 @@ layout(location = 0) in uint symbol;
 layout(location = 1) in vec4 text_color;
 layout(location = 2) in float scale_factor;
 layout(location = 3) in vec3 position;
+layout(location = 4) in uint italic;
 
 layout(location = 0) uniform vec2 res;
 layout(location = 1) uniform vec2 symbol_size;
@@ -24,8 +25,9 @@ void main(void) {
 	float half_w = 0.5 * w;
 	float half_h = 0.5 * h;
 	tex_coords = vec2(0, 0);
+	float italic_offset = float(italic) * 0.16 * h;
 	if((gl_VertexID % 6) == 0) {
-		gl_Position = vec4(x, y + h, z, 1);
+		gl_Position = vec4(x + italic_offset, y + h, z, 1);
 		tex_coords = vec2(0, 0); }
 	else if((gl_VertexID % 6) == 1) {
 		gl_Position = vec4(x, y, z, 1);
@@ -34,12 +36,12 @@ void main(void) {
 		gl_Position = vec4(x + w, y, z, 1);
 		tex_coords = vec2(1, 1); }
 	else if((gl_VertexID % 6) == 3) {
-		gl_Position = vec4(x, y + h, z, 1);
+		gl_Position = vec4(x + italic_offset, y + h, z, 1);
 		tex_coords = vec2(0, 0); }
 	else if((gl_VertexID % 6) == 4) {
 		gl_Position = vec4(x + w, y, z, 1);
 		tex_coords = vec2(1, 1); }
 	else if((gl_VertexID % 6) == 5) {
-		gl_Position = vec4(x + w, y + h, z, 1);
+		gl_Position = vec4(x + w + italic_offset, y + h, z, 1);
 		tex_coords = vec2(1, 0); }
 	tex_coords.y = 1.0 - tex_coords.y; }
