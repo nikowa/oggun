@@ -6,6 +6,7 @@ in vec2 tex_coords;
 flat in uint _symbol;
 flat in vec4 _text_color;
 flat in vec2 quad_size;
+flat in uint _bold;
 out vec4 color;
 
 vec4 sample_raw(vec2 uv) {
@@ -49,7 +50,8 @@ void main(void) {
 	vec2 pixel_size = vec2(1) / quad_size;
 	for (int i = 0; i < AA; i += 1) {
 		vec2 off = (AA_OFF[i] - vec2(0.5));
-		color.w += 1 * sample_styled(tex_coords + pixel_size * off).w; }
+		float radius = (_bold == 1) ? 4.0 : 1.0;
+		color.w += radius * sample_styled(tex_coords + pixel_size * off).w; }
 	color.w /= float(AA);
 	// color.w = 1 - pow(1 - color.w, 2.0);
 	// if (color.w < 0.16) color.w = 0.0;

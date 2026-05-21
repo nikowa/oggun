@@ -3,6 +3,7 @@ layout(location = 1) in vec4 text_color;
 layout(location = 2) in float scale_factor;
 layout(location = 3) in vec3 position;
 layout(location = 4) in uint italic;
+layout(location = 5) in uint bold;
 
 layout(location = 0) uniform vec2 res;
 layout(location = 1) uniform vec2 symbol_size;
@@ -11,10 +12,12 @@ out vec2 tex_coords;
 flat out uint _symbol;
 flat out vec4 _text_color;
 flat out vec2 quad_size;
+flat out uint _bold;
 
 void main(void) {
 	_symbol = symbol;
 	_text_color = text_color;
+	_bold = bold;
 	int j = gl_VertexID / 6;
 	float x = (float(position.x) / res.x) * 2;
 	float y = (float(position.y) / res.y) * 2;
