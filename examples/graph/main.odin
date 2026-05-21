@@ -49,7 +49,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	willow.neon_init()
 	using willow.Neon_Color_Row
-	fg_color := willow.neon_color_table_ms_light[Neutral_Foreground_1][0]
+	fg_color := willow.neon_color_table_ms_light[/*Warning_Foreground*/Neutral_Foreground_1][0]
 	bg_color := willow.neon_color_table_ms_light[Neutral_Background_1][0]
 	bg2_color := willow.neon_color_table_ms_light[Neutral_Background_2][0]
 	bg3_color := willow.neon_color_table_ms_light[Neutral_Background_3][0]
@@ -59,7 +59,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		relpath = "Data.bin",
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
+		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP, watch = true }, context.allocator)
 	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT
 	window_config.size = { 1664, 936 }
 	window_config.position = [2]f32{ 0, 0 }
@@ -72,11 +72,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
 	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	willow.bitmap_font_init(&asset_manager, &font, { name = "font", default_bearing = 0, default_advance = 0 })
 	text_style: willow.Bitmap_Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
 	text_style.font = &font
 	text_style.color = fg_color
 	text_style.spacing = 1.0
+	text_style.scale_factor = 0.12
+	for i in 0 ..< 8 do fmt.printfln("vec2(%f, %f),", rand.float32(), rand.float32())
 	text: string = "Consistent color usage creates visual _continuity_ throughout experiences and even across products. The easiest way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a context-agnostic global token. Alias tokens then provide the _context_ that makes it easy to choose the right color without having to hunt down hex codes."
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {

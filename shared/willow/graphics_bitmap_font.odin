@@ -137,8 +137,7 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 	upload_vertex_buffer_data(4, buffers[4], 1, gl.UNSIGNED_INT, italic)
 
 	bind_texture(0, command.font.bitmap_image.handle)
-	// texture_filtering(gl.NEAREST)
-	texture_filtering(gl.LINEAR)
+	texture_filtering(gl.NEAREST)
 	polygon_mode(.Fill)
 	draw_triangles(cast(i32)n) }
 

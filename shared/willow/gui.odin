@@ -219,7 +219,6 @@ V_Align :: enum { Bottom, Center, Top }
 @(private="file") text_box_lines :: proc(style: Bitmap_Text_Style, rect: Rect, text: string) -> []string {
 	using style
 	lines := make([dynamic]string, context.temp_allocator)
-	height: f32 = f32(font.symbol_size.y)
 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
 	width, width_acc: f32
 	for {
@@ -251,7 +250,7 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 	width, space_count := text_measure(style, text)
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
-	height: f32 = f32(font.symbol_size.y)
+	height: f32 = f32(font.symbol_size.y) * scale_factor
 	if space_delta != 0 { width = desired_width.(f32) }
 	position = position - 0.5 * { width, height }
 	if .East  in pivot do position.x -= 0.5 * width
@@ -275,7 +274,7 @@ WHITESPACE_CUTSET :: "\t\n\v\f\r "
 text_box_measure :: proc(style: Bitmap_Text_Style, width: f32, args: ..any, sep: string = "") -> (total_height: f32) {
 	using style
 	text := fmt.aprint(..args, sep = sep)
-	height: f32 = f32(font.symbol_size.y)
+	height: f32 = f32(font.symbol_size.y) * scale_factor
 	rect := make_rect(0, 0, width, 0)
 	lines := text_box_lines(style, rect, text)
 	total_height = height * cast(f32)len(lines)
@@ -286,7 +285,7 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, 
 	using style
 	if h_align == .Justify do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
-	height: f32 = f32(font.symbol_size.y)
+	height: f32 = f32(font.symbol_size.y) * scale_factor
 	position: [2]f32 = rect.pos
 	lines := text_box_lines(style, rect, text)
 	desired_width: Maybe(f32)
