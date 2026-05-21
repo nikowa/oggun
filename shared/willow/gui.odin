@@ -223,7 +223,7 @@ V_Align :: enum { Bottom, Center, Top }
 				width_acc = width - cast(f32)font.advances[' '] * scale_factor + spacing }
 			prev_i = curr_i
 		} else {
-			if (prev_word_end_i == line_start_i) || !ok do prev_word_end_i = prev_i
+			if (line_start_i == prev_word_end_i + 1) || !ok do prev_word_end_i = prev_i
 			append(&lines, text[line_start_i:prev_word_end_i])
 			if !ok do break
 			i: int = 0
@@ -278,6 +278,15 @@ WHITESPACE_CUTSET :: "\t\n\v\f\r "
 // 			width = 0
 // 			position.y -= height } } }
 
+text_box_measure :: proc(style: Bitmap_Text_Style, width: f32, args: ..any, sep: string = "") -> (total_height: f32) {
+	using style
+	text := fmt.aprint(..args, sep = sep)
+	height: f32 = f32(font.symbol_size.y)
+	rect := make_rect(0, 0, width, 0)
+	lines := text_box_lines(style, rect, text)
+	total_height = height * cast(f32)len(lines)
+	return total_height }
+
 gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
 	using style
 	text := fmt.aprint(..args, sep = sep)
@@ -290,11 +299,17 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, 
 	case .Top: position.y += rect.size.y / 2 - height / 2
 	case .Bottom: position.y += -rect.size.y / 2 + (- 0.5 + cast(f32)len(lines)) * height
 	case .Center: position.y += (-1 + 0.5 * cast(f32)len(lines)) * height }
-	#partial switch h_align {
-	case .Justify: desired_width = rect.size.x
-	case .Center: desired_width = nil
-	// case .Left: desired_width = nil
-	// case .Right: desired_width = nil
+	switch h_align {
+	case .Justify:
+		desired_width = rect.size.x
+	case .Center:
+	case .Left:
+		pivot = { .West }
+		position.x -= rect.size.x / 2
+	case .Right:
+		desired_width = nil
+		pivot = { .East }
+		position.x += rect.size.x / 2
 	}
 	for line, i in lines {
 		if h_align == .Justify && i == len(lines) - 1 {

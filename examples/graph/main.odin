@@ -60,7 +60,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	willow.window_init(&window_man, willow.WINDOW_CONFIG_DEFAULT)
+	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT
+	window_config.size = { 1664, 936 }
+	window_config.position = [2]f32{ 0, 0 }
+	window_config.title = "Graph"
+	willow.window_init(&window_man, window_config)
 	willow.graphics_init(
 		graphics_manager = &graphics_manager,
 		as_mngr = &asset_manager,
@@ -72,7 +76,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	text_style: willow.Bitmap_Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
 	text_style.font = &font
 	text_style.color = fg_color
-
+	text: string = "Consistent color usage creates visual continuity throughout experiences and even across products. The easiest way to guarantee uniform color usage is to use Fluent's design token system. Each value in the Fluent palettes is stored as a context-agnostic global token. Alias tokens then provide the context that makes it easy to choose the right color without having to hunt down hex codes."
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {
 		time := willow.read_stopwatch(&stopwatch)
@@ -82,15 +86,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer willow.tick_manager_reset(&tick_man)
 			willow.tick_graphics_manager(&graphics_manager)
 			gui_screen := willow.gui_screen(&graphics_manager)
-			rect := willow.make_rect(0, 0, 200 + 150 * math.sin(time), 24)
-			// willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
-			// willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
-			// willow.gui_text_line(&graphics_manager, text_style, rect.pos, "Hello, my dear friend!", desired_width = rect.size.x)
-			rect = willow.make_rect(0, 0, 200/* + 150 * math.sin(time)*/, 320)
+			rect := willow.make_rect(0, 0, 400 + 350 * math.sin(time), 320)
+			rect.size.y = willow.text_box_measure(text_style, rect.size.x, text)
 			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
-			text: string = "Also because of the new contract I have to send our accountant all these things and one of them is my older contracts from jobs because it's a government job and my salary is calculated based on years of experience among other things, so I had to get all my contracts from the magazine and you know how long I've been working for them????"
-			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Center)
-		}
+			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Top) }
 		free_all(context.temp_allocator) }
 	return }
