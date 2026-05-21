@@ -75,7 +75,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	willow.font_group_init(&asset_manager, &font_group,
 		normal = willow.Font_Config{ name = "terminus", default_bearing = 0, default_advance = 0 },
 		bold = willow.Font_Config{ name = "terminus-bold", default_bearing = 0, default_advance = 0 },
-		italic = willow.Font_Config{ name = "terminus-italic", default_bearing = 0, default_advance = 0 } )
+		italic = willow.Font_Config{ name = "terminus-italic", default_bearing = 0, default_advance = 0 })
 	text_style: willow.Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
 	text_style.font_group = font_group
 	text_style.color = fg_color

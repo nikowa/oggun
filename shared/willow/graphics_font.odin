@@ -134,7 +134,7 @@ render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, positi
 	command.color = color
 	command.position.x = math.round_f32(command.position.x + 0.3)
 	command.position.y = math.round_f32(command.position.y + 0.3)
-	command.italic = italic
+	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
 	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 
