@@ -215,15 +215,17 @@ V_Align :: enum { Bottom, Center, Top }
 	height: f32 = f32(font.symbol_size.y)
 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
 	width, width_acc: f32
-	for text_measure_iterate(style, text, &curr_i, &width, &space_count) {
-		if width <= rect.size.x {
+	for {
+		ok := text_measure_iterate(style, text, &curr_i, &width, &space_count)
+		if (width <= rect.size.x) && ok {
 			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' {
 				prev_word_end_i = prev_i
 				width_acc = width - cast(f32)font.advances[' '] * scale_factor + spacing }
 			prev_i = curr_i
 		} else {
-			if prev_word_end_i == line_start_i do prev_word_end_i = prev_i
+			if (prev_word_end_i == line_start_i) || !ok do prev_word_end_i = prev_i
 			append(&lines, text[line_start_i:prev_word_end_i])
+			if !ok do break
 			i: int = 0
 			for strings.is_space(cast(rune)text[prev_word_end_i + i]) do i += 1
 			line_start_i = prev_word_end_i + i
@@ -283,6 +285,7 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, 
 	position: [2]f32 = rect.pos
 	lines := text_box_lines(style, rect, text)
 	desired_width: Maybe(f32)
+	pivot: bit_set[Compass]
 	switch v_align {
 	case .Top: position.y += rect.size.y / 2 - height / 2
 	case .Bottom: position.y += -rect.size.y / 2 + (- 0.5 + cast(f32)len(lines)) * height
@@ -293,6 +296,10 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, 
 	// case .Left: desired_width = nil
 	// case .Right: desired_width = nil
 	}
-	for line in lines {
-		gui_text_line(graphics_man, style, position, line, desired_width = desired_width)
+	for line, i in lines {
+		if h_align == .Justify && i == len(lines) - 1 {
+			desired_width = nil
+			pivot = { .West }
+			position.x -= rect.size.x / 2 }
+		gui_text_line(graphics_man, style, position, line, pivot = pivot, desired_width = desired_width)
 		position.y -= height } }
