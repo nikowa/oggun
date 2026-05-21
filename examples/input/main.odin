@@ -8,7 +8,7 @@ asset_man: willow.Asset_Manager
 graphics_man: willow.Graphics_Manager
 input_manager: willow.Input_Manager
 window_manager: willow.Window_Manager
-font: willow.Bitmap_Font
+font: willow.Font
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -157,7 +157,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		as_mngr = &asset_man,
 		graphics_config = { window_manager = &window_manager, clear_color = willow.BLACK })
 
-	willow.bitmap_font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	willow.font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 	image: willow.Image_Asset
 	willow.init_image(&asset_man, &image, { url = "image:kitten-2.png" })
 	assert(willow.asset_commands(&asset_man, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
@@ -212,6 +212,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			if down do willow.render_rect(&graphics_man, rect, willow.DARK_GRAY, depth = 0.99)
 			willow.render_rect_outline(&graphics_man, rect, willow.WHITE)
 			willow.render_rect_outline(&graphics_man, willow.gui_offset(key_margins(rect), down_offset), willow.GRAY)
-			willow.render_bitmap_text(&graphics_man, keys[i], pos = rect.pos + down_offset, font = &font, color = willow.WHITE, scale_factor = 1.0) } }
+			willow.render_text(&graphics_man, keys[i], pos = rect.pos + down_offset, font = &font, color = willow.WHITE, scale_factor = 1.0) } }
 	k: f32 = query().scalar
 	return }

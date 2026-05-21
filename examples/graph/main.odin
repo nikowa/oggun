@@ -71,14 +71,17 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		graphics_config = { window_manager = &window_man, clear_color = bg_color })
 	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
-	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
-	text_style: willow.Bitmap_Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
-	text_style.font = &font
+	font_group: willow.Font_Group
+	willow.font_group_init(&asset_manager, &font_group,
+		normal = willow.Font_Config{ name = "terminus", default_bearing = 0, default_advance = 0 },
+		bold = willow.Font_Config{ name = "terminus-bold", default_bearing = 0, default_advance = 0 },
+		italic = willow.Font_Config{ name = "terminus-italic", default_bearing = 0, default_advance = 0 } )
+	text_style: willow.Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
+	text_style.font_group = font_group
 	text_style.color = fg_color
 	text_style.spacing = 1.0
 	text_style.scale_factor = 1.0
-	for i in 0 ..< 8 do fmt.printfln("vec2(%f, %f),", rand.float32(), rand.float32())
+	// for i in 0 ..< 8 do fmt.printfln("vec2(%f, %f),", rand.float32(), rand.float32())
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {

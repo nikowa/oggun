@@ -30,7 +30,8 @@ vec4 sample_raw(vec2 uv) {
 	uv /= 16;
 	uv.x += float(_symbol % 16) / 16;
 	uv.y += float(_symbol / 16) / 16;
-	return texture((bold == 1) ? samp_bold : samp, uv); }
+	return texture(samp, uv); }
+	// return texture((bold == 1) ? samp_bold : samp, uv); }
 
 vec4 sample_styled(vec2 uv) {
 	return _text_color * sample_raw(uv); }

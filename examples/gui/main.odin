@@ -48,8 +48,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	image: willow.Image_Asset
 	willow.init_image(&asset_manager, &image, { url = "image:keyboard-layout.png" })
 	assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
-	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_manager, &font, willow.DEFAULT_BITMAP_FONT_CONFIG)
+	font: willow.Font
+	willow.font_init(&asset_manager, &font, willow.DEFAULT_FONT_CONFIG)
 	assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
 
 	colors: [][4]f32 = make([][4]f32, 256)

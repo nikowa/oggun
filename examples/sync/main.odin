@@ -19,7 +19,7 @@ tick_man: willow.Tick_Manager
 gui_screen: willow.Rect
 images: [dynamic]^willow.Image_Asset
 background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
-font: willow.Bitmap_Font
+font: willow.Font
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -113,7 +113,7 @@ render_entity :: proc(entity: ^Entity) {
 		image_size = CAR_SIZE
 		label = "Car" }
 	willow.render_image(&graphics_man, image, { screen_position, image_size }, depth = entity.depth)
-	willow.render_bitmap_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = willow.WHITE, scale_factor = 1.0) }
+	willow.render_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = willow.WHITE, scale_factor = 1.0) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
@@ -155,7 +155,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	for &image in images do assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	willow.bitmap_font_init(&asset_manager, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
+	willow.font_init(&asset_manager, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())
@@ -177,7 +177,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 			willow.render_image(&graphics_man, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
 			willow.render_image(&graphics_man, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// willow.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 1.0)
+			// willow.render_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

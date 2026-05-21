@@ -28,7 +28,7 @@ void main(void) {
 	float half_w = 0.5 * w;
 	float half_h = 0.5 * h;
 	tex_coords = vec2(0, 0);
-	float italic_offset = float(italic) * 0.16 * h;
+	float italic_offset = 0 * float(italic) * 0.16 * h;
 	if((gl_VertexID % 6) == 0) {
 		gl_Position = vec4(x + italic_offset, y + h, z, 1);
 		tex_coords = vec2(0, 0); }

@@ -69,7 +69,7 @@ Graphics_Manager :: struct {
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
 	image_shader: Shader_Asset,
-	bitmap_text_shader: Shader_Asset,
+	text_shader: Shader_Asset,
 	buffer_shader: Shader_Asset,
 // 	upscale_pass1_shader:            ^Upscale_Pass1_Shader,
 // 	upscale_pass2_shader:            ^Upscale_Pass2_Shader,
@@ -232,7 +232,7 @@ graphics_init :: proc(
 		init_shader_asset(&graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }, graphics_manager, as_mngr) or_return
-		init_shader_asset(&graphics_manager.bitmap_text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }, graphics_manager, as_mngr) or_return
+		init_shader_asset(&graphics_manager.text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }, graphics_manager, as_mngr) or_return
 		init_shader_asset(&graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }, graphics_manager, as_mngr) or_return

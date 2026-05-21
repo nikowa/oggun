@@ -88,7 +88,7 @@ Buffer_Shader_Uniforms :: enum {
 Image_Shader_Uniforms :: enum {
 	RES = 0 }
 
-Bitmap_Text_Uniforms :: enum {
+Text_Uniforms :: enum {
 	RES = 0,
 	SYMBOL_SIZE = 1 }
 

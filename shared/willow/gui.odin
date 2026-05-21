@@ -192,21 +192,29 @@ gui_offset :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 H_Align :: enum { Left, Center, Justify, Right }
 V_Align :: enum { Bottom, Center, Top }
 
-@(private="file") text_measure :: proc(style: Bitmap_Text_Style, text: string) -> (width: f32, space_count: int) {
+@(private="file") text_measure :: proc(style: Text_Style, text: string) -> (width: f32, space_count: int) {
+	style := style
 	using style
 	for symbol, i in text {
-		if symbol == '_' || symbol == '*' do continue
+		font := font_group_select(font_group, style)
+		if symbol == '_' {
+			style.italic = ! style.italic; continue }
+		if symbol == '*' {
+			style.bold = ! style.bold; continue }
 		symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if symbol == ' ' do symbol_delta *= spacing
 		width += symbol_delta
 		if symbol == ' ' do space_count += 1 }
 	return width, space_count }
 
-@(private="file") text_measure_iterate :: proc(style: Bitmap_Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int) -> bool {
+@(private="file") text_measure_iterate :: proc(style: ^Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int) -> bool {
 	using style
 	if i^ >= len(text) do return false
+	font := font_group_select(font_group, style^)
 	symbol: u8 = text[i^]
 	if symbol == '_' || symbol == '*' {
+		style.italic = ! style.italic
+		style.bold = ! style.bold
 		i^ += 1
 		return true }
 	symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
@@ -216,17 +224,18 @@ V_Align :: enum { Bottom, Center, Top }
 	i^ += 1
 	return true }
 
-@(private="file") text_box_lines :: proc(style: Bitmap_Text_Style, rect: Rect, text: string) -> []string {
+@(private="file") text_box_lines :: proc(style: Text_Style, rect: Rect, text: string) -> []string {
 	using style
 	lines := make([dynamic]string, context.temp_allocator)
 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
 	width, width_acc: f32
+	_style := style
 	for {
-		ok := text_measure_iterate(style, text, &curr_i, &width, &space_count)
+		ok := text_measure_iterate(&_style, text, &curr_i, &width, &space_count)
 		if (width <= rect.size.x) && ok {
 			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' {
 				prev_word_end_i = prev_i
-				width_acc = width - cast(f32)font.advances[' '] * scale_factor + tracking }
+				width_acc = width - cast(f32)font_group.normal.advances[' '] * scale_factor + tracking }
 			prev_i = curr_i
 		} else {
 			if (line_start_i == prev_word_end_i + 1) || !ok do prev_word_end_i = prev_i
@@ -242,7 +251,7 @@ V_Align :: enum { Bottom, Center, Top }
 
 SKIP_CUTSET :: "_*"
 
-gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
+gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
 	style := style
 	using style
 	text := fmt.aprint(..args, sep = sep)
@@ -250,7 +259,7 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 	width, space_count := text_measure(style, text)
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
-	height: f32 = f32(font.symbol_size.y) * scale_factor
+	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
 	if space_delta != 0 { width = desired_width.(f32) }
 	position = position - 0.5 * { width, height }
 	if .East  in pivot do position.x -= 0.5 * width
@@ -260,11 +269,10 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
 		if symbol == '_' {
-			style.italic = ! style.italic
-			continue }
+			style.italic = ! style.italic; continue }
 		if symbol == '*' {
-			style.bold = ! style.bold
-			continue }
+			style.bold = ! style.bold; continue }
+		font := font_group_select(font_group, style)
 		render_bitmap_symbol(graphics_man, cast(u8)symbol, symbol_position, depth, style)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
@@ -274,21 +282,21 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 
 WHITESPACE_CUTSET :: "\t\n\v\f\r "
 
-text_box_measure :: proc(style: Bitmap_Text_Style, width: f32, args: ..any, sep: string = "") -> (total_height: f32) {
+text_box_measure :: proc(style: Text_Style, width: f32, args: ..any, sep: string = "") -> (total_height: f32) {
 	using style
 	text := fmt.aprint(..args, sep = sep)
-	height: f32 = f32(font.symbol_size.y) * scale_factor
+	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
 	rect := make_rect(0, 0, width, 0)
 	lines := text_box_lines(style, rect, text)
 	total_height = height * cast(f32)len(lines)
 	return total_height }
 
-gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
+gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
 	style := style
 	using style
 	if h_align == .Justify do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
-	height: f32 = f32(font.symbol_size.y) * scale_factor
+	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
 	position: [2]f32 = rect.pos
 	lines := text_box_lines(style, rect, text)
 	desired_width: Maybe(f32)

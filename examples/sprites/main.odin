@@ -75,8 +75,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	slice.sort(splits[:])
 	splits[4] = N
 
-	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	font: willow.Font
+	willow.font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 
 	sprites := make([]Sprite, N)
 	for &sprite in sprites do sprite_init(&sprite)
@@ -109,7 +109,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				sprite_rect: willow.Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
 				willow.render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
 				if i > splits[image_index] do image_index += 1 }
-			// willow.render_bitmap_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 2.0)
+			// willow.render_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 2.0)
 		}
 
 		free_all(context.temp_allocator) }

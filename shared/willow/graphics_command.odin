@@ -43,7 +43,7 @@ Command_Buffer :: struct {
 Command_Config :: struct {
 	variant: union {
 		Render_Image_Command,
-		Render_Bitmap_Text_Command,
+		Render_Text_Command,
 		Render_Rect_Command } }
 
 Command :: struct {
@@ -62,7 +62,7 @@ command_submit :: proc(graphics_man: ^Graphics_Manager, command: Command, index:
 	if command.submitted do return
 	switch variant in command.variant {
 	case Render_Image_Command:       submit_render_image(graphics_man, command, index)
-	case Render_Bitmap_Text_Command: submit_render_bitmap_text(graphics_man, command, index)
+	case Render_Text_Command: submit_render_text(graphics_man, command, index)
 	case Render_Rect_Command:        submit_render_rect(graphics_man, command, index) }
 	graphics_man.command_buffer.commands[index].submitted = true }
 
