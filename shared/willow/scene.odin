@@ -214,11 +214,11 @@ tree_search_by_proc :: proc(tree: ^Tree, condition_proc: proc(node: ^Node, user_
 		if condition_proc(node, user_data) do return node }
 	return nil }
 
-node_transforms :: proc(node: ^Node) -> (translate_matrix, rotate_matrix, scale_matrix, transform_matrix: matrix[4, 4]f32) {
+node_transforms :: proc(node: ^Node) -> (translate_matrix, rotate_matrix, scale_matrix, node_matrix: matrix[4, 4]f32) {
 	translate_matrix = linalg.matrix4_translate_f32(node.translate)
 	rotate_matrix = linalg.matrix4_rotate_f32(node.rotate.x, { 1, 0, 0 }) *
 		linalg.matrix4_rotate_f32(node.rotate.y, { 0, 1, 0 }) *
 		linalg.matrix4_rotate_f32(node.rotate.z, { 0, 0, 1 })
 	scale_matrix = linalg.matrix4_scale_f32(node.scale)
-	transform_matrix = translate_matrix * rotate_matrix * scale_matrix
+	node_matrix = translate_matrix * rotate_matrix * scale_matrix
 	return }

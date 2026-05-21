@@ -76,6 +76,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	text_style: willow.Bitmap_Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
 	text_style.font = &font
 	text_style.color = fg_color
+	text_style.spacing = 1.0
 	text: string = "Consistent color usage creates visual continuity throughout experiences and even across products. The easiest way to guarantee uniform color usage is to use Fluent's design token system. Each value in the Fluent palettes is stored as a context-agnostic global token. Alias tokens then provide the context that makes it easy to choose the right color without having to hunt down hex codes."
 	willow.zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {
@@ -86,10 +87,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer willow.tick_manager_reset(&tick_man)
 			willow.tick_graphics_manager(&graphics_manager)
 			gui_screen := willow.gui_screen(&graphics_manager)
-			rect := willow.make_rect(0, 0, 400 + 350 * math.sin(time), 320)
+			rect := willow.make_rect(0, 0, 400/* + 350 * math.sin(time)*/, 320)
 			rect.size.y = willow.text_box_measure(text_style, rect.size.x, text)
 			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
-			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Top) }
+			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Left, v_align = .Top) }
 		free_all(context.temp_allocator) }
 	return }

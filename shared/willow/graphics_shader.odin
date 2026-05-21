@@ -13,7 +13,6 @@ import "core:io"
 
 GLSL_VERSION_STRING:    string : "#version 460 core"
 
-// (TODO): Change name to URL
 Shader_Config :: struct #all_or_none {
 	vert_url, frag_url: URL }
 

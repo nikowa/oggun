@@ -18,8 +18,8 @@ render_model_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, ca
 	assert(node != nil)
 	model_node := node_object(node, Model_Node, "node")
 	use_shader(&graphics_context.model_shader)
-	translate_matrix, rotate_matrix, scale_matrix, transform_matrix := node_transforms(&model_node.node)
-	set_shader_param(MODEL_MATRIX, &transform_matrix) // (TODO): Rename to node_matrix
+	translate_matrix, rotate_matrix, scale_matrix, node_matrix := node_transforms(&model_node.node)
+	set_shader_param(MODEL_MATRIX, &node_matrix)
 	set_shader_param(CAMERA_POSITION_MATRIX, &camera_node.view_matrix)
 	set_shader_param(CAMERA_PROJECTION_MATRIX, &camera_node.projection_matrix)
 	set_shader_param(CAMERA_FAR_CLIP, camera_node.far_clip)

@@ -194,21 +194,24 @@ V_Align :: enum { Bottom, Center, Top }
 
 @(private="file") text_measure :: proc(style: Bitmap_Text_Style, text: string) -> (width: f32, space_count: int) {
 	using style
-	for c, i in text {
-		width += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
-		if c == ' ' do space_count += 1 }
+	for symbol, i in text {
+		symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
+		if symbol == ' ' do symbol_delta *= spacing
+		width += symbol_delta
+		if symbol == ' ' do space_count += 1 }
 	return width, space_count }
 
 @(private="file") text_measure_iterate :: proc(style: Bitmap_Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int) -> bool {
 	using style
 	if i^ >= len(text) do return false
-	c: u8 = text[i^]
-	width^ += f32(font.advances[c] - font.bearings[c]) * scale_factor + spacing
-	if c == ' ' do space_count^ += 1
+	symbol: u8 = text[i^]
+	symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
+	if symbol == ' ' do symbol_delta *= spacing
+	width^ += symbol_delta
+	if symbol == ' ' do space_count^ += 1
 	i^ += 1
 	return true }
 
-// (TODO): Add a ratio "spacing" param.
 @(private="file") text_box_lines :: proc(style: Bitmap_Text_Style, rect: Rect, text: string) -> []string {
 	using style
 	lines := make([dynamic]string, context.temp_allocator)
@@ -220,7 +223,7 @@ V_Align :: enum { Bottom, Center, Top }
 		if (width <= rect.size.x) && ok {
 			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' {
 				prev_word_end_i = prev_i
-				width_acc = width - cast(f32)font.advances[' '] * scale_factor + spacing }
+				width_acc = width - cast(f32)font.advances[' '] * scale_factor + tracking }
 			prev_i = curr_i
 		} else {
 			if (line_start_i == prev_word_end_i + 1) || !ok do prev_word_end_i = prev_i
@@ -251,32 +254,13 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style,
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
 		render_bitmap_symbol(graphics_man, cast(u8)symbol, symbol_position, depth, style)
-		symbol_position.x += f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + spacing
-		if symbol == ' ' do symbol_position.x += space_delta } }
+		symbol_delta: f32 = 0.0
+		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
+		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
+		if symbol == ' ' do symbol_delta += space_delta
+		symbol_position.x += symbol_delta } }
 
 WHITESPACE_CUTSET :: "\t\n\v\f\r "
-
-// gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
-// 	using style
-// 	text := fmt.aprint(..args, sep = sep)
-// 	height: f32 = f32(font.symbol_size.y)
-// 	position: [2]f32 = rect.pos
-// 	if v_align == .Top do position.y += rect.size.y / 2 - height / 2
-// 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
-// 	width: f32
-// 	for text_measure_iterate(style, text, &curr_i, &width, &space_count) {
-// 		if width <= rect.size.x {
-// 			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' do prev_word_end_i = prev_i
-// 			prev_i = curr_i
-// 		} else {
-// 			if prev_word_end_i == line_start_i do prev_word_end_i = prev_i
-// 			gui_text_line(graphics_man, style, position, text[line_start_i:prev_word_end_i], desired_width = rect.size.x)
-// 			i: int = 0
-// 			for strings.is_space(cast(rune)text[prev_word_end_i + i]) do i += 1
-// 			line_start_i = prev_word_end_i + i
-// 			curr_i += i
-// 			width = 0
-// 			position.y -= height } } }
 
 text_box_measure :: proc(style: Bitmap_Text_Style, width: f32, args: ..any, sep: string = "") -> (total_height: f32) {
 	using style
@@ -288,7 +272,9 @@ text_box_measure :: proc(style: Bitmap_Text_Style, width: f32, args: ..any, sep:
 	return total_height }
 
 gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Bitmap_Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
+	style := style
 	using style
+	if h_align == .Justify do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
 	height: f32 = f32(font.symbol_size.y)
 	position: [2]f32 = rect.pos

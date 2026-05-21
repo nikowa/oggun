@@ -150,15 +150,6 @@ read_file::proc(filename:string)->(res:string,ok:bool) #optional_ok {
 	bytes,success:=os.read_entire_file_from_filename(filename) // NOTE This is not freed. //
 	return string(bytes),success }
 
-
-get_executable_path :: proc() -> string {
-	length: u32 = 256
-	buffer: [^]u16 = make([^]u16, length)
-	res_length: u32 = windows.GetModuleFileNameW(nil, buffer, 256)
-	assert(res_length > 0)
-	path, _ := windows.wstring_to_utf8_alloc(cast(cstring16)buffer, int(res_length), context.allocator)
-	return path }
-// TODO There is an odin macro for this. Employ that instead. And make sure it works. //
 */
 
 nth_line::proc(text:string,target_line:int)->(res:string) {

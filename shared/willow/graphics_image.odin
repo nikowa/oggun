@@ -16,7 +16,7 @@ Image_Asset :: struct {
 	using image: image.Image,
 	modification_time: time.Time,
 	gpu_modification_time: time.Time,
-	handle: u32 } // TODO: Add procedures to load the image to the GPU.
+	handle: u32 }
 
 image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 	return (a.url == b.url) &&
