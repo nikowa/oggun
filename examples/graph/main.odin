@@ -72,12 +72,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
 	font: willow.Bitmap_Font
-	willow.bitmap_font_init(&asset_manager, &font, { name = "font", default_bearing = 0, default_advance = 0 })
+	willow.bitmap_font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 	text_style: willow.Bitmap_Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
 	text_style.font = &font
 	text_style.color = fg_color
 	text_style.spacing = 1.0
-	text_style.scale_factor = 0.2
+	text_style.scale_factor = 1.0
 	for i in 0 ..< 8 do fmt.printfln("vec2(%f, %f),", rand.float32(), rand.float32())
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	willow.zero_stopwatch(&stopwatch)
@@ -89,10 +89,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer willow.tick_manager_reset(&tick_man)
 			willow.tick_graphics_manager(&graphics_manager)
 			gui_screen := willow.gui_screen(&graphics_manager)
-			rect := willow.make_rect(0, 0, 400/* + 350 * math.sin(time)*/, 320)
+			rect := willow.make_rect(0, 0, 400/* + 300 * math.sin(0.5 * time)*/, 320)
 			rect.size.y = willow.text_box_measure(text_style, rect.size.x, text)
 			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
-			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Left, v_align = .Top) }
+			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Top) }
 		free_all(context.temp_allocator) }
 	return }

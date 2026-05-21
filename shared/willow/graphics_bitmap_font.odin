@@ -23,7 +23,8 @@ DEFAULT_BITMAP_FONT_CONFIG: Bitmap_Font_Config : {
 
 Bitmap_Font :: struct {
 	using bitmap_font_config: Bitmap_Font_Config,
-	bitmap_image: Image_Asset,
+	bitmap_image: ^Image_Asset,
+	bitmap_image_bold: ^Image_Asset,
 	positions_string: String_Asset,
 	symbol_size: [2]f32,
 	bearings: [256]u8,
@@ -31,8 +32,18 @@ Bitmap_Font :: struct {
 
 bitmap_font_init :: proc(asset_man: ^Asset_Manager, font: ^Bitmap_Font, config: Bitmap_Font_Config) {
 	font.bitmap_font_config = config
-	init_image(asset_man, &font.bitmap_image, { url = auto_cast fmt.aprintf("image:%s.png", font.name) })
+	font.bitmap_image = new(Image_Asset)
+	init_image(asset_man, font.bitmap_image, { url = auto_cast fmt.aprintf("image:%s.png", font.name) })
+	bold_url: URL = cast(URL)fmt.aprintf("image:%s-bold.png", font.name)
+	bold_path: string = path_from_url(asset_man, bold_url, context.allocator)
+	// fmt.println(bold_path)
+	if os.exists(bold_path) {
+		font.bitmap_image_bold = new(Image_Asset)
+		init_image(asset_man, font.bitmap_image_bold, { url = bold_url })
+	} else {
+		font.bitmap_image_bold = font.bitmap_image }
 	assert(asset_commands(asset_man, Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
+	// assert(asset_commands(asset_man, Image_Asset, &font.bitmap_image_bold.asset, { .Import, .Load, .Upload }))
 	if font.default_advance == 0 do font.default_advance = u8(font.bitmap_image.height / 16)
 	font.symbol_size = { f32(font.bitmap_image.width / 16), f32(font.bitmap_image.height / 16) }
 	font.bearings = font.default_bearing
@@ -144,6 +155,7 @@ submit_render_bitmap_text :: proc(graphics_man: ^Graphics_Manager, _command: Com
 	upload_vertex_buffer_data(5, buffers[5], 1, gl.UNSIGNED_INT, bold)
 
 	bind_texture(0, command.font.bitmap_image.handle)
+	bind_texture(1, command.font.bitmap_image_bold.handle)
 	texture_filtering(gl.NEAREST)
 	polygon_mode(.Fill)
 	draw_triangles(cast(i32)n) }

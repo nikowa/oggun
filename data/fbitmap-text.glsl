@@ -1,4 +1,5 @@
 layout (binding = 0) uniform sampler2D samp;
+layout (binding = 1) uniform sampler2D samp_bold;
 
 layout (location = 0) uniform vec2 res;
 
@@ -9,13 +10,27 @@ flat in vec2 quad_size;
 flat in uint _bold;
 out vec4 color;
 
+#define bold _bold
+
+const vec2 AA_OFF[8] = {
+	vec2(0.279, 0.719),
+	vec2(0.552, 0.107),
+	vec2(0.499, 0.266),
+	vec2(0.361, 0.881),
+	vec2(0.579, 0.743),
+	vec2(0.735, 0.995),
+	vec2(0.002, 0.516),
+	vec2(0.617, 0.177) };
+
+#define AA 8
+
 vec4 sample_raw(vec2 uv) {
 	vec2 offset = vec2(_symbol % 16, _symbol / 16 - 15);
 	uv = vec2(uv.x, 1 - uv.y);
 	uv /= 16;
 	uv.x += float(_symbol % 16) / 16;
 	uv.y += float(_symbol / 16) / 16;
-	return texture(samp, uv); }
+	return texture((bold == 1) ? samp_bold : samp, uv); }
 
 vec4 sample_styled(vec2 uv) {
 	return _text_color * sample_raw(uv); }
@@ -34,24 +49,11 @@ vec4 sample_styled(vec2 uv) {
 	// 	pc=SHADOW_COLOR; }
 	// return pc; }
 
-const vec2 AA_OFF[8] = {
-	vec2(0.279, 0.719),
-	vec2(0.552, 0.107),
-	vec2(0.499, 0.266),
-	vec2(0.361, 0.881),
-	vec2(0.579, 0.743),
-	vec2(0.735, 0.995),
-	vec2(0.002, 0.516),
-	vec2(0.617, 0.177) };
-
-#define AA 8
-
 void main(void) {
 	vec2 pixel_size = vec2(1) / quad_size;
 	for (int i = 0; i < AA; i += 1) {
 		vec2 off = (AA_OFF[i] - vec2(0.5));
-		float radius = (_bold == 1) ? 4.0 : 1.0;
-		color.w += radius * sample_styled(tex_coords + pixel_size * off).w; }
+		color.w += 1.0 * sample_styled(tex_coords + pixel_size * off).w; }
 	color.w /= float(AA);
 	// color.w = 1 - pow(1 - color.w, 2.0);
 	// if (color.w < 0.16) color.w = 0.0;
