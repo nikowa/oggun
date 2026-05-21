@@ -43,12 +43,13 @@ bitmap_font_init :: proc(asset_man: ^Asset_Manager, font: ^Bitmap_Font, config: 
 	assert(asset_commands(asset_man, String_Asset, &font.positions_string.asset, { .Import, .Load }))
 	lines: []string = strings.split_lines(font.positions_string.str)
 	for line in lines {
-		tokens: []string = strings.split(line, " ")
-		if len(tokens) != 3 do continue
-		bearing, ok := strconv.parse_int(tokens[1])
-		if ok do font.bearings[rune(tokens[0][0])] = u8(bearing)
-		advance: int; advance, ok = strconv.parse_int(tokens[2])
-		if ok do font.advances[rune(tokens[0][0])] = u8(advance) } } }
+		symbol: u8 = line[0]
+		numbers: []string = strings.split(line[2:], " ")
+		if len(numbers) != 2 do continue
+		bearing, ok := strconv.parse_int(numbers[0])
+		if ok do font.bearings[cast(rune)symbol] = u8(bearing)
+		advance: int; advance, ok = strconv.parse_int(numbers[1])
+		if ok do font.advances[cast(rune)symbol] = u8(advance) } } }
 
 Render_Bitmap_Text_Command :: struct {
 	using params: Render_Bitmap_Text_Params,

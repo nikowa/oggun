@@ -90,7 +90,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			willow.render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			willow.render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
 			text: string = "Also because of the new contract I have to send our accountant all these things and one of them is my older contracts from jobs because it's a government job and my salary is calculated based on years of experience among other things, so I had to get all my contracts from the magazine and you know how long I've been working for them????"
-			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Center, v_align = .Top)
+			willow.gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Center)
 		}
 		free_all(context.temp_allocator) }
 	return }
