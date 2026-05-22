@@ -12,17 +12,7 @@ out vec4 color;
 
 #define bold _bold
 
-const vec2 AA_OFF[8] = {
-	vec2(0.279, 0.719),
-	vec2(0.552, 0.107),
-	vec2(0.499, 0.266),
-	vec2(0.361, 0.881),
-	vec2(0.579, 0.743),
-	vec2(0.735, 0.995),
-	vec2(0.002, 0.516),
-	vec2(0.617, 0.177) };
-
-#define AA 8
+#include <msaa>
 
 vec4 sample_raw(vec2 uv) {
 	vec2 offset = vec2(_symbol % 16, _symbol / 16 - 15);
@@ -51,13 +41,11 @@ vec4 sample_styled(vec2 uv) {
 	// return pc; }
 
 void main(void) {
-	vec2 pixel_size = vec2(1) / quad_size;
-	for (int i = 0; i < AA; i += 1) {
-		vec2 off = (AA_OFF[i] - vec2(0.5));
-		color.w += 1.0 * sample_styled(tex_coords + pixel_size * off).w; }
-	color.w /= float(AA);
+	msaa8_scope_begin(color.w, 1 * quad_size)
+		color.w += 1.0 * sample_styled(tex_coords + msaa8_off).w;
+	msaa8_scope_end(color.w)
 	// color.w = 1 - pow(1 - color.w, 2.0);
-	// if (color.w < 0.16) color.w = 0.0;
+	if (color.w < 0.25) color.w = 0.0;
 	// color.w = pow(color.w, 0.5);
 	color.rgb = sample_styled(tex_coords).rgb;
 	if (color.w == 0.0) { gl_FragDepth = 1.0; } }

@@ -80,7 +80,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			rect := make_rect(0, 0, 400/* + 300 * math.sin(0.5 * time)*/, 320)
 			rect.size.y = text_box_measure(text_style, rect.size.x, text)
 			render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
-			render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2, rounding = 16, stroke_color = /*stroke_color*/BLACK, stroke = 1)
+			render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2, rounding = 40, stroke_color = /*stroke_color*/BLACK, stroke = 1)
 			gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Top) }
 		free_all(context.temp_allocator) }
 	return }
