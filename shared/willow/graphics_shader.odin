@@ -11,10 +11,11 @@ import "core:os"
 import "core:time"
 import "core:io"
 
-GLSL_VERSION_STRING:    string : "#version 460 core"
+GLSL_VERSION_STRING: string : "#version 460 core"
 
 Shader_Config :: struct #all_or_none {
 	vert_url, frag_url: URL }
+	// definitions: []Definition }
 
 DEFAULT_SHADER_CONFIG: Shader_Config : {
 	vert_url = DEFAULT_URL,

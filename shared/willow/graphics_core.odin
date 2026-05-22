@@ -9,6 +9,7 @@ import "core:os"
 import "core:math/linalg"
 import "core:time"
 import "core:log"
+import "core:fmt"
 
 // Rendering pipeline:
 // (1) Enable emittance.
@@ -696,7 +697,7 @@ Render_Rect_Group_Params :: struct {
 render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
 	command: Render_Rect_Command = {
 		render_buffer = render_buffer,
-		rect = rect,
+		rect = rect_round(rect),
 		fill_color = fill_color,
 		stroke_color = stroke_color,
 		rounding = rounding,
@@ -791,7 +792,8 @@ render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect:
 	command: Render_Image_Command = {
 		render_buffer = render_buffer,
 		image = image,
-		rect = rect,
+		// (TODO): Make this rounding optional. //
+		rect = rect_round(rect),
 		depth = depth }
 	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 

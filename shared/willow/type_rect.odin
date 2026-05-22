@@ -1,5 +1,6 @@
 #+feature using-stmt
 package willow
+import "core:math"
 
 Rect :: struct #packed {
 	position: [2]f32,
@@ -26,3 +27,11 @@ rect_contains_point :: proc(rect: Rect, point: [2]f32) -> bool {
 
 in_range :: proc(x: f32, lo: f32, hi: f32) -> bool {
 	return (x >= lo) && (x <= hi) }
+
+rect_round :: proc(rect: Rect) -> Rect {
+	rect := rect
+	rect.position.x = math.round_f32(rect.position.x)
+	rect.position.y = math.round_f32(rect.position.y)
+	rect.size.x = math.round_f32(rect.size.x / 2) * 2
+	rect.size.y = math.round_f32(rect.size.y / 2) * 2
+	return rect }
