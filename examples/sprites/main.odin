@@ -32,7 +32,7 @@ sprite_init :: proc(sprite: ^Sprite) {
 	sprite.depth = rand.float32()
 	angle: f32 = 2 * math.PI * rand.float32()
 	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
-	sprite.speed = 0.1 * (1 + rand.float32()) }
+	sprite.speed = 0.01 * (1 + rand.float32()) }
 
 Settings :: struct {
 	player_name: string,
@@ -64,7 +64,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	init_image(&asset_manager, &images[3], { url = "image:kitten-4.png" })
 	init_image(&asset_manager, &images[4], { url = "image:kitten-5.png" })
 	for &image in images do assert(asset_commands(&asset_manager, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
-	N :: 1000
+	N :: 10000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
 	slice.sort(splits[:])
