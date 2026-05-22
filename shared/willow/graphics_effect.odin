@@ -8,6 +8,10 @@ Effect_Config :: struct {
 	url: URL,
 	surface_res: [][2]u32 }
 
+DEFAULT_EFFECT_CONFIG: Effect_Config : {
+	url = DEFAULT_URL,
+	surface_res = {} }
+
 // Each surface is a normalized UV mesh, from which positions are computed by the vertex shader.
 Effect :: struct {
 	using config: Effect_Config,

@@ -6,7 +6,11 @@ import "core:math/linalg"
 // deserialize. To maintain links, use relative pointers.
 Scene_Config :: struct #all_or_none {
 	url: URL,
-	haze_color: [3]f32 }
+	haze_color: Color }
+
+DEFAULT_SCENE_CONFIG: Scene_Config : {
+	url = DEFAULT_URL,
+	haze_color = WHITE }
 
 Scene :: struct {
 	using config: Scene_Config,
@@ -39,35 +43,18 @@ Node_Config :: struct {
 	scale: [3]f32,
 	visible: bool }
 
+stub_node_render_proc :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) { }
+stub_node_tick_proc :: proc(node: ^Node) {}
+
 DEFAULT_NODE_CONFIG: Node_Config : {
-	name = "default",
+	name = DEFAULT_NAME,
 	id = 0,
-	render_proc = nil,
-	tick_proc = nil,
+	render_proc = stub_node_render_proc,
+	tick_proc = stub_node_tick_proc,
 	translate = { 0, 0, 0 },
 	rotate = 1 + 0i + 0j + 0k,
 	scale = { 1, 1, 1 },
 	visible = true }
-
-default_node_config :: proc(
-		name: string = DEFAULT_NODE_CONFIG.name,
-		id: u32 = DEFAULT_NODE_CONFIG.id,
-		render_proc: Node_Render_Proc = nil,
-		tick_proc: Node_Tick_Proc = nil,
-		translate: [3]f32 = DEFAULT_NODE_CONFIG.translate,
-		rotate: quaternion128 = DEFAULT_NODE_CONFIG.rotate,
-		scale: [3]f32 = DEFAULT_NODE_CONFIG.scale,
-		visible: bool = DEFAULT_NODE_CONFIG.visible) -> (node_config: Node_Config) {
-	node_config = {
-		name = name,
-		id = id,
-		render_proc = render_proc,
-		tick_proc = tick_proc,
-		translate = translate,
-		rotate = rotate,
-		scale = scale,
-		visible = visible }
-	return node_config }
 
 Node :: struct {
 	using config: Node_Config,

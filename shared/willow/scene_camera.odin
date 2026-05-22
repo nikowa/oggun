@@ -27,7 +27,7 @@ Camera :: struct {
 	camera_matrix: matrix[4, 4]f32,
 	local_matrix: matrix[4, 4]f32 }
 
-DEFAULT_CAMERA: Camera : {
+DEFAULT_CAMERA_CONFIG: Camera_Config : {
 	focal_length = 2,
 	sensor_size = { 1.777777777777, 1.0 },
 	near_clip = 0.0,

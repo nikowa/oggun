@@ -8,9 +8,6 @@ current: example_graph
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
 
-cli:
-	odin build . -out:main.exe {{flags}}
-
 release:
 	make -C ./build
 	./build.exe -release

@@ -127,12 +127,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
 		watch = true }, context.allocator)
-	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT
+	window_config: willow.Window_Config = willow.DEFAULT_WINDOW_CONFIG
 
-	window_config.size = { 1664, 936 }
-	window_config.position = [2]f32{ 0, 0 }
-	window_config.title = "Savanna"
-	willow.window_init(&window_man, window_config)
+	willow.window_init(&window_man, willow.default_window_config(title = "Sync"))
 	willow.graphics_init(
 		graphics_manager = &graphics_man,
 		as_mngr = &asset_manager,

@@ -28,6 +28,15 @@ Asset_Manager_Config :: struct {
 	autosave_cap: u32,
 	watch: bool }
 
+// (TODO): Remove "DEFAULT_AUTOSAVE_INTERVAL" and "DEFAULT_AUTOSAVE_CAP"
+
+DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
+	relpath = "Data.bin",
+	source_directory_relpath = "../data",
+	autosave_interval = DEFAULT_AUTOSAVE_INTERVAL,
+	autosave_cap = DEFAULT_AUTOSAVE_CAP,
+	watch = true }
+
 Asset_Manager :: struct {
 	using config: Asset_Manager_Config,
 	allocator: runtime.Allocator,
@@ -63,6 +72,12 @@ Asset_Config :: struct {
 	url: URL,
 	derived_type: typeid }
 
+DEFAULT_URL :: "unknown:unnamed"
+
+DEFAULT_ASSET_CONFIG: Asset_Config : {
+	url = DEFAULT_URL,
+	derived_type = string }
+
 // (NOTE): All types that derive from asset must be remain at the same memory address after initialization by "init_asset".
 Asset :: struct {
 	using asset_config: Asset_Config,
@@ -75,6 +90,11 @@ Entry_Config :: struct {
 	url: URL,
 	modification_time: time.Time,
 	data: []u8 }
+
+DEFAULT_ENTRY_CONFIG: Entry_Config : {
+	url = DEFAULT_URL,
+	modification_time = {},
+	data = {} }
 
 Entry :: struct {
 	using config: Entry_Config,

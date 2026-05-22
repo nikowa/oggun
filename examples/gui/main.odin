@@ -34,7 +34,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
 		watch = true }, context.allocator)
-	willow.window_init(&window_manager, willow.WINDOW_CONFIG_DEFAULT)
+	willow.window_init(&window_man, willow.default_window_config(title = "GUI"))
 	willow.graphics_init(
 		graphics_manager = &graphics_manager,
 		as_mngr = &asset_manager,

@@ -16,6 +16,10 @@ GLSL_VERSION_STRING:    string : "#version 460 core"
 Shader_Config :: struct #all_or_none {
 	vert_url, frag_url: URL }
 
+DEFAULT_SHADER_CONFIG: Shader_Config : {
+	vert_url = DEFAULT_URL,
+	frag_url = DEFAULT_URL }
+
 Shader_Asset :: struct {
 	using asset: Asset,
 	using shader_config: Shader_Config,

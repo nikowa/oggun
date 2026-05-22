@@ -22,6 +22,9 @@ Tick_Manager :: struct {
 Tick_Manager_Config :: struct {
 	tickrate_setting: Tickrate_Setting }
 
+DEFAULT_TICK_MANAGER_CONFIG: Tick_Manager_Config : {
+	tickrate_setting = .LIMITED_144_FPS }
+
 Tickrate_Setting :: enum {
 	LIMITED_30_FPS = 0,
 	LIMITED_60_FPS,

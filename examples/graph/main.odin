@@ -60,11 +60,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP, watch = true }, context.allocator)
-	window_config: willow.Window_Config = willow.WINDOW_CONFIG_DEFAULT
-	window_config.size = { 1664, 936 }
-	window_config.position = [2]f32{ 0, 0 }
-	window_config.title = "Graph"
-	willow.window_init(&window_man, window_config)
+	willow.window_init(&window_man, willow.default_window_config(title = "Graph"))
 	willow.graphics_init(
 		graphics_manager = &graphics_manager,
 		as_mngr = &asset_manager,
@@ -73,9 +69,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	font_group: willow.Font_Group
 	willow.font_group_init(&asset_manager, &font_group,
-		normal = willow.Font_Config{ name = "terminus", default_bearing = 0, default_advance = 0 },
-		bold = willow.Font_Config{ name = "terminus-bold", default_bearing = 0, default_advance = 0 },
-		italic = willow.Font_Config{ name = "terminus-italic", default_bearing = 0, default_advance = 0 })
+		normal = willow.default_font_config(name = "terminus"),
+		bold = willow.default_font_config(name = "terminus-bold"),
+		italic = willow.default_font_config(name = "terminus-italic"))
+	// willow.font_group_init(&asset_manager, &font_group,
+	// 	normal = willow.Font_Config{ name = "terminus", default_bearing = 0, default_advance = 0 },
+	// 	bold = willow.Font_Config{ name = "terminus-bold", default_bearing = 0, default_advance = 0 },
+	// 	italic = willow.Font_Config{ name = "terminus-italic", default_bearing = 0, default_advance = 0 })
 	text_style: willow.Text_Style = willow.DEFAULT_BITMAP_TEXT_STYLE
 	text_style.font_group = font_group
 	text_style.color = fg_color

@@ -9,6 +9,9 @@ import "core:container/bit_array"
 Input_Config :: struct #all_or_none {
 	raw_input: bool }
 
+DEFAULT_INPUT_CONFIG: Input_Config : {
+	raw_input = false }
+
 Input_Manager :: struct {
 	using input_config: Input_Config,
 	mouse_position: [2]f32,

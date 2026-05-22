@@ -48,6 +48,10 @@ Graphics_Config :: struct #all_or_none {
 	window_manager: ^Window_Manager,
 	clear_color: Color }
 
+DEFAULT_GRAPHICS_CONFIG: Graphics_Config : {
+	window_manager = {},
+	clear_color = BLACK }
+
 Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
 	command_buffer: Command_Buffer,

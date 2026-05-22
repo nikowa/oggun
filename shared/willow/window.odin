@@ -10,11 +10,18 @@ Window_Config :: struct #all_or_none {
 	title: string,
 	fullscreen: bool }
 
-WINDOW_CONFIG_DEFAULT: Window_Config : {
+DEV_WINDOW_CONFIG: Window_Config : {
 	backend = .GLFW,
 	position = [2]f32{ -480, -270 },
 	size = { 960, 540 },
 	title = "Willow",
+	fullscreen = false }
+
+DEFAULT_WINDOW_CONFIG: Window_Config : {
+	backend = .GLFW,
+	position = [2]f32{ 0, 0 },
+	size = { 1664, 936 },
+	title = DEFAULT_NAME,
 	fullscreen = false }
 
 Window_Manager :: struct {

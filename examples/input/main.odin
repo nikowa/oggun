@@ -150,7 +150,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		source_directory_relpath = "../data",
 		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	willow.window_init(&window_manager, willow.WINDOW_CONFIG_DEFAULT)
+	willow.window_init(&window_manager, willow.default_window_config(title = "Input"))
 	willow.input_init(&input_manager, &window_manager, { raw_input = true })
 	willow.graphics_init(
 		graphics_manager = &graphics_man,

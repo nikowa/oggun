@@ -9,6 +9,7 @@ import "core:mem"
 WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
 nil_stub: rawptr
 NIL_STUB_SIZE :: 1 * mem.Megabyte
+DEFAULT_NAME :: "unnamed"
 
 Entry_Point :: #type proc(data: ^Thread_Data)
 
