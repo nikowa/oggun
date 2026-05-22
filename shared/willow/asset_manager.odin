@@ -101,14 +101,13 @@ Entry :: struct {
 	node: list.Node,
 	hash: u32 }
 
-make_asset_manager :: proc(config: Asset_Manager_Config, backing_allocator: runtime.Allocator) -> (asset_manager: Asset_Manager) {
+asset_manager_init :: proc(asset_manager: ^Asset_Manager, config: Asset_Manager_Config, backing_allocator: runtime.Allocator) {
 	asset_manager.config = config
 	asset_manager.allocator = backing_allocator
 	asset_manager.entries_map = make_map(map[URL]^Entry, asset_manager.allocator)
 	asset_manager.asset_kinds = make(map[typeid]Asset_Kind, backing_allocator)
 	asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32, backing_allocator)
-	register_builtin_asset_kinds(&asset_manager)
-	return asset_manager }
+	register_builtin_asset_kinds(asset_manager) }
 
 asset_command :: proc(asset_manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
 	assert(Asset_Type in asset_manager.asset_kinds)
@@ -244,12 +243,12 @@ relpath_to_source_path :: proc(asset_manager: ^Asset_Manager, relpath: string, a
 	path, _ = os.join_path({ relpath_to_path(asset_manager.source_directory_relpath, allocator), relpath }, allocator = allocator)
 	return path }
 
-make_or_read_asset_manager :: proc(config: Asset_Manager_Config, allocator: runtime.Allocator) -> (asset_manager: Asset_Manager) {
-	if os.exists(relpath_to_path(config.relpath, context.temp_allocator)) do return asset_manager_read(config, allocator)
-	else do return make_asset_manager(config, allocator) }
+asset_manager_read_or_init :: proc(asset_manager: ^Asset_Manager, config: Asset_Manager_Config, allocator: runtime.Allocator) {
+	if os.exists(relpath_to_path(config.relpath, context.temp_allocator)) do asset_manager_read(asset_manager, config, allocator)
+	else do asset_manager_init(asset_manager, config, allocator) }
 
-asset_manager_read :: proc(config: Asset_Manager_Config, allocator: runtime.Allocator, relpath_override: string = "") -> (asset_manager: Asset_Manager) {
-	asset_manager = make_asset_manager(config, allocator)
+asset_manager_read :: proc(asset_manager: ^Asset_Manager, config: Asset_Manager_Config, allocator: runtime.Allocator, relpath_override: string = "") {
+	asset_manager_init(asset_manager, config, allocator)
 	asset_manager.config = config
 	path := relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, allocator)
 	compressed_data, err := os.read_entire_file_from_path(path, allocator = context.temp_allocator)
@@ -275,11 +274,10 @@ asset_manager_read :: proc(config: Asset_Manager_Config, allocator: runtime.Allo
 		entry.data = make([]u8, data_len, allocator)
 		_, err = bytes.reader_read_slice(&reader, entry.data); assert(err == nil)
 		// log.infof("Reading entry \"%s\".", entry.url)
-		add_entry(&asset_manager, entry)
+		add_entry(asset_manager, entry)
 		if ! entry_integrity(&entry) do log.errorf("Entry %s is invalid.", entry.url) }
 	asset_manager.modification_time = binary_header.modification_time
-	register_builtin_asset_kinds(&asset_manager)
-	return asset_manager }
+	register_builtin_asset_kinds(asset_manager) }
 
 asset_manager_write :: proc(asset_manager: ^Asset_Manager, allocator: runtime.Allocator, relpath_override: string = "") {
 	err: io.Error

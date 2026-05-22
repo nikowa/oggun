@@ -98,9 +98,11 @@ swing :: proc() -> f32 {
 	return rand.float32_range(-0.05, 0.05) }
 
 render_entity :: proc(entity: ^Entity) {
+	using willow
+
 	screen_position: [2]f32
 	screen_position = entity.position * gui_screen.size / 2
-	image: ^willow.Image_Asset
+	image: ^Image_Asset
 	image_size: [2]f32
 	label: string
 	#partial switch variant in entity.variant {
@@ -112,69 +114,65 @@ render_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	willow.render_image(&graphics_man, image, { screen_position, image_size }, depth = entity.depth)
-	willow.render_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = willow.WHITE, scale_factor = 1.0) }
+	render_image(&graphics_man, image, { screen_position, image_size }, depth = entity.depth)
+	render_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = WHITE, scale_factor = 1.0) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
-	sync_context: willow.Context = willow.make_context()
+	using willow
+	sync_context: Context = make_context()
 
 	context.logger = log.create_console_logger()
 
-	asset_manager = willow.make_asset_manager({
-		relpath = "Data.bin",
-		source_directory_relpath = "../data",
-		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
-		watch = true }, context.allocator)
-	window_config: willow.Window_Config = willow.DEFAULT_WINDOW_CONFIG
+	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
+	window_config: Window_Config = DEFAULT_WINDOW_CONFIG
 
-	willow.window_init(&window_man, willow.default_window_config(title = "Sync"))
-	willow.graphics_init(
+	window_init(&window_man, default_window_config(title = "Sync"))
+	graphics_init(
 		graphics_manager = &graphics_man,
 		as_mngr = &asset_manager,
-		graphics_config = { window_manager = &window_man, clear_color = willow.BLACK })
-	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
-	gui_screen = willow.gui_screen(&graphics_man)
+		graphics_config = { window_manager = &window_man, clear_color = BLACK })
+	init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
+	gui_screen = gui_screen(&graphics_man)
 
-	willow.init_image(&asset_manager, &background_image, { url = "image:savanna-background.png" })
+	init_image(&asset_manager, &background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
-	willow.init_image(&asset_manager, &car_image, { url = "image:car.png" })
+	init_image(&asset_manager, &car_image, { url = "image:car.png" })
 	append(&images, &car_image)
-	willow.init_image(&asset_manager, &tree_image, { url = "image:tree.png" })
+	init_image(&asset_manager, &tree_image, { url = "image:tree.png" })
 	append(&images, &tree_image)
-	willow.init_image(&asset_manager, &aardvark_image, { url = "image:aardvark.png" })
+	init_image(&asset_manager, &aardvark_image, { url = "image:aardvark.png" })
 	append(&images, &aardvark_image)
-	willow.init_image(&asset_manager, &meerkat_image, { url = "image:meerkat.png" })
+	init_image(&asset_manager, &meerkat_image, { url = "image:meerkat.png" })
 	append(&images, &meerkat_image)
-	willow.init_image(&asset_manager, &zebra_image, { url = "image:zebra.png" })
+	init_image(&asset_manager, &zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(willow.asset_commands(&asset_manager, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(asset_commands(&asset_manager, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	willow.font_init(&asset_manager, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
+	font_init(&asset_manager, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())
 
-	willow.zero_stopwatch(&stopwatch)
+	zero_stopwatch(&stopwatch)
 	for ! graphics_man.window_closed {
-		time := willow.read_stopwatch(&stopwatch)
-		willow.tick_asset_manager(&asset_manager)
+		time := read_stopwatch(&stopwatch)
+		tick_asset_manager(&asset_manager)
 
-		if willow.tick_manager_tick(&tick_man) {
-			defer willow.tick_manager_reset(&tick_man)
-			willow.tick_graphics_manager(&graphics_man)
+		if tick_manager_tick(&tick_man) {
+			defer tick_manager_reset(&tick_man)
+			tick_graphics_manager(&graphics_man)
 
-			willow.render_image(&graphics_man, &background_image, gui_screen, depth = 0.99)
+			render_image(&graphics_man, &background_image, gui_screen, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
 				render_entity(entity) }
 
-			willow.render_image(&graphics_man, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			willow.render_image(&graphics_man, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// willow.render_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 1.0)
+			render_image(&graphics_man, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
+			render_image(&graphics_man, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			// render_text(&graphics_man, "Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

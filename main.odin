@@ -65,7 +65,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	assert(err == nil)
 	assert(example_dll.dev_tick != nil)
-	as_mngr = as.make_asset_manager({
+	as_mngr = as.asset_manager_init({
 		relpath = "Data.bin",
 		source_directory_relpath = "data",
 		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,

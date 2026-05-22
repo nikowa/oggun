@@ -40,57 +40,53 @@ Settings :: struct {
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
+	using willow
 	context.logger = log.create_console_logger()
 
 	settings: Settings = {
 		player_name = "Destroyer",
 		resolution = { 1920, 1080 },
 		fullscreen = true }
-	willow.init_settings_manager(&settings_man, "Sprites")
-	willow.settings_manager_write(&settings_man, &settings)
+	init_settings_manager(&settings_man, "Sprites")
+	settings_manager_write(&settings_man, &settings)
 
-	asset_man = willow.make_asset_manager({
-		relpath = "Data.bin",
-		source_directory_relpath = "../data",
-		autosave_interval = willow.DEFAULT_AUTOSAVE_INTERVAL,
-		autosave_cap = willow.DEFAULT_AUTOSAVE_CAP,
-		watch = true }, context.allocator)
-	willow.window_init(&window_man, willow.default_window_config(title = "Sprites"))
-	willow.graphics_init(
+	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
+	window_init(&window_man, default_window_config(title = "Sprites"))
+	graphics_init(
 		graphics_manager = &graphics_man,
 		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_man, clear_color = willow.BLACK })
-	willow.init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
+		graphics_config = { window_manager = &window_man, clear_color = BLACK })
+	init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
 
-	images: [5]willow.Image_Asset
-	willow.init_image(&asset_man, &images[0], { url = "image:kitten-1.png" })
-	willow.init_image(&asset_man, &images[1], { url = "image:kitten-2.png" })
-	willow.init_image(&asset_man, &images[2], { url = "image:kitten-3.png" })
-	willow.init_image(&asset_man, &images[3], { url = "image:kitten-4.png" })
-	willow.init_image(&asset_man, &images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(willow.asset_commands(&asset_man, willow.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	images: [5]Image_Asset
+	init_image(&asset_man, &images[0], { url = "image:kitten-1.png" })
+	init_image(&asset_man, &images[1], { url = "image:kitten-2.png" })
+	init_image(&asset_man, &images[2], { url = "image:kitten-3.png" })
+	init_image(&asset_man, &images[3], { url = "image:kitten-4.png" })
+	init_image(&asset_man, &images[4], { url = "image:kitten-5.png" })
+	for &image in images do assert(asset_commands(&asset_man, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	N :: 1000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
 	slice.sort(splits[:])
 	splits[4] = N
 
-	font: willow.Font
-	willow.font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	font: Font
+	font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 
 	sprites := make([]Sprite, N)
 	for &sprite in sprites do sprite_init(&sprite)
 
-	willow.zero_stopwatch(&stopwatch)
+	zero_stopwatch(&stopwatch)
 	for ! graphics_man.window_closed {
-		time := willow.read_stopwatch(&stopwatch)
-		willow.tick_asset_manager(&asset_man)
+		time := read_stopwatch(&stopwatch)
+		tick_asset_manager(&asset_man)
 
-		if willow.tick_manager_tick(&tick_man) {
-			defer willow.tick_manager_reset(&tick_man)
+		if tick_manager_tick(&tick_man) {
+			defer tick_manager_reset(&tick_man)
 			// fmt.printfln("fps: %v", cast(int)tick_man.frame_rate)
-			willow.tick_graphics_manager(&graphics_man)
-			gui_screen := willow.gui_screen(&graphics_man)
+			tick_graphics_manager(&graphics_man)
+			gui_screen := gui_screen(&graphics_man)
 			image_index: int = 0
 			for &sprite, i in sprites {
 				sprite.position += tick_man.delta_time * sprite.speed * sprite.direction
@@ -106,10 +102,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				if sprite.position.y < 0 {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
-				sprite_rect: willow.Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				willow.render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
+				sprite_rect: Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
+				render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
 				if i > splits[image_index] do image_index += 1 }
-			// willow.render_text(&graphics_man, "Hello, world!", font = &font, color = willow.WHITE, scale_factor = 2.0)
+			// render_text(&graphics_man, "Hello, world!", font = &font, color = WHITE, scale_factor = 2.0)
 		}
 
 		free_all(context.temp_allocator) }

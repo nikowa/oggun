@@ -40,7 +40,7 @@ Tickrate_Setting :: enum {
 // 	clock.net_time = 0.0
 // 	clock.net_time_to_last_frame = 0.0 }
 
-init_tick_manager :: proc(tick_man: ^Tick_Manager, config: Tick_Manager_Config) {
+tick_manager_init :: proc(tick_man: ^Tick_Manager, config: Tick_Manager_Config) {
 	tick_man.tick_manager_config = config
 	time.stopwatch_start(&tick_man.stopwatch)
 	tick_man.tick_period_nsec = FRAME_PERIODS_NSEC[cast(int)config.tickrate_setting]
