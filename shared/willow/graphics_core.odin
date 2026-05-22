@@ -684,17 +684,21 @@ Render_Rect_Params :: struct {
 	rect: Rect,
 	fill_color: Color,
 	rounding: f32,
-	depth: f32 }
+	depth: f32,
+	stroke: f32,
+	stroke_color: Color }
 
 Render_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
-render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
+render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
 	command: Render_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = rect,
 		fill_color = fill_color,
+		stroke_color = stroke_color,
 		rounding = rounding,
+		stroke = stroke,
 		depth = depth }
 	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 
@@ -708,7 +712,7 @@ submit_render_rect :: proc(graphics_man: ^Graphics_Manager, _command: Command, i
 
 	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Rect_Command, _command_0, _command_1) })
 
-	buffers := make_buffers(4)
+	buffers := make_buffers(6)
 	defer delete_buffers(buffers)
 
 	n: int = QUAD_VERTS_LEN * len(commands)
@@ -716,17 +720,24 @@ submit_render_rect :: proc(graphics_man: ^Graphics_Manager, _command: Command, i
 	depth := make([]f32, n)
 	fill_color := make([][4]f32, n)
 	rounding := make([]f32, n)
+	stroke := make([]f32, n)
+	stroke_color := make([][4]f32, n)
+
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
 		command := _command.variant.(Render_Rect_Command)
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth
 		fill_color[k] = color_to_4f32(command.fill_color)
-		rounding[k] = command.rounding }
+		rounding[k] = command.rounding
+		stroke[k] = command.stroke
+		stroke_color[k] = color_to_4f32(command.stroke_color) }
 	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
 	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
 	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, fill_color)
 	upload_vertex_buffer_data(3, buffers[3], 1, gl.FLOAT, rounding)
+	upload_vertex_buffer_data(4, buffers[4], 1, gl.FLOAT, stroke)
+	upload_vertex_buffer_data(5, buffers[5], 4, gl.FLOAT, stroke_color)
 
 	polygon_mode(.Fill)
 	draw_triangles(cast(i32)n) }

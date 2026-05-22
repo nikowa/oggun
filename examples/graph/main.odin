@@ -79,10 +79,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			tick_graphics_manager(&graphics_manager)
 			rect := make_rect(0, 0, 400/* + 300 * math.sin(0.5 * time)*/, 320)
 			rect.size.y = text_box_measure(text_style, rect.size.x, text)
-			render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, depth = 0.2, rounding = 20)
-			// render_rect(&graphics_manager, gui_screen(&graphics_manager), fill_color = RED, depth = 0.9)
-			render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
-			render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
+			render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
+			render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2, rounding = 16, stroke_color = /*stroke_color*/BLACK, stroke = 1)
 			gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Top) }
 		free_all(context.temp_allocator) }
 	return }
