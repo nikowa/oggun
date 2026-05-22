@@ -109,7 +109,7 @@ generate :: proc(willow_path: string) {
 		if value_decl.type != nil {
 			type_ident, ok := value_decl.type.derived.(^ast.Ident)
 			if ! ok do return v
-			if ! strings.contains(type_ident.name, "Config") do return v
+			// if ! strings.contains(type_ident.name, "Config") do return v
 			selected: bool = false
 			for _, i in config_type_infos[:] {
 				type_info := &config_type_infos[i]

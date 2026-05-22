@@ -104,7 +104,7 @@ Text_Style :: struct {
 	tracking: f32,
 	spacing: f32 }
 
-DEFAULT_BITMAP_TEXT_STYLE: Text_Style : {
+DEFAULT_TEXT_STYLE: Text_Style : {
 	color = BLACK,
 	italic = false,
 	bold = false,
@@ -120,7 +120,7 @@ font_group_select :: proc(font_group: Font_Group, style: Text_Style) -> (font: ^
 	case: return font_group.normal }
 	return nil }
 
-render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_BITMAP_TEXT_STYLE) {
+render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE) {
 	using style
 	command: Render_Text_Command = {
 		font = font_group_select(font_group, style),
