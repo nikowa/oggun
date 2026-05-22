@@ -11,7 +11,7 @@ flat in vec4 _rect;
 void main(void) {
 
 	msaa8_scope_begin(color, 2 * rect.zw)
-		color += texture(samp, tex_coord + 1 * msaa8_off);
+		color += texture(samp, tex_coord + 1 * msaa_off);
 	msaa8_scope_end(color)
 
 	// color = texture(samp, tex_coord);
