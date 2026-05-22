@@ -52,6 +52,8 @@ DEFAULT_GRAPHICS_CONFIG: Graphics_Config : {
 	window_manager = {},
 	clear_color = BLACK }
 
+MSAA :: enum { Off, X2, X4, X8, X16 }
+
 Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
 	command_buffer: Command_Buffer,

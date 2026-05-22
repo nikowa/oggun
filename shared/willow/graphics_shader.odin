@@ -20,6 +20,10 @@ DEFAULT_SHADER_CONFIG: Shader_Config : {
 	vert_url = DEFAULT_URL,
 	frag_url = DEFAULT_URL }
 
+Definition :: struct {
+	identifier: string,
+	replacement: string }
+
 Shader_Asset :: struct {
 	using asset: Asset,
 	using shader_config: Shader_Config,

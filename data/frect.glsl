@@ -32,14 +32,6 @@ void main(void) {
 	gl_FragDepth = _depth;
 	vec2 b = rect.zw / 2 - vec2(rounding);
 
-	msaa8_scope_begin(color, 2 * rect.zw)
+	msaa2_scope_begin(color, 2 * rect.zw)
 		color += sample_raw(tex_coord + msaa_off, b);
-	msaa8_scope_end(color)
-
-	// color = sample_raw(tex_coord, b);
-
-	// msaa8_scope_begin(color.w, res)
-	// 	color.w += 1.0 * sample_styled(tex_coords + msaa_off).w;
-	// msaa8_scope_end(color.w)
-
-}
+	msaa2_scope_end(color) }
