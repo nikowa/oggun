@@ -27,22 +27,22 @@ package willow
 // 		render_all_model_instances(draw, &camera) } }
 
 
-// render_cubemap_preview :: proc(draw: ^Draw, cubemap: ^Cubemap, pos: [2]f32, size: [2]f32) {
+// render_cubemap_preview :: proc(draw: ^Draw, cubemap: ^Cubemap, position: [2]f32, size: [2]f32) {
 // 	cell_size: [2]f32
-// 	cell_pos:  [2]f32
+// 	cell_position:  [2]f32
 
 // 	cell_size = size / [2]f32{ 4, 3 }
-// 	cell_pos = pos - { 1.5 * cell_size.x, 0 }
-// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.LEFT].texture_handles[0], cell_pos, cell_size)
-// 	cell_pos.x += cell_size.x
-// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.FRONT].texture_handles[0], cell_pos, cell_size)
-// 	cell_pos.y += cell_size.y
-// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.UP].texture_handles[0], cell_pos, cell_size)
-// 	cell_pos.y -= 2 * cell_size.y
-// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.DOWN].texture_handles[0], cell_pos, cell_size)
-// 	cell_pos.y += cell_size.y
-// 	cell_pos.x += cell_size.x
-// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.RIGHT].texture_handles[0], cell_pos, cell_size)
-// 	cell_pos.x += cell_size.x
-// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.BACK].texture_handles[0], cell_pos, cell_size) }
+// 	cell_position = position - { 1.5 * cell_size.x, 0 }
+// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.LEFT].texture_handles[0], cell_position, cell_size)
+// 	cell_position.x += cell_size.x
+// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.FRONT].texture_handles[0], cell_position, cell_size)
+// 	cell_position.y += cell_size.y
+// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.UP].texture_handles[0], cell_position, cell_size)
+// 	cell_position.y -= 2 * cell_size.y
+// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.DOWN].texture_handles[0], cell_position, cell_size)
+// 	cell_position.y += cell_size.y
+// 	cell_position.x += cell_size.x
+// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.RIGHT].texture_handles[0], cell_position, cell_size)
+// 	cell_position.x += cell_size.x
+// 	render_texture_by_handle(draw, cubemap[Cubemap_Direction.BACK].texture_handles[0], cell_position, cell_size) }
 

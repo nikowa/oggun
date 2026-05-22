@@ -14,7 +14,12 @@ release:
 
 check:
 	cls
-	odin check shared/willow -no-entry-point -max-error-count:8
+	odin check shared/willow
+	odin check examples/input
+	odin check examples/gui
+	odin check examples/sprites
+	odin check examples/sync
+	odin check examples/graph
 
 test:
 	cls

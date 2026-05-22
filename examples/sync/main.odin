@@ -1,3 +1,4 @@
+#+feature using-stmt
 package example_input
 import "shared:willow"
 import "base:runtime"
@@ -10,16 +11,16 @@ import "core:math/linalg"
 import "core:slice"
 import "core:container/intrusive/list"
 
-settings_man: willow.Settings_Manager
 asset_manager: willow.Asset_Manager
-graphics_man: willow.Graphics_Manager
-window_man: willow.Window_Manager
+graphics_manager: willow.Graphics_Manager
+window_manager: willow.Window_Manager
 stopwatch: time.Stopwatch
-tick_man: willow.Tick_Manager
-gui_screen: willow.Rect
+tick_manager: willow.Tick_Manager
+screen_rect: willow.Rect
 images: [dynamic]^willow.Image_Asset
 background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
-font: willow.Font
+font_group: willow.Font_Group
+text_style: willow.Text_Style
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -101,7 +102,7 @@ render_entity :: proc(entity: ^Entity) {
 	using willow
 
 	screen_position: [2]f32
-	screen_position = entity.position * gui_screen.size / 2
+	screen_position = entity.position * screen_rect.size / 2
 	image: ^Image_Asset
 	image_size: [2]f32
 	label: string
@@ -114,8 +115,8 @@ render_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	render_image(&graphics_man, image, { screen_position, image_size }, depth = entity.depth)
-	render_text(&graphics_man, label, pos = screen_position + { 0, image_size.y / 2 }, font = &font, color = WHITE, scale_factor = 1.0) }
+	render_image(&graphics_manager, image, { screen_position, image_size }, depth = entity.depth)
+	gui_text_line(&graphics_manager, text_style, screen_position + { 0, image_size.y / 2 }, label) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
@@ -125,15 +126,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.logger = log.create_console_logger()
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
-	window_config: Window_Config = DEFAULT_WINDOW_CONFIG
-
-	window_init(&window_man, default_window_config(title = "Sync"))
+	window_init(&window_manager, default_window_config(title = "Sync"))
 	graphics_init(
-		graphics_manager = &graphics_man,
-		as_mngr = &asset_manager,
-		graphics_config = { window_manager = &window_man, clear_color = BLACK })
-	init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
-	gui_screen = gui_screen(&graphics_man)
+		graphics_manager = &graphics_manager,
+		asset_manager = &asset_manager,
+		graphics_config = default_graphics_config(window_manager = &window_manager))
+	tick_manager_init(&tick_manager, default_tick_manager_config())
+	screen_rect = gui_screen(&graphics_manager)
 
 	init_image(&asset_manager, &background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
@@ -150,29 +149,30 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	for &image in images do assert(asset_commands(&asset_manager, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	font_init(&asset_manager, &font, { name = "font-dev", default_bearing = 0, default_advance = 11 })
+	font_group_init(&asset_manager, &font_group, normal = default_font_config(name = "font-dev"))
+	text_style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())
 
 	zero_stopwatch(&stopwatch)
-	for ! graphics_man.window_closed {
+	for ! graphics_manager.window_closed {
 		time := read_stopwatch(&stopwatch)
 		tick_asset_manager(&asset_manager)
 
-		if tick_manager_tick(&tick_man) {
-			defer tick_manager_reset(&tick_man)
-			tick_graphics_manager(&graphics_man)
+		if tick_manager_tick(&tick_manager) {
+			defer tick_manager_reset(&tick_manager)
+			tick_graphics_manager(&graphics_manager)
 
-			render_image(&graphics_man, &background_image, gui_screen, depth = 0.99)
+			render_image(&graphics_manager, &background_image, screen_rect, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
 				render_entity(entity) }
 
-			render_image(&graphics_man, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			render_image(&graphics_man, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// render_text(&graphics_man, "Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
+			render_image(&graphics_manager, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
+			render_image(&graphics_manager, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			// render_text(&graphics_manager, "Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

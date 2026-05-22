@@ -1,3 +1,4 @@
+#+feature using-stmt
 package example_input
 import "shared:willow"
 import "base:runtime"
@@ -9,12 +10,12 @@ import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
 
-settings_man: willow.Settings_Manager
-asset_man: willow.Asset_Manager
-graphics_man: willow.Graphics_Manager
-window_man: willow.Window_Manager
+settings_manager: willow.Settings_Manager
+asset_manager: willow.Asset_Manager
+graphics_manager: willow.Graphics_Manager
+window_manager: willow.Window_Manager
+tick_manager: willow.Tick_Manager
 stopwatch: time.Stopwatch
-tick_man: willow.Tick_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -47,24 +48,22 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		player_name = "Destroyer",
 		resolution = { 1920, 1080 },
 		fullscreen = true }
-	init_settings_manager(&settings_man, "Sprites")
-	settings_manager_write(&settings_man, &settings)
+	init_settings_manager(&settings_manager, "Sprites")
+	settings_manager_write(&settings_manager, &settings)
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
-	window_init(&window_man, default_window_config(title = "Sprites"))
-	graphics_init(
-		graphics_manager = &graphics_man,
-		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_man, clear_color = BLACK })
-	init_tick_manager(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
+	window_init(&window_manager, default_window_config(title = "Sprites"))
+	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager,
+		graphics_config = default_graphics_config(window_manager = &window_manager))
+	tick_manager_init(&tick_manager, { tickrate_setting = .LIMITED_60_FPS })
 
 	images: [5]Image_Asset
-	init_image(&asset_man, &images[0], { url = "image:kitten-1.png" })
-	init_image(&asset_man, &images[1], { url = "image:kitten-2.png" })
-	init_image(&asset_man, &images[2], { url = "image:kitten-3.png" })
-	init_image(&asset_man, &images[3], { url = "image:kitten-4.png" })
-	init_image(&asset_man, &images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(asset_commands(&asset_man, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	init_image(&asset_manager, &images[0], { url = "image:kitten-1.png" })
+	init_image(&asset_manager, &images[1], { url = "image:kitten-2.png" })
+	init_image(&asset_manager, &images[2], { url = "image:kitten-3.png" })
+	init_image(&asset_manager, &images[3], { url = "image:kitten-4.png" })
+	init_image(&asset_manager, &images[4], { url = "image:kitten-5.png" })
+	for &image in images do assert(asset_commands(&asset_manager, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	N :: 1000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
@@ -72,24 +71,23 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	splits[4] = N
 
 	font: Font
-	font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	font_init(&asset_manager, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 
 	sprites := make([]Sprite, N)
 	for &sprite in sprites do sprite_init(&sprite)
 
 	zero_stopwatch(&stopwatch)
-	for ! graphics_man.window_closed {
+	for ! graphics_manager.window_closed {
 		time := read_stopwatch(&stopwatch)
-		tick_asset_manager(&asset_man)
+		tick_asset_manager(&asset_manager)
 
-		if tick_manager_tick(&tick_man) {
-			defer tick_manager_reset(&tick_man)
-			// fmt.printfln("fps: %v", cast(int)tick_man.frame_rate)
-			tick_graphics_manager(&graphics_man)
-			gui_screen := gui_screen(&graphics_man)
+		if tick_manager_tick(&tick_manager) {
+			defer tick_manager_reset(&tick_manager)
+			tick_graphics_manager(&graphics_manager)
+			gui_screen := gui_screen(&graphics_manager)
 			image_index: int = 0
 			for &sprite, i in sprites {
-				sprite.position += tick_man.delta_time * sprite.speed * sprite.direction
+				sprite.position += tick_manager.delta_time * sprite.speed * sprite.direction
 				if sprite.position.x > 1 {
 					sprite.position.x = 1
 					sprite.direction.x *= -1 }
@@ -102,11 +100,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				if sprite.position.y < 0 {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
-				sprite_rect: Rect = { graphics_man.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				render_image(&graphics_man, &images[image_index], sprite_rect, depth = sprite.depth)
-				if i > splits[image_index] do image_index += 1 }
-			// render_text(&graphics_man, "Hello, world!", font = &font, color = WHITE, scale_factor = 2.0)
-		}
+				sprite_rect: Rect = { graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
+				render_image(&graphics_manager, &images[image_index], sprite_rect, depth = sprite.depth)
+				if i > splits[image_index] do image_index += 1 } }
 
 		free_all(context.temp_allocator) }
 	return }

@@ -18,15 +18,15 @@ Effect :: struct {
 	shader: Shader_Asset,
 	mesh: Mesh(2) }
 
-init_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Manager, as_mngr: ^Asset_Manager, vert_url, frag_url: URL, allocator: runtime.Allocator) {
+init_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Manager, asset_manager: ^Asset_Manager, vert_url, frag_url: URL, allocator: runtime.Allocator) {
 	err: os.Error
 	mesh_builder: Mesh_Builder(2)
 	effect.config = config
 	mesh_builder = make_mesh_builder(2, allocator)
 	for res, i in config.surface_res do builder_append_2d_square_grid(&mesh_builder, grid_size = res)
 	effect.mesh = mesh_from_builder(mesh_builder)
-	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url }, graphics_manager, as_mngr)
-	asset_commands(as_mngr, Shader_Asset, &effect.shader.asset, { .Import, .Load, .Upload }) }
+	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url }, graphics_manager, asset_manager)
+	asset_commands(asset_manager, Shader_Asset, &effect.shader.asset, { .Import, .Load, .Upload }) }
 
 upload_effect :: proc(effect: ^Effect) -> bool {
 	if effect.mesh.verts_handle != 0 do download_effect(effect)
@@ -38,8 +38,8 @@ upload_effect :: proc(effect: ^Effect) -> bool {
 	gl.BufferData(gl.ARRAY_BUFFER, len(effect.mesh.surface_indexes) * size_of(effect.mesh.surface_indexes[0]), &effect.mesh.surface_indexes[0], gl.STATIC_DRAW)
 	return true }
 
-init_and_upload_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Manager, as_mngr: ^Asset_Manager, vert_url, frag_url: URL, allocator: runtime.Allocator) {
-	init_effect(effect, config, graphics_manager, as_mngr, vert_url, frag_url, allocator)
+init_and_upload_effect :: proc(effect: ^Effect, config: Effect_Config, graphics_manager: ^Graphics_Manager, asset_manager: ^Asset_Manager, vert_url, frag_url: URL, allocator: runtime.Allocator) {
+	init_effect(effect, config, graphics_manager, asset_manager, vert_url, frag_url, allocator)
 	upload_effect(effect) }
 
 effect_is_uploaded :: proc(effect: ^Effect) -> bool {

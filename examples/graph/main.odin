@@ -10,12 +10,11 @@ import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
 
-settings_man: willow.Settings_Manager
 asset_manager: willow.Asset_Manager
 graphics_manager: willow.Graphics_Manager
-window_man: willow.Window_Manager
+window_manager: willow.Window_Manager
+tick_manager: willow.Tick_Manager
 stopwatch: time.Stopwatch
-tick_man: willow.Tick_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -58,10 +57,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	stroke_color := neon_color_table_ms_light[Neutral_Stroke_1][0]
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
-	window_init(&window_man, default_window_config(title = "Graph"))
-	graphics_init(graphics_manager = &graphics_manager, as_mngr = &asset_manager,
-		graphics_config = { window_manager = &window_man, clear_color = bg_color })
-	tick_manager_init(&tick_man, { tickrate_setting = .LIMITED_60_FPS })
+	window_init(&window_manager, default_window_config(title = "Graph"))
+	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager,
+		graphics_config = { window_manager = &window_manager, clear_color = bg_color })
+	tick_manager_init(&tick_manager, { tickrate_setting = .LIMITED_60_FPS })
 
 	font_group: Font_Group
 	font_group_init(&asset_manager, &font_group,
@@ -75,12 +74,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		time := read_stopwatch(&stopwatch)
 		tick_asset_manager(&asset_manager)
 
-		if tick_manager_tick(&tick_man) {
-			defer tick_manager_reset(&tick_man)
+		if tick_manager_tick(&tick_manager) {
+			defer tick_manager_reset(&tick_manager)
 			tick_graphics_manager(&graphics_manager)
-			gui_screen := gui_screen(&graphics_manager)
 			rect := make_rect(0, 0, 400/* + 300 * math.sin(0.5 * time)*/, 320)
 			rect.size.y = text_box_measure(text_style, rect.size.x, text)
+			render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, depth = 0.2, rounding = 20)
+			// render_rect(&graphics_manager, gui_screen(&graphics_manager), fill_color = RED, depth = 0.9)
 			render_rect(&graphics_manager, rect, fill_color = bg3_color, depth = 0.2)
 			render_rect_outline(&graphics_manager, rect, color = stroke_color, depth = 0.3)
 			gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Top) }

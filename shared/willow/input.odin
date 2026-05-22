@@ -217,7 +217,7 @@ event_mouse_position :: proc(input_manager: ^Input_Manager, position: [2]f32) {
 }
 
 // @(private="file")
-// cursor_pos_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
+// cursor_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
 // 	context = runtime.default_context()
 // 	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
 // 	@(static) called: bool = false
@@ -280,7 +280,7 @@ input_init :: proc(input_manager: ^Input_Manager, window_manager: ^Window_Manage
 		log.info("Setting key callback")
 		glfw.SetKeyCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_key_callback)
 		// glfw.SetScrollCallback(draw.window, scroll_callback)
-		// glfw.SetCursorPosCallback(draw.window, cursor_pos_callback)
+		// glfw.SetCursorPosCallback(draw.window, cursor_position_callback)
 		// glfw.SetMouseButtonCallback(draw.window, mouse_button_callback)
 		// glfw.SetWindowRefreshCallback(draw.window, window_refresh_callback)
 		// glfw.SetWindowSizeCallback(draw.window, resolution_callback)

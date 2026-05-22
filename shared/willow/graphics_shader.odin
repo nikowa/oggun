@@ -31,7 +31,7 @@ Shader_Asset :: struct {
 // Font_Shader :: struct {
 // 	using shader:    Shader,
 // 	symbol:          i32,
-// 	pos:             i32,
+// 	position:        i32,
 // 	this_buffer_res: i32,
 // 	symbol_size:     i32,
 // 	text_color:      i32 }
@@ -78,13 +78,13 @@ Buffer_Shader_Uniforms :: enum {
 
 // Panel_Shader :: struct {
 // 	using shader: Shader,
-// 	pos:          i32,
+// 	position:     i32,
 // 	res:          i32,
 // 	size:         i32 }
 
 // Point_Shader :: struct {
 // 	using shader:    Shader,
-// 	pos:             i32,
+// 	position:        i32,
 // 	size:            i32,
 // 	fill_color:      i32,
 // 	this_buffer_res: i32 }

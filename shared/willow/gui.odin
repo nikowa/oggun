@@ -19,8 +19,8 @@ gui_split_ratio_h :: proc(rect_in: Rect, ratio: f32, margin: f32) -> (rect_left:
 	rect_left.size.x  = rect_in.size.x * ratio -         margin / 2
 	rect_right.size.x = rect_in.size.x * (1.0 - ratio) - margin / 2
 
-	rect_left.pos.x  += - rect_in.size.x / 2 + rect_left.size.x  / 2
-	rect_right.pos.x +=   rect_in.size.x / 2 - rect_right.size.x / 2
+	rect_left.position.x  += - rect_in.size.x / 2 + rect_left.size.x  / 2
+	rect_right.position.x +=   rect_in.size.x / 2 - rect_right.size.x / 2
 
 	return rect_left, rect_right }
 
@@ -31,8 +31,8 @@ gui_split_ratio_v :: proc(rect_in: Rect, ratio: f32, margin: f32) -> (rect_top: 
 	rect_top.size.y    = rect_in.size.y * ratio -         margin / 2
 	rect_bottom.size.y = rect_in.size.y * (1.0 - ratio) - margin / 2
 
-	rect_bottom.pos.y += - rect_in.size.y / 2 + rect_bottom.size.y / 2
-	rect_top.pos.y    +=   rect_in.size.y / 2 - rect_top.size.y    / 2
+	rect_bottom.position.y += - rect_in.size.y / 2 + rect_bottom.size.y / 2
+	rect_top.position.y    +=   rect_in.size.y / 2 - rect_top.size.y    / 2
 
 	return rect_top, rect_bottom }
 
@@ -49,11 +49,11 @@ gui_slice_h_make :: proc(rect_in: Rect, size: f32, n_max: int, allocator: runtim
 	if n != 1 do for i in 0 ..< n - 1 {
 		rect := rect_in
 		rect.size.x = size
-		rect.pos.x = rect_in.pos.x - rect_in.size.x / 2 + (0.5 + cast(f32)i) * size
+		rect.position.x = rect_in.position.x - rect_in.size.x / 2 + (0.5 + cast(f32)i) * size
 		rects_out[i] = rect }
 	rect := rect_in
 	rect.size.x = rem
-	rect.pos.x = rect_in.pos.x + rect_in.size.x / 2 - rem / 2
+	rect.position.x = rect_in.position.x + rect_in.size.x / 2 - rem / 2
 	rects_out[n - 1] = rect
 	return rects_out }
 
@@ -70,11 +70,11 @@ gui_slice_v_make :: proc(rect_in: Rect, size: f32, n_max: int, allocator: runtim
 	if n != 1 do for i in 0 ..< n - 1 {
 		rect := rect_in
 		rect.size.y = size
-		rect.pos.y = rect_in.pos.y - rect_in.size.y / 2 + (0.5 + cast(f32)i) * size
+		rect.position.y = rect_in.position.y - rect_in.size.y / 2 + (0.5 + cast(f32)i) * size
 		rects_out[i] = rect }
 	rect := rect_in
 	rect.size.y = rem
-	rect.pos.y = rect_in.pos.y + rect_in.size.y / 2 - rem / 2
+	rect.position.y = rect_in.position.y + rect_in.size.y / 2 - rem / 2
 	rects_out[n - 1] = rect
 	return rects_out }
 
@@ -91,8 +91,8 @@ gui_grid_make :: proc(rect_in: Rect, size: [2]int, allocator: runtime.Allocator)
 	for _, i in 0 ..< size.x do for _, j in 0 ..< size.y {
 		rect := &rects_out[j * size.x + i]
 		rect^ = rect_in
-		rect.pos.x += - rect_in.size.x / 2 + rect_width  * (cast(f32)i + 0.5)
-		rect.pos.y += - rect_in.size.y / 2 + rect_height * (cast(f32)j + 0.5)
+		rect.position.x += - rect_in.size.x / 2 + rect_width  * (cast(f32)i + 0.5)
+		rect.position.y += - rect_in.size.y / 2 + rect_height * (cast(f32)j + 0.5)
 		rect.size.x = rect_width
 		rect.size.y = rect_height }
 	return rects_out }
@@ -107,16 +107,16 @@ gui_extend :: proc(rect_in: Rect, left: f32 = 0, right: f32 = 0, bottom: f32 = 0
 	rect_out = rect_in
 
 	rect_out.size.x += left
-	rect_out.pos.x -= left / 2
+	rect_out.position.x -= left / 2
 
 	rect_out.size.x += right
-	rect_out.pos.x += right / 2
+	rect_out.position.x += right / 2
 
 	rect_out.size.y += bottom
-	rect_out.pos.y -= bottom / 2
+	rect_out.position.y -= bottom / 2
 
 	rect_out.size.y += top
-	rect_out.pos.y += top / 2
+	rect_out.position.y += top / 2
 
 	return rect_out }
 
@@ -128,14 +128,14 @@ gui_rotate :: proc(rect_in: Rect) -> (rect_out: Rect) {
 
 gui_mirror_x :: proc(rect_in: Rect, center: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
-	delta: f32 = rect_in.pos.x - center
-	rect_out.pos.x -= 2 * delta
+	delta: f32 = rect_in.position.x - center
+	rect_out.position.x -= 2 * delta
 	return rect_out }
 
 gui_mirror_y :: proc(rect_in: Rect, center: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
-	delta: f32 = rect_in.pos.y - center
-	rect_out.pos.y -= 2 * delta
+	delta: f32 = rect_in.position.y - center
+	rect_out.position.y -= 2 * delta
 	return rect_out }
 
 gui_multi_mirror_x :: proc { gui_multi_mirror_x_make, gui_multi_mirror_x_edit }
@@ -159,12 +159,12 @@ gui_multi_mirror_y_edit :: proc(rects: []Rect, center: f32) {
 	for &rect, i in rects do rect = gui_mirror_y(rect, center) }
 
 gui_multi_merge :: proc(rect_a: Rect, rect_b: Rect) -> (rect_out: Rect) {
-	x0: f32 = min(rect_a.pos.x - rect_a.size.x / 2, rect_b.pos.x - rect_b.size.x / 2)
-	x1: f32 = max(rect_a.pos.x + rect_a.size.x / 2, rect_b.pos.x + rect_b.size.x / 2)
-	y0: f32 = min(rect_a.pos.y - rect_a.size.y / 2, rect_b.pos.y - rect_b.size.y / 2)
-	y1: f32 = max(rect_a.pos.y + rect_a.size.y / 2, rect_b.pos.y + rect_b.size.y / 2)
+	x0: f32 = min(rect_a.position.x - rect_a.size.x / 2, rect_b.position.x - rect_b.size.x / 2)
+	x1: f32 = max(rect_a.position.x + rect_a.size.x / 2, rect_b.position.x + rect_b.size.x / 2)
+	y0: f32 = min(rect_a.position.y - rect_a.size.y / 2, rect_b.position.y - rect_b.size.y / 2)
+	y1: f32 = max(rect_a.position.y + rect_a.size.y / 2, rect_b.position.y + rect_b.size.y / 2)
 	rect_out = {
-		pos = { (x0 + x1) / 2, (y0 + y1) / 2 },
+		position = { (x0 + x1) / 2, (y0 + y1) / 2 },
 		size = { (x1 - x0), (y1 - y0) } }
 	return rect_out }
 
@@ -186,7 +186,7 @@ gui_multi_merge_range_retaining :: proc(rects: ^[dynamic]Rect, range: [2]int) {
 
 gui_offset :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 	rect_out = rect_in
-	rect_out.pos += offset
+	rect_out.position += offset
 	return rect_out }
 
 H_Align :: enum { Left, Center, Justify, Right }
@@ -297,7 +297,7 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: R
 	if h_align == .Justify do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
 	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
-	position: [2]f32 = rect.pos
+	position: [2]f32 = rect.position
 	lines := text_box_lines(style, rect, text)
 	desired_width: Maybe(f32)
 	pivot: bit_set[Compass]

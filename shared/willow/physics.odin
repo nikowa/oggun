@@ -189,18 +189,18 @@ package willow
 // 		physics.surfer_position -= n * d }
 
 // 	/*
-// 	camera_pos_pivot
+// 	camera_position_pivot
 // 	camera_zoom_pivot
-// 	camera_pos
+// 	camera_position
 // 	camera_zoom
 // 	CAMERA_POS_RADIUS
 // 	CAMERA_ZOOM
 // 	*/
 // 	//camera_pivot.xy+=dt*cursor_delta
-// 	//camera_vel.xy+=coloumb(camera_pos.xy,camera_pivot.xy,1)
+// 	//camera_vel.xy+=coloumb(camera_position.xy,camera_pivot.xy,1)
 // 	//camera_vel.xy*=(1.0-(1.0*dt))
-// 	//camera_pos.xy+=camera_vel.xy*dt
-// 	// camera_pos.xy=2*cursor/cast_array(resolution,f32)
+// 	//camera_position.xy+=camera_vel.xy*dt
+// 	// camera_position.xy=2*cursor/cast_array(resolution,f32)
 // }
 
 

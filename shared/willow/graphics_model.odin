@@ -391,12 +391,12 @@ download_model :: proc(model: ^Model) {
 // 	// for _, i in draw.models do model_bake_thickness_map_point_method(draw, &draw.models[i], THICKNESS_MAP_SIZE)
 // 	}
 
-// render_model_uv :: proc(draw: ^Draw, model: ^Model, rect: Rect = { pos = { 0, 0 }, size = { 256, 256 } }) {
+// render_model_uv :: proc(draw: ^Draw, model: ^Model, rect: Rect = { position = { 0, 0 }, size = { 256, 256 } }) {
 // 	// (TODO):
 // 	// iterator: UV_Triangle_Iterator = make_uv_triangle_iterator(model)
 // 	// @(static) triangles: map[string][dynamic]UV_Triangle = { }
 // 	// if len(triangles) == 0 do for triangle in uv_triangle_iterate_next(&iterator) do append(&triangles, triangle)
-// 	// render_rect_outline(draw, rect.pos, rect.size, color = RED, thickness = 2)
+// 	// render_rect_outline(draw, rect.position, rect.size, color = RED, thickness = 2)
 // 	// for triangle in triangles do render_triangle(draw, points = { normal_space_to_rect_space(triangle[0], rect), normal_space_to_rect_space(triangle[1], rect), normal_space_to_rect_space(triangle[2], rect) }, color = RED)
 // }
 

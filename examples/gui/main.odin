@@ -1,3 +1,4 @@
+#+feature using-stmt
 package example_input
 import "shared:willow"
 import "base:runtime"
@@ -30,11 +31,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.logger = log.create_console_logger()
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
-	window_init(&window_man, default_window_config(title = "GUI"))
-	graphics_init(
-		graphics_manager = &graphics_manager,
-		as_mngr = &asset_manager,
-		graphics_config = { window_manager = &window_manager, clear_color = BLACK })
+	window_init(&window_manager, default_window_config(title = "GUI"))
+	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager,
+		graphics_config = default_graphics_config(window_manager = &window_manager))
 
 	// dll_path := relpath_to_path("rects_dll/rects_dll.odin", context.allocator)
 	// rects_dll, _ = make_dll(Rects_DLL, dll_path)

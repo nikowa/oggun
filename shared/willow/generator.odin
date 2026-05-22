@@ -11,7 +11,7 @@ import "core:odin/ast"
 import "core:path/filepath"
 import "core:slice"
 
-stub_error_handler :: proc(pos: tokenizer.Pos, fmt: string, args: ..any) { }
+stub_error_handler :: proc(_: tokenizer.Pos, _: string, _: ..any) { }
 
 generate :: proc(willow_path: string) {
 	builder: strings.Builder

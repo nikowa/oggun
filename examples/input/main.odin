@@ -1,14 +1,14 @@
+#+feature using-stmt
 package example_input
 import "shared:willow"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
 
-asset_man: willow.Asset_Manager
-graphics_man: willow.Graphics_Manager
+asset_manager: willow.Asset_Manager
+graphics_manager: willow.Graphics_Manager
 input_manager: willow.Input_Manager
 window_manager: willow.Window_Manager
-font: willow.Font
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -152,14 +152,16 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	window_init(&window_manager, default_window_config(title = "Input"))
 	input_init(&input_manager, &window_manager, { raw_input = true })
 	graphics_init(
-		graphics_manager = &graphics_man,
-		as_mngr = &asset_man,
-		graphics_config = { window_manager = &window_manager, clear_color = BLACK })
+		graphics_manager = &graphics_manager,
+		asset_manager = &asset_manager,
+		graphics_config = default_graphics_config(window_manager = &window_manager))
 
-	font_init(&asset_man, &font, { name = "terminus", default_bearing = 0, default_advance = 0 })
-	image: Image_Asset
-	init_image(&asset_man, &image, { url = "image:kitten-2.png" })
-	assert(asset_commands(&asset_man, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	font_group: Font_Group
+	font_group_init(&asset_manager, &font_group,
+		normal = default_font_config(name = "terminus"),
+		bold = default_font_config(name = "terminus-bold"),
+		italic = default_font_config(name = "terminus-italic"))
+	text_style: Text_Style = default_text_style(font_group = font_group, color = WHITE)
 
 	ASPECT_RATIO :: 3.5
 	keyboard_rect: Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }
@@ -200,17 +202,16 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		colors[i] = color_random()
 		colors[i].a = 0.75 }
 
-	for ! graphics_man.window_closed {
+	for ! graphics_manager.window_closed {
 		process(&input_manager)
-		tick_graphics_manager(&graphics_man)
+		tick_graphics_manager(&graphics_manager)
 		for rect, i in rects {
-			// render_image(&graphics_man, &image, rect, depth = 0.99)
 			down: bool = false
 			if inputs[i] != .None do down = input_query(&input_manager, inputs[i], .Down)
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
-			if down do render_rect(&graphics_man, rect, DARK_GRAY, depth = 0.99)
-			render_rect_outline(&graphics_man, rect, WHITE)
-			render_rect_outline(&graphics_man, gui_offset(key_margins(rect), down_offset), GRAY)
-			render_text(&graphics_man, keys[i], pos = rect.pos + down_offset, font = &font, color = WHITE, scale_factor = 1.0) } }
+			if down do render_rect(&graphics_manager, rect, DARK_GRAY, depth = 0.99)
+			render_rect_outline(&graphics_manager, rect, WHITE)
+			render_rect_outline(&graphics_manager, gui_offset(key_margins(rect), down_offset), GRAY)
+			gui_text_line(&graphics_manager, text_style, rect.pos + down_offset, keys[i]) } }
 	k: f32 = query().scalar
 	return }
