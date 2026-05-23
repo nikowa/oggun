@@ -1,12 +1,5 @@
 
 - Add "definitions" param to shader, to add "#define"s. Use it to add an MSAA parameter
-- Fix the tests
-
-- Implement settings and savefile modules. Settings as a human-readable INI file, and savefile as a database.
-- Update the documentation
-- Start working on Bogwalker
-
-- Remove all "shared:..." dependencies
 - Batch the line shader
 - Pixel-perfect font positioning
 - Port the font filtering from staffmaster
@@ -29,3 +22,5 @@
 - Add database procedure to watch an entry's source for updates and import it live
 - Generic effect shader, test it
 - Rename graphics context to graphics manager, database to asset manager
+- Fix the tests
+- Modify the installer to copy all folders in "shared" not just "willow"
