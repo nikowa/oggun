@@ -197,11 +197,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		.Numpad_1, .Numpad_2, .Numpad_3, .Numpad_Enter,
 		.Numpad_0, .Numpad_Decimal }
 
-	colors: [][4]f32 = make([][4]f32, 512)
-	for _, i in colors {
-		colors[i] = color_random()
-		colors[i].a = 0.75 }
-
 	for ! graphics_manager.window_closed {
 		process(&input_manager)
 		tick_graphics_manager(&graphics_manager)
@@ -212,6 +207,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			if down do render_rect(&graphics_manager, rect, DARK_GRAY, depth = 0.99)
 			render_rect_outline(&graphics_manager, rect, WHITE)
 			render_rect_outline(&graphics_manager, gui_offset(key_margins(rect), down_offset), GRAY)
-			gui_text_line(&graphics_manager, text_style, rect.pos + down_offset, keys[i]) } }
+			gui_text_line(&graphics_manager, text_style, rect.position + down_offset, keys[i]) } }
 	k: f32 = query().scalar
 	return }

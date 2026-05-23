@@ -47,10 +47,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	font_init(&asset_manager, &font, DEFAULT_FONT_CONFIG)
 	assert(asset_commands(&asset_manager, Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
 
-	colors: [][4]f32 = make([][4]f32, 256)
+	colors: []Color = make([]Color, 256)
 	for _, i in colors {
-		colors[i] = color_random()
-		colors[i].a = 0.75 }
+		colors[i] = color_random() }
 
 	// - text rendering
 

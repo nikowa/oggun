@@ -251,7 +251,7 @@ V_Align :: enum { Bottom, Center, Top }
 
 SKIP_CUTSET :: "_*"
 
-gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil) {
+gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
 	style := style
 	using style
 	text := fmt.aprint(..args, sep = sep)
@@ -273,7 +273,7 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, positi
 		if symbol == '*' {
 			style.bold = ! style.bold; continue }
 		font := font_group_select(font_group, style)
-		render_bitmap_symbol(graphics_man, cast(u8)symbol, symbol_position, depth, style)
+		render_bitmap_symbol(graphics_man, cast(u8)symbol, symbol_position, depth, style, integer = integer)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
@@ -291,7 +291,7 @@ text_box_measure :: proc(style: Text_Style, width: f32, args: ..any, sep: string
 	total_height = height * cast(f32)len(lines)
 	return total_height }
 
-gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "") {
+gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "", integer: bool = true) {
 	style := style
 	using style
 	if h_align == .Justify do spacing = 1.0
@@ -322,5 +322,5 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: R
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		gui_text_line(graphics_man, style, position, line, pivot = pivot, desired_width = desired_width)
+		gui_text_line(graphics_man, style, position, line, pivot = pivot, desired_width = desired_width, integer = integer)
 		position.y -= height } }

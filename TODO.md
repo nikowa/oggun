@@ -1,12 +1,6 @@
 
 - Add "definitions" param to shader, to add "#define"s. Use it to add an MSAA parameter
-- Add outline and rounding to rectangle shader
-- Switch color from [4]f32 to u32
-- Make all the 2D graphics primitives have pixel-perfect vertex coordinates, using "math.round_f32"
-- Make consistent names
-  - "as_mngr" -> "asset_man"
 - Fix the tests
-- Complete all TODO tasks
 
 - Implement settings and savefile modules. Settings as a human-readable INI file, and savefile as a database.
 - Update the documentation

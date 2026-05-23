@@ -120,7 +120,7 @@ font_group_select :: proc(font_group: Font_Group, style: Text_Style) -> (font: ^
 	case: return font_group.normal }
 	return nil }
 
-render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE) {
+render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, integer: bool = true) {
 	using style
 	command: Render_Text_Command = {
 		font = font_group_select(font_group, style),
@@ -132,8 +132,8 @@ render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, positi
 	command.position.x -= f32(command.font.bearings[symbol]) * scale_factor
 	command.scale_factor = f32(scale_factor)
 	command.color = color
-	command.position.x = math.round_f32(command.position.x + 0.3)
-	command.position.y = math.round_f32(command.position.y + 0.3)
+	command.position.x = integer ? math.round_f32(command.position.x + 0.3) : command.position.x
+	command.position.y = integer ? math.round_f32(command.position.y + 0.3) : command.position.y
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
 	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }

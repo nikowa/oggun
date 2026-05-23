@@ -21,7 +21,7 @@ check:
 	odin check examples/sync
 	odin check examples/graph
 
-test:
+test: lib
 	cls
 	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
 

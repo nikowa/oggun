@@ -1,6 +1,7 @@
 package tests
 
-@require import "asset"
+// @require import "asset"
+@require import "base_settings"
 // import rt "base:runtime"
 // import sl "core:slice"
 // import tst "core:testing"

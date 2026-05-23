@@ -22,20 +22,6 @@ Y :: 1
 Z :: 2
 W :: 3
 
-Color :: u32
-
-BLACK:       Color : 0x000000ff
-WHITE:       Color : 0xffffffff
-RED:         Color : 0xff0000ff
-DARK_RED:    Color : 0x800000ff
-GREEN:       Color : 0x00ff00ff
-DARK_GREEN:  Color : 0x008000ff
-BLUE:        Color : 0x0000ffff
-DARK_BLUE:   Color : 0x000080ff
-GRAY:        Color : 0x808080ff
-LIGHT_GRAY:  Color : 0xc0c0c0ff
-DARK_GRAY:   Color : 0x404040ff
-
 QUAD_VERTS_LEN :: 6
 
 BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
@@ -694,10 +680,10 @@ Render_Rect_Params :: struct {
 Render_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
-render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
+render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Render_Rect_Command = {
 		render_buffer = render_buffer,
-		rect = rect_round(rect),
+		rect = integer ? rect_round(rect) : rect,
 		fill_color = fill_color,
 		stroke_color = stroke_color,
 		rounding = rounding,
@@ -788,12 +774,11 @@ Render_Image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
 	image: ^Image_Asset }
 
-render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil) {
+render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Render_Image_Command = {
 		render_buffer = render_buffer,
 		image = image,
-		// (TODO): Make this rounding optional. //
-		rect = rect_round(rect),
+		rect = integer ? rect_round(rect) : rect,
 		depth = depth }
 	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
 
@@ -1513,10 +1498,3 @@ tick_graphics_manager_end :: proc(graphics_man: ^Graphics_Manager) {
 // 		pixel := read_pixel_rgba(draw, [2]int{ cast(int)draw.window_size.x, cast(int)draw.window_size.y } / 2).rgb
 // 		br := brightness(pixel)
 // 		if br > THRESHOLD do append_elem(&draw.glare_spots, [2]int{ i, j } - linalg.array_cast(draw.window_size, int) / 2) } }
-
-color_to_4f32 :: proc "contextless" (color: Color) -> [4]f32 {
-	return {
-		f32((color & 0xFF000000)>>24) / 255.0,
-		f32((color & 0x00FF0000)>>16) / 255.0,
-		f32((color & 0x0000FF00)>>8) / 255.0,
-		f32((color & 0x000000FF)) / 255.0 } }
