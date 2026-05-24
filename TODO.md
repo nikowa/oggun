@@ -1,4 +1,6 @@
 
+- Implement the "render_buffer" param on every render command, to select where the render is targeted at.
+- Improve "command_get_group" to gather all commands not just adjacent ones
 - Add "definitions" param to shader, to add "#define"s. Use it to add an MSAA parameter
 - Batch the line shader
 - Pixel-perfect font positioning

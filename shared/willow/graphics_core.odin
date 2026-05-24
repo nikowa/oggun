@@ -10,6 +10,7 @@ import "core:math/linalg"
 import "core:time"
 import "core:log"
 import "core:fmt"
+import "core:math"
 
 // Rendering pipeline:
 // (1) Enable emittance.
@@ -23,6 +24,7 @@ Z :: 2
 W :: 3
 
 QUAD_VERTS_LEN :: 6
+POINT_VERTS_LEN :: 2
 
 BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
 
@@ -126,7 +128,7 @@ graphics_init :: proc(
 	graphics_config: Graphics_Config = {}) -> (err: os.Error) {
 	graphics_manager.graphics_config = graphics_config
 	when BACKEND == .OpenGL do init_opengl(graphics_manager)
-
+	command_buffer_init(&graphics_manager.command_buffer)
 // 	width:         i32
 // 	height:        i32
 // 	ok:            bool
@@ -666,6 +668,7 @@ delete_buffers :: proc(buffers: [$N]u32) {
 // 	render_rect_outlined(draw, position = position + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
 Render_Rect_Command :: struct {
+	using base: Generic_Command,
 	using params: Render_Rect_Params,
 	using group_params: Render_Rect_Group_Params }
 
@@ -680,7 +683,7 @@ Render_Rect_Params :: struct {
 Render_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
-render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Render_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = integer ? rect_round(rect) : rect,
@@ -689,17 +692,17 @@ render_rect :: proc(graphics_man: ^Graphics_Manager, rect: Rect, fill_color: Col
 		rounding = rounding,
 		stroke = stroke,
 		depth = depth }
-	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
+	command_buffer_record(&graphics_manager.command_buffer, { base = command }) }
 
-submit_render_rect :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
+submit_render_rect :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
 	using Rect_Shader_Uniforms
 
-	command := _command.variant.(Render_Rect_Command)
+	command := _command.base.(Render_Rect_Command)
 
-	use_shader(&graphics_man.rect_shader)
-	set_shader_param(RES, graphics_man.active_resolution)
+	use_shader(&graphics_manager.rect_shader)
+	set_shader_param(RES, graphics_manager.active_resolution)
 
-	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Rect_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Rect_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(6)
 	defer delete_buffers(buffers)
@@ -713,7 +716,7 @@ submit_render_rect :: proc(graphics_man: ^Graphics_Manager, _command: Command, i
 	stroke_color := make([][4]f32, n)
 
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
-		command := _command.variant.(Render_Rect_Command)
+		command := _command.base.(Render_Rect_Command)
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth
@@ -750,19 +753,74 @@ render_rect_outline :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, col
 	render_line(graphics_manager, { d, c }, color, depth)
 	render_line(graphics_manager, { c, a }, color, depth) }
 
-// (TODO): Batch this:
+Render_Line_Command :: struct {
+	using params: Render_Line_Params,
+	using group_params: Render_Line_Group_Params }
 
-render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color = BLACK, depth: f32 = 0.0) {
+Render_Line_Params :: struct {
+	point_a: [2]f32,
+	point_b: [2]f32,
+	color: Color,
+	depth: f32 }
+
+Render_Line_Group_Params :: struct {
+	render_buffer: Maybe(^Render_Buffer) }
+
+render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color, depth: f32 = 0.0, integer: bool = true) {
+	command: Render_Line_Command = {
+		point_a = integer ? { math.round_f32(points[0].x), math.round_f32(points[0].y) } : points[0],
+		point_b = integer ? { math.round_f32(points[1].x), math.round_f32(points[1].y) } : points[1],
+		color = color,
+		depth = depth }
+	command_buffer_record(&graphics_manager.command_buffer, { base = command }) }
+
+submit_render_line :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
 	using Line_Shader_Uniforms
+
+	command := _command.base.(Render_Line_Command)
+
 	use_shader(&graphics_manager.line_shader)
-	set_shader_param(POINTS, [4]f32{ points[0].x, points[0].y, points[1].x, points[1].y })
 	set_shader_param(RES, graphics_manager.active_resolution)
-	set_shader_param(COLOR, color_to_4f32(color))
-	set_shader_param(DEPTH, depth)
+
+	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Line_Command, _command_0, _command_1) })
+
+	buffers := make_buffers(4)
+	defer delete_buffers(buffers)
+
+	n: int = POINT_VERTS_LEN * len(commands)
+	point_a := make([][2]f32, n)
+	point_b := make([][2]f32, n)
+	color := make([][4]f32, n)
+	depth := make([]f32, n)
+
+	for _command, i in commands do for j in 0 ..< POINT_VERTS_LEN {
+		command := _command.base.(Render_Line_Command)
+		k := POINT_VERTS_LEN * i + j
+		point_a[k] = command.point_a
+		point_b[k] = command.point_b
+		color[k] = color_to_4f32(command.color)
+		depth[k] = command.depth }
+	upload_vertex_buffer_data(0, buffers[0], 2, gl.FLOAT, point_a)
+	upload_vertex_buffer_data(1, buffers[1], 2, gl.FLOAT, point_b)
+	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, color)
+	upload_vertex_buffer_data(3, buffers[3], 1, gl.FLOAT, depth)
+
+	// (TODO): Make sure "polygon_mode" before every draw call. //
 	polygon_mode(.Line)
-	draw_lines(2) }
+	draw_lines(cast(i32)n) }
+
+// render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color = BLACK, depth: f32 = 0.0) {
+// 	using Line_Shader_Uniforms
+// 	use_shader(&graphics_manager.line_shader)
+// 	set_shader_param(POINTS, [4]f32{ points[0].x, points[0].y, points[1].x, points[1].y })
+// 	set_shader_param(RES, graphics_manager.active_resolution)
+// 	set_shader_param(COLOR, color_to_4f32(color))
+// 	set_shader_param(DEPTH, depth)
+// 	polygon_mode(.Line)
+// 	draw_lines(2) }
 
 Render_Image_Command :: struct {
+	using base: Generic_Command,
 	using params: Render_Image_Params,
 	using group_params: Render_Image_Group_Params }
 
@@ -774,21 +832,21 @@ Render_Image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
 	image: ^Image_Asset }
 
-render_image :: proc(graphics_man: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Render_Image_Command = {
 		render_buffer = render_buffer,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
 		depth = depth }
-	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
+	command_buffer_record(&graphics_manager.command_buffer, { base = command }) }
 
 // (NOTE): This will do the batching. //
-submit_render_image :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
+submit_render_image :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
 	// using Image_Uniforms
 	// assert(image_loaded(command.image))
-	// use_shader(&graphics_man.image_shader)
-	// gl.BindVertexArray(graphics_man.vertex_array)
-	// gl.BindBuffer(gl.ARRAY_BUFFER, graphics_man.vertex_buffer)
+	// use_shader(&graphics_manager.image_shader)
+	// gl.BindVertexArray(graphics_manager.vertex_array)
+	// gl.BindBuffer(gl.ARRAY_BUFFER, graphics_manager.vertex_buffer)
 	// set_shader_param(POS, command.rect.position)
 	// set_shader_param(SIZE, command.rect.size)
 	// bind_texture(0, command.image.handle)
@@ -797,13 +855,13 @@ submit_render_image :: proc(graphics_man: ^Graphics_Manager, _command: Command, 
 
 	using Image_Shader_Uniforms
 
-	command := _command.variant.(Render_Image_Command)
+	command := _command.base.(Render_Image_Command)
 
 	assert(image_loaded(command.image))
-	use_shader(&graphics_man.image_shader)
-	set_shader_param(RES, linalg.array_cast(graphics_man.active_resolution, f32))
+	use_shader(&graphics_manager.image_shader)
+	set_shader_param(RES, linalg.array_cast(graphics_manager.active_resolution, f32))
 
-	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Image_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Image_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(2)
 	defer delete_buffers(buffers)
@@ -812,7 +870,7 @@ submit_render_image :: proc(graphics_man: ^Graphics_Manager, _command: Command, 
 	rect := make([]Rect, n)
 	depth := make([]f32, n)
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
-		command := _command.variant.(Render_Image_Command)
+		command := _command.base.(Render_Image_Command)
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth }
@@ -1325,11 +1383,11 @@ tick_graphics_manager_begin :: proc(graphics_manager: ^Graphics_Manager) {
 	clear_render_buffer(&graphics_manager.canvas_rb)
 	set_depth_test(true) }
 
-tick_graphics_manager_end :: proc(graphics_man: ^Graphics_Manager) {
-	command_buffer_submit(graphics_man, &graphics_man.command_buffer)
+tick_graphics_manager_end :: proc(graphics_manager: ^Graphics_Manager) {
+	command_buffer_submit(graphics_manager, &graphics_manager.command_buffer)
 	set_depth_test(false)
-	select_frame_buffer(graphics_man, 0)
-	if graphics_man.buffer_shader.handle != 0 do render_render_buffer(graphics_man, &graphics_man.canvas_rb, 0)
+	select_frame_buffer(graphics_manager, 0)
+	if graphics_manager.buffer_shader.handle != 0 do render_render_buffer(graphics_manager, &graphics_manager.canvas_rb, 0)
 
 // 	if .MODELS in draw.draw_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.draw_mask {
@@ -1397,14 +1455,14 @@ tick_graphics_manager_end :: proc(graphics_man: ^Graphics_Manager) {
 // 	// set_blend(false)
 // 	// get_hovered_index()
 // 	// cap_fps()
-	glfw.SwapBuffers(cast(glfw.WindowHandle)graphics_man.window_manager.handle)
-	if glfw.WindowShouldClose(cast(glfw.WindowHandle)graphics_man.window_manager.handle) do graphics_man.window_closed = true
+	glfw.SwapBuffers(cast(glfw.WindowHandle)graphics_manager.window_manager.handle)
+	if glfw.WindowShouldClose(cast(glfw.WindowHandle)graphics_manager.window_manager.handle) do graphics_manager.window_closed = true
 
 // 	// TODO: Add a draw_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //
 // 	watch_models(draw, "beach")
 // 	{ lock_guard(&physics.lock); physics.d_surf, physics.d_surf_displaced, physics.d_surfer, physics.n_surf, physics.n_surf_displaced = read_physics_render_buffer(draw) }
 // 	{ lock_guard(&input.lock); if key_was_pressed(input, .J) do recompile_shaders(unwrap(draw), working_directory_path) }
-	graphics_man.frame_count += 1 }
+	graphics_manager.frame_count += 1 }
 	// DICK
 
 

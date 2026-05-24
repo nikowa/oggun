@@ -1,6 +1,10 @@
 out vec4 color;
-layout(location = 2) uniform vec4 line_color;
-layout(location = 3) uniform float depth;
+
+flat in vec4 _line_color;
+flat in float _depth;
+
+#define line_color _line_color
+#define depth _depth
 
 void main(void) {
 	color = line_color;

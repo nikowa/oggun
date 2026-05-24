@@ -48,10 +48,7 @@ Rect_Shader_Uniforms :: enum {
 	ROUNDING   = 3 }
 
 Line_Shader_Uniforms :: enum {
-	POINTS = 0,
-	RES    = 1,
-	COLOR  = 2,
-	DEPTH  = 3 }
+	RES = 0 }
 
 Model_Shader_Uniforms :: enum {
 	MODEL_MATRIX             = 0,

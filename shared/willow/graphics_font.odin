@@ -79,8 +79,9 @@ font_init :: proc(asset_man: ^Asset_Manager, font: ^Font, config: Font_Config) {
 		if ok do font.advances[cast(rune)symbol] = u8(advance) } } }
 
 Render_Text_Command :: struct {
-	using params: Render_Text_Params,
-	using group_params: Render_Text_Group_Params }
+	using base: Generic_Command,
+	using group_params: Render_Text_Group_Params,
+	using params: Render_Text_Params }
 
 Render_Text_Group_Params :: struct {
 	font: ^Font,
@@ -123,6 +124,7 @@ font_group_select :: proc(font_group: Font_Group, style: Text_Style) -> (font: ^
 render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, integer: bool = true) {
 	using style
 	command: Render_Text_Command = {
+		group_params_size = size_of(Render_Text_Group_Params),
 		font = font_group_select(font_group, style),
 		res = graphics_man.active_resolution,
 		scale_factor = scale_factor,
@@ -136,19 +138,19 @@ render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, positi
 	command.position.y = integer ? math.round_f32(command.position.y + 0.3) : command.position.y
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
-	command_buffer_record(&graphics_man.command_buffer, { variant = command }) }
+	command_buffer_record(&graphics_man.command_buffer, { base = command }) }
 
 submit_render_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
 	using Text_Uniforms
 
-	command := _command.variant.(Render_Text_Command)
+	command := _command.base.(Render_Text_Command)
 
 	use_shader(&graphics_man.text_shader)
 	set_shader_param(RES, graphics_man.active_resolution)
 	set_shader_param(SYMBOL_SIZE, command.font.symbol_size)
 
 	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Text_Command, _command_0, _command_1) })
-	// for command in commands do fmt.printfln("%c -- %v", command.variant.(Render_Text_Command).symbol, command.variant.(Render_Text_Command).position)
+	// for command in commands do fmt.printfln("%c -- %v", command.base.(Render_Text_Command).symbol, command.base.(Render_Text_Command).position)
 
 	buffers := make_buffers(6)
 	defer delete_buffers(buffers)
@@ -161,7 +163,7 @@ submit_render_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, i
 	italic := make([]u32, n)
 	bold := make([]u32, n)
 	for _command, i in commands do for j in 0 ..< 6 {
-		command := _command.variant.(Render_Text_Command)
+		command := _command.base.(Render_Text_Command)
 		k := 6 * i + j
 		scale_factor[k] = command.scale_factor
 		color[k] = color_to_4f32(command.color)

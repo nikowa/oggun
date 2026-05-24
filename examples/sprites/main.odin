@@ -48,7 +48,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		player_name = "Destroyer",
 		resolution = { 1920, 1080 },
 		fullscreen = true }
-	init_settings_manager(&settings_manager, "Sprites")
+	settings_manager_init(&settings_manager, "Willow Examples", "Settings")
 	settings_manager_write(&settings_manager, &settings)
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
