@@ -47,7 +47,7 @@ render_model_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, ca
 	// bind_texture(1, model_node.thickness_map.handle)
 	// bind_texture(2, model_instance.world_position_map.handle)
 	// bind_texture(3, draw.textures_map["skybox"].handle)
-	draw_triangles(cast(i32)(len(model_node.positions) * 3)) }
+	render_triangles(cast(i32)(len(model_node.positions) * 3)) }
 
 // model_node_bake_position :: proc(graphics_manager: ^Graphics_Manager, node: ^Model_Node, size: [2]int) {
 // 	texture_size:     [2]int

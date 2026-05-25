@@ -47,6 +47,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
 	context.logger = log.create_console_logger()
+	arena: mem.Arena
+	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
+	context.temp_allocator = mem.arena_allocator(&arena)
 
 	neon_init()
 	using Neon_Color_Row
@@ -70,6 +73,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
+
+	backing_allocator := context.allocator
+	context.allocator = context.temp_allocator
+
 	for ! graphics_manager.window_closed {
 		time := read_stopwatch(&stopwatch)
 		tick_asset_manager(&asset_manager)
@@ -78,9 +85,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer tick_manager_reset(&tick_manager)
 			tick_graphics_manager(&graphics_manager)
 			rect := make_rect(0, 0, 400 + 300 * math.sin(0.05 * time), 320)
-			rect.size.y = text_box_measure(text_style, rect.size.x, text)
-			render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
-			render_rect(&graphics_manager, gui_margins(rect, -8), fill_color = bg3_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
-			gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Center, integer = true) }
+			rect.size.y = _measure_text_box(text_style, rect.size.x, text)
+			draw_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
+			draw_rect(&graphics_manager, gui_margins(rect, -8), fill_color = bg3_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			draw_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Center, integer = true) }
 		free_all(context.temp_allocator) }
 	return }

@@ -2,43 +2,6 @@ package willow
 import "core:mem"
 import "core:slice"
 
-// Command_Buffer :: struct {
-// 	allocator: runtime.Allocator,
-// 	commands: [dynamic]Command,
-// 	batches: [dynamic]Command_Batch }
-
-// Command_Batch :: struct {
-// 	using params: Command_Batch_Params,
-// 	commands: []Command }
-
-// Command :: struct #raw_union {
-// 	using render_image: Render_Image_Params }
-
-// Command_Batch_Params :: struct {
-// 	variant: Command_Variant,
-// 	using _: struct #raw_union {
-// 		using render_image: Render_Image_Batch_Params } }
-
-// Command_Variant :: enum {
-// 	RENDER_IMAGE }
-
-// // Procedure for recording a command.
-
-// command_buffer_record :: proc(buffer: ^Command_Buffer, variant: Command_Variant, batch_params: Command_Batch_Params, params: Command) {
-// 	batch_params := batch_params
-// 	batch_params.variant = variant
-// 	last_batch: ^Command_Batch = len(buffer.batches) > 0 ? &buffer.batches[len(buffer.batches) - 1] : nil
-// 	if (last_batch == nil) || (last_batch.params != batch_params) {
-// 		append(&buffer.batches, Command_Batch{ })
-// 		last_batch = &buffer.batches[len(buffer.batches) - 1] }
-// 	append(&buffer.commands, params)
-// 	n: int = len(buffer.commands)
-// 	if len(last_batch.commands) == 0 {
-// 		last_batch.commands = buffer.commands[n - 1 : n] }
-// 	else {
-// 		i: int = int((uintptr(&last_batch.commands[0]) - uintptr(&buffer.commands[0])) / size_of(Command))
-// 		last_batch.commands = buffer.commands[i : n] } }
-
 // Phases of command processing:
 // (1) all commands are stored in a dynamic array
 // (2) pointers to the commands are stored in nodes
@@ -65,10 +28,10 @@ Command_Group :: [dynamic]^Command
 Command_Config :: struct {
 	base: union {
 		Generic_Command,
-		Render_Image_Command,
-		Render_Text_Command,
-		Render_Rect_Command,
-		Render_Line_Command } }
+		Draw_Image_Command,
+		Draw_Text_Command,
+		Draw_Rect_Command,
+		Draw_Line_Command } }
 
 Generic_Command :: struct {
 	group_params_size: u16 }
@@ -93,6 +56,7 @@ generic_command_params :: proc(generic_command: ^Generic_Command) -> (params: []
 	return true }
 
 command_buffer_init :: proc(command_buffer: ^Command_Buffer) {
+	command_buffer.commands = make([dynamic]Command, context.allocator)
 	command_buffer.command_groups = make([dynamic]Command_Group, context.allocator) }
 
 // last_command
@@ -105,10 +69,10 @@ command_submit :: proc(graphics_man: ^Graphics_Manager, command: Command, index:
 	if command.submitted do return
 	switch variant in command.base {
 	case Generic_Command: return
-	case Render_Image_Command: submit_render_image(graphics_man, command, index)
-	case Render_Text_Command:  submit_render_text(graphics_man, command, index)
-	case Render_Rect_Command:  submit_render_rect(graphics_man, command, index)
-	case Render_Line_Command:  submit_render_line(graphics_man, command, index) }
+	case Draw_Image_Command: submit_draw_image(graphics_man, command, index)
+	case Draw_Text_Command:  submit_draw_text(graphics_man, command, index)
+	case Draw_Rect_Command:  submit_draw_rect(graphics_man, command, index)
+	case Draw_Line_Command:  submit_draw_line(graphics_man, command, index) }
 	graphics_man.command_buffer.commands[index].submitted = true }
 
 command_buffer_submit :: proc(graphics_man: ^Graphics_Manager, command_buffer: ^Command_Buffer) {

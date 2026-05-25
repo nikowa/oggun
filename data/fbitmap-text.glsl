@@ -41,11 +41,12 @@ vec4 sample_styled(vec2 uv) {
 	// return pc; }
 
 void main(void) {
-	msaa2_scope_begin(color.w, quad_size)
+	msaa16_scope_begin(color.w, quad_size)
 		color.w += sample_styled(tex_coords + msaa_off).w;
-	msaa2_scope_end(color.w)
+	msaa16_scope_end(color.w)
 	// color.w = 1 - pow(1 - color.w, 2.0);
 	if (color.w < 0.25) color.w = 0.0;
 	// color.w = pow(color.w, 0.5);
-	color.rgb = sample_styled(tex_coords).rgb;
+	color.rgb = _text_color.rgb;
+	color.a *= _text_color.a;
 	if (color.w == 0.0) { gl_FragDepth = 1.0; } }

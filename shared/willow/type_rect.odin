@@ -35,3 +35,6 @@ rect_round :: proc(rect: Rect) -> Rect {
 	rect.size.x = math.round_f32(rect.size.x / 2) * 2
 	rect.size.y = math.round_f32(rect.size.y / 2) * 2
 	return rect }
+
+rect_hovered :: proc(rect: Rect, input_manager: ^Input_Manager) -> bool {
+	return rect_contains_point(rect, input_manager.mouse_position) }

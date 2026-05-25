@@ -1,6 +1,5 @@
 
-- Fix memory leaks
-- Split "gui" into "gui_core" and "gui_draw"
+- Implement win32 window backend
 - Split "graphics_core" into "graphics_core" and "graphics_draw"
 - Rename "graphics_font" to "graphics_text"
 - Rename "type_" packages to "base_"

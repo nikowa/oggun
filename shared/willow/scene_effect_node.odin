@@ -38,4 +38,4 @@ render_effect_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, c
 	polygon_mode(.Fill)
 	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	gl.Disable(gl.CULL_FACE)
-	draw_triangles(cast(i32)(len(effect_node.mesh.verts) * 2)) }
+	render_triangles(cast(i32)(len(effect_node.mesh.verts) * 2)) }

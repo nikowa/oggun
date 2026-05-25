@@ -9,6 +9,7 @@ import "core:math"
 import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
+import "core:mem"
 
 asset_manager: willow.Asset_Manager
 input_manager: willow.Input_Manager
@@ -16,64 +17,33 @@ graphics_manager: willow.Graphics_Manager
 window_manager: willow.Window_Manager
 tick_manager: willow.Tick_Manager
 stopwatch: time.Stopwatch
+neon_manager: willow.Neon_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
 	willow.start(entry_point, n_workers_override = 1) }
 
-Sprite :: struct {
-	position: [2]f32,
-	direction: [2]f32,
-	depth: f32,
-	speed: f32 }
-
-sprite_init :: proc(sprite: ^Sprite) {
-	sprite.position = { rand.float32(), rand.float32() }
-	sprite.depth = rand.float32()
-	angle: f32 = 2 * math.PI * rand.float32()
-	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
-	sprite.speed = 0.1 * (1 + rand.float32()) }
-
-Settings :: struct {
-	player_name: string,
-	resolution: [2]f32,
-	fullscreen: bool }
-
-Color :: struct {
-	name: string,
-	hex: u32 }
-
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
-// mouse_position
-
 	context.logger = log.create_console_logger()
-
-	neon_init()
-	using Neon_Color_Row
-	fg_color := neon_color_table_ms_light[/*Warning_Foreground*/Neutral_Foreground_1][0]
-	bg_color := neon_color_table_ms_light[Neutral_Background_1][0]
-	bg2_color := neon_color_table_ms_light[Neutral_Background_2][0]
-	bg3_color := neon_color_table_ms_light[Neutral_Background_3][0]
-	stroke_color := neon_color_table_ms_light[Neutral_Stroke_1][0]
+	arena: mem.Arena
+	mem.arena_init(&arena, make([]u8, 100 * mem.Megabyte))
+	context.temp_allocator = mem.arena_allocator(&arena)
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
 	window_init(&window_manager, default_window_config(title = "GUI"))
-	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager,
-		graphics_config = { window_manager = &window_manager, clear_color = bg_color })
+	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager, graphics_config = { window_manager = &window_manager, clear_color = NEUTRAL_BACKGROUND_1_NORMAL })
+	neon_manager_init(&neon_manager, &asset_manager)
 	tick_manager_init(&tick_manager, { tickrate_setting = .LIMITED_60_FPS })
 	input_init(&input_manager, &window_manager, { raw_input = false })
 
-	font_group: Font_Group
-	font_group_init(&asset_manager, &font_group,
-		normal = default_font_config(name = "terminus"),
-		bold = default_font_config(name = "terminus-bold"),
-		italic = default_font_config(name = "terminus-italic"))
-	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
-	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
+
+	backing_allocator := context.allocator
+	context.allocator = context.temp_allocator
+
 	for ! graphics_manager.window_closed {
 		time := read_stopwatch(&stopwatch)
 		tick_asset_manager(&asset_manager)
@@ -82,18 +52,20 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer tick_manager_reset(&tick_manager)
 			tick_graphics_manager(&graphics_manager)
 			input_manager_tick(&input_manager)
-			render_rect(&graphics_manager, { input_manager.mouse_position, { 4, 4 } }, RED)
-
-			fill_color: Color = neon_color_table_ms_light[Brand_Foreground_1][Neon_Color_Column.Normal]
-			stroke_color: Color = neon_color_table_ms_light[Brand_Stroke_1][Neon_Color_Column.Normal]
-			render_rect(&graphics_manager, { { 0, 0 }, { 120, 24 } }, fill_color = fill_color, stroke_color = stroke_color, stroke = 1, rounding = cast(f32)Neon_Radius.Medium)
-
-			// rect := make_rect(0, 0, 400 + 300 * math.sin(0.05 * time), 320)
-			// rect.size.y = text_box_measure(text_style, rect.size.x, text)
-			// render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
-			// render_rect(&graphics_manager, gui_margins(rect, -8), fill_color = bg3_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
-			// gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Center, integer = true)
+			window_tick(&window_manager)
+			DELTA :: 120
+			rect: Rect = { { - 2 * DELTA, 0 }, NEON_BUTTON_SIZE }
+			draw_neon_button(rect, "*Default*", appearance = .Default, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
+			rect.position.x += DELTA
+			draw_neon_button(rect, "*Primary*", appearance = .Primary, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
+			rect.position.x += DELTA
+			draw_neon_button(rect, "*Outline*", appearance = .Outline, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
+			rect.position.x += DELTA
+			draw_neon_button(rect, "*Subtle*", appearance = .Subtle, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
+			rect.position.x += DELTA
+			draw_neon_button(rect, "*Transparent*", appearance = .Transparent, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
 		}
 
-		free_all(context.temp_allocator) }
+		free_all(context.allocator)
+	}
 	return }

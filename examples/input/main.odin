@@ -146,7 +146,11 @@ make_rects :: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
+
 	context.logger = log.create_console_logger()
+	arena: mem.Arena
+	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
+	context.temp_allocator = mem.arena_allocator(&arena)
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
 	window_init(&window_manager, default_window_config(title = "Input"))
@@ -197,6 +201,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		.Numpad_1, .Numpad_2, .Numpad_3, .Numpad_Enter,
 		.Numpad_0, .Numpad_Decimal }
 
+	backing_allocator := context.allocator
+	context.allocator = context.temp_allocator
+
 	for ! graphics_manager.window_closed {
 		input_manager_tick(&input_manager)
 		tick_graphics_manager(&graphics_manager)
@@ -204,9 +211,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			down: bool = false
 			if inputs[i] != .None do down = input_query(&input_manager, inputs[i], .Down)
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
-			if down do render_rect(&graphics_manager, rect, DARK_GRAY, depth = 0.99)
-			render_rect_outline(&graphics_manager, rect, WHITE)
-			render_rect_outline(&graphics_manager, gui_offset(key_margins(rect), down_offset), GRAY)
-			gui_text_line(&graphics_manager, text_style, rect.position + down_offset, keys[i]) } }
+			if down do draw_rect(&graphics_manager, rect, DARK_GRAY, depth = 0.99)
+			draw_rect_outline(&graphics_manager, rect, WHITE)
+			draw_rect_outline(&graphics_manager, gui_offset(key_margins(rect), down_offset), GRAY)
+			draw_text_line(&graphics_manager, text_style, rect.position + down_offset, keys[i]) } }
 	k: f32 = query().scalar
 	return }

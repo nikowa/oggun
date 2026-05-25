@@ -191,6 +191,7 @@ input_manager_tick :: proc(input_manager: ^Input_Manager) {
 	bits_array_copy(&input_manager.old_inputs_pressed, &input_manager.inputs_pressed) }
 
 input_record_key :: proc(input_manager: ^Input_Manager, input: Input, action: Action) {
+	if input == .None do return
 	switch action {
 	case .Press:
 		bit_array.set(&input_manager.inputs_pressed, cast(uint)input, true)
@@ -200,9 +201,9 @@ input_record_key :: proc(input_manager: ^Input_Manager, input: Input, action: Ac
 @(private="file")
 glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
 	context = runtime.default_context()
-	im: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
-	assert(im != nil)
-	input_record_key(im, cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
+	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
+	assert(input_manager != nil)
+	input_record_key(input_manager, cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
 
 // @(private="file")
 // scroll_callback :: proc "c" (window: glfw.WindowHandle, dx, dy: f64) {
@@ -227,20 +228,20 @@ glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) 
 	if called do input_manager.mouse_delta += mouse_position - input_manager.mouse_position
 	// if (abs(input_manager.mouse_delta.x) > 100) && (abs(input_manager.mouse_delta.y) > 100) { input_manager.mouse_delta = { 0, 0 } }
 	input_record_mouse_position(input_manager, mouse_position)
-	fmt.println(mouse_position)
 	called = true }
 
-// @(private="file")
-// mouse_button_callback :: proc "c" (window: glfw.WindowHandle, button, action, mods: i32) {
-// 	context = runtime.default_context()
-// 	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
-// 	index: uint = 0
-// 	switch button {
-// 	case glfw.MOUSE_BUTTON_LEFT:  index = INDEX_MOUSE_LEFT
-// 	case glfw.MOUSE_BUTTON_RIGHT: index = INDEX_MOUSE_RIGHT }
-// 	switch action {
-// 	case glfw.PRESS:   bit_array.set(&input_manager.inputs_pressed, index, true)
-// 	case glfw.RELEASE: bit_array.set(&input_manager.inputs_pressed, index, false) } }
+@(private="file")
+glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, button, action, mods: i32) {
+	context = runtime.default_context()
+	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
+	key: Input
+	switch button {
+	case glfw.MOUSE_BUTTON_LEFT:  key = .Mouse_Left
+	case glfw.MOUSE_BUTTON_RIGHT: key = .Mouse_Right }
+	input_record_key(input_manager, cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
+
+// DICK
+// Input.Mouse_Left
 
 // window_refresh_callback :: proc "c" (window: glfw.WindowHandle) { }
 
@@ -282,7 +283,7 @@ input_init :: proc(input_manager: ^Input_Manager, window_manager: ^Window_Manage
 		glfw.SetKeyCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_key_callback)
 		// glfw.SetScrollCallback(draw.window, scroll_callback)
 		glfw.SetCursorPosCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_mouse_position_callback)
-		// glfw.SetMouseButtonCallback(draw.window, mouse_button_callback)
+		glfw.SetMouseButtonCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_mouse_key_callback)
 		// glfw.SetWindowRefreshCallback(draw.window, window_refresh_callback)
 		// glfw.SetWindowSizeCallback(draw.window, resolution_callback)
 		// glfw.SetDropCallback(draw.window, drop_callback)

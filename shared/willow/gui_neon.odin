@@ -1,102 +1,20 @@
 #+feature using-stmt
 package willow
+import "core:fmt"
 
-Neon_Color_Column :: enum {
-	Normal = 0,
-	Hover,
-	Pressed,
-	Selected,
-	Variant_1 = 0,
-	Variant_2,
-	Variant_3,
-	Variant_4 }
+Neon_Manager :: struct {
+	font_group: Font_Group,
+	text_style: Text_Style,
+	// caption2_font_group: Font_Group,  // 10px
+	// caption1_font_group: Font_Group,  // 12px
+	// body1_font_group: Font_Group,     // 14px
+	// body2_font_group: Font_Group,     // 16px
+	// subtitle1_font_group: Font_Group, // 20px
+}
 
-Neon_Color_Row :: enum {
-	Neutral_Foreground_1 = 0,
-	Neutral_Foreground_2,
-	Neutral_Foreground_2_Brand,
-	Neutral_Foreground_3,
-	Neutral_Foreground_3_Brand,
-	Neutral_Foreground_4,
-	Neutral_Foreground_5,
-	Neutral_Foreground_Disabled,
-	Brand_Foreground_Link,
-	Neutral_Foreground_2_Link,
-	Brand_Foreground_1,
-	Brand_Foreground_Inverted,
-	Neutral_Background_1,
-	Neutral_Background_2,
-	Neutral_Background_3,
-	Neutral_Background_4,
-	Neutral_Background_5,
-	Neutral_Background_Inverted,
-	Subtle_Background,
-	Brand_Background,
-	Brand_Background_2,
-	Brand_Background_Inverted,
-	Neutral_Card_Background,
-	Neutral_Stroke_Accessible,
-	Neutral_Stroke_1,
-	Neutral_Stroke_2,
-	Neutral_Stroke_3,
-	Neutral_Stroke_4,
-	Brand_Stroke_1,
-	Brand_Stroke_2,
-	Compound_Brand_Stroke,
-	Red_Background,
-	Red_Foreground,
-	Red_Border,
-	Green_Background,
-	Green_Foreground,
-	Green_Border,
-	Dark_Orange_Background,
-	Dark_Orange_Foreground,
-	Dark_Orange_Border,
-	Yellow_Background,
-	Yellow_Foreground,
-	Yellow_Border,
-	Berry_Background,
-	Berry_Foreground,
-	Berry_Border,
-	Light_Green_Background,
-	Light_Green_Foreground,
-	Light_Green_Border,
-	Marigold_Background,
-	Marigold_Foreground,
-	Marigold_Border,
-	Success_Background,
-	Success_Foreground,
-	Success_Border,
-	Warning_Background,
-	Warning_Foreground,
-	Warning_Border,
-	Danger_Background,
-	Danger_Foreground,
-	Danger_Border }
+NEUTRAL_BACKGROUND_1_NORMAL :: 0xffffffff
 
-Neon_Color :: [4]Color
-
-Neon_Color_Table :: [len(Neon_Color_Row)]Neon_Color
-
-neon_color_table_ms_light: ^Neon_Color_Table
-
-// (TODO): The installer CLI procedure also runs a generator procedure, which creates a "generated.odin" file.
-// (TODO): Arrange these in a 4xN table, where the empty trailing rows are filled with the value of the last filled row.
-// Then GUI functions take a slice, so you can just give it a slice off this table.
-
-NEON_FONT_SIZE_CAPTION_2 :: 10
-NEON_FONT_SIZE_CAPTION_1 :: 12
-NEON_FONT_SIZE_BODY_1 :: 14
-NEON_FONT_SIZE_BODY_2 :: 16
-NEON_FONT_SIZE_SUBTITLE_2 :: 16
-NEON_FONT_SIZE_SUBTITLE_1 :: 20
-NEON_FONT_SIZE_TITLE_3 :: 24
-NEON_FONT_SIZE_TITLE_2 :: 28
-NEON_FONT_SIZE_TITLE_1 :: 32
-NEON_FONT_SIZE_LARGE_TITLE :: 40
-NEON_FONT_SIZE_DISPLAY :: 68
-
-neon_init :: proc() {
+neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Manager) {
 	using Neon_Color_Row
 	using Neon_Color_Column
 
@@ -163,7 +81,7 @@ neon_init :: proc() {
 			Pressed  = 0x479ef5ff,
 			Selected = 0x0f6cbdff },
 		Neutral_Background_1 = {
-			Normal   = 0xffffffff,
+			Normal   = NEUTRAL_BACKGROUND_1_NORMAL,
 			Hover    = 0xf5f5f5ff,
 			Pressed  = 0xe0e0e0ff,
 			Selected = 0xebebebff },
@@ -406,7 +324,110 @@ neon_init :: proc() {
 			Variant_1 = 0xeeacb2ff,
 			Variant_2 = 0xc50f1fff,
 			Variant_3 = 0xc50f1fff,
-			Variant_4 = 0xc50f1fff } } }
+			Variant_4 = 0xc50f1fff } }
+	font_group_init(asset_manager, &neon_manager.font_group,
+		normal = default_font_config(name = "terminus"),
+		bold = default_font_config(name = "terminus-bold"),
+		italic = default_font_config(name = "terminus-italic"))
+	fg_color := neon_color_table_ms_light[Neon_Color_Row.Neutral_Foreground_1][0]
+	neon_manager.text_style = default_text_style(font_group = neon_manager.font_group, color = fg_color, font_size = 8) }
+
+// (TODO): Rename to Neon_Color_State
+Neon_Color_Column :: enum {
+	Normal = 0,
+	Hover,
+	Pressed,
+	Selected,
+	Variant_1 = 0,
+	Variant_2,
+	Variant_3,
+	Variant_4 }
+
+// (TODO): Rename to Neon_Color_Classs
+Neon_Color_Row :: enum {
+	Neutral_Foreground_1 = 0,
+	Neutral_Foreground_2,
+	Neutral_Foreground_2_Brand,
+	Neutral_Foreground_3,
+	Neutral_Foreground_3_Brand,
+	Neutral_Foreground_4,
+	Neutral_Foreground_5,
+	Neutral_Foreground_Disabled,
+	Brand_Foreground_Link,
+	Neutral_Foreground_2_Link,
+	Brand_Foreground_1,
+	Brand_Foreground_Inverted,
+	Neutral_Background_1,
+	Neutral_Background_2,
+	Neutral_Background_3,
+	Neutral_Background_4,
+	Neutral_Background_5,
+	Neutral_Background_Inverted,
+	Subtle_Background,
+	Brand_Background,
+	Brand_Background_2,
+	Brand_Background_Inverted,
+	Neutral_Card_Background,
+	Neutral_Stroke_Accessible,
+	Neutral_Stroke_1,
+	Neutral_Stroke_2,
+	Neutral_Stroke_3,
+	Neutral_Stroke_4,
+	Brand_Stroke_1,
+	Brand_Stroke_2,
+	Compound_Brand_Stroke,
+	Red_Background,
+	Red_Foreground,
+	Red_Border,
+	Green_Background,
+	Green_Foreground,
+	Green_Border,
+	Dark_Orange_Background,
+	Dark_Orange_Foreground,
+	Dark_Orange_Border,
+	Yellow_Background,
+	Yellow_Foreground,
+	Yellow_Border,
+	Berry_Background,
+	Berry_Foreground,
+	Berry_Border,
+	Light_Green_Background,
+	Light_Green_Foreground,
+	Light_Green_Border,
+	Marigold_Background,
+	Marigold_Foreground,
+	Marigold_Border,
+	Success_Background,
+	Success_Foreground,
+	Success_Border,
+	Warning_Background,
+	Warning_Foreground,
+	Warning_Border,
+	Danger_Background,
+	Danger_Foreground,
+	Danger_Border }
+
+Neon_Color :: [4]Color
+
+Neon_Color_Table :: [len(Neon_Color_Row)]Neon_Color
+
+neon_color_table_ms_light: ^Neon_Color_Table
+
+// (TODO): The installer CLI procedure also runs a generator procedure, which creates a "generated.odin" file.
+// (TODO): Arrange these in a 4xN table, where the empty trailing rows are filled with the value of the last filled row.
+// Then GUI functions take a slice, so you can just give it a slice off this table.
+
+NEON_FONT_SIZE_CAPTION_2 :: 10
+NEON_FONT_SIZE_CAPTION_1 :: 12
+NEON_FONT_SIZE_BODY_1 :: 14
+NEON_FONT_SIZE_BODY_2 :: 16
+NEON_FONT_SIZE_SUBTITLE_2 :: 16
+NEON_FONT_SIZE_SUBTITLE_1 :: 20
+NEON_FONT_SIZE_TITLE_3 :: 24
+NEON_FONT_SIZE_TITLE_2 :: 28
+NEON_FONT_SIZE_TITLE_1 :: 32
+NEON_FONT_SIZE_LARGE_TITLE :: 40
+NEON_FONT_SIZE_DISPLAY :: 68
 
 Neon_Radius :: enum {
 	None    = 0,
@@ -425,3 +446,58 @@ Neon_Stroke_Width :: enum {
 	Thick    = 2,
 	Thicker  = 3,
 	Thickest = 4 }
+
+Neon_Button_Appearance :: enum {
+	Default,
+	Primary,
+	Outline,
+	Subtle,
+	Transparent }
+
+NEON_BUTTON_SIZE: [2]f32 : { 96, 32 }
+
+draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, neon_manager: ^Neon_Manager = nil, input_manager: ^Input_Manager = nil, graphics_manager: ^Graphics_Manager = nil, window_manager: ^Window_Manager = nil, sep: string = "") {
+	text := fmt.aprint(..args, sep = sep)
+	rounding: f32 = 0.0
+	switch shape {
+	case .Rounded: rounding = cast(f32)Neon_Radius.Medium
+	case .Circular: rounding = NEON_BUTTON_SIZE.y / 2
+	case .Square: rounding = 0.0 }
+	hover: bool = rect_hovered(rect, input_manager)
+	press: bool = hover && input_query(input_manager, .Mouse_Left, .Down)
+
+	fill_neon_color: Neon_Color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Background_2]
+	stroke_neon_color: Neon_Color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Stroke_1]
+	text_style: Text_Style = neon_manager.text_style
+	#partial switch appearance {
+	case .Primary:
+		fill_neon_color = neon_color_table_ms_light[Neon_Color_Row.Brand_Background]
+		stroke_neon_color = neon_color_table_ms_light[Neon_Color_Row.Brand_Stroke_1]
+		text_style.color = WHITE
+	case .Outline:
+		fill_neon_color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Background_1]
+		stroke_neon_color = neon_color_table_ms_light[Neon_Color_Row.Brand_Stroke_2]
+	case .Subtle:
+		fill_neon_color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Background_1]
+	case .Transparent:
+		fill_neon_color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Foreground_2_Brand]
+	}
+
+	state := press ? Neon_Color_Column.Pressed : hover ? Neon_Color_Column.Hover : Neon_Color_Column.Normal
+	fill_color: Color = fill_neon_color[state]
+	stroke_color: Color = stroke_neon_color[state]
+	stroke: f32 = 1
+	#partial switch appearance {
+	case .Outline:
+		fill_color = fill_neon_color[0]
+	case .Subtle:
+		stroke = 0
+	case .Transparent:
+		stroke = 0
+		text_style.color = fill_color
+		fill_color = NEUTRAL_BACKGROUND_1_NORMAL }
+
+// case .Primary
+	draw_rect(graphics_manager, rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)
+	if hover do set_cursor(window_manager, .Hand)
+	draw_text_box(graphics_manager, text_style, rect, text, h_align = .Center, v_align = .Center, depth = 0.0) }

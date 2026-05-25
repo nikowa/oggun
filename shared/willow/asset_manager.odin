@@ -39,7 +39,7 @@ DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
 
 Asset_Manager :: struct {
 	using config: Asset_Manager_Config,
-	allocator: runtime.Allocator,
+	backing_allocator: runtime.Allocator,
 	last_autosave_time: time.Time,
 	modification_time: time.Time,
 	entries: list.List,
@@ -101,17 +101,18 @@ Entry :: struct {
 	node: list.Node,
 	hash: u32 }
 
-asset_manager_init :: proc(asset_manager: ^Asset_Manager, config: Asset_Manager_Config, backing_allocator: runtime.Allocator) {
+asset_manager_init :: proc(asset_manager: ^Asset_Manager, config: Asset_Manager_Config, backing_allocator: runtime.Allocator = context.allocator) {
+	context.allocator = backing_allocator
 	asset_manager.config = config
-	asset_manager.allocator = backing_allocator
-	asset_manager.entries_map = make_map(map[URL]^Entry, asset_manager.allocator)
-	asset_manager.asset_kinds = make(map[typeid]Asset_Kind, backing_allocator)
-	asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32, backing_allocator)
+	asset_manager.backing_allocator = backing_allocator
+	asset_manager.entries_map = make_map(map[URL]^Entry)
+	asset_manager.asset_kinds = make(map[typeid]Asset_Kind)
+	asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32)
 	register_builtin_asset_kinds(asset_manager) }
 
 asset_command :: proc(asset_manager: ^Asset_Manager, Asset_Type: typeid, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
-	assert(Asset_Type in asset_manager.asset_kinds)
-	asset_kind := asset_manager.asset_kinds[Asset_Type]
+	asset_kind, registered := asset_manager.asset_kinds[Asset_Type]
+	if ! registered do log.errorf("Type %v not registered!", Asset_Type)
 	when ODIN_DEBUG do asset_kind.command(asset_manager, asset, .Validate, false)
 	assert(asset_kind.command != nil)
 	return asset_kind.command(asset_manager, asset, command, watch) }
@@ -195,7 +196,7 @@ entry_integrity :: proc(entry: ^Entry) -> (ok: bool) {
 
 add_entry :: proc(asset_manager: ^Asset_Manager, config: Entry_Config) -> (entry: ^Entry) {
 	if contains_entry(asset_manager, config.url) do return get_entry(asset_manager, config.url)
-	entry = new(Entry, asset_manager.allocator)
+	entry = new(Entry, asset_manager.backing_allocator)
 	entry.config = config
 	list.push_back(&asset_manager.entries, &entry.node)
 	asset_manager.modification_time = time.now()
@@ -219,14 +220,6 @@ clone_entry :: proc(entry: ^Entry, allocator: runtime.Allocator) -> (entry_clone
 	entry_clone.url = cast(URL)strings.clone(cast(string)entry.url, allocator)
 	entry_clone.data = slice.clone(entry.data, allocator)
 	return entry_clone }
-
-clone_asset_manager :: proc(asset_manager: ^Asset_Manager, allocator: runtime.Allocator) -> (asset_manager_clone: Asset_Manager) {
-	asset_manager_clone = asset_manager^
-	asset_manager_clone.allocator = allocator
-	iterator := asset_manager_iterator(asset_manager)
-	for entry in list.iterate_next(&iterator) {
-		add_entry(&asset_manager_clone, entry.config) }
-	return asset_manager_clone }
 
 equiv :: proc(asset_manager_a, asset_manager_b: ^Asset_Manager) -> bool {
 	if list_len(asset_manager_a.entries, Entry, "node") != list_len(asset_manager_b.entries, Entry, "node") do return false

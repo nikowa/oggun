@@ -11,6 +11,7 @@ import "core:time"
 import "core:log"
 import "core:fmt"
 import "core:math"
+import "core:mem"
 
 // Rendering pipeline:
 // (1) Enable emittance.
@@ -45,6 +46,7 @@ MSAA :: enum { Off, X2, X4, X8, X16 }
 
 Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
+	backing_allocator: runtime.Allocator,
 	command_buffer: Command_Buffer,
 	window_closed: bool,
 // 	fullscreen:                      bool,
@@ -123,10 +125,12 @@ Render_Buffer :: struct {
 // 	buffers:                  [][]u8 }
 
 graphics_init :: proc(
-	graphics_manager: ^Graphics_Manager = nil,
-	asset_manager: ^Asset_Manager = nil,
-	graphics_config: Graphics_Config = {}) -> (err: os.Error) {
+		graphics_manager: ^Graphics_Manager = nil,
+		asset_manager: ^Asset_Manager = nil,
+		graphics_config: Graphics_Config = {},
+		backing_allocator: runtime.Allocator = context.allocator) -> (err: os.Error) {
 	graphics_manager.graphics_config = graphics_config
+	graphics_manager.backing_allocator = backing_allocator
 	when BACKEND == .OpenGL do init_opengl(graphics_manager)
 	command_buffer_init(&graphics_manager.command_buffer)
 // 	width:         i32
@@ -588,14 +592,14 @@ bind_texture :: proc(binding_index: u32, handle: u32) {
 	gl.BindTexture(gl.TEXTURE_2D, cast(u32)handle) }
 
 // (TODO): Make count be the number of triangles. //
-draw_triangles :: proc(count: i32) {
+render_triangles :: proc(count: i32) {
     gl.DrawArrays(gl.TRIANGLES, 0, count) }
 
 // (TODO): Make count be the number of lines. //
 draw_lines :: proc(count: i32) {
     gl.DrawArrays(gl.LINES, 0, count) }
 
-draw_points :: proc(count: i32) {
+render_points :: proc(count: i32) {
     gl.DrawArrays(gl.POINTS, 0, count) }
 
 use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
@@ -643,7 +647,7 @@ delete_buffers :: proc(buffers: [$N]u32) {
 
 
 // render_plot_begin :: proc(draw: ^Draw, x0, y0, x1, y1: f32) -> Plot {
-// 	render_rect_outline(draw, position = { (x0 + x1) / 2, (y0 + y1) / 2 }, size = { x1 - x0, y1 - y0 }, color = CYAN)
+// 	draw_rect_outline(draw, position = { (x0 + x1) / 2, (y0 + y1) / 2 }, size = { x1 - x0, y1 - y0 }, color = CYAN)
 // 	return Plot {
 // 		x0 = x0,
 // 		y0 = y0,
@@ -652,7 +656,7 @@ delete_buffers :: proc(buffers: [$N]u32) {
 
 
 // render_plot_point :: proc(draw: ^Draw, plot: Plot, x: f32, y: f32) {
-// 	render_rect(draw, position = {plot.x0 + (plot.x1 - plot.x0) * x, plot.y0 + (plot.y1 - plot.y0) * y }, size = { 2, 2 }, fill_color = BLUE) }
+// 	draw_rect(draw, position = {plot.x0 + (plot.x1 - plot.x0) * x, plot.y0 + (plot.y1 - plot.y0) * y }, size = { 2, 2 }, fill_color = BLUE) }
 
 
 // render_crosshair :: proc(draw: ^Draw, position: [2]f32) {
@@ -662,17 +666,17 @@ delete_buffers :: proc(buffers: [$N]u32) {
 // 	crosshair_color:     Color = {0,1,0,1}
 // 	offset:              f32 = crosshair_gap + crosshair_length / 2
 
-// 	render_rect_outlined(draw, position = position + { offset, 0 }, size = { crosshair_length, crosshair_thickness }, fill_color = crosshair_color, outline_color = BLACK)
-// 	render_rect_outlined(draw, position = position + { -offset, 0 }, size = { crosshair_length, crosshair_thickness }, fill_color = crosshair_color, outline_color = BLACK)
-// 	render_rect_outlined(draw, position = position + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
-// 	render_rect_outlined(draw, position = position + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
+// 	draw_rect_outlined(draw, position = position + { offset, 0 }, size = { crosshair_length, crosshair_thickness }, fill_color = crosshair_color, outline_color = BLACK)
+// 	draw_rect_outlined(draw, position = position + { -offset, 0 }, size = { crosshair_length, crosshair_thickness }, fill_color = crosshair_color, outline_color = BLACK)
+// 	draw_rect_outlined(draw, position = position + { 0, offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK)
+// 	draw_rect_outlined(draw, position = position + { 0, -offset }, size = { crosshair_thickness, crosshair_length }, fill_color = crosshair_color, outline_color = BLACK) }
 
-Render_Rect_Command :: struct {
+Draw_Rect_Command :: struct {
 	using base: Generic_Command,
-	using params: Render_Rect_Params,
-	using group_params: Render_Rect_Group_Params }
+	using params: Draw_Rect_Params,
+	using group_params: Draw_Rect_Group_Params }
 
-Render_Rect_Params :: struct {
+Draw_Rect_Params :: struct {
 	rect: Rect,
 	fill_color: Color,
 	rounding: f32,
@@ -680,13 +684,13 @@ Render_Rect_Params :: struct {
 	stroke: f32,
 	stroke_color: Color }
 
-Render_Rect_Group_Params :: struct {
+Draw_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
 // (TODO): Rename "rounding" to "radius" and make it "f32". //
 // (TODO): Change "stroke" to u8
-render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
-	command: Render_Rect_Command = {
+draw_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+	command: Draw_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = integer ? rect_round(rect) : rect,
 		fill_color = fill_color,
@@ -696,15 +700,15 @@ render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color:
 		depth = depth }
 	command_buffer_record(&graphics_manager.command_buffer, { base = command }) }
 
-submit_render_rect :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
+submit_draw_rect :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
 	using Rect_Shader_Uniforms
 
-	command := _command.base.(Render_Rect_Command)
+	command := _command.base.(Draw_Rect_Command)
 
 	use_shader(&graphics_manager.rect_shader)
 	set_shader_param(RES, graphics_manager.active_resolution)
 
-	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Rect_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Rect_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(6)
 	defer delete_buffers(buffers)
@@ -718,7 +722,7 @@ submit_render_rect :: proc(graphics_manager: ^Graphics_Manager, _command: Comman
 	stroke_color := make([][4]f32, n)
 
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
-		command := _command.base.(Render_Rect_Command)
+		command := _command.base.(Draw_Rect_Command)
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth
@@ -734,57 +738,57 @@ submit_render_rect :: proc(graphics_manager: ^Graphics_Manager, _command: Comman
 	upload_vertex_buffer_data(5, buffers[5], 4, gl.FLOAT, stroke_color)
 
 	polygon_mode(.Fill)
-	draw_triangles(cast(i32)n) }
+	render_triangles(cast(i32)n) }
 
-// render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0) {
+// draw_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, rounding: f32 = 0.0, depth: f32 = 0.0) {
 // 	using Rect_Shader_Uniforms
 // 	use_shader(&graphics_manager.rect_shader)
 // 	set_shader_param(FILL_COLOR, fill_color)
 // 	set_shader_param(ROUNDING, rounding)
 // 	set_shader_param(DEPTH, depth)
 // 	set_shader_param(RES, graphics_manager.active_resolution)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
-render_rect_outline :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, color: Color = BLACK, depth: f32 = 0.0, integer: bool = true) {
+draw_rect_outline :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, color: Color = BLACK, depth: f32 = 0.0, integer: bool = true) {
 	a: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2 }
 	b: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y - rect.size.y / 2 }
 	c: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y + rect.size.y / 2 + 1 }
 	d: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y + rect.size.y / 2 + 1 }
-	render_line(graphics_manager, { a, b }, color, depth, integer)
-	render_line(graphics_manager, { b, d }, color, depth, integer)
-	render_line(graphics_manager, { d, c }, color, depth, integer)
-	render_line(graphics_manager, { c, a }, color, depth, integer) }
+	draw_line(graphics_manager, { a, b }, color, depth, integer)
+	draw_line(graphics_manager, { b, d }, color, depth, integer)
+	draw_line(graphics_manager, { d, c }, color, depth, integer)
+	draw_line(graphics_manager, { c, a }, color, depth, integer) }
 
-Render_Line_Command :: struct {
-	using params: Render_Line_Params,
-	using group_params: Render_Line_Group_Params }
+Draw_Line_Command :: struct {
+	using params: Draw_Line_Params,
+	using group_params: Draw_Line_Group_Params }
 
-Render_Line_Params :: struct {
+Draw_Line_Params :: struct {
 	point_a: [2]f32,
 	point_b: [2]f32,
 	color: Color,
 	depth: f32 }
 
-Render_Line_Group_Params :: struct {
+Draw_Line_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
-render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color, depth: f32 = 0.0, integer: bool = true) {
-	command: Render_Line_Command = {
+draw_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color, depth: f32 = 0.0, integer: bool = true) {
+	command: Draw_Line_Command = {
 		point_a = integer ? { math.round_f32(points[0].x), math.round_f32(points[0].y) } : points[0],
 		point_b = integer ? { math.round_f32(points[1].x), math.round_f32(points[1].y) } : points[1],
 		color = color,
 		depth = depth }
 	command_buffer_record(&graphics_manager.command_buffer, { base = command }) }
 
-submit_render_line :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
+submit_draw_line :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
 	using Line_Shader_Uniforms
 
-	command := _command.base.(Render_Line_Command)
+	command := _command.base.(Draw_Line_Command)
 
 	use_shader(&graphics_manager.line_shader)
 	set_shader_param(RES, graphics_manager.active_resolution)
 
-	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Line_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Line_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(4)
 	defer delete_buffers(buffers)
@@ -796,7 +800,7 @@ submit_render_line :: proc(graphics_manager: ^Graphics_Manager, _command: Comman
 	depth := make([]f32, n)
 
 	for _command, i in commands do for j in 0 ..< POINT_VERTS_LEN {
-		command := _command.base.(Render_Line_Command)
+		command := _command.base.(Draw_Line_Command)
 		k := POINT_VERTS_LEN * i + j
 		point_a[k] = command.point_a
 		point_b[k] = command.point_b
@@ -811,7 +815,7 @@ submit_render_line :: proc(graphics_manager: ^Graphics_Manager, _command: Comman
 	polygon_mode(.Line)
 	draw_lines(cast(i32)n) }
 
-// render_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color = BLACK, depth: f32 = 0.0) {
+// draw_line :: proc(graphics_manager: ^Graphics_Manager, points: [2][2]f32, color: Color = BLACK, depth: f32 = 0.0) {
 // 	using Line_Shader_Uniforms
 // 	use_shader(&graphics_manager.line_shader)
 // 	set_shader_param(POINTS, [4]f32{ points[0].x, points[0].y, points[1].x, points[1].y })
@@ -821,21 +825,21 @@ submit_render_line :: proc(graphics_manager: ^Graphics_Manager, _command: Comman
 // 	polygon_mode(.Line)
 // 	draw_lines(2) }
 
-Render_Image_Command :: struct {
+Draw_Image_Command :: struct {
 	using base: Generic_Command,
-	using params: Render_Image_Params,
-	using group_params: Render_Image_Group_Params }
+	using params: draw_image_Params,
+	using group_params: draw_image_Group_Params }
 
-Render_Image_Params :: struct {
+draw_image_Params :: struct {
 	rect: Rect,
 	depth: f32 }
 
-Render_Image_Group_Params :: struct {
+draw_image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
 	image: ^Image_Asset }
 
-render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
-	command: Render_Image_Command = {
+draw_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+	command: Draw_Image_Command = {
 		render_buffer = render_buffer,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
@@ -843,7 +847,7 @@ render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, r
 	command_buffer_record(&graphics_manager.command_buffer, { base = command }) }
 
 // (NOTE): This will do the batching. //
-submit_render_image :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
+submit_draw_image :: proc(graphics_manager: ^Graphics_Manager, _command: Command, index: int) {
 	// using Image_Uniforms
 	// assert(image_loaded(command.image))
 	// use_shader(&graphics_manager.image_shader)
@@ -853,17 +857,17 @@ submit_render_image :: proc(graphics_manager: ^Graphics_Manager, _command: Comma
 	// set_shader_param(SIZE, command.rect.size)
 	// bind_texture(0, command.image.handle)
 	// texture_filtering(gl.NEAREST)
-	// draw_triangles(6)
+	// render_triangles(6)
 
 	using Image_Shader_Uniforms
 
-	command := _command.base.(Render_Image_Command)
+	command := _command.base.(Draw_Image_Command)
 
 	assert(image_loaded(command.image))
 	use_shader(&graphics_manager.image_shader)
 	set_shader_param(RES, linalg.array_cast(graphics_manager.active_resolution, f32))
 
-	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Render_Image_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Image_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(2)
 	defer delete_buffers(buffers)
@@ -872,7 +876,7 @@ submit_render_image :: proc(graphics_manager: ^Graphics_Manager, _command: Comma
 	rect := make([]Rect, n)
 	depth := make([]f32, n)
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
-		command := _command.base.(Render_Image_Command)
+		command := _command.base.(Draw_Image_Command)
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth }
@@ -882,9 +886,9 @@ submit_render_image :: proc(graphics_manager: ^Graphics_Manager, _command: Comma
 	bind_texture(0, command.image.handle)
 	polygon_mode(.Fill)
 	texture_filtering(gl.NEAREST)
-	draw_triangles(cast(i32)n) }
+	render_triangles(cast(i32)n) }
 
-// render_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0) {
+// draw_image :: proc(graphics_manager: ^Graphics_Manager, image: ^Image_Asset, rect: Rect, depth: f32 = 0.0) {
 // 	using Image_Uniforms
 // 	assert(image_loaded(image))
 // 	use_shader(&graphics_manager.image_shader)
@@ -895,7 +899,7 @@ submit_render_image :: proc(graphics_manager: ^Graphics_Manager, _command: Comma
 // 	set_shader_param(RES, linalg.array_cast(graphics_manager.active_resolution, f32))
 // 	bind_texture(0, image.handle)
 // 	texture_filtering(gl.NEAREST)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer: ^Render_Buffer, channel: u32) {
 	using Buffer_Shader_Uniforms
@@ -904,7 +908,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 	bind_texture(0, render_buffer.texture_handles[cast(int)channel])
 	texture_filtering(gl.LINEAR)
 	polygon_mode(.Fill)
-	draw_triangles(6) }
+	render_triangles(6) }
 
 // render_panel :: proc(draw: ^Draw, background: ^Render_Buffer, position: [2]f32, size: [2]f32) {
 // 	shader := use_shader(draw.panel_shader)
@@ -914,35 +918,35 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	bind_texture(0, background.texture_handles[0])
 // 	texture_filtering(gl.LINEAR)
 // 	bind_texture(1, draw.textures_map["normal-corner-pack"].handle)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
-// render_rect_wireframe :: proc(draw: ^Draw, position: [2]f32, size: [2]f32, fill_color: Color = BLACK) {
+// draw_rect_wireframe :: proc(draw: ^Draw, position: [2]f32, size: [2]f32, fill_color: Color = BLACK) {
 // 	shader := use_shader(draw.rect_shader)
 // 	set_shader_param(shader.position, position)
 // 	set_shader_param(shader.size, size)
 // 	set_shader_param(shader.fill_color, fill_color)
 // 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
 // 	polygon_mode(.Line)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
-// render_rect_outlined :: proc(draw: ^Draw, position: [2]f32, size: [2]f32, fill_color: Color = BLACK, outline_color: Color = WHITE) {
+// draw_rect_outlined :: proc(draw: ^Draw, position: [2]f32, size: [2]f32, fill_color: Color = BLACK, outline_color: Color = WHITE) {
 // 	shader := use_shader(draw.rect_shader)
 // 	set_shader_param(shader.position, position)
 // 	set_shader_param(shader.size, size + { 2, 2 })
 // 	set_shader_param(shader.fill_color, outline_color)
 // 	set_shader_param(shader.res, linalg.array_cast(draw.active_resolution, f32))
-// 	draw_triangles(6)
+// 	render_triangles(6)
 // 	set_shader_param(shader.fill_color, fill_color)
 // 	set_shader_param(shader.size, size)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 // render_triangle :: proc(draw: ^Draw, points: [3][2]f32, color: Color = BLACK, dashed: bool = false, thickness: f32 = 1) {
-// 	render_line(draw, points[0], points[1], color, dashed, thickness)
-// 	render_line(draw, points[1], points[2], color, dashed, thickness)
-// 	render_line(draw, points[2], points[0], color, dashed, thickness) }
+// 	draw_line(draw, points[0], points[1], color, dashed, thickness)
+// 	draw_line(draw, points[1], points[2], color, dashed, thickness)
+// 	draw_line(draw, points[2], points[0], color, dashed, thickness) }
 
 
-// render_line :: proc(draw: ^Draw, source: [2]f32, target: [2]f32, color: Color = WHITE, dashed: bool = false, thickness: f32 = 1) {
+// draw_line :: proc(draw: ^Draw, source: [2]f32, target: [2]f32, color: Color = WHITE, dashed: bool = false, thickness: f32 = 1) {
 // 	shader := use_shader(draw.line_shader)
 // 	gl.LineWidth(thickness)
 // 	set_shader_param(shader.line, [4]f32{ source.x, source.y, target.x, target.y})
@@ -953,18 +957,18 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	draw_lines(2) }
 
 
-// render_texture :: proc {
-// 	render_texture_by_name,
-// 	render_texture_by_ptr,
-// 	render_texture_by_handle }
+// draw_texture :: proc {
+// 	draw_texture_by_name,
+// 	draw_texture_by_ptr,
+// 	draw_texture_by_handle }
 
 
-// render_texture_by_name :: proc(draw: ^Draw, name: string, position: [2]f32, size_override: [2]f32 = {-1,-1}, depth: f32 = 0.0) {
-// 	render_texture_by_ptr(draw, draw.textures_map[name], position, size_override, depth) }
+// draw_texture_by_name :: proc(draw: ^Draw, name: string, position: [2]f32, size_override: [2]f32 = {-1,-1}, depth: f32 = 0.0) {
+// 	draw_texture_by_ptr(draw, draw.textures_map[name], position, size_override, depth) }
 
 
-// render_texture_by_ptr :: proc(draw: ^Draw, texture: ^Texture, position: [2]f32, size_override: [2]f32 = {-1,-1}, depth: f32 = 0.0) {
-// 	render_texture_by_handle(
+// draw_texture_by_ptr :: proc(draw: ^Draw, texture: ^Texture, position: [2]f32, size_override: [2]f32 = {-1,-1}, depth: f32 = 0.0) {
+// 	draw_texture_by_handle(
 // 		draw,
 // 		handle = texture.handle,
 // 		position = position,
@@ -976,7 +980,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	shader := use_shader(draw.chromatic_aberration_shader)
 // 	bind_texture(0, texture_handle)
 // 	texture_filtering(gl.LINEAR)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 
 // upscale_texture :: proc(draw: ^Draw, render_buffer: ^Render_Buffer, channel: int) {
@@ -987,7 +991,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	set_shader_param(shader.window_size, linalg.array_cast(draw.window_size, f32))
 // 	bind_texture(0, render_buffer.texture_handles[channel])
 // 	texture_filtering(gl.NEAREST)
-// 	draw_triangles(6)
+// 	render_triangles(6)
 // 	select_frame_buffer(draw,0)
 // 	//render_buffer_texture(draw.upscale_sb,0)
 // 	gl.Viewport(0, 0, cast(i32)draw.window_size.x, cast(i32)draw.window_size.y)
@@ -996,7 +1000,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	set_shader_param(draw.upscale_pass2_shader.window_size, linalg.array_cast(draw.window_size, f32))
 // 	bind_texture(0, draw.upscale_sb.texture_handles[0])
 // 	texture_filtering(gl.NEAREST)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 
 // set_effect_shader_params :: proc(draw: ^Draw, camera: ^Camera, net_time: f32, shader: $T) {
@@ -1046,7 +1050,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	bind_texture(6, draw.textures_map["dev-grid"].handle)
 // 	bind_texture(7, draw.textures_map["dev-oriented-grid"].handle)
 // 	bind_texture(8, draw.default_sb.texture_handles[0])
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 
 // render_sdf_surface :: proc(draw: ^Draw, camera: ^Camera, net_time: f32, surface: SDF_Surface, color: [3]f32) {
@@ -1083,7 +1087,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	case SDF_Plane_Mesh:
 // 		mesh := variant
 // 		panic("SDF_Plane_Mesh renderer unimplemented.") }
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 
 // render_physics :: proc(draw: ^Draw, physics: ^Physics) {
@@ -1095,7 +1099,7 @@ render_render_buffer :: proc(graphics_manager: ^Graphics_Manager, render_buffer:
 // 	// TODO Do I need res? //
 // 	set_shader_param(shader.surfer_position, physics.surfer_position)
 // 	set_shader_param(shader.surf_position, physics.surf_position)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 
 // DICK
@@ -1239,7 +1243,7 @@ texture_wrapping :: proc(mode: i32) {
 // 	set_shader_param(shader.symbol, cast(i32)symbol)
 // 	set_shader_param(shader.position, [3]f32{ position.x, position.y, depth })
 // 	bind_texture(0, texture.handle)
-// 	draw_triangles(6) }
+// 	render_triangles(6) }
 
 
 // get_render_buffer_image :: proc(rb: ^Render_Buffer, rb_data: ^Render_Buffer_Data) {
@@ -1270,7 +1274,7 @@ error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, leng
 	log.error("OpenGL error:", source, type, id, severity, length, message) }
 
 
-// render_text :: proc(draw: ^Draw, args: ..any, sep: string = "", position: [2]f32 = { 0, 0 }, color: Color = WHITE, pivot: bit_set[Compass] = {}, font: ^Font = nil, shadow: bool = false, spacing: f32 = 1.0) {
+// draw_text :: proc(draw: ^Draw, args: ..any, sep: string = "", position: [2]f32 = { 0, 0 }, color: Color = WHITE, pivot: bit_set[Compass] = {}, font: ^Font = nil, shadow: bool = false, spacing: f32 = 1.0) {
 // 	text:    string
 // 	texture: ^Texture
 // 	width:   f32
@@ -1303,18 +1307,18 @@ error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, leng
 // 		if shadow {
 // 			set_shader_param(shader.text_color, [4]f32{ 0, 0, 0, color.w })
 // 			set_shader_param(shader.position, [3]f32{ sym_position.x + 1, sym_position.y - 1, 0.5 })
-// 			draw_triangles(6) }
+// 			render_triangles(6) }
 // 		set_shader_param(shader.text_color, color)
 // 		set_shader_param(shader.position, [3]f32{ sym_position.x, sym_position.y, 0.5 })
-// 		draw_triangles(6)
+// 		render_triangles(6)
 // 		texture_filtering(gl.NEAREST)
-// 		draw_triangles(6)
+// 		render_triangles(6)
 // 		sym_position.x += spacing * cast(f32)font.symbol_size.x } }
 
 
 // render_cursor :: proc(draw: ^Draw, position: [2]f32) {
-// 	render_line(draw, position + { -8, 0 }, position + { 8, 0 }, WHITE, thickness = 4.0)
-// 	render_line(draw, position + { 0, -8 }, position + { 0, 8 }, WHITE, thickness = 4.0) }
+// 	draw_line(draw, position + { -8, 0 }, position + { 8, 0 }, WHITE, thickness = 4.0)
+// 	draw_line(draw, position + { 0, -8 }, position + { 0, 8 }, WHITE, thickness = 4.0) }
 
 
 // glfw_error_callback :: proc "c" (error: i32, description: cstring) {
@@ -1344,7 +1348,7 @@ error_callback :: proc "c" (source: u32, type: u32, id: u32, severity: u32, leng
 // 	t = linalg.fract(net_time/f32(N_FRAMES)*SPEED)
 // 	i = min(int(t*16),15)
 // 	name = fmt.tprintf("cover_%4d",i)
-// 	render_texture(draw, name = name, position = { 0, 0 }, size_override = { COVER_RATIO * 180, 180 }) }
+// 	draw_texture(draw, name = name, position = { 0, 0 }, size_override = { COVER_RATIO * 180, 180 }) }
 
 // load_font :: proc(draw: ^Draw, working_directory_path: string, path: string) -> (ptr: ^Font) {
 // 	font: Font
@@ -1414,8 +1418,8 @@ tick_graphics_manager_end :: proc(graphics_manager: ^Graphics_Manager) {
 // 	// if n == 1 do flare_position = camera_inverse_project(camera, { 0, 0 })
 // 	flare_position = apply_transform(flare_position, camera.local_matrix)
 // 	flare_position.xy = flare_position.xy * linalg.array_cast(draw.window_size, f32) / 2
-// 	if flare_position.z >= 0 do render_line(draw, flare_position.xy - { 4, 0 }, flare_position.xy + { 4, 0 }, RED, false, 4)
-// 	// render_rect(draw, flare_position, { 32, 32 }, RED)
+// 	if flare_position.z >= 0 do draw_line(draw, flare_position.xy - { 4, 0 }, flare_position.xy + { 4, 0 }, RED, false, 4)
+// 	// draw_rect(draw, flare_position, { 32, 32 }, RED)
 // 	// if draw.frame_count == 0 do find_glare_spots(draw)
 
 // 	set_depth_test(false)
@@ -1425,32 +1429,32 @@ tick_graphics_manager_end :: proc(graphics_manager: ^Graphics_Manager) {
 
 // 	// render_panel(draw.default_sb,position={-200,40},size={16 * 16, 16 * 8})
 // 	position = { -(cast(f32)draw.window_size.x) / 2, (cast(f32)draw.window_size.y) / 2 - 8 }
-// 	render_text(draw, physics.collision_distance, position = position, pivot = { .WEST }); position.y -= 16
-// 	render_text(draw, physics.collision_normal, position = position, pivot = { .WEST }); position.y -= 16
-// 	// render_text("POSITION:",position=position,pivot={.WEST}); position.y-=16
-// 	// render_text(camera.positionition.x,position=position,pivot={.WEST},color=RED); position.y-=16
-// 	// render_text(camera.positionition.y,position=position,pivot={.WEST},color=GREEN); position.y-=16
-// 	// render_text(camera.positionition.z,position=position,pivot={.WEST},color={0,0.5,1,1}); position.y-=32
-// 	render_text(draw, "FORWARD:", position = position, pivot = { .WEST }); position.y -= 16
-// 	render_text(draw, camera.direction.x, position = position, pivot = { .WEST }, color = RED); position.y -= 16
-// 	render_text(draw, camera.direction.y, position = position, pivot = { .WEST }, color = GREEN); position.y -= 16
-// 	render_text(draw, camera.direction.z, position = position, pivot = { .WEST }, color = { 0, 0.5, 1, 1 }); position.y -= 32
+// 	draw_text(draw, physics.collision_distance, position = position, pivot = { .WEST }); position.y -= 16
+// 	draw_text(draw, physics.collision_normal, position = position, pivot = { .WEST }); position.y -= 16
+// 	// draw_text("POSITION:",position=position,pivot={.WEST}); position.y-=16
+// 	// draw_text(camera.positionition.x,position=position,pivot={.WEST},color=RED); position.y-=16
+// 	// draw_text(camera.positionition.y,position=position,pivot={.WEST},color=GREEN); position.y-=16
+// 	// draw_text(camera.positionition.z,position=position,pivot={.WEST},color={0,0.5,1,1}); position.y-=32
+// 	draw_text(draw, "FORWARD:", position = position, pivot = { .WEST }); position.y -= 16
+// 	draw_text(draw, camera.direction.x, position = position, pivot = { .WEST }, color = RED); position.y -= 16
+// 	draw_text(draw, camera.direction.y, position = position, pivot = { .WEST }, color = GREEN); position.y -= 16
+// 	draw_text(draw, camera.direction.z, position = position, pivot = { .WEST }, color = { 0, 0.5, 1, 1 }); position.y -= 32
 
 // 	set_blend(false)
 // 	render_cubemap_preview(draw, &draw.cubemap, { - auto_cast draw.window_size.x / 2 + 400, + auto_cast draw.window_size.y / 2 - 300 }, { 800, 600 })
 
-// 	// render_text("SIDEWARD:",position=position,pivot={.WEST}); position.y-=16
-// 	// render_text(camera.side_direction.x,position=position,pivot={.WEST},color=RED); position.y-=16
-// 	// render_text(camera.side_direction.y,position=position,pivot={.WEST},color=GREEN); position.y-=16
-// 	// render_text(camera.side_direction.z,position=position,pivot={.WEST},color={0,0.5,1,1}); position.y-=32
-// 	// render_text("UPWARD:",position=position,pivot={.WEST}); position.y-=16
-// 	// render_text(camera.up_direction.x,position=position,pivot={.WEST},color=RED); position.y-=16
-// 	// render_text(camera.up_direction.y,position=position,pivot={.WEST},color=GREEN); position.y-=16
-// 	// render_text(camera.up_direction.z,position=position,pivot={.WEST},color={0,0.5,1,1})
+// 	// draw_text("SIDEWARD:",position=position,pivot={.WEST}); position.y-=16
+// 	// draw_text(camera.side_direction.x,position=position,pivot={.WEST},color=RED); position.y-=16
+// 	// draw_text(camera.side_direction.y,position=position,pivot={.WEST},color=GREEN); position.y-=16
+// 	// draw_text(camera.side_direction.z,position=position,pivot={.WEST},color={0,0.5,1,1}); position.y-=32
+// 	// draw_text("UPWARD:",position=position,pivot={.WEST}); position.y-=16
+// 	// draw_text(camera.up_direction.x,position=position,pivot={.WEST},color=RED); position.y-=16
+// 	// draw_text(camera.up_direction.y,position=position,pivot={.WEST},color=GREEN); position.y-=16
+// 	// draw_text(camera.up_direction.z,position=position,pivot={.WEST},color={0,0.5,1,1})
 
 // 	// render_plots()
 // 	// crosshair_position:[2]f32=cursor+{bumps(),0}
-// 	// render_rect_outline(position={0,0},size={100,100},color=RED,dashed=true,animate=false,thickness=2)
+// 	// draw_rect_outline(position={0,0},size={100,100},color=RED,dashed=true,animate=false,thickness=2)
 // 	// render_crosshair(crosshair_position)
 // 	// set_blend(true)
 // 	// render_prompts()
@@ -1475,49 +1479,49 @@ tick_graphics_manager_end :: proc(graphics_manager: ^Graphics_Manager) {
 // 	res = draw.default_sb.size
 // 	dx = 0
 // 	if .START in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Press ENTER to staruntime.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*net_time)+1)/2,16)*4+dx},
 // 			color={0,0,0,1}, pivot={.WEST,.SOUTH}, font=nil, shadow=false, spacing=0.5)
 // 		dx+=24 }
 // 	if .EXIT in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Press ESC to exit.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*net_time)+1)/2,16)*4+dx},
 // 			color={0,0,0,1}, pivot={.WEST,.SOUTH}, font=nil, shadow=false, spacing=0.5)
 // 		dx+=24 }
 // 	if .RESPAWN in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Press R to respawn.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*net_time)+1)/2,16)*4+dx},
 // 			color={0,0,0,1}, pivot={.WEST,.SOUTH}, font=nil, shadow=false, spacing=0.5)
 // 		dx+=24 }
 // 	if .SWIM_FORWARD in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Hold W to swim forward.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*(net_time-1))+1)/2,16)*4+dx},
 // 			color={0,0,0,1}, pivot={.WEST,.SOUTH}, font=nil, shadow=false, spacing=0.5)
 // 		dx+=24 }
 // 	if .GET_ON_THE_SURF in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Press E to get on the surf.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*(net_time-2))+1)/2,16)*4+dx},
 // 			color={0,0,0,1}, pivot={.WEST,.SOUTH}, font=nil, shadow=false, spacing=0.5)
 // 		dx+=24 }
 // 	if .PADDLE in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Press E to paddle.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*(net_time-2))+1)/2,16)*4+dx},
 // 			color={0,0,0,1}, pivot={.WEST,.SOUTH}, font=nil, shadow=false, spacing=0.5)
 // 		dx+=24 }
 // 	if .STAND_UP in prompts {
-// 		render_text(
+// 		draw_text(
 // 			draw,
 // 			"Press E to stand up.",
 // 			position={-f32(res.x)/2+8,-f32(res.y)/2+8+math.pow((math.sin(4*(net_time-2))+1)/2,16)*4+dx},

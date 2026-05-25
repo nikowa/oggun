@@ -98,7 +98,7 @@ spawn_car :: proc(position: [2]f32) {
 swing :: proc() -> f32 {
 	return rand.float32_range(-0.05, 0.05) }
 
-render_entity :: proc(entity: ^Entity) {
+draw_entity :: proc(entity: ^Entity) {
 	using willow
 
 	screen_position: [2]f32
@@ -115,8 +115,8 @@ render_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	render_image(&graphics_manager, image, { screen_position, image_size }, depth = entity.depth)
-	gui_text_line(&graphics_manager, text_style, screen_position + { 0, image_size.y / 2 }, label) }
+	draw_image(&graphics_manager, image, { screen_position, image_size }, depth = entity.depth)
+	draw_text_line(&graphics_manager, text_style, screen_position + { 0, image_size.y / 2 }, label) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
@@ -124,6 +124,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	sync_context: Context = make_context()
 
 	context.logger = log.create_console_logger()
+	arena: mem.Arena
+	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
+	context.temp_allocator = mem.arena_allocator(&arena)
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
 	window_init(&window_manager, default_window_config(title = "Sync"))
@@ -156,6 +159,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for _ in 0 ..< 2 do spawn_car(random_position())
 
 	zero_stopwatch(&stopwatch)
+
+	backing_allocator := context.allocator
+	context.allocator = context.temp_allocator
+
 	for ! graphics_manager.window_closed {
 		time := read_stopwatch(&stopwatch)
 		tick_asset_manager(&asset_manager)
@@ -164,15 +171,15 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			defer tick_manager_reset(&tick_manager)
 			tick_graphics_manager(&graphics_manager)
 
-			render_image(&graphics_manager, &background_image, screen_rect, depth = 0.99)
+			draw_image(&graphics_manager, &background_image, screen_rect, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
-				render_entity(entity) }
+				draw_entity(entity) }
 
-			render_image(&graphics_manager, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			render_image(&graphics_manager, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// render_text(&graphics_manager, "Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
+			draw_image(&graphics_manager, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
+			draw_image(&graphics_manager, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			// draw_text(&graphics_manager, "Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

@@ -8,25 +8,33 @@ Window_Config :: struct #all_or_none {
 	position: Maybe([2]f32),
 	size: [2]f32,
 	title: string,
-	fullscreen: bool }
+	fullscreen: bool,
+	cursor: Cursor }
 
 DEV_WINDOW_CONFIG: Window_Config : {
 	backend = .GLFW,
 	position = [2]f32{ -480, -270 },
 	size = { 960, 540 },
 	title = "Willow",
-	fullscreen = false }
+	fullscreen = false,
+	cursor = .Arrow }
 
 DEFAULT_WINDOW_CONFIG: Window_Config : {
 	backend = .GLFW,
 	position = [2]f32{ 0, 0 },
 	size = { 1664, 936 },
 	title = DEFAULT_NAME,
-	fullscreen = false }
+	fullscreen = false,
+	cursor = .Arrow }
+
+Cursor :: enum {
+	Arrow,
+	Hand }
 
 Window_Manager :: struct {
 	handle: rawptr,
-	using window_config: Window_Config }
+	using window_config: Window_Config,
+	arrow_cursor: [len(Cursor)]glfw.CursorHandle }
 
 Backend :: enum {
 	Win32,
@@ -66,4 +74,16 @@ window_init :: proc(window_manager: ^Window_Manager, window_config: Window_Confi
 		glfw.FocusWindow(cast(glfw.WindowHandle)window_manager.handle)
 		width, height := glfw.GetFramebufferSize(cast(glfw.WindowHandle)window_manager.handle)
 		window_manager.size = { cast(f32)width, cast(f32)height }
+		window_manager.arrow_cursor[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
+		window_manager.arrow_cursor[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
 	case .Win32: } }
+
+window_tick :: proc(window_manager: ^Window_Manager) {
+	set_cursor_immediate(window_manager, window_manager.cursor)
+	set_cursor(window_manager, .Arrow) }
+
+set_cursor :: proc(window_manager: ^Window_Manager, cursor: Cursor) {
+	window_manager.cursor = cursor }
+
+set_cursor_immediate :: proc(window_manager: ^Window_Manager, cursor: Cursor) {
+	glfw.SetCursor(cast(glfw.WindowHandle)window_manager.handle, window_manager.arrow_cursor[int(cursor)]) }
