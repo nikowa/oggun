@@ -53,17 +53,17 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			tick_graphics_manager(&graphics_manager)
 			input_manager_tick(&input_manager)
 			window_tick(&window_manager)
-			DELTA :: 120
-			rect: Rect = { { - 2 * DELTA, 0 }, NEON_BUTTON_SIZE }
-			draw_neon_button(rect, "*Default*", appearance = .Default, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
-			rect.position.x += DELTA
-			draw_neon_button(rect, "*Primary*", appearance = .Primary, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
-			rect.position.x += DELTA
-			draw_neon_button(rect, "*Outline*", appearance = .Outline, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
-			rect.position.x += DELTA
-			draw_neon_button(rect, "*Subtle*", appearance = .Subtle, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
-			rect.position.x += DELTA
-			draw_neon_button(rect, "*Transparent*", appearance = .Transparent, shape = .Rounded, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager)
+			ys: [2]f32 = { -24, 24 }
+			ds: [2]bool = { true, false }
+			for y, i in ys {
+				disabled := ds[i]
+				DELTA :: 120
+				rect: Rect = { { - 2 * DELTA, y }, NEON_BUTTON_SIZE_SMALL }
+				draw_neon_button(rect, "*Default*", appearance = .Default, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
+				draw_neon_button(rect, "*Primary*", appearance = .Primary, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
+				draw_neon_button(rect, "*Outline*", appearance = .Outline, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
+				draw_neon_button(rect, "*Subtle*", appearance = .Subtle, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
+				draw_neon_button(rect, "*Transp*", appearance = .Transparent, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager) }
 		}
 
 		free_all(context.allocator)

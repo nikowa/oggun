@@ -13,6 +13,9 @@ Neon_Manager :: struct {
 }
 
 NEUTRAL_BACKGROUND_1_NORMAL :: 0xffffffff
+NEUTRAL_FOREGROUND_DISABLED :: 0xbdbdbdff
+NEUTRAL_BACKGROUND_4_NORMAL :: 0xf0f0f0ff
+NEUTRAL_STROKE_1_NORMAL :: 0xd1d1d1ff
 
 neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Manager) {
 	using Neon_Color_Row
@@ -56,10 +59,10 @@ neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Man
 			Pressed  = 0x242424ff,
 			Selected = 0x242424ff },
 		Neutral_Foreground_Disabled = {
-			0xbdbdbdff,
-			0xbdbdbdff,
-			0xbdbdbdff,
-			0xbdbdbdff },
+			NEUTRAL_FOREGROUND_DISABLED,
+			NEUTRAL_FOREGROUND_DISABLED,
+			NEUTRAL_FOREGROUND_DISABLED,
+			NEUTRAL_FOREGROUND_DISABLED },
 		Brand_Foreground_Link = {
 			Normal   = 0x115ea3ff,
 			Hover    = 0x0f548cff,
@@ -96,7 +99,7 @@ neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Man
 			Pressed  = 0xd6d6d6ff,
 			Selected = 0xe0e0e0ff },
 		Neutral_Background_4 = {
-			Normal   = 0xf0f0f0ff,
+			Normal   = NEUTRAL_BACKGROUND_4_NORMAL,
 			Hover    = 0xfafafaff,
 			Pressed  = 0xf5f5f5ff,
 			Selected = 0xffffffff },
@@ -141,7 +144,7 @@ neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Man
 			Pressed  = 0x4d4d4dff,
 			Selected = 0x0f6cbdff },
 		Neutral_Stroke_1 = {
-			Normal   = 0xd1d1d1ff,
+			Normal   = NEUTRAL_STROKE_1_NORMAL,
 			Hover    = 0xc7c7c7ff,
 			Pressed  = 0xb3b3b3ff,
 			Selected = 0xbdbdbdff },
@@ -454,14 +457,16 @@ Neon_Button_Appearance :: enum {
 	Subtle,
 	Transparent }
 
-NEON_BUTTON_SIZE: [2]f32 : { 96, 32 }
+NEON_BUTTON_SIZE_SMALL:  [2]f32 : { 64, 24 }
+NEON_BUTTON_SIZE_MEDIUM: [2]f32 : { 96, 32 }
+NEON_BUTTON_SIZE_LARGE:  [2]f32 : { 96, 40 }
 
-draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, neon_manager: ^Neon_Manager = nil, input_manager: ^Input_Manager = nil, graphics_manager: ^Graphics_Manager = nil, window_manager: ^Window_Manager = nil, sep: string = "") {
+draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, disabled: bool = false, neon_manager: ^Neon_Manager = nil, input_manager: ^Input_Manager = nil, graphics_manager: ^Graphics_Manager = nil, window_manager: ^Window_Manager = nil, sep: string = "") {
 	text := fmt.aprint(..args, sep = sep)
 	rounding: f32 = 0.0
 	switch shape {
 	case .Rounded: rounding = cast(f32)Neon_Radius.Medium
-	case .Circular: rounding = NEON_BUTTON_SIZE.y / 2
+	case .Circular: rounding = rect.size.y / 2
 	case .Square: rounding = 0.0 }
 	hover: bool = rect_hovered(rect, input_manager)
 	press: bool = hover && input_query(input_manager, .Mouse_Left, .Down)
@@ -483,7 +488,7 @@ draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Ro
 		fill_neon_color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Foreground_2_Brand]
 	}
 
-	state := press ? Neon_Color_Column.Pressed : hover ? Neon_Color_Column.Hover : Neon_Color_Column.Normal
+	state := disabled ? Neon_Color_Column.Normal : press ? Neon_Color_Column.Pressed : hover ? Neon_Color_Column.Hover : Neon_Color_Column.Normal
 	fill_color: Color = fill_neon_color[state]
 	stroke_color: Color = stroke_neon_color[state]
 	stroke: f32 = 1
@@ -496,6 +501,19 @@ draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Ro
 		stroke = 0
 		text_style.color = fill_color
 		fill_color = NEUTRAL_BACKGROUND_1_NORMAL }
+
+	if disabled {
+		stroke_color = NEUTRAL_STROKE_1_NORMAL
+		text_style.color = NEUTRAL_FOREGROUND_DISABLED
+		#partial switch appearance {
+		case .Default, .Outline:
+			fill_color = NEUTRAL_BACKGROUND_4_NORMAL
+		case .Primary:
+			fill_color = NEUTRAL_BACKGROUND_4_NORMAL
+			stroke_color = NEUTRAL_BACKGROUND_4_NORMAL }
+		if hover do set_cursor(window_manager, .Disabled)
+		hover = false
+		press = false }
 
 // case .Primary
 	draw_rect(graphics_manager, rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)

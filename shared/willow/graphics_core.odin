@@ -609,7 +609,6 @@ use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
 // set_blend :: proc(value: bool) {
 // 	if value { gl.Enable(gl.BLEND) } else { gl.Disable(gl.BLEND) } }
 
-
 set_depth_test :: proc(value: bool) {
 	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
 
@@ -693,6 +692,7 @@ draw_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: C
 	command: Draw_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = integer ? rect_round(rect) : rect,
+		// rect = integer ? rect_round_offset(rect, { 0.5, 0.5 }) : rect,
 		fill_color = fill_color,
 		stroke_color = stroke_color,
 		rounding = rounding,

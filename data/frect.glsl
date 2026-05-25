@@ -21,10 +21,9 @@ vec4 sample_raw(vec2 uv, vec2 b) {
 	vec4 acc = vec4(0);
 	vec2 p = ((uv - vec2(0.5)) * rect.zw + vec2(rect.x, -rect.y));
 	vec2 d = abs(p) - b;
-	float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-	dist = sdf_rounded_rect(p - vec2(rect.x, -rect.y), rect.zw / 2, vec4(rounding));
-	if(dist < 0) { acc = fill_color; }
-	if((dist > - stroke) && (dist < 0)) { acc = stroke_color; }
+	float dist = sdf_rounded_rect(p - vec2(rect.x, -rect.y), rect.zw / 2, vec4(rounding));
+	if (dist < 0) { acc = fill_color; }
+	if ((dist > - stroke) && (dist < 0)) { acc = stroke_color; }
 	return acc; }
 
 void main(void) {
@@ -33,6 +32,6 @@ void main(void) {
 	vec2 b = rect.zw / 2 - vec2(rounding);
 
 	color.xyz = sample_raw(tex_coord, b).xyz;
-	msaa16_scope_begin(color.w, 2 * rect.zw)
+	msaa8_scope_begin(color.w, 2 * rect.zw)
 		color.w += sample_raw(tex_coord + msaa_off, b).w;
-	msaa16_scope_end(color.w) }
+	msaa8_scope_end(color.w) }

@@ -29,7 +29,8 @@ DEFAULT_WINDOW_CONFIG: Window_Config : {
 
 Cursor :: enum {
 	Arrow,
-	Hand }
+	Hand,
+	Disabled }
 
 Window_Manager :: struct {
 	handle: rawptr,
@@ -76,6 +77,7 @@ window_init :: proc(window_manager: ^Window_Manager, window_config: Window_Confi
 		window_manager.size = { cast(f32)width, cast(f32)height }
 		window_manager.arrow_cursor[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
 		window_manager.arrow_cursor[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
+		window_manager.arrow_cursor[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
 	case .Win32: } }
 
 window_tick :: proc(window_manager: ^Window_Manager) {
