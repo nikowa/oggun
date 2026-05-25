@@ -408,7 +408,7 @@ neon_init :: proc() {
 			Variant_3 = 0xc50f1fff,
 			Variant_4 = 0xc50f1fff } } }
 
-Neon_Border_Radius :: enum {
+Neon_Radius :: enum {
 	None    = 0,
 	Small   = 2,
 	Medium  = 4,

@@ -67,7 +67,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		normal = default_font_config(name = "terminus"),
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
-	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 16)
+	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
 	for ! graphics_manager.window_closed {

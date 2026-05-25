@@ -683,6 +683,8 @@ Render_Rect_Params :: struct {
 Render_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
+// (TODO): Rename "rounding" to "radius" and make it "f32". //
+// (TODO): Change "stroke" to u8
 render_rect :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Render_Rect_Command = {
 		render_buffer = render_buffer,

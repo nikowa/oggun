@@ -198,7 +198,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		.Numpad_0, .Numpad_Decimal }
 
 	for ! graphics_manager.window_closed {
-		process(&input_manager)
+		input_manager_tick(&input_manager)
 		tick_graphics_manager(&graphics_manager)
 		for rect, i in rects {
 			down: bool = false

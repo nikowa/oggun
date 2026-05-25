@@ -1,75 +1,99 @@
 #+feature using-stmt
-package example_input
+package example_gui
 import "shared:willow"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
 import "core:time"
-import "core:math/linalg"
 import "core:math"
+import "core:math/rand"
+import "core:math/linalg"
+import "core:slice"
 
 asset_manager: willow.Asset_Manager
+input_manager: willow.Input_Manager
 graphics_manager: willow.Graphics_Manager
 window_manager: willow.Window_Manager
+tick_manager: willow.Tick_Manager
 stopwatch: time.Stopwatch
-rects_dll: Rects_DLL
-
-Rects_DLL :: struct {
-	using base: willow.DLL,
-	make_rects: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> []willow.Rect }
 
 main :: proc() {
 	context.logger = log.create_console_logger()
 	willow.start(entry_point, n_workers_override = 1) }
 
-query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
-	return { scalar = 1.0 } }
+Sprite :: struct {
+	position: [2]f32,
+	direction: [2]f32,
+	depth: f32,
+	speed: f32 }
+
+sprite_init :: proc(sprite: ^Sprite) {
+	sprite.position = { rand.float32(), rand.float32() }
+	sprite.depth = rand.float32()
+	angle: f32 = 2 * math.PI * rand.float32()
+	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
+	sprite.speed = 0.1 * (1 + rand.float32()) }
+
+Settings :: struct {
+	player_name: string,
+	resolution: [2]f32,
+	fullscreen: bool }
+
+Color :: struct {
+	name: string,
+	hex: u32 }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
+
+// mouse_position
+
 	context.logger = log.create_console_logger()
+
+	neon_init()
+	using Neon_Color_Row
+	fg_color := neon_color_table_ms_light[/*Warning_Foreground*/Neutral_Foreground_1][0]
+	bg_color := neon_color_table_ms_light[Neutral_Background_1][0]
+	bg2_color := neon_color_table_ms_light[Neutral_Background_2][0]
+	bg3_color := neon_color_table_ms_light[Neutral_Background_3][0]
+	stroke_color := neon_color_table_ms_light[Neutral_Stroke_1][0]
 
 	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
 	window_init(&window_manager, default_window_config(title = "GUI"))
 	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager,
-		graphics_config = default_graphics_config(window_manager = &window_manager))
+		graphics_config = { window_manager = &window_manager, clear_color = bg_color })
+	tick_manager_init(&tick_manager, { tickrate_setting = .LIMITED_60_FPS })
+	input_init(&input_manager, &window_manager, { raw_input = false })
 
-	// dll_path := relpath_to_path("rects_dll/rects_dll.odin", context.allocator)
-	// rects_dll, _ = make_dll(Rects_DLL, dll_path)
-	rects_dll, _ = make_dll(Rects_DLL, "rects_dll/rects_dll.odin")
-	assert(rects_dll.make_rects != nil)
-
-	image: Image_Asset
-	init_image(&asset_manager, &image, { url = "image:keyboard-layout.png" })
-	assert(asset_commands(&asset_manager, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
-	font: Font
-	font_init(&asset_manager, &font, DEFAULT_FONT_CONFIG)
-	assert(asset_commands(&asset_manager, Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
-
-	colors: []Color = make([]Color, 256)
-	for _, i in colors {
-		colors[i] = color_random() }
-
-	// - text rendering
-
+	font_group: Font_Group
+	font_group_init(&asset_manager, &font_group,
+		normal = default_font_config(name = "terminus"),
+		bold = default_font_config(name = "terminus-bold"),
+		italic = default_font_config(name = "terminus-italic"))
+	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
+	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
-	ASPECT_RATIO :: 3.5
 	for ! graphics_manager.window_closed {
 		time := read_stopwatch(&stopwatch)
-		osc := 32 * linalg.sin(16 * time)
 		tick_asset_manager(&asset_manager)
-		tick_graphics_manager(&graphics_manager)
 
-		gui_screen := gui_screen(&graphics_manager)
-		keyboard_rect: Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }
-		// render_image(&graphics_manager, &image, keyboard_rect)
+		if tick_manager_tick(&tick_manager) {
+			defer tick_manager_reset(&tick_manager)
+			tick_graphics_manager(&graphics_manager)
+			input_manager_tick(&input_manager)
+			render_rect(&graphics_manager, { input_manager.mouse_position, { 4, 4 } }, RED)
 
-		rects := rects_dll.make_rects(keyboard_rect, context.temp_allocator)
+			fill_color: Color = neon_color_table_ms_light[Brand_Foreground_1][Neon_Color_Column.Normal]
+			stroke_color: Color = neon_color_table_ms_light[Brand_Stroke_1][Neon_Color_Column.Normal]
+			render_rect(&graphics_manager, { { 0, 0 }, { 120, 24 } }, fill_color = fill_color, stroke_color = stroke_color, stroke = 1, rounding = cast(f32)Neon_Radius.Medium)
 
-		for rect, i in rects do render_rect_outline(&graphics_manager, rect, WHITE/*colors[i]*/)
+			// rect := make_rect(0, 0, 400 + 300 * math.sin(0.05 * time), 320)
+			// rect.size.y = text_box_measure(text_style, rect.size.x, text)
+			// render_rect(&graphics_manager, make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
+			// render_rect(&graphics_manager, gui_margins(rect, -8), fill_color = bg3_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			// gui_text_box(&graphics_manager, text_style, rect, text, h_align = .Justify, v_align = .Center, integer = true)
+		}
 
-		watch_dll(&rects_dll)
 		free_all(context.temp_allocator) }
-	k: f32 = query().scalar
 	return }
