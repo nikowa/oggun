@@ -251,22 +251,24 @@ V_Align :: enum { Bottom, Center, Top }
 
 SKIP_CUTSET :: "_*"
 
-gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
+gui_text_line :: proc(graphics_manager: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
 	style := style
 	using style
+	// render_rect(graphics_manager, { position = position, size = { 4, 4 } }, BLUE)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	text := fmt.aprint(..args, sep = sep)
 	position := position
 	width, space_count := text_measure(style, text, scale_factor)
+	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
-	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
 	if space_delta != 0 { width = desired_width.(f32) }
-	position = position - 0.5 * { width, height }
+	position.x -= 0.5 * width
 	if .East  in pivot do position.x -= 0.5 * width
 	if .West  in pivot do position.x += 0.5 * width
-	if .North in pivot do position.y -= 0.5 * height
-	if .South in pivot do position.y += 0.5 * height
+	// render_line(graphics_manager, { position, position + { width, 0 } }, RED)
+	// render_rect(graphics_manager, { position + { width / 2, height / 2 }, { width, height } }, GREEN, depth = 0.1)
+	position.y -= cast(f32)font_group.normal.origin * scale_factor
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
 		if symbol == '_' {
@@ -274,7 +276,7 @@ gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, positi
 		if symbol == '*' {
 			style.bold = ! style.bold; continue }
 		font := font_group_select(font_group, style)
-		render_bitmap_symbol(graphics_man, cast(u8)symbol, symbol_position, depth, style, integer = integer)
+		render_bitmap_symbol(graphics_manager, cast(u8)symbol, symbol_position, depth, style, integer = integer)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
@@ -287,27 +289,34 @@ text_box_measure :: proc(style: Text_Style, width: f32, args: ..any, sep: string
 	using style
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	text := fmt.aprint(..args, sep = sep)
-	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
+	height: f32 = cast(f32)font_group.normal.height * scale_factor
+	line_distance: f32 = height * style.leading
 	rect := make_rect(0, 0, width, 0)
 	lines := text_box_lines(style, rect, text, scale_factor)
-	total_height = height * cast(f32)len(lines)
+	n: int = len(lines)
+	total_height = height * f32(n) + cast(f32)max(0, n - 1) * line_distance
 	return total_height }
 
-gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "", integer: bool = true) {
+gui_text_box :: proc(graphics_manager: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "", integer: bool = true) {
 	style := style
 	using style
+	// render_rect_outline(graphics_manager, rect, BLUE, 0.1)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	if h_align == .Justify do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
-	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
+	height: f32 = cast(f32)font_group.normal.height * scale_factor
+	line_distance: f32 = height * style.leading
+	line_height: f32 = height * (1.0 + style.leading)
 	position: [2]f32 = rect.position
 	lines := text_box_lines(style, rect, text, scale_factor)
+	n: int = len(lines)
+	total_height := height * f32(n) + cast(f32)max(0, n - 1) * line_distance
 	desired_width: Maybe(f32)
 	pivot: bit_set[Compass]
 	switch v_align {
-	case .Top: position.y += rect.size.y / 2 - height / 2
-	case .Bottom: position.y += -rect.size.y / 2 + (- 0.5 + cast(f32)len(lines)) * height
-	case .Center: position.y += (-1 + 0.5 * cast(f32)len(lines)) * height }
+	case .Top: position.y += rect.size.y / 2 - height
+	case .Bottom: position.y += -rect.size.y / 2 + total_height - height
+	case .Center: position.y += 0.5 * total_height - line_height + height / 2 }
 	switch h_align {
 	case .Justify:
 		desired_width = rect.size.x
@@ -325,5 +334,5 @@ gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: R
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		gui_text_line(graphics_man, style, position, line, pivot = pivot, desired_width = desired_width, integer = integer)
-		position.y -= height } }
+		gui_text_line(graphics_manager, style, position, line, pivot = pivot, desired_width = desired_width, integer = integer)
+		position.y -= line_height } }

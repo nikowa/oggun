@@ -743,15 +743,15 @@ submit_render_rect :: proc(graphics_manager: ^Graphics_Manager, _command: Comman
 // 	set_shader_param(RES, graphics_manager.active_resolution)
 // 	draw_triangles(6) }
 
-render_rect_outline :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, color: Color = BLACK, depth: f32 = 0.0) {
+render_rect_outline :: proc(graphics_manager: ^Graphics_Manager, rect: Rect, color: Color = BLACK, depth: f32 = 0.0, integer: bool = true) {
 	a: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2 }
 	b: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y - rect.size.y / 2 }
 	c: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y + rect.size.y / 2 + 1 }
 	d: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y + rect.size.y / 2 + 1 }
-	render_line(graphics_manager, { a, b }, color, depth)
-	render_line(graphics_manager, { b, d }, color, depth)
-	render_line(graphics_manager, { d, c }, color, depth)
-	render_line(graphics_manager, { c, a }, color, depth) }
+	render_line(graphics_manager, { a, b }, color, depth, integer)
+	render_line(graphics_manager, { b, d }, color, depth, integer)
+	render_line(graphics_manager, { d, c }, color, depth, integer)
+	render_line(graphics_manager, { c, a }, color, depth, integer) }
 
 Render_Line_Command :: struct {
 	using params: Render_Line_Params,

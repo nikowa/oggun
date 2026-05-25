@@ -1,4 +1,9 @@
 
+- Add "height" and "origin" to BAF format
+- Fix memory leaks
+- Split "gui" into "gui_core" and "gui_draw"
+- Split "graphics_core" into "graphics_core" and "graphics_draw"
+- Rename "graphics_font" to "graphics_text"
 - Rename "type_" packages to "base_"
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
 - Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"

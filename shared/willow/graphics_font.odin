@@ -28,7 +28,9 @@ Font :: struct {
 	positions_string: String_Asset,
 	symbol_size: [2]f32,
 	bearings: [256]u8,
-	advances: [256]u8 }
+	advances: [256]u8,
+	height: u8,  // height of an uppercase symbol in pixels.
+	origin: u8 } // distance in pixels from bottom edge to horizon line.
 
 Font_Group :: struct {
 	normal: ^Font,
@@ -37,7 +39,7 @@ Font_Group :: struct {
 Font_Size :: distinct u8
 
 font_size_to_font_scale :: proc(font_size: Font_Size, font: ^Font) -> (font_scale: f32) {
-	return cast(f32)font_size / font.symbol_size.y }
+	return cast(f32)font_size / cast(f32)font.height }
 
 // (TODO): Make a "Font_Size" u8 type and make it absolute rather than relative to the size of the
 
@@ -77,13 +79,22 @@ font_init :: proc(asset_man: ^Asset_Manager, font: ^Font, config: Font_Config) {
 	assert(asset_commands(asset_man, String_Asset, &font.positions_string.asset, { .Import, .Load }))
 	lines: []string = strings.split_lines(font.positions_string.str)
 	for line in lines {
+		// (TODO): This can be simplified a little. Why is "line" split twice? //
+		parts := strings.split(line, " ")
+		if parts[0] == "height" {
+			value, _ := strconv.parse_int(parts[1])
+			font.height = cast(u8)value }
+		if parts[0] == "origin" {
+			value, _ := strconv.parse_int(parts[1])
+			font.origin = cast(u8)value }
 		symbol: u8 = line[0]
 		numbers: []string = strings.split(line[2:], " ")
 		if len(numbers) != 2 do continue
 		bearing, ok := strconv.parse_int(numbers[0])
 		if ok do font.bearings[cast(rune)symbol] = u8(bearing)
 		advance: int; advance, ok = strconv.parse_int(numbers[1])
-		if ok do font.advances[cast(rune)symbol] = u8(advance) } } }
+		if ok do font.advances[cast(rune)symbol] = u8(advance) } }
+	if font.height == 0 do font.height = cast(u8)font.symbol_size.y }
 
 Render_Text_Command :: struct {
 	using base: Generic_Command,
@@ -110,16 +121,18 @@ Text_Style :: struct {
 	font_group: Font_Group,
 	font_size: Font_Size,
 	tracking: f32,
-	spacing: f32 }
+	spacing: f32,
+	leading: f32 } // (TODO): This is measured in pixels, so it must be an integer. //
 
 DEFAULT_TEXT_STYLE: Text_Style : {
 	color = BLACK,
 	italic = false,
 	bold = false,
-	font_size = 12,
+	font_size = 8,
 	font_group = {},
 	tracking = 1.0,
-	spacing = 1.0 }
+	spacing = 1.0,
+	leading = 0.5 }
 
 font_group_select :: proc(font_group: Font_Group, style: Text_Style) -> (font: ^Font) {
 	switch {
