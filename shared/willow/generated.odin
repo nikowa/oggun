@@ -1,6 +1,6 @@
 package willow
 import "core:time"
-// Generated at 20:02:07 //
+// Generated at 08:04:35 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -70,8 +70,8 @@ default_text_style :: proc(
 		color: Color = DEFAULT_TEXT_STYLE.color,
 		italic: bool = DEFAULT_TEXT_STYLE.italic,
 		bold: bool = DEFAULT_TEXT_STYLE.bold,
-		scale_factor: f32 = DEFAULT_TEXT_STYLE.scale_factor,
 		font_group: Font_Group = DEFAULT_TEXT_STYLE.font_group,
+		font_size: Font_Size = DEFAULT_TEXT_STYLE.font_size,
 		tracking: f32 = DEFAULT_TEXT_STYLE.tracking,
 		spacing: f32 = DEFAULT_TEXT_STYLE.spacing,
 ) -> Text_Style {
@@ -79,8 +79,8 @@ default_text_style :: proc(
 		color = color,
 		italic = italic,
 		bold = bold,
-		scale_factor = scale_factor,
 		font_group = font_group,
+		font_size = font_size,
 		tracking = tracking,
 		spacing = spacing } }
 

@@ -39,6 +39,19 @@ import "core:slice"
 // 		i: int = int((uintptr(&last_batch.commands[0]) - uintptr(&buffer.commands[0])) / size_of(Command))
 // 		last_batch.commands = buffer.commands[i : n] } }
 
+// Phases of command processing:
+// (1) all commands are stored in a dynamic array
+// (2) pointers to the commands are stored in nodes
+// (3) nodes are grouped
+
+Command_Node :: struct {
+	command: ^Command,
+	tree_parent: [dynamic]^Command_Node,
+	tree_child: ^Command_Node }
+
+Command_Tree :: struct {
+	sub_trees: ^Command_Node }
+
 // (NOTE): Initially all commands are appended to "commands", then when it's time to submit, they are grouped. //
 Command_Buffer :: struct {
 	commands: [dynamic]Command,

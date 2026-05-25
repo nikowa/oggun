@@ -4,8 +4,8 @@
 - [x] OpenGL rendering backend
 - [x] Sprites demo
 - [x] Input demo
-- [ ] GUI demo
 - [ ] Graph demo
+- [ ] GUI demo
 - [ ] Sync demo
 - [ ] Node-based effect editor demo
 - [ ] Multi-threaded physics demo

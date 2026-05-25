@@ -34,6 +34,13 @@ Font_Group :: struct {
 	normal: ^Font,
 	bold, italic: ^Font }
 
+Font_Size :: distinct u8
+
+font_size_to_font_scale :: proc(font_size: Font_Size, font: ^Font) -> (font_scale: f32) {
+	return cast(f32)font_size / font.symbol_size.y }
+
+// (TODO): Make a "Font_Size" u8 type and make it absolute rather than relative to the size of the
+
 font_group_init :: proc(asset_man: ^Asset_Manager, font_group: ^Font_Group, normal: Font_Config, bold: Maybe(Font_Config) = nil, italic: Maybe(Font_Config) = nil) {
 	font_group.normal = new(Font)
 	font_init(asset_man, font_group.normal, normal)
@@ -100,8 +107,8 @@ Text_Style :: struct {
 	color: Color,
 	italic: bool,
 	bold: bool,
-	scale_factor: f32,
 	font_group: Font_Group,
+	font_size: Font_Size,
 	tracking: f32,
 	spacing: f32 }
 
@@ -109,7 +116,7 @@ DEFAULT_TEXT_STYLE: Text_Style : {
 	color = BLACK,
 	italic = false,
 	bold = false,
-	scale_factor = 1.0,
+	font_size = 12,
 	font_group = {},
 	tracking = 1.0,
 	spacing = 1.0 }
@@ -123,9 +130,11 @@ font_group_select :: proc(font_group: Font_Group, style: Text_Style) -> (font: ^
 
 render_bitmap_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, integer: bool = true) {
 	using style
+	font := font_group_select(font_group, style)
+	scale_factor := font_size_to_font_scale(font_size, font)
 	command: Render_Text_Command = {
 		group_params_size = size_of(Render_Text_Group_Params),
-		font = font_group_select(font_group, style),
+		font = font,
 		res = graphics_man.active_resolution,
 		scale_factor = scale_factor,
 		color = color }

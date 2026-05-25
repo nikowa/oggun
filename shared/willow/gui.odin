@@ -192,7 +192,7 @@ gui_offset :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 H_Align :: enum { Left, Center, Justify, Right }
 V_Align :: enum { Bottom, Center, Top }
 
-@(private="file") text_measure :: proc(style: Text_Style, text: string) -> (width: f32, space_count: int) {
+@(private="file") text_measure :: proc(style: Text_Style, text: string, scale_factor: f32) -> (width: f32, space_count: int) {
 	style := style
 	using style
 	for symbol, i in text {
@@ -207,7 +207,7 @@ V_Align :: enum { Bottom, Center, Top }
 		if symbol == ' ' do space_count += 1 }
 	return width, space_count }
 
-@(private="file") text_measure_iterate :: proc(style: ^Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int) -> bool {
+@(private="file") text_measure_iterate :: proc(style: ^Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int, scale_factor: f32) -> bool {
 	using style
 	if i^ >= len(text) do return false
 	font := font_group_select(font_group, style^)
@@ -224,14 +224,14 @@ V_Align :: enum { Bottom, Center, Top }
 	i^ += 1
 	return true }
 
-@(private="file") text_box_lines :: proc(style: Text_Style, rect: Rect, text: string) -> []string {
+@(private="file") text_box_lines :: proc(style: Text_Style, rect: Rect, text: string, scale_factor: f32) -> []string {
 	using style
 	lines := make([dynamic]string, context.temp_allocator)
 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
 	width, width_acc: f32
 	_style := style
 	for {
-		ok := text_measure_iterate(&_style, text, &curr_i, &width, &space_count)
+		ok := text_measure_iterate(&_style, text, &curr_i, &width, &space_count, scale_factor)
 		if (width <= rect.size.x) && ok {
 			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' {
 				prev_word_end_i = prev_i
@@ -254,9 +254,10 @@ SKIP_CUTSET :: "_*"
 gui_text_line :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
 	style := style
 	using style
+	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	text := fmt.aprint(..args, sep = sep)
 	position := position
-	width, space_count := text_measure(style, text)
+	width, space_count := text_measure(style, text, scale_factor)
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
 	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
@@ -284,21 +285,23 @@ WHITESPACE_CUTSET :: "\t\n\v\f\r "
 
 text_box_measure :: proc(style: Text_Style, width: f32, args: ..any, sep: string = "") -> (total_height: f32) {
 	using style
+	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	text := fmt.aprint(..args, sep = sep)
 	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
 	rect := make_rect(0, 0, width, 0)
-	lines := text_box_lines(style, rect, text)
+	lines := text_box_lines(style, rect, text, scale_factor)
 	total_height = height * cast(f32)len(lines)
 	return total_height }
 
 gui_text_box :: proc(graphics_man: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, sep: string = "", integer: bool = true) {
 	style := style
 	using style
+	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	if h_align == .Justify do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
 	height: f32 = f32(font_group.normal.symbol_size.y) * scale_factor
 	position: [2]f32 = rect.position
-	lines := text_box_lines(style, rect, text)
+	lines := text_box_lines(style, rect, text, scale_factor)
 	desired_width: Maybe(f32)
 	pivot: bit_set[Compass]
 	switch v_align {

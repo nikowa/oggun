@@ -1,4 +1,8 @@
 
+- Rename "type_" packages to "base_"
+- Move "Tree" and all related types and procedures from "scene" into "base_tree"
+- Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"
+
 - Implement the "render_buffer" param on every render command, to select where the render is targeted at.
 - Improve "command_get_group" to gather all commands not just adjacent ones
 - Add "definitions" param to shader, to add "#define"s. Use it to add an MSAA parameter
