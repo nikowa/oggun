@@ -64,3 +64,7 @@ const vec2 MSAA16_OFF[16] = {
 		vec2 msaa_off = msaa16_pixel_size * (MSAA16_OFF[msaa16_i] - vec2(0.5));
 #define msaa16_scope_end(msaa16_acc) } \
 	msaa16_acc /= float(16);
+
+#define msaaoff_scope_begin(msaaoff_acc, msaaoff_res) \
+	vec2 msaa_off = vec2(0);
+#define msaaoff_scope_end(msaaoff_acc)

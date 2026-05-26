@@ -1,4 +1,6 @@
 
+- Merge all the managers into one "Willow" struct.
+- Asset updating does not work, because it's not using the backing allocator. Fix that.
 - Implement win32 window backend
 - Split "graphics_core" into "graphics_core" and "graphics_draw"
 - Rename "graphics_font" to "graphics_text"

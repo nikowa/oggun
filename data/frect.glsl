@@ -17,21 +17,27 @@ flat in vec4 _stroke_color;
 #define stroke _stroke
 #define stroke_color _stroke_color
 
-vec4 sample_raw(vec2 uv, vec2 b) {
-	vec4 acc = vec4(0);
-	vec2 p = ((uv - vec2(0.5)) * rect.zw + vec2(rect.x, -rect.y));
-	vec2 d = abs(p) - b;
+vec3 sample_rgb(vec2 uv) {
+	vec3 acc = vec3(0);
+	vec2 p = p_from_rect_uv(uv, rect);
 	float dist = sdf_rounded_rect(p - vec2(rect.x, -rect.y), rect.zw / 2, vec4(rounding));
-	if (dist < 0) { acc = fill_color; }
-	if ((dist > - stroke) && (dist < 0)) { acc = stroke_color; }
+	acc = fill_color.xyz;
+	if (stroke != 0) if (dist > - stroke) acc = stroke_color.xyz;
 	return acc; }
+
+float sample_a(vec2 uv) {
+	float acc = 0;
+	vec2 p = p_from_rect_uv(uv, rect);
+	float dist = sdf_rounded_rect(p - vec2(rect.x, -rect.y), rect.zw / 2, vec4(rounding));
+	if (dist < 0) return 1;
+	return 0; }
 
 void main(void) {
 	color = vec4(0);
 	gl_FragDepth = _depth;
 	vec2 b = rect.zw / 2 - vec2(rounding);
 
-	color.xyz = sample_raw(tex_coord, b).xyz;
-	msaa8_scope_begin(color.w, 2 * rect.zw)
-		color.w += sample_raw(tex_coord + msaa_off, b).w;
-	msaa8_scope_end(color.w) }
+	color.w = sample_a(tex_coord);
+	msaa16_scope_begin(color.rgb, 2 * rect.zw)
+		color.rgb += sample_rgb(tex_coord + msaa_off);
+	msaa16_scope_end(color.rgb) }
