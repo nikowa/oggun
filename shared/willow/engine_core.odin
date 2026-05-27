@@ -6,12 +6,41 @@ import "core:sys/windows"
 import "core:log"
 import "core:mem"
 
+// asset_manager: Asset_Manager
+// input_manager: Input_Manager
+// graphics_manager: Graphics_Manager
+// window_manager: Window_Manager
+// tick_manager: Tick_Manager
+// stopwatch: time.Stopwatch
+// neon_manager: Neon_Manager
+
 WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
 nil_stub: rawptr
 NIL_STUB_SIZE :: 1 * mem.Megabyte
 DEFAULT_NAME :: "unnamed"
 
 Entry_Point :: #type proc(data: ^Thread_Data)
+
+Engine :: struct {
+	game_name: string,
+	ticked: bool,
+	backing_allocator: runtime.Allocator,
+	asset_manager: Asset_Manager,
+	input_manager: Input_Manager,
+	graphics_manager: Graphics_Manager,
+	window_manager: Window_Manager,
+	tick_manager: Tick_Manager,
+	neon_manager: Neon_Manager,
+	settings_manager: Settings_Manager }
+
+engine_loop_context :: proc() -> runtime.Context {
+	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
+	// explicitly use "engine.backing_allocator".
+	engine.backing_allocator = context.allocator
+	context.allocator = context.temp_allocator
+	return context }
+
+engine: ^Engine
 
 @(private="file")
 MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
@@ -40,6 +69,48 @@ worker_proc :: proc(data: rawptr) {
 ptr_is_nil :: proc(ptr: ^$T) -> bool {
 	return (ptr == nil) || (ptr == nil_stub) }
 
+engine_init :: proc(
+		game_name: string,
+		asset_config: Asset_Manager_Config = DEFAULT_ASSET_MANAGER_CONFIG,
+		window_config: Window_Config = DEFAULT_WINDOW_CONFIG,
+		graphics_config: Graphics_Config = DEFAULT_GRAPHICS_CONFIG,
+		tick_config: Tick_Manager_Config = DEFAULT_TICK_MANAGER_CONFIG,
+		input_config: Input_Config = DEFAULT_INPUT_CONFIG,
+		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG,
+		backing_allocator := context.allocator) {
+	engine = new(Engine)
+	engine.game_name = game_name
+	asset_manager_init(asset_config, backing_allocator)
+	window_init(window_config)
+	graphics_init(graphics_config)
+	neon_manager_init()
+	input_init(input_config)
+	settings_manager_init(&engine.settings_manager, settings_config)
+	tick_manager_init(&engine.tick_manager, tick_config) }
+
+engine_running :: proc() -> bool {
+	return ! engine.graphics_manager.window_closed }
+
+@(deferred_none=engine_tick_end)
+engine_tick :: proc() -> bool {
+	return engine_tick_begin() }
+
+engine_tick_begin :: proc() -> bool {
+	if tick_manager_tick(&engine.tick_manager) {
+		tick_asset_manager()
+		tick_graphics_manager()
+		input_manager_tick()
+		window_tick()
+		engine.ticked = true
+		return true }
+	return false }
+
+engine_tick_end :: proc() {
+	if engine.ticked {
+		tick_manager_reset(&engine.tick_manager)
+		engine.ticked = false }
+	free_all(context.allocator) }
+
 start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 	log.info("Starting engine.")
 
@@ -67,4 +138,3 @@ start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 		thread_context.user_ptr = data
 		if i > 0 do thread.create_and_start_with_data(data, worker_proc, thread_context, .Normal)
 		else do worker_proc(data) } }
-

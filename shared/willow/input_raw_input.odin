@@ -12,12 +12,12 @@ Raw_Input_Manager :: struct {
 // Raw_Keyboard :: struct {
 // }
 
-raw_input_init :: proc(raw_input_manager: ^Raw_Input_Manager, input_manager: ^Input_Manager, window_manager: ^Window_Manager) {
-	switch window_manager.backend {
+raw_input_init :: proc() {
+	switch engine.window_manager.backend {
 	case .GLFW:
-		glfw.SetInputMode(auto_cast window_manager.handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		assert(auto_cast glfw.RawMouseMotionSupported())
-		glfw.SetInputMode(auto_cast window_manager.handle, glfw.RAW_MOUSE_MOTION, auto_cast true)
+		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.RAW_MOUSE_MOTION, auto_cast true)
 	case .Win32:
 		// Get handles //
 		devices: []windows.RAWINPUTDEVICELIST

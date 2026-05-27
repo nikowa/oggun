@@ -17,7 +17,7 @@ NEUTRAL_FOREGROUND_DISABLED :: 0xbdbdbdff
 NEUTRAL_BACKGROUND_4_NORMAL :: 0xf0f0f0ff
 NEUTRAL_STROKE_1_NORMAL :: 0xd1d1d1ff
 
-neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Manager) {
+neon_manager_init :: proc() {
 	using Neon_Color_Row
 	using Neon_Color_Column
 
@@ -328,12 +328,12 @@ neon_manager_init :: proc(neon_manager: ^Neon_Manager, asset_manager: ^Asset_Man
 			Variant_2 = 0xc50f1fff,
 			Variant_3 = 0xc50f1fff,
 			Variant_4 = 0xc50f1fff } }
-	font_group_init(asset_manager, &neon_manager.font_group,
+	font_group_init(&engine.neon_manager.font_group,
 		normal = default_font_config(name = "terminus"),
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
 	fg_color := neon_color_table_ms_light[Neon_Color_Row.Neutral_Foreground_1][0]
-	neon_manager.text_style = default_text_style(font_group = neon_manager.font_group, color = fg_color, font_size = 8) }
+	engine.neon_manager.text_style = default_text_style(font_group = engine.neon_manager.font_group, color = fg_color, font_size = 8) }
 
 // (TODO): Rename to Neon_Color_State
 Neon_Color_Column :: enum {
@@ -461,19 +461,20 @@ NEON_BUTTON_SIZE_SMALL:  [2]f32 : { 64, 24 }
 NEON_BUTTON_SIZE_MEDIUM: [2]f32 : { 96, 32 }
 NEON_BUTTON_SIZE_LARGE:  [2]f32 : { 96, 40 }
 
-draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, disabled: bool = false, neon_manager: ^Neon_Manager = nil, input_manager: ^Input_Manager = nil, graphics_manager: ^Graphics_Manager = nil, window_manager: ^Window_Manager = nil, sep: string = "") {
+// (TODO): Pack most of these params in a "Neon_Button_Config" struct. //
+draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, disabled: bool = false, sep: string = "") {
 	text := fmt.aprint(..args, sep = sep)
 	rounding: f32 = 0.0
 	switch shape {
 	case .Rounded: rounding = cast(f32)Neon_Radius.Medium
 	case .Circular: rounding = rect.size.y / 2
 	case .Square: rounding = 0.0 }
-	hover: bool = rect_hovered(rect, input_manager)
-	press: bool = hover && input_query(input_manager, .Mouse_Left, .Down)
+	hover: bool = rect_hovered(rect)
+	press: bool = hover && input_query(.Mouse_Left, .Down)
 
 	fill_neon_color: Neon_Color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Background_2]
 	stroke_neon_color: Neon_Color = neon_color_table_ms_light[Neon_Color_Row.Neutral_Stroke_1]
-	text_style: Text_Style = neon_manager.text_style
+	text_style: Text_Style = engine.neon_manager.text_style
 	#partial switch appearance {
 	case .Primary:
 		fill_neon_color = neon_color_table_ms_light[Neon_Color_Row.Brand_Background]
@@ -511,11 +512,11 @@ draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Ro
 		case .Primary:
 			fill_color = NEUTRAL_BACKGROUND_4_NORMAL
 			stroke_color = NEUTRAL_BACKGROUND_4_NORMAL }
-		if hover do set_cursor(window_manager, .Disabled)
+		if hover do set_cursor(.Disabled)
 		hover = false
 		press = false }
 
 // case .Primary
-	draw_rect(graphics_manager, rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)
-	if hover do set_cursor(window_manager, .Hand)
-	draw_text_box(graphics_manager, text_style, rect, text, h_align = .Center, v_align = .Center, depth = 0.0) }
+	draw_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)
+	if hover do set_cursor(.Hand)
+	draw_text_box(text_style, rect, text, h_align = .Center, v_align = .Center, depth = 0.0) }

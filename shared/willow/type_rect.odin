@@ -44,5 +44,5 @@ rect_round_offset :: proc(rect: Rect, offset: [2]f32) -> Rect {
 	rect.size.y = math.round_f32(rect.size.y / 2) * 2
 	return rect }
 
-rect_hovered :: proc(rect: Rect, input_manager: ^Input_Manager) -> bool {
-	return rect_contains_point(rect, input_manager.mouse_position) }
+rect_hovered :: proc(rect: Rect) -> bool {
+	return rect_contains_point(rect, engine.input_manager.mouse_position) }

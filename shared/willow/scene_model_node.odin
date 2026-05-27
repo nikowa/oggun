@@ -12,12 +12,11 @@ make_model_node :: proc(node_config: Node_Config, model: ^Model, allocator: runt
 	model_node.model = model
 	return model_node }
 
-render_model_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_model_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	using Model_Shader_Uniforms
-	assert(graphics_context != nil)
 	assert(node != nil)
 	model_node := node_object(node, Model_Node, "node")
-	use_shader(&graphics_context.model_shader)
+	use_shader(&engine.graphics_manager.model_shader)
 	translate_matrix, rotate_matrix, scale_matrix, node_matrix := node_transforms(&model_node.node)
 	set_shader_param(MODEL_MATRIX, &node_matrix)
 	set_shader_param(CAMERA_POSITION_MATRIX, &camera_node.view_matrix)

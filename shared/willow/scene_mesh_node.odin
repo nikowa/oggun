@@ -13,13 +13,12 @@ make_mesh_node :: proc(node_config: Node_Config, mesh: ^Mesh(3), allocator: runt
 	mesh_node.mesh = mesh
 	return mesh_node }
 
-render_mesh_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_mesh_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	using Mesh_Shader_Uniforms
-	assert(graphics_context != nil)
 	assert(node != nil)
 	mesh_node := node_object(node, Mesh_Node, "node")
 	assert(mesh_node.verts_handle != 0)
-	use_shader(&graphics_context.mesh_shader)
+	use_shader(&engine.graphics_manager.mesh_shader)
 	translate_matrix, rotate_matrix, scale_matrix, node_matrix := node_transforms(&mesh_node.node)
 	set_shader_param(NODE_MATRIX, &node_matrix)
 	set_shader_param(CAMERA_POSITION_MATRIX, &camera_node.view_matrix)

@@ -8,6 +8,7 @@ import "core:time"
 // 	net_time: f32,
 // 	net_time_to_last_frame: f32 }
 
+// (TODO): Rename this to something other than "Manager". Manager is only for things that have one instance per game. //
 Tick_Manager :: struct {
 	using tick_manager_config: Tick_Manager_Config,
 	stopwatch:                 time.Stopwatch,

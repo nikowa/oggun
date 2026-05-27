@@ -1,6 +1,6 @@
 package willow
 import "core:time"
-// Generated at 17:02:12 //
+// Generated at 11:42:13 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -40,12 +40,16 @@ default_tick_manager_config :: proc(
 	return {
 		tickrate_setting = tickrate_setting } }
 
+default_settings_manager_config :: proc(
+		settings_name: string = DEFAULT_SETTINGS_MANAGER_CONFIG.settings_name,
+) -> Settings_Manager_Config {
+	return {
+		settings_name = settings_name } }
+
 default_graphics_config :: proc(
-		window_manager: ^Window_Manager = DEFAULT_GRAPHICS_CONFIG.window_manager,
 		clear_color: Color = DEFAULT_GRAPHICS_CONFIG.clear_color,
 ) -> Graphics_Config {
 	return {
-		window_manager = window_manager,
 		clear_color = clear_color } }
 
 default_effect_config :: proc(
@@ -144,7 +148,6 @@ default_window_config :: proc(
 		backend: Backend = DEFAULT_WINDOW_CONFIG.backend,
 		position: Maybe([2]f32) = DEFAULT_WINDOW_CONFIG.position,
 		size: [2]f32 = DEFAULT_WINDOW_CONFIG.size,
-		title: string = DEFAULT_WINDOW_CONFIG.title,
 		fullscreen: bool = DEFAULT_WINDOW_CONFIG.fullscreen,
 		cursor: Cursor = DEFAULT_WINDOW_CONFIG.cursor,
 ) -> Window_Config {
@@ -152,7 +155,6 @@ default_window_config :: proc(
 		backend = backend,
 		position = position,
 		size = size,
-		title = title,
 		fullscreen = fullscreen,
 		cursor = cursor } }
 

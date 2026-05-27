@@ -11,16 +11,21 @@ import "core:strings"
 import "core:slice"
 
 Settings_Manager :: struct {
-	backing_allocator: runtime.Allocator,
+	using settings_manager_config: Settings_Manager_Config,
 	path: string,
 	_map: map[string]map[string]string }
 
-settings_manager_init :: proc(settings_manager: ^Settings_Manager, application_name: string, settings_name: string, backing_allocator: runtime.Allocator = context.allocator) {
-	context.allocator = backing_allocator
-	settings_manager.backing_allocator = backing_allocator
-	directory_path, _ := os.join_path({ os.user_data_dir(context.temp_allocator) or_else "", application_name }, context.temp_allocator)
+Settings_Manager_Config :: struct {
+	settings_name: string }
+
+DEFAULT_SETTINGS_MANAGER_CONFIG: Settings_Manager_Config : {
+	settings_name = "Settings" }
+
+settings_manager_init :: proc(settings_manager: ^Settings_Manager, config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) {
+	settings_manager.settings_manager_config = config
+	directory_path, _ := os.join_path({ os.user_data_dir(context.temp_allocator) or_else "", engine.game_name }, context.temp_allocator)
 	if ! os.exists(directory_path) do assert(os.make_directory(directory_path) == nil)
-	path_base, _ := os.join_path({ directory_path, settings_name }, context.temp_allocator)
+	path_base, _ := os.join_path({ directory_path, settings_manager.settings_name }, context.temp_allocator)
 	settings_manager.path, _ = os.join_filename(path_base, "ini", context.allocator)
 	// log.infof("Settings path: %s.", settings_manager.path)
 	settings_manager._map = make_map(map[string]map[string]string, context.allocator) }

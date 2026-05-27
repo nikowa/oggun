@@ -10,7 +10,7 @@ Neon_Button_Shape :: enum {
 	Circular,
 	Square }
 
-draw_text_line :: proc(graphics_manager: ^Graphics_Manager, style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
+draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
 	style := style
 	using style
 	// draw_rect(graphics_manager, { position = position, size = { 4, 4 } }, BLUE)
@@ -35,14 +35,14 @@ draw_text_line :: proc(graphics_manager: ^Graphics_Manager, style: Text_Style, p
 		if symbol == '*' {
 			style.bold = ! style.bold; continue }
 		font := font_group_select(font_group, style)
-		draw_text_symbol(graphics_manager, cast(u8)symbol, symbol_position, depth, style, integer = integer)
+		draw_text_symbol(cast(u8)symbol, symbol_position, depth, style, integer = integer)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
 		if symbol == ' ' do symbol_delta += space_delta
 		symbol_position.x += symbol_delta } }
 
-draw_text_box :: proc(graphics_manager: ^Graphics_Manager, style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, depth: f32 = 0.0, sep: string = "", integer: bool = true) {
+draw_text_box :: proc(style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, depth: f32 = 0.0, sep: string = "", integer: bool = true) {
 	style := style
 	using style
 	// draw_rect_outline(graphics_manager, rect, BLUE, 0.1)
@@ -80,7 +80,7 @@ draw_text_box :: proc(graphics_manager: ^Graphics_Manager, style: Text_Style, re
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		draw_text_line(graphics_manager, style, position, line, pivot = pivot, desired_width = desired_width, depth = depth, integer = integer)
+		draw_text_line(style, position, line, pivot = pivot, desired_width = desired_width, depth = depth, integer = integer)
 		position.y -= line_height } }
 
 _measure_text :: proc(style: Text_Style, text: string, scale_factor: f32) -> (width: f32, space_count: int) {

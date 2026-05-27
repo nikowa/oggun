@@ -65,19 +65,19 @@ command_buffer_record :: proc(command_buffer: ^Command_Buffer, config: Command_C
 	command := &command_buffer.commands[len(command_buffer.commands) - 1]
 }
 
-command_submit :: proc(graphics_man: ^Graphics_Manager, command: Command, index: int) {
+command_submit :: proc(command: Command, index: int) {
 	if command.submitted do return
 	switch variant in command.base {
 	case Generic_Command: return
-	case Draw_Image_Command: submit_draw_image(graphics_man, command, index)
-	case Draw_Text_Command:  submit_draw_text(graphics_man, command, index)
-	case Draw_Rect_Command:  submit_draw_rect(graphics_man, command, index)
-	case Draw_Line_Command:  submit_draw_line(graphics_man, command, index) }
-	graphics_man.command_buffer.commands[index].submitted = true }
+	case Draw_Image_Command: submit_draw_image(command, index)
+	case Draw_Text_Command:  submit_draw_text(command, index)
+	case Draw_Rect_Command:  submit_draw_rect(command, index)
+	case Draw_Line_Command:  submit_draw_line(command, index) }
+	engine.graphics_manager.command_buffer.commands[index].submitted = true }
 
-command_buffer_submit :: proc(graphics_man: ^Graphics_Manager, command_buffer: ^Command_Buffer) {
+command_buffer_submit :: proc(command_buffer: ^Command_Buffer) {
 	// log.infof("Submitting %v commands.", len(command_buffer.commands))
-	for command, index in command_buffer.commands do command_submit(graphics_man, command, index)
+	for command, index in command_buffer.commands do command_submit(command, index)
 	clear(&command_buffer.commands) }
 
 commands_belong_to_same_group :: proc(commands: [2]^Command) -> bool {

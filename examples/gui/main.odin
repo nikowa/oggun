@@ -11,13 +11,7 @@ import "core:math/linalg"
 import "core:slice"
 import "core:mem"
 
-asset_manager: willow.Asset_Manager
-input_manager: willow.Input_Manager
-graphics_manager: willow.Graphics_Manager
-window_manager: willow.Window_Manager
-tick_manager: willow.Tick_Manager
 stopwatch: time.Stopwatch
-neon_manager: willow.Neon_Manager
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -32,40 +26,34 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 100 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
-	window_init(&window_manager, default_window_config(title = "GUI"))
-	graphics_init(graphics_manager = &graphics_manager, asset_manager = &asset_manager, graphics_config = { window_manager = &window_manager, clear_color = NEUTRAL_BACKGROUND_1_NORMAL })
-	neon_manager_init(&neon_manager, &asset_manager)
-	tick_manager_init(&tick_manager, { tickrate_setting = .LIMITED_60_FPS })
-	input_init(&input_manager, &window_manager, { raw_input = false })
+	engine_init(
+		"GUI Example",
+		graphics_config = default_graphics_config(clear_color = NEUTRAL_BACKGROUND_1_NORMAL),
+		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
+		input_config = default_input_config(raw_input = false))
 
 	zero_stopwatch(&stopwatch)
 
 	backing_allocator := context.allocator
 	context.allocator = context.temp_allocator
 
-	for ! graphics_manager.window_closed {
+	for engine_running() {
 		time := read_stopwatch(&stopwatch)
-		tick_asset_manager(&asset_manager)
-
-		if tick_manager_tick(&tick_manager) {
-			defer tick_manager_reset(&tick_manager)
-			tick_graphics_manager(&graphics_manager)
-			input_manager_tick(&input_manager)
-			window_tick(&window_manager)
+		if engine_tick() {
 			ys: [2]f32 = { -24, 24 }
 			ds: [2]bool = { true, false }
 			for y, i in ys {
 				disabled := ds[i]
 				DELTA :: 120
 				rect: Rect = { { - 2 * DELTA, y }, NEON_BUTTON_SIZE_SMALL }
-				draw_neon_button(rect, "*Default*", appearance = .Default, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
-				draw_neon_button(rect, "*Primary*", appearance = .Primary, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
-				draw_neon_button(rect, "*Outline*", appearance = .Outline, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
-				draw_neon_button(rect, "*Subtle*", appearance = .Subtle, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager); rect.position.x += DELTA
-				draw_neon_button(rect, "*Transp*", appearance = .Transparent, shape = .Rounded, disabled = disabled, neon_manager = &neon_manager, input_manager = &input_manager, graphics_manager = &graphics_manager, window_manager = &window_manager) }
-		}
-
-		free_all(context.allocator)
-	}
+				draw_neon_button(rect, "*Default*", appearance = .Default, shape = .Rounded, disabled = disabled)
+				rect.position.x += DELTA
+				draw_neon_button(rect, "*Primary*", appearance = .Primary, shape = .Rounded, disabled = disabled)
+				rect.position.x += DELTA
+				draw_neon_button(rect, "*Outline*", appearance = .Outline, shape = .Rounded, disabled = disabled)
+				rect.position.x += DELTA
+				draw_neon_button(rect, "*Subtle*", appearance = .Subtle, shape = .Rounded, disabled = disabled)
+				rect.position.x += DELTA
+				draw_neon_button(rect, "*Transp*", appearance = .Transparent, shape = .Rounded, disabled = disabled) } }
+		free_all(context.allocator) }
 	return }

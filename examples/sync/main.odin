@@ -10,12 +10,9 @@ import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
 import "core:container/intrusive/list"
+import "core:mem"
 
-asset_manager: willow.Asset_Manager
-graphics_manager: willow.Graphics_Manager
-window_manager: willow.Window_Manager
 stopwatch: time.Stopwatch
-tick_manager: willow.Tick_Manager
 screen_rect: willow.Rect
 images: [dynamic]^willow.Image_Asset
 background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
@@ -115,8 +112,8 @@ draw_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	draw_image(&graphics_manager, image, { screen_position, image_size }, depth = entity.depth)
-	draw_text_line(&graphics_manager, text_style, screen_position + { 0, image_size.y / 2 }, label) }
+	draw_image(image, { screen_position, image_size }, depth = entity.depth)
+	draw_text_line(text_style, screen_position + { 0, image_size.y / 2 }, label) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
@@ -128,31 +125,25 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	asset_manager_init(&asset_manager, default_asset_manager_config(), context.allocator)
-	window_init(&window_manager, default_window_config(title = "Sync"))
-	graphics_init(
-		graphics_manager = &graphics_manager,
-		asset_manager = &asset_manager,
-		graphics_config = default_graphics_config(window_manager = &window_manager))
-	tick_manager_init(&tick_manager, default_tick_manager_config())
-	screen_rect = gui_screen(&graphics_manager)
+	engine_init("Sync Example")
+	screen_rect = gui_screen()
 
-	init_image(&asset_manager, &background_image, { url = "image:savanna-background.png" })
+	init_image(&background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
-	init_image(&asset_manager, &car_image, { url = "image:car.png" })
+	init_image(&car_image, { url = "image:car.png" })
 	append(&images, &car_image)
-	init_image(&asset_manager, &tree_image, { url = "image:tree.png" })
+	init_image(&tree_image, { url = "image:tree.png" })
 	append(&images, &tree_image)
-	init_image(&asset_manager, &aardvark_image, { url = "image:aardvark.png" })
+	init_image(&aardvark_image, { url = "image:aardvark.png" })
 	append(&images, &aardvark_image)
-	init_image(&asset_manager, &meerkat_image, { url = "image:meerkat.png" })
+	init_image(&meerkat_image, { url = "image:meerkat.png" })
 	append(&images, &meerkat_image)
-	init_image(&asset_manager, &zebra_image, { url = "image:zebra.png" })
+	init_image(&zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(asset_commands(&asset_manager, Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(asset_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
-	font_group_init(&asset_manager, &font_group, normal = default_font_config(name = "font-dev"))
+	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
 	text_style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
@@ -160,26 +151,20 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	zero_stopwatch(&stopwatch)
 
-	backing_allocator := context.allocator
-	context.allocator = context.temp_allocator
+	context = engine_loop_context()
 
-	for ! graphics_manager.window_closed {
+	for engine_running() {
 		time := read_stopwatch(&stopwatch)
-		tick_asset_manager(&asset_manager)
-
-		if tick_manager_tick(&tick_manager) {
-			defer tick_manager_reset(&tick_manager)
-			tick_graphics_manager(&graphics_manager)
-
-			draw_image(&graphics_manager, &background_image, screen_rect, depth = 0.99)
+		if engine_tick() {
+			draw_image(&background_image, screen_rect, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
 				draw_entity(entity) }
 
-			draw_image(&graphics_manager, &meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			draw_image(&graphics_manager, &zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// draw_text(&graphics_manager, "Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
+			draw_image(&meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
+			draw_image(&zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			// draw_text("Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

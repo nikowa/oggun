@@ -1,4 +1,5 @@
 
+- Remove "using willow" from examples, to make them more clear.
 - Merge all the managers into one "Willow" struct.
 - Asset updating does not work, because it's not using the backing allocator. Fix that.
 - Implement win32 window backend
@@ -8,6 +9,8 @@
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
 - Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"
 
+- Test the font renderer with a multicolored font
+- Add a procedure in the checker to make sure all structs with "singleton" tag are instantited only once
 - Neon shadows
 - Neon spacing
 - Implement the "render_buffer" param on every render command, to select where the render is targeted at.

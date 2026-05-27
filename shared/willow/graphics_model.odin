@@ -49,23 +49,22 @@ model_equiv :: proc(a: ^Model, b: ^Model) -> bool {
 // 	STRIDE :: 2; return { model.texcoords[point_index * STRIDE + 0], model.texcoords[point_index * STRIDE + 1] } }
 
 import_or_retreive_model :: proc(
-    database: ^Asset_Manager,
     url: URL,
     allocator: runtime.Allocator) -> (model: Model, err: os.Error) {
 	modification_time: time.Time
 	bytes: []u8
 
-	entry := get_entry(database, url)
+	entry := get_entry(url)
 	ok := (entry != nil)
-	if ok do if entry_was_modified(database, entry) do ok = false
+	if ok do if entry_was_modified(entry) do ok = false
 	if ok do model = model_deserialize(entry.data, allocator) or_return
 	else {
 		log.infof("Reading model %s from source.", url)
-		path := path_from_url(database, url, context.allocator)
+		path := path_from_url(url, context.allocator)
 		model = load_model(path, url, allocator) or_return
 		modification_time = os.modification_time_by_path(path) or_return
 		bytes = model_serialize(&model, allocator) or_return
-		add_or_update_entry(database, make_entry(url, bytes, modification_time)) }
+		add_or_update_entry(make_entry(url, bytes, modification_time)) }
 	return model, os.General_Error.None }
 
 model_serialize :: proc(

@@ -100,8 +100,8 @@ gui_grid_make :: proc(rect_in: Rect, size: [2]int, allocator: runtime.Allocator)
 gui_grid_index :: proc(size: [2]int, i, j: int) -> int {
 	return j * size.x + i }
 
-gui_screen :: proc(graphics_manager: ^Graphics_Manager) -> Rect {
-	return make_rect(0.0, 0.0, graphics_manager.active_resolution.x, graphics_manager.active_resolution.y) }
+gui_screen :: proc() -> Rect {
+	return make_rect(0.0, 0.0, engine.graphics_manager.active_resolution.x, engine.graphics_manager.active_resolution.y) }
 
 gui_extend :: proc(rect_in: Rect, left: f32 = 0, right: f32 = 0, bottom: f32 = 0, top: f32 = 0) -> (rect_out: Rect) {
 	rect_out = rect_in

@@ -29,7 +29,7 @@ scene_attach :: proc(scene: ^Scene, child: ^Node) {
 Tree :: struct {
 	root: ^Node }
 
-Node_Render_Proc :: #type proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
+Node_Render_Proc :: #type proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
 
 Node_Tick_Proc :: #type proc(node: ^Node)
 
@@ -43,7 +43,7 @@ Node_Config :: struct {
 	scale: [3]f32,
 	visible: bool }
 
-stub_node_render_proc :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) { }
+stub_node_render_proc :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) { }
 stub_node_tick_proc :: proc(node: ^Node) {}
 
 DEFAULT_NODE_CONFIG: Node_Config : {
@@ -81,9 +81,9 @@ Node_Transform :: struct {
 
 // node_transform_cumulative :: proc(node: ^Node) -> (transform: Node_Transform) { }
 
-render_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	if node.render_proc == nil do return
-	node.render_proc(graphics_context, scene, camera_node, node) }
+	node.render_proc(scene, camera_node, node) }
 
 tick_node :: proc(node: ^Node) {
 	if node.tick_proc == nil do return
@@ -91,8 +91,8 @@ tick_node :: proc(node: ^Node) {
 
 // (TODO): A default tick_node proc, which calculates the cumulative transform.
 
-render_scene :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node) {
-	render_node(graphics_context, scene, nil, &camera_node.node) }
+render_scene :: proc(scene: ^Scene, camera_node: ^Camera_Node) {
+	render_node(scene, nil, &camera_node.node) }
 
 tick_scene :: proc(scene: ^Scene) {
 	tree_iterator: Tree_Iterator

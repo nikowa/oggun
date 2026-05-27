@@ -43,40 +43,40 @@ font_size_to_font_scale :: proc(font_size: Font_Size, font: ^Font) -> (font_scal
 
 // (TODO): Make a "Font_Size" u8 type and make it absolute rather than relative to the size of the
 
-font_group_init :: proc(asset_man: ^Asset_Manager, font_group: ^Font_Group, normal: Font_Config, bold: Maybe(Font_Config) = nil, italic: Maybe(Font_Config) = nil) {
+font_group_init :: proc(font_group: ^Font_Group, normal: Font_Config, bold: Maybe(Font_Config) = nil, italic: Maybe(Font_Config) = nil) {
 	font_group.normal = new(Font)
-	font_init(asset_man, font_group.normal, normal)
+	font_init(font_group.normal, normal)
 	if bold == nil do font_group.bold = font_group.normal
 	else {
 		font_group.bold = new(Font)
-		font_init(asset_man, font_group.bold, bold.(Font_Config)) }
+		font_init(font_group.bold, bold.(Font_Config)) }
 	if italic == nil do font_group.italic = font_group.normal
 	else {
 		font_group.italic = new(Font)
-		font_init(asset_man, font_group.italic, italic.(Font_Config)) } }
+		font_init(font_group.italic, italic.(Font_Config)) } }
 
-font_init :: proc(asset_man: ^Asset_Manager, font: ^Font, config: Font_Config) {
+font_init :: proc(font: ^Font, config: Font_Config) {
 	font.font_config = config
 	font.bitmap_image = new(Image_Asset)
-	init_image(asset_man, font.bitmap_image, { url = auto_cast fmt.aprintf("image:%s.png", font.name) })
+	init_image(font.bitmap_image, { url = auto_cast fmt.aprintf("image:%s.png", font.name) })
 	bold_url: URL = cast(URL)fmt.aprintf("image:%s-bold.png", font.name)
-	bold_path: string = path_from_url(asset_man, bold_url, context.allocator)
+	bold_path: string = path_from_url(bold_url, context.allocator)
 	// fmt.println(bold_path)
 	if os.exists(bold_path) {
 		font.bitmap_image_bold = new(Image_Asset)
-		init_image(asset_man, font.bitmap_image_bold, { url = bold_url })
+		init_image(font.bitmap_image_bold, { url = bold_url })
 	} else {
 		font.bitmap_image_bold = font.bitmap_image }
-	assert(asset_commands(asset_man, Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
-	// assert(asset_commands(asset_man, Image_Asset, &font.bitmap_image_bold.asset, { .Import, .Load, .Upload }))
+	assert(asset_commands(Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
+	// assert(asset_commands(Image_Asset, &font.bitmap_image_bold.asset, { .Import, .Load, .Upload }))
 	if font.default_advance == 0 do font.default_advance = u8(font.bitmap_image.height / 16)
 	font.symbol_size = { f32(font.bitmap_image.width / 16), f32(font.bitmap_image.height / 16) }
 	font.bearings = font.default_bearing
 	font.advances = font.default_advance
 	baf_path: string = fmt.aprintf("string:%s.baf", font.name)
-	if os.exists(path_from_url(asset_man, cast(URL)baf_path, context.temp_allocator)) {
-	init_string_asset(asset_man, &font.positions_string, { auto_cast baf_path, String_Asset })
-	assert(asset_commands(asset_man, String_Asset, &font.positions_string.asset, { .Import, .Load }))
+	if os.exists(path_from_url(cast(URL)baf_path, context.temp_allocator)) {
+	init_string_asset(&font.positions_string, { auto_cast baf_path, String_Asset })
+	assert(asset_commands(String_Asset, &font.positions_string.asset, { .Import, .Load }))
 	lines: []string = strings.split_lines(font.positions_string.str)
 	for line in lines {
 		// (TODO): This can be simplified a little. Why is "line" split twice? //
@@ -141,14 +141,14 @@ font_group_select :: proc(font_group: Font_Group, style: Text_Style) -> (font: ^
 	case: return font_group.normal }
 	return nil }
 
-draw_text_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, integer: bool = true) {
+draw_text_symbol :: proc(symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, integer: bool = true) {
 	using style
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
 	command: Draw_Text_Command = {
 		group_params_size = size_of(Draw_Text_Group_Params),
 		font = font,
-		res = graphics_man.active_resolution,
+		res = engine.graphics_manager.active_resolution,
 		scale_factor = scale_factor,
 		color = color }
 	command.symbol = symbol
@@ -160,18 +160,18 @@ draw_text_symbol :: proc(graphics_man: ^Graphics_Manager, symbol: u8, position: 
 	command.position.y = integer ? math.round_f32(command.position.y + 0.3) : command.position.y
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
-	command_buffer_record(&graphics_man.command_buffer, { base = command }) }
+	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
-submit_draw_text :: proc(graphics_man: ^Graphics_Manager, _command: Command, index: int) {
+submit_draw_text :: proc(_command: Command, index: int) {
 	using Text_Uniforms
 
 	command := _command.base.(Draw_Text_Command)
 
-	use_shader(&graphics_man.text_shader)
-	set_shader_param(RES, graphics_man.active_resolution)
+	use_shader(&engine.graphics_manager.text_shader)
+	set_shader_param(RES, engine.graphics_manager.active_resolution)
 	set_shader_param(SYMBOL_SIZE, command.font.symbol_size)
 
-	commands := command_buffer_get_group(&graphics_man.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
 	// for command in commands do fmt.printfln("%c -- %v", command.base.(Draw_Text_Command).symbol, command.base.(Draw_Text_Command).position)
 
 	buffers := make_buffers(6)

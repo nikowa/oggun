@@ -13,17 +13,16 @@ make_camera_node :: proc(node_config: Node_Config, camera: ^Camera, allocator: r
 
 // (NODE): The camera node's render proc is the only one that should be called directly, unless you're not using any cameras,
 // because it will render everything.
-render_camera_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_camera_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	tree_iterator: Tree_Iterator
 
-	assert(graphics_context != nil)
 	assert(scene != nil)
 	assert(camera_node == nil)
 	assert(node != nil)
 	tree_iterator = tree_iterator_root(&scene.tree)
 	for other_node in tree_iterate_next(&tree_iterator) {
 		if other_node == node do continue
-		render_node(graphics_context, scene, node_object(node, Camera_Node, "node"), other_node) } }
+		render_node(scene, node_object(node, Camera_Node, "node"), other_node) } }
 
 tick_camera_node :: proc(node: ^Node) {
 	camera_node: ^Camera_Node

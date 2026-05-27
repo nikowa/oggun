@@ -8,17 +8,17 @@ Material_Asset :: struct {
 	// metallic_factor: f32,
 	// roughness_factor: f32,
 
-init_material :: proc(asset_manager: ^Asset_Manager, material: ^Material_Asset, config: Asset_Config, base_color_url: URL) {
+init_material :: proc(material: ^Material_Asset, config: Asset_Config, base_color_url: URL) {
 	config := config
 	config.derived_type = Material_Asset
-	init_asset(asset_manager, Material_Asset, &material.asset, config)
-	init_image(asset_manager, &material.base_color, { url = base_color_url }) }
+	init_asset(Material_Asset, &material.asset, config)
+	init_image(&material.base_color, { url = base_color_url }) }
 
-material_asset_command :: proc(asset_manager: ^Asset_Manager, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+material_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
 	material := asset_object(asset, Material_Asset, "asset")
 	switch command {
 	case .Query_Location, .Import, .Load, .Upload:
-		ok = asset_command(asset_manager, Image_Asset, &material.base_color.asset, command)
+		ok = asset_command(Image_Asset, &material.base_color.asset, command)
 		asset.location += material.base_color.asset.location
 		return ok
 	case .Validate, .Export, .Save, .Download:

@@ -21,6 +21,7 @@ Input_Manager :: struct {
 	focused: bool,
 	using _private: Input_Manager_Private }
 
+// (TODO): Get rid of this private shit. Just underscore the private fields. //
 @(private="file")
 Input_Manager_Private :: struct {
 	inputs_pressed: bit_array.Bit_Array,
@@ -184,26 +185,24 @@ bits_array_copy :: proc(array_dst, array_src: ^bit_array.Bit_Array) {
 	// for index in 0 ..= INDEX_MOUSE_MAX {
 	// 	assert(bit_array.get(array_dst, index) == bit_array.get(array_src, index)) } }
 
-input_manager_tick :: proc(input_manager: ^Input_Manager) {
-	input_manager.mouse_delta = { 0, 0 }
-	input_manager.scroll_delta = 0
-	bits_array_xor(&input_manager.inputs_switched, &input_manager.inputs_pressed, &input_manager.old_inputs_pressed)
-	bits_array_copy(&input_manager.old_inputs_pressed, &input_manager.inputs_pressed) }
+input_manager_tick :: proc() {
+	engine.input_manager.mouse_delta = { 0, 0 }
+	engine.input_manager.scroll_delta = 0
+	bits_array_xor(&engine.input_manager.inputs_switched, &engine.input_manager.inputs_pressed, &engine.input_manager.old_inputs_pressed)
+	bits_array_copy(&engine.input_manager.old_inputs_pressed, &engine.input_manager.inputs_pressed) }
 
-input_record_key :: proc(input_manager: ^Input_Manager, input: Input, action: Action) {
+input_record_key :: proc(input: Input, action: Action) {
 	if input == .None do return
 	switch action {
 	case .Press:
-		bit_array.set(&input_manager.inputs_pressed, cast(uint)input, true)
+		bit_array.set(&engine.input_manager.inputs_pressed, cast(uint)input, true)
 	case .Release:
-		bit_array.set(&input_manager.inputs_pressed, cast(uint)input, false) } }
+		bit_array.set(&engine.input_manager.inputs_pressed, cast(uint)input, false) } }
 
 @(private="file")
 glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
 	context = runtime.default_context()
-	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
-	assert(input_manager != nil)
-	input_record_key(input_manager, cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
+	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
 
 // @(private="file")
 // scroll_callback :: proc "c" (window: glfw.WindowHandle, dx, dy: f64) {
@@ -215,30 +214,28 @@ glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action,
 // 	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
 // 	input_manager.focused = true }
 
-input_record_mouse_position :: proc(input_manager: ^Input_Manager, position: [2]f32) {
-	input_manager.mouse_position = position }
+input_record_mouse_position :: proc(position: [2]f32) {
+	engine.input_manager.mouse_position = position }
 
 @(private="file")
 glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
 	context = runtime.default_context()
-	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
 	@(static) called: bool = false
 	width, height: i32 = glfw.GetWindowSize(window)
 	mouse_position := [2]f32{ - f32(width) / 2 + f32(x), - f32(height) / 2 + f32(height) - f32(y) }
-	if called do input_manager.mouse_delta += mouse_position - input_manager.mouse_position
+	if called do engine.input_manager.mouse_delta += mouse_position - engine.input_manager.mouse_position
 	// if (abs(input_manager.mouse_delta.x) > 100) && (abs(input_manager.mouse_delta.y) > 100) { input_manager.mouse_delta = { 0, 0 } }
-	input_record_mouse_position(input_manager, mouse_position)
+	input_record_mouse_position(mouse_position)
 	called = true }
 
 @(private="file")
 glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, button, action, mods: i32) {
 	context = runtime.default_context()
-	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
 	key: Input
 	switch button {
 	case glfw.MOUSE_BUTTON_LEFT:  key = .Mouse_Left
 	case glfw.MOUSE_BUTTON_RIGHT: key = .Mouse_Right }
-	input_record_key(input_manager, cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
+	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
 
 // DICK
 // Input.Mouse_Left
@@ -248,22 +245,22 @@ glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, button, action, 
 // drop_callback :: proc "c" (window: glfw.WindowHandle, count: i32, paths: [^]cstring) { }
 
 
-input_query :: proc(input_manager: ^Input_Manager, input: Input, $variant: Query_Variant) -> bool {
-	input_down :: proc(input_manager: ^Input_Manager, input: Input) -> bool {
-		return bit_array.get(&input_manager.inputs_pressed, cast(uint)input) }
-	input_up :: proc(input_manager: ^Input_Manager, input: Input) -> bool {
-		return !input_down(input_manager, input) }
-	input_switched :: proc(input_manager: ^Input_Manager, input: Input) -> bool {
-		return bit_array.get(&input_manager.inputs_switched, cast(uint)input) }
-	input_pressed :: proc(input_manager: ^Input_Manager, input: Input) -> bool {
-		return bit_array.get(&input_manager.inputs_pressed, cast(uint)input) && bit_array.get(&input_manager.inputs_switched, cast(uint)input) }
-	input_released :: proc(input_manager: ^Input_Manager, input: Input) -> bool {
-		return (! bit_array.get(&input_manager.inputs_pressed, cast(uint)input)) && bit_array.get(&input_manager.inputs_switched, cast(uint)input) }
+input_query :: proc(input: Input, $variant: Query_Variant) -> bool {
+	input_down :: proc(input: Input) -> bool {
+		return bit_array.get(&engine.input_manager.inputs_pressed, cast(uint)input) }
+	input_up :: proc(input: Input) -> bool {
+		return !input_down(input) }
+	input_switched :: proc(input: Input) -> bool {
+		return bit_array.get(&engine.input_manager.inputs_switched, cast(uint)input) }
+	input_pressed :: proc(input: Input) -> bool {
+		return bit_array.get(&engine.input_manager.inputs_pressed, cast(uint)input) && bit_array.get(&engine.input_manager.inputs_switched, cast(uint)input) }
+	input_released :: proc(input: Input) -> bool {
+		return (! bit_array.get(&engine.input_manager.inputs_pressed, cast(uint)input)) && bit_array.get(&engine.input_manager.inputs_switched, cast(uint)input) }
 	switch variant {
-	case .Up:       return input_up(input_manager, input)
-	case .Down:     return input_down(input_manager, input)
-	case .Pressed:  return input_pressed(input_manager, input)
-	case .Released: return input_released(input_manager, input) }
+	case .Up:       return input_up(input)
+	case .Down:     return input_down(input)
+	case .Pressed:  return input_pressed(input)
+	case .Released: return input_released(input) }
 	return false }
 
 // input_state :: proc(input_manager: ^Input_Manager, input: Input) -> (state: Input_State, just_switched: bool) #optional_ok {
@@ -271,19 +268,18 @@ input_query :: proc(input_manager: ^Input_Manager, input: Input, $variant: Query
 // 	just_switched = input_switched(input_manager, input)
 // 	return state, just_switched }
 
-input_init :: proc(input_manager: ^Input_Manager, window_manager: ^Window_Manager, input_config: Input_Config) {
-	input_manager.input_config = input_config
-	init_bits_array(&input_manager.inputs_pressed)
-	init_bits_array(&input_manager.old_inputs_pressed)
-	init_bits_array(&input_manager.inputs_switched)
-	switch window_manager.backend {
+input_init :: proc(input_config: Input_Config) {
+	engine.input_manager.input_config = input_config
+	init_bits_array(&engine.input_manager.inputs_pressed)
+	init_bits_array(&engine.input_manager.old_inputs_pressed)
+	init_bits_array(&engine.input_manager.inputs_switched)
+	switch engine.window_manager.backend {
 	case .GLFW:
-		glfw.SetWindowUserPointer(cast(glfw.WindowHandle)window_manager.handle, input_manager)
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
-		glfw.SetKeyCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_key_callback)
+		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
 		// glfw.SetScrollCallback(draw.window, scroll_callback)
-		glfw.SetCursorPosCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_mouse_position_callback)
-		glfw.SetMouseButtonCallback(cast(glfw.WindowHandle)window_manager.handle, glfw_mouse_key_callback)
+		glfw.SetCursorPosCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_position_callback)
+		glfw.SetMouseButtonCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_key_callback)
 		// glfw.SetWindowRefreshCallback(draw.window, window_refresh_callback)
 		// glfw.SetWindowSizeCallback(draw.window, resolution_callback)
 		// glfw.SetDropCallback(draw.window, drop_callback)
@@ -291,7 +287,7 @@ input_init :: proc(input_manager: ^Input_Manager, window_manager: ^Window_Manage
 		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
 	case .Win32: }
 	if input_config.raw_input {
-		input_manager.raw_input_manager = new(Raw_Input_Manager)
-		raw_input_init(input_manager.raw_input_manager, input_manager, window_manager) }
+		engine.input_manager.raw_input_manager = new(Raw_Input_Manager)
+		raw_input_init() }
 // 	if glfw.JoystickPresent(glfw.JOYSTICK_1) && glfw.JoystickIsGamepad(glfw.JOYSTICK_1) {}
 }

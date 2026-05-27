@@ -190,14 +190,14 @@ GLSL_Builder :: struct {
 	macros: [dynamic]string,
 	global_variables: [dynamic][2]string }
 
-init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, config: Shader_Config, graphics_context: ^Graphics_Manager, manager: ^Asset_Manager) -> (err: os.Error) {
-	init_asset(manager, Shader_Asset, &shader.asset, asset_config)
+init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, config: Shader_Config) -> (err: os.Error) {
+	init_asset(Shader_Asset, &shader.asset, asset_config)
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader.shader_config = config
-	init_string_asset(manager, &shader.vert_asset, { config.vert_url, String_Asset })
-	init_string_asset(manager, &shader.frag_asset, { config.frag_url, String_Asset })
-	append(&graphics_context.shaders, shader) or_return
-	assert(asset_commands(manager, Shader_Asset, shader, { .Import, .Load }))
+	init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
+	init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
+	append(&engine.graphics_manager.shaders, shader) or_return
+	assert(asset_commands(Shader_Asset, shader, { .Import, .Load }))
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -212,7 +212,7 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, con
 
 // }
 
-compile_shader :: proc(asset_manager: ^Asset_Manager, shader_asset: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
+compile_shader :: proc(shader_asset: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
 	entry: ^Entry
 	ok: bool
@@ -235,7 +235,7 @@ compile_shader :: proc(asset_manager: ^Asset_Manager, shader_asset: ^Shader_Asse
 	for source, i in sources {
 		init_glsl_builder(&builder) or_return
 		fmt.sbprintln(&builder.string_builder, GLSL_VERSION_STRING)
-		loc = preprocess_glsl(asset_manager, working_directory_path, &builder, sources[i]) or_return
+		loc = preprocess_glsl(working_directory_path, &builder, sources[i]) or_return
 		sources[i] = strings.clone(glsl_builder_to_string(&builder))
 		destroy_glsl_builder(&builder) }
 	handle, ok = gl.load_shaders_source(sources[0], sources[1])
@@ -244,7 +244,7 @@ compile_shader :: proc(asset_manager: ^Asset_Manager, shader_asset: ^Shader_Asse
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
-	shader_asset.last_modification_time = time_max(get_entry(asset_manager, shader_asset.vert_asset.url).modification_time, get_entry(asset_manager, shader_asset.frag_asset.url).modification_time)
+	shader_asset.last_modification_time = time_max(get_entry(shader_asset.vert_asset.url).modification_time, get_entry(shader_asset.frag_asset.url).modification_time)
 	return os.General_Error.None }
 
 
@@ -279,7 +279,7 @@ destroy_glsl_builder :: proc(glsl_builder: ^GLSL_Builder) {
 glsl_builder_to_string :: proc(glsl_builder: ^GLSL_Builder) -> string {
 	return strings.to_string(glsl_builder.string_builder) }
 
-preprocess_glsl :: proc(database: ^Asset_Manager, working_directory_path: string, builder: ^GLSL_Builder, source: string) -> (loc: runtime.Source_Code_Location, err: os.Error) {
+preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, source: string) -> (loc: runtime.Source_Code_Location, err: os.Error) {
 	lines:         []string
 	line:          string
 	fields:        []string
@@ -338,7 +338,7 @@ preprocess_glsl :: proc(database: ^Asset_Manager, working_directory_path: string
 			if ((open == '\"') && (close == '\"')) || ((open == '<') && (close == '>')) {
 				relpath: string
 				relpath, err = os.join_filename(fields[1][1:len(fields[1]) - 1], "lib.glsl", context.temp_allocator)
-				path := relpath_to_source_path(database, relpath, context.temp_allocator)
+				path := relpath_to_source_path(relpath, context.temp_allocator)
 				// log.infof("Including shader library \"%s\".", path)
 				bytes: []u8
 				bytes, err = os.read_entire_file_from_path(path, context.allocator)
@@ -350,7 +350,7 @@ preprocess_glsl :: proc(database: ^Asset_Manager, working_directory_path: string
 				return #location(), os.General_Error.None }
 			if slice.contains(builder.includes[:], incl_source) {
 				continue }
-			preprocess_glsl(database, working_directory_path, builder, incl_source) or_return }
+			preprocess_glsl(working_directory_path, builder, incl_source) or_return }
 		else if strings.starts_with(line, "uniform") {
 			already_defined :: proc(builder: ^GLSL_Builder, type: string, name: string) -> (yes: bool, previous_type: string) {
 				for i in 0 ..< len(builder.uniform_variables) {
@@ -386,38 +386,37 @@ preprocess_glsl :: proc(database: ^Asset_Manager, working_directory_path: string
 		else do fmt.sbprintln(&builder.string_builder, line) }
 	return {}, os.General_Error.None }
 
-shader_outdated :: proc(shader_asset: ^Shader_Asset, asset_manager: ^Asset_Manager) -> (outdated: bool) {
+shader_outdated :: proc(shader_asset: ^Shader_Asset) -> (outdated: bool) {
 	outdated = true
-	vert_entry := get_entry(asset_manager, shader_asset.vert_asset.url)
-	frag_entry := get_entry(asset_manager, shader_asset.frag_asset.url)
+	vert_entry := get_entry(shader_asset.vert_asset.url)
+	frag_entry := get_entry(shader_asset.frag_asset.url)
 	latest_modification_time: time.Time = time_max(vert_entry.modification_time, frag_entry.modification_time)
 	return time.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
-shader_asset_command :: proc(asset_manager: ^Asset_Manager, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
-	assert((asset_manager != nil) && (assert != nil))
+shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
 	shader_asset := asset_object(asset, Shader_Asset, "asset")
 	switch command {
 	case .Validate:
 		return true
 	case .Query_Location:
-		assert(asset_command(asset_manager, String_Asset, &shader_asset.vert_asset, .Query_Location))
-		assert(asset_command(asset_manager, String_Asset, &shader_asset.frag_asset, .Query_Location))
+		assert(asset_command(String_Asset, &shader_asset.vert_asset, .Query_Location))
+		assert(asset_command(String_Asset, &shader_asset.frag_asset, .Query_Location))
 		assert(.Source_Directory in shader_asset.vert_asset.location)
 		assert(.Source_Directory in shader_asset.frag_asset.location)
 	case .Import:
 		if watch {
-			if ! shader_outdated(shader_asset, asset_manager) do return
+			if ! shader_outdated(shader_asset) do return
 			// If one of the strings' modification times are newer than the shader's modification time, update the shader with
 			// the new strings.
 		}
-		assert(asset_command(asset_manager, String_Asset, &shader_asset.vert_asset, .Import))
-		assert(asset_command(asset_manager, String_Asset, &shader_asset.frag_asset, .Import))
+		assert(asset_command(String_Asset, &shader_asset.vert_asset, .Import))
+		assert(asset_command(String_Asset, &shader_asset.frag_asset, .Import))
 		asset.location += { .Database }
 		return true
 	case .Load:
-		assert(asset_command(asset_manager, String_Asset, &shader_asset.vert_asset, .Load))
-		assert(asset_command(asset_manager, String_Asset, &shader_asset.frag_asset, .Load))
-		err := compile_shader(asset_manager, shader_asset)
+		assert(asset_command(String_Asset, &shader_asset.vert_asset, .Load))
+		assert(asset_command(String_Asset, &shader_asset.frag_asset, .Load))
+		err := compile_shader(shader_asset)
 		return err == nil
 	case .Export, .Save, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)

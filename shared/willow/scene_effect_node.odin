@@ -12,10 +12,9 @@ make_effect_node :: proc(node_config: Node_Config, effect: ^Effect, allocator: r
 	effect_node.effect = effect
 	return effect_node }
 
-render_effect_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
+render_effect_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) {
 	using Effect_Shader_Uniforms
 	// (TODO): Render a bounding box. Effect must be bound to the bounding box.
-	assert(graphics_context != nil)
 	assert(node != nil)
 	effect_node := node_object(node, Effect_Node, "node")
 	assert(effect_is_uploaded(effect_node.effect))
@@ -25,7 +24,8 @@ render_effect_node :: proc(graphics_context: ^Graphics_Manager, scene: ^Scene, c
 	set_shader_param(CAMERA_POSITION_MATRIX, &camera_node.view_matrix)
 	set_shader_param(CAMERA_PROJECTION_MATRIX, &camera_node.projection_matrix)
 	set_shader_param(CAMERA_FAR_CLIP, camera_node.far_clip)
-	set_shader_param(TIME, graphics_context.time)
+	// (TODO): Make a singular "time" param in "Engine".
+	set_shader_param(TIME, engine.graphics_manager.time)
 	// (TODO): How is this a different camera node from the camera node set in the DLL?
 	set_shader_param(CAMERA_POSITION, camera_node.node.translate)
 	set_shader_param(ID, effect_node.node.id)
