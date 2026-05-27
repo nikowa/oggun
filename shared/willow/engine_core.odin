@@ -79,6 +79,7 @@ engine_init :: proc(
 		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG,
 		backing_allocator := context.allocator) {
 	engine = new(Engine)
+	engine.backing_allocator = backing_allocator
 	engine.game_name = game_name
 	asset_manager_init(asset_config, backing_allocator)
 	window_init(window_config)

@@ -1,6 +1,4 @@
 
-- Remove "using willow" from examples, to make them more clear.
-- Merge all the managers into one "Willow" struct.
 - Asset updating does not work, because it's not using the backing allocator. Fix that.
 - Implement win32 window backend
 - Split "graphics_core" into "graphics_core" and "graphics_draw"
@@ -40,3 +38,4 @@
 - Rename graphics context to graphics manager, database to asset manager
 - Fix the tests
 - Modify the installer to copy all folders in "shared" not just "willow"
+- Remove "using willow" from examples, to make them more clear.
