@@ -29,4 +29,4 @@ render_mesh_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node) 
 	gl.EnableVertexAttribArray(0)
 	polygon_mode(.Line)
 	gl.Disable(gl.CULL_FACE)
-	draw_lines(cast(i32)(len(mesh_node.verts) * 3)) }
+	render_lines(cast(i32)(len(mesh_node.verts) * 3)) }
