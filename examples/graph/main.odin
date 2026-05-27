@@ -50,7 +50,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	engine_init(
 		"Graph Example",
-		graphics_config = { clear_color = NEUTRAL_BACKGROUND_1_NORMAL },
+		graphics_config = { clear_color = NEUTRAL_BACKGROUND_1_NORMAL_LIGHT },
 		tick_config = { tickrate_setting = .LIMITED_60_FPS })
 
 	font_group: Font_Group

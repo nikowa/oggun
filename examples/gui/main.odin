@@ -28,14 +28,16 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	engine_init(
 		"GUI Example",
-		graphics_config = default_graphics_config(clear_color = NEUTRAL_BACKGROUND_1_NORMAL),
+		asset_config = default_asset_manager_config(watch = false),
+		graphics_config = default_graphics_config(clear_color = NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
 		input_config = default_input_config(raw_input = false))
 
 	zero_stopwatch(&stopwatch)
 
-	backing_allocator := context.allocator
-	context.allocator = context.temp_allocator
+	context = engine_loop_context()
+	assert(context.allocator == context.temp_allocator)
+	// context.allocator = context.temp_allocator
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)

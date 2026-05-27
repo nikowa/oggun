@@ -60,7 +60,8 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		path := path_from_url(asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
-		context.allocator = engine.backing_allocator
+		// TEMP
+		// context.allocator = engine.backing_allocator
 		err: os.Error
 		path := path_from_url(img.url, context.allocator)
 		modification_time, _ := os.modification_time_by_path(path)
@@ -89,7 +90,8 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		return image_asset_command(asset, .Import, watch)
 	case .Save:
 	case .Upload:
-		context.allocator = engine.backing_allocator
+		// TEMP
+		// context.allocator = engine.backing_allocator
 		if img.handle != 0 do download_image(img)
 		gl.GenTextures(1, &img.handle)
 		gl.BindTexture(gl.TEXTURE_2D, img.handle)

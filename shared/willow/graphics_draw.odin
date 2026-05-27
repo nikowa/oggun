@@ -228,9 +228,10 @@ Draw_Text_Params :: struct {
 	scale_factor: f32,
 	position: [3]f32,
 	italic: bool,
-	bold: bool }
+	bold: bool,
+	angle: f32 }
 
-draw_text_symbol :: proc(symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, integer: bool = true) {
+draw_text_symbol :: proc(symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
 	using style
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
@@ -249,6 +250,7 @@ draw_text_symbol :: proc(symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, st
 	command.position.y = integer ? math.round_f32(command.position.y + 0.3) : command.position.y
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
+	command.angle = angle
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 submit_draw_text :: proc(_command: Command, index: int) {
@@ -259,11 +261,13 @@ submit_draw_text :: proc(_command: Command, index: int) {
 	use_shader(&engine.graphics_manager.text_shader)
 	set_shader_param(RES, engine.graphics_manager.active_resolution)
 	set_shader_param(SYMBOL_SIZE, command.font.symbol_size)
+	set_shader_param(TIME, engine.graphics_manager.time)
+	// DICK
 
 	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
 	// for command in commands do fmt.printfln("%c -- %v", command.base.(Draw_Text_Command).symbol, command.base.(Draw_Text_Command).position)
 
-	buffers := make_buffers(6)
+	buffers := make_buffers(7)
 	defer delete_buffers(buffers)
 
 	n: int = 6 * len(commands)
@@ -273,6 +277,7 @@ submit_draw_text :: proc(_command: Command, index: int) {
 	position := make([][3]f32, n)
 	italic := make([]u32, n)
 	bold := make([]u32, n)
+	angle := make([]f32, n)
 	for _command, i in commands do for j in 0 ..< 6 {
 		command := _command.base.(Draw_Text_Command)
 		k := 6 * i + j
@@ -281,7 +286,8 @@ submit_draw_text :: proc(_command: Command, index: int) {
 		symbol[k] = cast(u32)command.symbol
 		position[k] = command.position
 		italic[k] = cast(u32)command.italic
-		bold[k] = cast(u32)command.bold }
+		bold[k] = cast(u32)command.bold
+		angle[k] = command.angle }
 
 	upload_vertex_buffer_data(0, buffers[0], 1, gl.UNSIGNED_INT, symbol)
 	upload_vertex_buffer_data(1, buffers[1], 4, gl.FLOAT, color)
@@ -289,6 +295,7 @@ submit_draw_text :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(3, buffers[3], 3, gl.FLOAT, position)
 	upload_vertex_buffer_data(4, buffers[4], 1, gl.UNSIGNED_INT, italic)
 	upload_vertex_buffer_data(5, buffers[5], 1, gl.UNSIGNED_INT, bold)
+	upload_vertex_buffer_data(6, buffers[6], 1, gl.FLOAT, angle)
 
 	bind_texture(0, command.font.bitmap_image.handle)
 	bind_texture(1, command.font.bitmap_image_bold.handle)

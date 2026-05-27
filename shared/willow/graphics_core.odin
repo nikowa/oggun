@@ -1324,3 +1324,7 @@ tick_graphics_manager_end :: proc() {
 // 		pixel := read_pixel_rgba(draw, [2]int{ cast(int)draw.window_size.x, cast(int)draw.window_size.y } / 2).rgb
 // 		br := brightness(pixel)
 // 		if br > THRESHOLD do append_elem(&draw.glare_spots, [2]int{ i, j } - linalg.array_cast(draw.window_size, int) / 2) } }
+
+set_clear_color :: proc(color: u32) {
+	color_4f32 := color_to_4f32(color)
+	gl.ClearColor(color_4f32.r, color_4f32.g, color_4f32.b, color_4f32.a) }

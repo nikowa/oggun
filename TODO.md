@@ -1,8 +1,8 @@
 
+- When "watch = false", I get memory leaks from, I think, OpenGL. Fix this. Look at where textures are loaded, that's probably it
+- Add "angle" parameter to text shader
+- Implement Badge Neon primitive
 - Implement win32 window backend
-- Split "graphics_core" into "graphics_core" and "graphics_draw"
-- Rename "graphics_font" to "graphics_text"
-- Rename "type_" packages to "base_"
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
 - Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"
 
