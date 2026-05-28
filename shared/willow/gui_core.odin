@@ -5,6 +5,10 @@ import "core:math/linalg"
 import "core:fmt"
 import "core:strings"
 
+GUI_Action :: enum {
+	Press,
+	Hover }
+
 gui_margins :: proc(rect_in: Rect, margins: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
 	rect_out.size.x -= margins * 2

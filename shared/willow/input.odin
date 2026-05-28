@@ -19,15 +19,10 @@ Input_Manager :: struct {
 	mouse_delta: [2]f32,
 	scroll_delta: f32,
 	focused: bool,
-	using _private: Input_Manager_Private }
-
-// (TODO): Get rid of this private shit. Just underscore the private fields. //
-@(private="file")
-Input_Manager_Private :: struct {
-	inputs_pressed: bit_array.Bit_Array,
-	old_inputs_pressed: bit_array.Bit_Array,
-	inputs_switched: bit_array.Bit_Array,
-	raw_input_manager: ^Raw_Input_Manager }
+	_inputs_pressed: bit_array.Bit_Array,
+	_old_inputs_pressed: bit_array.Bit_Array,
+	_inputs_switched: bit_array.Bit_Array,
+	_raw_input_manager: ^Raw_Input_Manager }
 
 Input :: enum uint {
 	None = 0,
@@ -148,6 +143,7 @@ Input :: enum uint {
 	Mouse_Right = INDEX_MOUSE_RIGHT }
 
 Action :: enum {
+	None,
 	Press,
 	Release }
 
@@ -169,39 +165,35 @@ init_bits_array :: proc(array: ^bit_array.Bit_Array) {
 
 @(private="file")
 bits_array_xor :: proc(array_result, array_a, array_b: ^bit_array.Bit_Array) {
-	for index in 0 ..= INDEX_MOUSE_MAX {
+	for index in INDEX_KEY_MIN ..< INDEX_MOUSE_MAX + 1 {
 		a := bit_array.get(array_a, index)
 		b := bit_array.get(array_b, index)
-		bit_array.set(array_result, index, a ~ b) } }
+		bit_array.set(array_result, index, a ~ b, engine.backing_allocator) } }
 
 @(private="file")
 bits_array_copy :: proc(array_dst, array_src: ^bit_array.Bit_Array) {
-	for index in 0 ..= INDEX_MOUSE_MAX {
-		bit_array.set(array_dst, index, bit_array.get(array_src, index)) } }
-	// array_dst.bias = array_src.bias
-	// array_dst.length = array_src.length
-	// array_dst.free_pointer = array_src.free_pointer
-	// copy_slice(array_dst.bits[:], array_src.bits[:])
-	// for index in 0 ..= INDEX_MOUSE_MAX {
-	// 	assert(bit_array.get(array_dst, index) == bit_array.get(array_src, index)) } }
+	for index in INDEX_KEY_MIN ..< INDEX_MOUSE_MAX + 1 {
+		bit_array.set(array_dst, index, bit_array.get(array_src, index), engine.backing_allocator) } }
 
 input_manager_tick :: proc() {
 	engine.input_manager.mouse_delta = { 0, 0 }
 	engine.input_manager.scroll_delta = 0
-	bits_array_xor(&engine.input_manager.inputs_switched, &engine.input_manager.inputs_pressed, &engine.input_manager.old_inputs_pressed)
-	bits_array_copy(&engine.input_manager.old_inputs_pressed, &engine.input_manager.inputs_pressed) }
+	bit_array.clear(&engine.input_manager._inputs_switched)
+	bits_array_xor(&engine.input_manager._inputs_switched, &engine.input_manager._inputs_pressed, &engine.input_manager._old_inputs_pressed)
+	bits_array_copy(&engine.input_manager._old_inputs_pressed, &engine.input_manager._inputs_pressed) }
 
 input_record_key :: proc(input: Input, action: Action) {
 	if input == .None do return
-	switch action {
+	#partial switch action {
 	case .Press:
-		bit_array.set(&engine.input_manager.inputs_pressed, cast(uint)input, true)
+		bit_array.set(&engine.input_manager._inputs_pressed, cast(uint)input, true, engine.backing_allocator)
 	case .Release:
-		bit_array.set(&engine.input_manager.inputs_pressed, cast(uint)input, false) } }
+		bit_array.set(&engine.input_manager._inputs_pressed, cast(uint)input, false, engine.backing_allocator) } }
 
 @(private="file")
 glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
 	context = runtime.default_context()
+	context.logger = log.create_console_logger()
 	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
 
 // @(private="file")
@@ -220,6 +212,7 @@ input_record_mouse_position :: proc(position: [2]f32) {
 @(private="file")
 glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
 	context = runtime.default_context()
+	context.logger = log.create_console_logger()
 	@(static) called: bool = false
 	width, height: i32 = glfw.GetWindowSize(window)
 	mouse_position := [2]f32{ - f32(width) / 2 + f32(x), - f32(height) / 2 + f32(height) - f32(y) }
@@ -229,13 +222,18 @@ glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) 
 	called = true }
 
 @(private="file")
-glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, button, action, mods: i32) {
+glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, glfw_key, glfw_action, mods: i32) {
 	context = runtime.default_context()
+	context.logger = log.create_console_logger()
 	key: Input
-	switch button {
+	switch glfw_key {
 	case glfw.MOUSE_BUTTON_LEFT:  key = .Mouse_Left
 	case glfw.MOUSE_BUTTON_RIGHT: key = .Mouse_Right }
-	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
+	action: Action
+	switch glfw_action {
+	case glfw.PRESS: action = .Press
+	case glfw.RELEASE: action = .Release }
+	if action != .None do input_record_key(cast(Input)key, action) }
 
 // DICK
 // Input.Mouse_Left
@@ -247,15 +245,15 @@ glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, button, action, 
 
 input_query :: proc(input: Input, $variant: Query_Variant) -> bool {
 	input_down :: proc(input: Input) -> bool {
-		return bit_array.get(&engine.input_manager.inputs_pressed, cast(uint)input) }
+		return bit_array.get(&engine.input_manager._inputs_pressed, cast(uint)input) }
 	input_up :: proc(input: Input) -> bool {
 		return !input_down(input) }
 	input_switched :: proc(input: Input) -> bool {
-		return bit_array.get(&engine.input_manager.inputs_switched, cast(uint)input) }
+		return bit_array.get(&engine.input_manager._inputs_switched, cast(uint)input) }
 	input_pressed :: proc(input: Input) -> bool {
-		return bit_array.get(&engine.input_manager.inputs_pressed, cast(uint)input) && bit_array.get(&engine.input_manager.inputs_switched, cast(uint)input) }
+		return bit_array.get(&engine.input_manager._inputs_pressed, cast(uint)input) && bit_array.get(&engine.input_manager._inputs_switched, cast(uint)input) }
 	input_released :: proc(input: Input) -> bool {
-		return (! bit_array.get(&engine.input_manager.inputs_pressed, cast(uint)input)) && bit_array.get(&engine.input_manager.inputs_switched, cast(uint)input) }
+		return (! bit_array.get(&engine.input_manager._inputs_pressed, cast(uint)input)) && bit_array.get(&engine.input_manager._inputs_switched, cast(uint)input) }
 	switch variant {
 	case .Up:       return input_up(input)
 	case .Down:     return input_down(input)
@@ -270,9 +268,15 @@ input_query :: proc(input: Input, $variant: Query_Variant) -> bool {
 
 input_init :: proc(input_config: Input_Config) {
 	engine.input_manager.input_config = input_config
-	init_bits_array(&engine.input_manager.inputs_pressed)
-	init_bits_array(&engine.input_manager.old_inputs_pressed)
-	init_bits_array(&engine.input_manager.inputs_switched)
+	init_bits_array(&engine.input_manager._inputs_pressed)
+	init_bits_array(&engine.input_manager._old_inputs_pressed)
+	init_bits_array(&engine.input_manager._inputs_switched)
+
+	assert(bit_array.set(&engine.input_manager._inputs_pressed, INDEX_MOUSE_MAX, true))
+	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, true))
+	assert(bit_array.set(&engine.input_manager._inputs_pressed, INDEX_MOUSE_MAX, false))
+	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, false))
+
 	switch engine.window_manager.backend {
 	case .GLFW:
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
@@ -287,7 +291,7 @@ input_init :: proc(input_config: Input_Config) {
 		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
 	case .Win32: }
 	if input_config.raw_input {
-		engine.input_manager.raw_input_manager = new(Raw_Input_Manager)
+		engine.input_manager._raw_input_manager = new(Raw_Input_Manager)
 		raw_input_init() }
 // 	if glfw.JoystickPresent(glfw.JOYSTICK_1) && glfw.JoystickIsGamepad(glfw.JOYSTICK_1) {}
 }

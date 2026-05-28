@@ -812,6 +812,14 @@ NEON_BUTTON_SIZE_SMALL:  [2]f32 : { 64, 24 }
 NEON_BUTTON_SIZE_MEDIUM: [2]f32 : { 96, 32 }
 NEON_BUTTON_SIZE_LARGE:  [2]f32 : { 96, 40 }
 
+gui_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, disabled: bool = false, sep: string = "") -> (actions: bit_set[GUI_Action]) {
+	hovered := rect_hovered(rect)
+	pressed := hovered && input_query(.Mouse_Left, .Pressed)
+	if hovered do actions += { .Hover }
+	if pressed do actions += { .Press }
+	draw_neon_button(rect, ..args, shape = shape, appearance = appearance, disabled = disabled, sep = sep)
+	return actions }
+
 // (TODO): Pack most of these params in a "Neon_Button_Config" struct. //
 draw_neon_button :: proc(rect: Rect, args: ..any, shape: Neon_Button_Shape = .Rounded, appearance: Neon_Button_Appearance = .Default, disabled: bool = false, sep: string = "") {
 	text := fmt.aprint(..args, sep = sep)
