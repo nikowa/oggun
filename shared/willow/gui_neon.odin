@@ -12,10 +12,50 @@ Neon_Manager :: struct {
 	// subtitle1_font_group: Font_Group, // 20px
 	theme: ^Neon_Theme }
 
+NEUTRAL_FOREGROUND_1 :: 0x242424ff
+NEUTRAL_FOREGROUND_2_NORMAL :: 0x424242ff
+NEUTRAL_FOREGROUND_2_HOVER :: 0x242424ff
+NEUTRAL_FOREGROUND_2_PRESSED :: 0x242424ff
+NEUTRAL_FOREGROUND_2_SELECTED :: 0x242424ff
+NEUTRAL_FOREGROUND_2_BRAND_NORMAL_LIGHT :: 0x424242ff
+NEUTRAL_FOREGROUND_2_BRAND_HOVER_LIGHT :: 0x0f6cbdff
+NEUTRAL_FOREGROUND_2_BRAND_PRESSED_LIGHT :: 0x115ea3ff
+NEUTRAL_FOREGROUND_2_BRAND_SELECTED_LIGHT :: 0x0f6cbdff
 NEUTRAL_BACKGROUND_1_NORMAL_LIGHT :: 0xffffffff
+NEUTRAL_BACKGROUND_1_HOVER_LIGHT :: 0xf5f5f5ff
+NEUTRAL_BACKGROUND_1_PRESSED_LIGHT :: 0xe0e0e0ff
+NEUTRAL_BACKGROUND_1_SELECTED_LIGHT :: 0xebebebff
+NEUTRAL_BACKGROUND_2_NORMAL_LIGHT :: 0xfafafaff
+NEUTRAL_BACKGROUND_2_HOVER_LIGHT :: 0xf0f0f0ff
+NEUTRAL_BACKGROUND_2_PRESSED_LIGHT :: 0xdbdbdbff
+NEUTRAL_BACKGROUND_2_SELECTED_LIGHT :: 0xe6e6e6ff
+NEUTRAL_BACKGROUND_3_NORMAL_LIGHT :: 0xf5f5f5ff
+NEUTRAL_BACKGROUND_3_HOVER_LIGHT :: 0xebebebff
+NEUTRAL_BACKGROUND_3_PRESSED_LIGHT :: 0xd6d6d6ff
+NEUTRAL_BACKGROUND_3_SELECTED_LIGHT :: 0xe0e0e0ff
 NEUTRAL_FOREGROUND_DISABLED_LIGHT :: 0xbdbdbdff
 NEUTRAL_BACKGROUND_4_NORMAL_LIGHT :: 0xf0f0f0ff
+NEUTRAL_BACKGROUND_4_HOVER_LIGHT :: 0xfafafaff
+NEUTRAL_BACKGROUND_4_PRESSED_LIGHT :: 0xf5f5f5ff
+NEUTRAL_BACKGROUND_4_SELECTED_LIGHT :: 0xffffffff
+NEUTRAL_BACKGROUND_5_NORMAL_LIGHT :: 0xebebebff
+NEUTRAL_BACKGROUND_5_HOVER_LIGHT :: 0xf5f5f5ff
+NEUTRAL_BACKGROUND_5_PRESSED_LIGHT :: 0xf0f0f0ff
+NEUTRAL_BACKGROUND_5_SELECTED_LIGHT :: 0xfafafaff
 NEUTRAL_STROKE_1_NORMAL_LIGHT :: 0xd1d1d1ff
+NEUTRAL_STROKE_1_HOVER_LIGHT :: 0xc7c7c7ff
+NEUTRAL_STROKE_1_PRESSED_LIGHT :: 0xb3b3b3ff
+NEUTRAL_STROKE_1_SELECTED_LIGHT :: 0xbdbdbdff
+NEUTRAL_STROKE_2_LIGHT :: 0xe0e0e0ff
+NEUTRAL_STROKE_3_LIGHT :: 0xf0f0f0ff
+NEUTRAL_STROKE_4_NORMAL_LIGHT :: 0xebebebff
+NEUTRAL_STROKE_4_HOVER_LIGHT :: 0xe0e0e0ff
+NEUTRAL_STROKE_4_PRESSED_LIGHT :: 0xd6d6d6ff
+NEUTRAL_STROKE_4_SELECTED_LIGHT :: 0xebebebff
+BRAND_STROKE_1_NORMAL_LIGHT :: 0x0f6cbdff
+BRAND_STROKE_1_HOVER_LIGHT :: 0x0f6cbdff
+BRAND_STROKE_1_PRESSED_LIGHT :: 0x0f6cbdff
+BRAND_STROKE_1_SELECTED_LIGHT :: 0x0f6cbdff
 
 NEUTRAL_BACKGROUND_1_NORMAL_DARK :: 0x292929ff
 
@@ -27,20 +67,20 @@ neon_manager_init :: proc() {
 	neon_theme_ms_dark = new(Neon_Theme)
 	neon_theme_ms_light^ = {
 		Neutral_Foreground_1 = {
-			Normal   = 0x242424ff,
-			Hover    = 0x242424ff,
-			Pressed  = 0x242424ff,
-			Selected = 0x242424ff },
+			Normal   = NEUTRAL_FOREGROUND_1,
+			Hover    = NEUTRAL_FOREGROUND_1,
+			Pressed  = NEUTRAL_FOREGROUND_1,
+			Selected = NEUTRAL_FOREGROUND_1 },
 		Neutral_Foreground_2 = {
-			Normal   = 0x424242ff,
-			Hover    = 0x242424ff,
-			Pressed  = 0x242424ff,
-			Selected = 0x242424ff },
+			Normal   = NEUTRAL_FOREGROUND_2_NORMAL,
+			Hover    = NEUTRAL_FOREGROUND_2_HOVER,
+			Pressed  = NEUTRAL_FOREGROUND_2_PRESSED,
+			Selected = NEUTRAL_FOREGROUND_2_SELECTED },
 		Neutral_Foreground_2_Brand = {
-			Normal   = 0x424242ff,
-			Hover    = 0x0f6cbdff,
-			Pressed  = 0x115ea3ff,
-			Selected = 0x0f6cbdff },
+			Normal   = NEUTRAL_FOREGROUND_2_BRAND_NORMAL_LIGHT,
+			Hover    = NEUTRAL_FOREGROUND_2_BRAND_HOVER_LIGHT,
+			Pressed  = NEUTRAL_FOREGROUND_2_BRAND_PRESSED_LIGHT,
+			Selected = NEUTRAL_FOREGROUND_2_BRAND_SELECTED_LIGHT },
 		Neutral_Foreground_3 = {
 			Normal   = 0x616161ff,
 			Hover    = 0x424242ff,
@@ -93,29 +133,29 @@ neon_manager_init :: proc() {
 			Selected = 0x479ef5ff },
 		Neutral_Background_1 = {
 			Normal   = NEUTRAL_BACKGROUND_1_NORMAL_LIGHT,
-			Hover    = 0xf5f5f5ff,
-			Pressed  = 0xe0e0e0ff,
-			Selected = 0xebebebff },
+			Hover    = NEUTRAL_BACKGROUND_1_HOVER_LIGHT,
+			Pressed  = NEUTRAL_BACKGROUND_1_PRESSED_LIGHT,
+			Selected = NEUTRAL_BACKGROUND_1_SELECTED_LIGHT },
 		Neutral_Background_2 = {
-			Normal   = 0xfafafaff,
-			Hover    = 0xf0f0f0ff,
-			Pressed  = 0xdbdbdbff,
-			Selected = 0xe6e6e6ff },
+			Normal   = NEUTRAL_BACKGROUND_2_NORMAL_LIGHT,
+			Hover    = NEUTRAL_BACKGROUND_2_HOVER_LIGHT,
+			Pressed  = NEUTRAL_BACKGROUND_2_PRESSED_LIGHT,
+			Selected = NEUTRAL_BACKGROUND_2_SELECTED_LIGHT },
 		Neutral_Background_3 = {
-			Normal   = 0xf5f5f5ff,
-			Hover    = 0xebebebff,
-			Pressed  = 0xd6d6d6ff,
-			Selected = 0xe0e0e0ff },
+			Normal   = NEUTRAL_BACKGROUND_3_NORMAL_LIGHT,
+			Hover    = NEUTRAL_BACKGROUND_3_HOVER_LIGHT,
+			Pressed  = NEUTRAL_BACKGROUND_3_PRESSED_LIGHT,
+			Selected = NEUTRAL_BACKGROUND_3_SELECTED_LIGHT },
 		Neutral_Background_4 = {
 			Normal   = NEUTRAL_BACKGROUND_4_NORMAL_LIGHT,
-			Hover    = 0xfafafaff,
-			Pressed  = 0xf5f5f5ff,
-			Selected = 0xffffffff },
+			Hover    = NEUTRAL_BACKGROUND_4_HOVER_LIGHT,
+			Pressed  = NEUTRAL_BACKGROUND_4_PRESSED_LIGHT,
+			Selected = NEUTRAL_BACKGROUND_4_SELECTED_LIGHT },
 		Neutral_Background_5 = {
-			Normal   = 0xebebebff,
-			Hover    = 0xf5f5f5ff,
-			Pressed  = 0xf0f0f0ff,
-			Selected = 0xfafafaff },
+			Normal   = NEUTRAL_BACKGROUND_5_NORMAL_LIGHT,
+			Hover    = NEUTRAL_BACKGROUND_5_HOVER_LIGHT,
+			Pressed  = NEUTRAL_BACKGROUND_5_PRESSED_LIGHT,
+			Selected = NEUTRAL_BACKGROUND_5_SELECTED_LIGHT },
 		Neutral_Background_Inverted = {
 			Normal   = 0x292929ff,
 			Hover    = 0x3d3d3dff,
@@ -153,34 +193,34 @@ neon_manager_init :: proc() {
 			Selected = 0x0f6cbdff },
 		Neutral_Stroke_1 = {
 			Normal   = NEUTRAL_STROKE_1_NORMAL_LIGHT,
-			Hover    = 0xc7c7c7ff,
-			Pressed  = 0xb3b3b3ff,
-			Selected = 0xbdbdbdff },
+			Hover    = NEUTRAL_STROKE_1_HOVER_LIGHT,
+			Pressed  = NEUTRAL_STROKE_1_PRESSED_LIGHT,
+			Selected = NEUTRAL_STROKE_1_SELECTED_LIGHT },
 		Neutral_Stroke_2 = {
-			Normal   = 0xe0e0e0ff,
-			Hover    = 0xe0e0e0ff,
-			Pressed  = 0xe0e0e0ff,
-			Selected = 0xe0e0e0ff },
+			Normal   = NEUTRAL_STROKE_2_LIGHT,
+			Hover    = NEUTRAL_STROKE_2_LIGHT,
+			Pressed  = NEUTRAL_STROKE_2_LIGHT,
+			Selected = NEUTRAL_STROKE_2_LIGHT },
 		Neutral_Stroke_3 = {
-			Normal   = 0xf0f0f0ff,
-			Hover    = 0xf0f0f0ff,
-			Pressed  = 0xf0f0f0ff,
-			Selected = 0xf0f0f0ff },
+			Normal   = NEUTRAL_STROKE_3_LIGHT,
+			Hover    = NEUTRAL_STROKE_3_LIGHT,
+			Pressed  = NEUTRAL_STROKE_3_LIGHT,
+			Selected = NEUTRAL_STROKE_3_LIGHT },
 		Neutral_Stroke_4 = {
-			Normal   = 0xebebebff,
-			Hover    = 0xe0e0e0ff,
-			Pressed  = 0xd6d6d6ff,
-			Selected = 0xebebebff },
+			Normal   = NEUTRAL_STROKE_4_NORMAL_LIGHT,
+			Hover    = NEUTRAL_STROKE_4_HOVER_LIGHT,
+			Pressed  = NEUTRAL_STROKE_4_PRESSED_LIGHT,
+			Selected = NEUTRAL_STROKE_4_SELECTED_LIGHT },
 		Neutral_Stroke_Subtle = {
 			Normal   = 0xe0e0e0ff,
 			Hover    = 0xe0e0e0ff,
 			Pressed  = 0xe0e0e0ff,
 			Selected = 0xe0e0e0ff },
 		Brand_Stroke_1 = {
-			Normal   = 0x0f6cbdff,
-			Hover    = 0x0f6cbdff,
-			Pressed  = 0x0f6cbdff,
-			Selected = 0x0f6cbdff },
+			Normal   = BRAND_STROKE_1_NORMAL_LIGHT,
+			Hover    = BRAND_STROKE_1_HOVER_LIGHT,
+			Pressed  = BRAND_STROKE_1_PRESSED_LIGHT,
+			Selected = BRAND_STROKE_1_SELECTED_LIGHT },
 		Brand_Stroke_2 = {
 			Normal   = 0xb4d6faff,
 			Hover    = 0x77b7f7ff,

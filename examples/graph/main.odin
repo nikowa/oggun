@@ -58,9 +58,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		normal = default_font_config(name = "terminus"),
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
-	bg_color := neon_color_table_ms_light[Neon_Color_Row.Neutral_Background_3][0]
-	fg_color := neon_color_table_ms_light[Neon_Color_Row.Neutral_Foreground_1][0]
-	stroke_color := neon_color_table_ms_light[Neon_Color_Row.Neutral_Stroke_1][0]
+	bg_color := neon_theme_ms_dark[Neon_Color_Row.Neutral_Background_3][0]
+	fg_color := neon_theme_ms_dark[Neon_Color_Row.Neutral_Foreground_1][0]
+	stroke_color := neon_theme_ms_dark[Neon_Color_Row.Neutral_Stroke_1][0]
 	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
@@ -73,8 +73,25 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		if engine_tick() {
 			rect := make_rect(0, 0, 400 + 300 * math.sin(0.05 * time), 320)
 			rect.size.y = _measure_text_box(text_style, rect.size.x, text)
-			draw_rect(make_rect(400, 200, 100, 40), fill_color = RED, stroke_color = BLUE, depth = 0.2, rounding = 20, stroke = 2)
-			draw_rect(gui_margins(rect, -8), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
-			draw_text_box(text_style, rect, text, h_align = .Justify, v_align = .Center, integer = true) }
+			// points: [2][2]f32 = {
+			// 	{  }
+			// }
+
+			tail: [2]f32 = { -400, 100 }
+			head: [2]f32 = { 0, 200 }
+			head = engine.input_manager.mouse_position
+			vector := head - tail
+			angle: f32 = linalg.angle_between([2]f32{ 0, -1 }, vector) * (vector.x >= 0 ? 1 : -1)
+			draw_line({ tail, head }, text_style.color, integer = false)
+			arrow := head
+			char: u8 = '\x1F'
+			arrow -= 0.5 * symbol_size_from_text_style(text_style, char)
+			// arrow.y -= f32(text_style.font_size) / 2
+			arrow_rect: Rect = { { 0, 200 }, { 40, 40 } }
+			draw_text_symbol_rect('V', arrow_rect, 0.5, style = text_style)
+			draw_rect_outline(arrow_rect, RED, depth = 0.4)
+			// draw_text_symbol(char, arrow, depth = 0.1, style = text_style, angle = angle, integer = false)
+			draw_rect(gui_margins(rect, Interval(-8)), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			draw_text_box(text_style, rect, text, h_align = .Justify, v_align = .Center, integer = false) }
 		free_all(context.temp_allocator) }
 	return }

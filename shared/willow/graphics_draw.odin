@@ -231,7 +231,27 @@ Draw_Text_Params :: struct {
 	bold: bool,
 	angle: f32 }
 
-draw_text_symbol :: proc(symbol: u8, position: [2]f32 = { 0, 0 }, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
+draw_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
+	using style
+	font := font_group_select(font_group, style)
+	scale_factor := font_size_to_font_scale(font_size, font)
+	command: Draw_Text_Command = {
+		group_params_size = size_of(Draw_Text_Group_Params),
+		font = font,
+		symbol_size = rect.size,
+		res = engine.graphics_manager.active_resolution,
+		scale_factor = scale_factor,
+		color = color }
+	command.symbol = symbol
+	command.position = { rect.position.x, rect.position.y, depth }
+	command.scale_factor = f32(scale_factor)
+	command.color = color
+	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
+	command.bold = bold
+	command.angle = angle
+	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+
+draw_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
 	using style
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
@@ -260,7 +280,7 @@ submit_draw_text :: proc(_command: Command, index: int) {
 
 	use_shader(&engine.graphics_manager.text_shader)
 	set_shader_param(RES, engine.graphics_manager.active_resolution)
-	set_shader_param(SYMBOL_SIZE, command.font.symbol_size)
+	set_shader_param(SYMBOL_SIZE, command.symbol_size == {} ? command.font.symbol_size : command.symbol_size)
 	set_shader_param(TIME, engine.graphics_manager.time)
 	// DICK
 

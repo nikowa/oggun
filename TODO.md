@@ -1,5 +1,5 @@
 
-- Figure out why "Down" and "Pressed" do the same thing in input query.
+- Add aliasing to lines
 - When "watch = false", I get memory leaks from, I think, OpenGL. Fix this. Look at where textures are loaded, that's probably it
 - Implement Badge Neon primitive
 - Implement win32 window backend (just write a "window_win32" and surround the whole file in "when WINDOW_WIN32")

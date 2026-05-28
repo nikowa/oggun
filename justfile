@@ -3,8 +3,8 @@ set shell := ["powershell.exe", "-c"]
 
 default: current
 
-current: example_gui
-	examples/gui.exe
+current: example_graph
+	examples/graph.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
 
@@ -17,6 +17,7 @@ check:
 	odin check shared/willow
 	odin check examples/input
 	odin check examples/gui
+	odin check examples/neon
 	odin check examples/sprites
 	odin check examples/sync
 	odin check examples/graph
@@ -39,6 +40,9 @@ example_input: lib
 example_gui: lib
 	odin build examples/gui -out:examples/gui.exe {{flags}}
 
+example_neon: lib
+	odin build examples/neon -out:examples/neon.exe {{flags}}
+
 example_sprites: lib
 	odin build examples/sprites -out:examples/sprites.exe {{flags}}
 
@@ -48,4 +52,4 @@ example_sync: lib
 example_graph: lib
 	odin build examples/graph -out:examples/graph.exe {{flags}}
 
-examples: example_input example_gui example_sprites example_sync example_graph
+examples: example_input example_gui example_neon example_sprites example_sync example_graph

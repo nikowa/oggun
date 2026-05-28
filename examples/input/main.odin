@@ -201,7 +201,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
 			if down do draw_rect(rect, DARK_GRAY, depth = 0.99)
 			draw_rect_outline(rect, WHITE)
-			draw_rect_outline(gui_offset(key_margins(rect), down_offset), GRAY)
+			draw_rect_outline(gui_translate(key_margins(rect), down_offset), GRAY)
 			draw_text_line(text_style, rect.position + down_offset, keys[i]) } }
 	k: f32 = query().scalar
 	return }

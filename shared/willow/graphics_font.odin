@@ -55,6 +55,12 @@ font_group_init :: proc(font_group: ^Font_Group, normal: Font_Config, bold: Mayb
 		font_group.italic = new(Font)
 		font_init(font_group.italic, italic.(Font_Config)) } }
 
+symbol_size_from_text_style :: proc(text_style: Text_Style, symbol: u8) -> [2]f32 {
+	using text_style
+	width: f32 = cast(f32)font_group.normal.advances[symbol] - cast(f32)font_group.normal.bearings[symbol]
+	height: f32 = auto_cast font_size
+	return { width, height } }
+
 font_init :: proc(font: ^Font, config: Font_Config) {
 	font.font_config = config
 	font.bitmap_image = new(Image_Asset)
