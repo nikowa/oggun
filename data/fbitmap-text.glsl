@@ -51,4 +51,6 @@ void main(void) {
 	// color.w = pow(color.w, 0.5);
 	color.rgb = _text_color.rgb;
 	color.a *= _text_color.a;
+	// color.xyz = sample_raw(uv).xyz;
+	// color.w = 1;
 	if (color.w == 0.0) { gl_FragDepth = 1.0; } }

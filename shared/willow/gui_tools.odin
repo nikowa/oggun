@@ -4,7 +4,9 @@ import "core:fmt"
 
 TGUI_Manager :: struct {
 	font_group: Font_Group,
+	icons_font_group: Font_Group,
 	text_style: Text_Style,
+	icons_text_style: Text_Style,
 	// caption2_font_group: Font_Group,  // 10px
 	// caption1_font_group: Font_Group,  // 12px
 	// body1_font_group: Font_Group,     // 14px
@@ -97,7 +99,7 @@ TGUI_Color :: [4]Color
 
 TGUI_Theme :: [len(TGUI_Theme_Key)]TGUI_Color
 
-TGUI_Icon :: enum {
+TGUI_Icon :: enum u8 {
 	None = 0,
 	Fit,
 	Eye,
@@ -937,13 +939,16 @@ tgui_manager_init :: proc() {
 		normal = default_font_config(name = "terminus"),
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
-	fg_color := tgui_theme_ms_light[TGUI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
-	engine.tgui_manager.text_style = default_text_style(font_group = engine.tgui_manager.font_group, color = fg_color, font_size = 8)
+	font_group_init(&engine.tgui_manager.icons_font_group,
+		normal = default_font_config(name = "icons"))
 	tgui_set_theme(tgui_theme_ms_dark) }
 
 tgui_set_theme :: proc(theme: ^TGUI_Theme) {
 	engine.tgui_manager.theme = theme
 	engine.tgui_manager.text_style.color = theme[TGUI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
+	fg_color := engine.tgui_manager.theme[TGUI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
+	engine.tgui_manager.text_style = default_text_style(font_group = engine.tgui_manager.font_group, color = fg_color, font_size = 8)
+	engine.tgui_manager.icons_text_style = default_text_style(font_group = engine.tgui_manager.icons_font_group, color = fg_color, font_size = 24)
 	set_clear_color(theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_1][0]) }
 
 tgui_theme_ms_light: ^TGUI_Theme
