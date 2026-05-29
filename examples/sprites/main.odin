@@ -80,7 +80,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			gui_screen := gui_screen()
+			rect_screen := rect_screen()
 			image_index: int = 0
 			for &sprite, i in sprites {
 				sprite.position += engine.tick_manager.delta_time * sprite.speed * sprite.direction

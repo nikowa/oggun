@@ -7,7 +7,7 @@ import "core:math"
 import "core:strings"
 import "core:strconv"
 
-// Derived from staffmaster/font.odin
+// https://escape.utils.com //
 
 Font_Config :: struct #all_or_none {
 	name: string,

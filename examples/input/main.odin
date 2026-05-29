@@ -11,10 +11,11 @@ main :: proc() {
 	willow.start(entry_point, n_workers_override = 1) }
 
 query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
-	return { scalar = 1.0 } }
+	return { scalar = 1 } }
 
 key_margins :: proc(rect_in: willow.Rect) -> (rect_out: willow.Rect) {
-	return willow.gui_extend(rect_in, -7, -7, -7, -2) }
+	using willow
+	return rect_extend_variate(rect_in, Interval(-7), Interval(-7), Interval(-7), Interval(-2)) }
 
 @(export)
 make_rects :: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> []willow.Rect {
@@ -22,121 +23,121 @@ make_rects :: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> 
 
 	rects := make_dynamic_array([dynamic]Rect, allocator = context.temp_allocator)
 
-	rect_group_0, rect_group := gui_split_ratio_v(keyboard_rect, 0.187, 20)
+	rect_group_0, rect_group := rect_split_v(keyboard_rect, Ratio(0.187), Interval(20))
 	DIV_H1 :: 0.672
 	DIV_H2 :: 0.434
-	rect_group_1, _rect := gui_split_ratio_h(rect_group, DIV_H1, 10)
-	rect_group_2, rect_group_3 := gui_split_ratio_h(_rect, DIV_H2, 10)
+	rect_group_1, _rect := rect_split_h(rect_group, Ratio(DIV_H1), Interval(10))
+	rect_group_2, rect_group_3 := rect_split_h(_rect, Ratio(DIV_H2), Interval(10))
 
 	// Esc
 	rect_group_0_0: Rect
-	rect_group_0_0, _rect = gui_split_ratio_h(rect_group_0, 0.065, 40)
+	rect_group_0_0, _rect = rect_split_h(rect_group_0, Ratio(0.065), Interval(40))
 	append(&rects, rect_group_0_0)
 
 	// F1 - F4
 	rect_group_0_1: Rect
-	rect_group_0_1, _rect = gui_split_ratio_h(_rect, 0.207, 20)
-	gui_grid(rect_group_0_1, { 4, 1 }, &rects)
+	rect_group_0_1, _rect = rect_split_h(_rect, Ratio(0.207), Interval(20))
+	rect_grid(rect_group_0_1, { 4, 1 }, &rects)
 
 	// F5 - F8
 	rect_group_0_2: Rect
-	rect_group_0_2, _rect = gui_split_ratio_h(_rect, 0.266, 20)
-	gui_grid(rect_group_0_2, { 4, 1 }, &rects)
+	rect_group_0_2, _rect = rect_split_h(_rect, Ratio(0.266), Interval(20))
+	rect_grid(rect_group_0_2, { 4, 1 }, &rects)
 
 	// F9 - F12
 	rect_group_0_3: Rect
-	rect_group_0_3, _rect = gui_split_ratio_h(_rect, 0.36, 10)
-	gui_grid(rect_group_0_3, { 4, 1 }, &rects)
+	rect_group_0_3, _rect = rect_split_h(_rect, Ratio(0.36), Interval(10))
+	rect_grid(rect_group_0_3, { 4, 1 }, &rects)
 
 	// PrtScr ScrLk Pause
 	rect_group_0_4: Rect
-	rect_group_0_4, _rect = gui_split_ratio_h(_rect, 0.43, 10)
-	gui_grid(rect_group_0_4, { 3, 1 }, &rects)
+	rect_group_0_4, _rect = rect_split_h(_rect, Ratio(0.43), Interval(10))
+	rect_grid(rect_group_0_4, { 3, 1 }, &rects)
 
 	// Del - Home
 	rect_group_0_5 := _rect
-	gui_grid(rect_group_0_5, { 4, 1 }, &rects)
+	rect_grid(rect_group_0_5, { 4, 1 }, &rects)
 
-	lines := gui_grid_make(rect_group_1, { 1, 5 }, allocator)
+	lines := rect_grid_make(rect_group_1, { 1, 5 }, allocator)
 
 	KEY_WIDTH :: 39.8
 
 	// ~ - <-
 	rect_group_1_0 := lines[4]
-	gui_slice_h_append(rect_group_1_0, KEY_WIDTH, 14, &rects)
+	rect_slice_h(rect_group_1_0, Interval(KEY_WIDTH), 14, &rects)
 
 	// Tab - \
 	rect_group_1_1 := lines[3]
-	_rect, rect_group_1_1 = gui_split_ratio_h(rect_group_1_1, 0.099, 0)
+	_rect, rect_group_1_1 = rect_split_h(rect_group_1_1, Ratio(0.099), Interval(0))
 	append(&rects, _rect)
-	gui_slice_h_append(rect_group_1_1, KEY_WIDTH, 13, &rects)
+	rect_slice_h(rect_group_1_1, Interval(KEY_WIDTH), 13, &rects)
 
 	// CapsLock - Enter
 	rect_group_1_2 := lines[2]
-	_rect, rect_group_1_2 = gui_split_ratio_h(rect_group_1_2, 0.116, 0)
+	_rect, rect_group_1_2 = rect_split_h(rect_group_1_2, Ratio(0.116), Interval(0))
 	append(&rects, _rect)
-	gui_slice_h_append(rect_group_1_2, KEY_WIDTH, 12, &rects)
+	rect_slice_h(rect_group_1_2, Interval(KEY_WIDTH), 12, &rects)
 
 	// LShift - RShift
 	rect_group_1_3 := lines[1]
-	_rect, rect_group_1_3 = gui_split_ratio_h(rect_group_1_3, 0.150, 0)
+	_rect, rect_group_1_3 = rect_split_h(rect_group_1_3, Ratio(0.150), Interval(0))
 	append(&rects, _rect)
-	gui_slice_h_append(rect_group_1_3, KEY_WIDTH, 11, &rects)
+	rect_slice_h(rect_group_1_3, Interval(KEY_WIDTH), 11, &rects)
 
 	// LCtrl - RCtrl
 	rect_group_1_4 := lines[0]
-	gui_grid(rect_group_1_4, { 12, 1 }, &rects)
-	gui_multi_merge_range(&rects, { 76, 81 })
+	rect_grid(rect_group_1_4, { 12, 1 }, &rects)
+	rect_multi_merge_range(&rects, { 76, 81 })
 
-	lines = gui_grid_make(rect_group_2, { 1, 5 }, allocator)
+	lines = rect_grid_make(rect_group_2, { 1, 5 }, allocator)
 
 	// Ins - PgUp
 	rect_group_2_0 := lines[4]
-	gui_grid(rect_group_2_0, { 3, 1 }, &rects)
+	rect_grid(rect_group_2_0, { 3, 1 }, &rects)
 
 	// Del - PgDown
 	rect_group_2_1 := lines[3]
-	gui_grid(rect_group_2_1, { 3, 1 }, &rects)
+	rect_grid(rect_group_2_1, { 3, 1 }, &rects)
 
 	// Up
 	rect_group_2_2 := lines[1]
-	grid := gui_grid(rect_group_2_2, { 3, 1 }, allocator)
+	grid := rect_grid(rect_group_2_2, { 3, 1 }, allocator)
 	append(&rects, grid[1])
 
 	// Left - Right
 	rect_group_2_3 := lines[0]
-	gui_grid(rect_group_2_3, { 3, 1 }, &rects)
+	rect_grid(rect_group_2_3, { 3, 1 }, &rects)
 
-	lines = gui_grid_make(rect_group_3, { 1, 5 }, allocator)
+	lines = rect_grid_make(rect_group_3, { 1, 5 }, allocator)
 
 	// NumLk - -
 	rect_group_3_0 := lines[4]
-	gui_grid(rect_group_3_0, { 4, 1 }, &rects)
+	rect_grid(rect_group_3_0, { 4, 1 }, &rects)
 
 	// 7 - +
 	rect_group_3_1 := lines[3]
-	gui_grid(rect_group_3_1, { 4, 1 }, &rects)
+	rect_grid(rect_group_3_1, { 4, 1 }, &rects)
 
 	// 4 - +
 	rect_group_3_2 := lines[2]
-	gui_grid(rect_group_3_2, { 4, 1 }, &rects)
-	gui_multi_merge_range_retaining(&rects, { 98, 103 })
+	rect_grid(rect_group_3_2, { 4, 1 }, &rects)
+	rect_merge_retaining(&rects, { 98, 103 })
 
 	// 1 - NumEnter
 	rect_group_3_3 := lines[1]
-	gui_grid(rect_group_3_3, { 4, 1 }, &rects)
+	rect_grid(rect_group_3_3, { 4, 1 }, &rects)
 
 	// 0 - NumEnter
 	rect_group_3_4 := lines[0]
-	gui_grid(rect_group_3_4, { 4, 1 }, &rects)
-	gui_multi_merge_range(&rects, { 106, 108 })
-	gui_multi_merge_range_retaining(&rects, { 105, 109 })
+	rect_grid(rect_group_3_4, { 4, 1 }, &rects)
+	rect_multi_merge_range(&rects, { 106, 108 })
+	rect_merge_retaining(&rects, { 105, 109 })
 
 	// n := len(rects)
 	// for rect in rects[0:n] do append(&rects, key_margins(rect))
 
-	// gui_grid_append(rect_left, { 2, 4 }, &rects)
-	// gui_slice_v_append(rect_right, 80, 4, &rects)
+	// rect_grid_append(rect_left, { 2, 4 }, &rects)
+	// rect_slice_v_append(rect_right, 80, 4, &rects)
 	return rects[:] }
 
 @(export)
@@ -197,11 +198,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		engine_tick()
 		for rect, i in rects {
 			down: bool = false
-			if inputs[i] != .None do down = input_query(inputs[i], .Down)
+			if inputs[i] != .None do down = input_query(inputs[i], .DOWN)
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
 			if down do draw_rect(rect, DARK_GRAY, depth = 0.99)
 			draw_rect_outline(rect, WHITE)
-			draw_rect_outline(gui_translate(key_margins(rect), down_offset), GRAY)
+			draw_rect_outline(rect_translate(key_margins(rect), down_offset), GRAY)
 			draw_text_line(text_style, rect.position + down_offset, keys[i]) } }
 	k: f32 = query().scalar
 	return }

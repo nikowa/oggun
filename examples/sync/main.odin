@@ -126,7 +126,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.temp_allocator = mem.arena_allocator(&arena)
 
 	engine_init("Sync Example")
-	screen_rect = gui_screen()
+	screen_rect = rect_screen()
 
 	init_image(&background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)

@@ -50,16 +50,16 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	engine_init(
 		"Graph Example",
-		graphics_config = { clear_color = NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
+	graphics_config = { clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
 
 	font_group: Font_Group
 	font_group_init(&font_group,
 		normal = default_font_config(name = "terminus"),
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
-	bg_color := neon_theme_ms_dark[Neon_Color_Row.Neutral_Background_3][0]
-	fg_color := neon_theme_ms_dark[Neon_Color_Row.Neutral_Foreground_1][0]
-	stroke_color := neon_theme_ms_dark[Neon_Color_Row.Neutral_Stroke_1][0]
+	bg_color := tgui_theme_ms_dark[TGUI_Theme_Key.NEUTRAL_BACKGROUND_3][0]
+	fg_color := tgui_theme_ms_dark[TGUI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
+	stroke_color := tgui_theme_ms_dark[TGUI_Theme_Key.NEUTRAL_STROKE_1][0]
 	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
@@ -90,7 +90,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			draw_text_symbol_rect(char, arrow_rect, 0.5, style = text_style, uv_offset = { -0.5 / 12, 0 }, angle = time)
 			// draw_rect_outline(arrow_rect, RED, depth = 0.4)
 			// draw_text_symbol(char, arrow, depth = 0.1, style = text_style, angle = angle, integer = false)
-			draw_rect(gui_margins(rect, Interval(-8)), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
-			draw_text_box(text_style, rect, text, h_align = .Justify, v_align = .Center, integer = false) }
+			draw_rect(rect_margins(rect, Interval(-8)), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			draw_text_box(text_style, rect, text, h_align = .JUSTIFY, v_align = .CENTER, integer = false) }
 		free_all(context.temp_allocator) }
 	return }

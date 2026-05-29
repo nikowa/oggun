@@ -29,10 +29,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	engine_init(
 		"Neon Example",
 		asset_config = default_asset_manager_config(watch = false),
-		graphics_config = default_graphics_config(clear_color = NEUTRAL_BACKGROUND_1_NORMAL_DARK),
+		graphics_config = default_graphics_config(clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
 		input_config = default_input_config(raw_input = false))
-	neon_set_theme(neon_theme_ms_dark)
+	tgui_set_theme(tgui_theme_ms_light)
 
 	zero_stopwatch(&stopwatch)
 
@@ -46,14 +46,14 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			for y, i in ys {
 				disabled := ds[i]
 				DELTA :: 120
-				rect: Rect = { { - 2 * DELTA, y }, NEON_BUTTON_SIZE_SMALL }
-				if .Press in gui_neon_button(rect, "*Default*", appearance = .Default, shape = .Rounded, disabled = disabled) do log.warn("Press")
+				rect: Rect = { { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL }
+				if .PRESS in tgui_button(rect, "*Default*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled) do log.warn("Press")
 				rect.position.x += DELTA
-				draw_neon_button(rect, "*Primary*", appearance = .Primary, shape = .Rounded, disabled = disabled)
+				tgui_draw_button(rect, "*Primary*", appearance = .PRIMARY, shape = .ROUNDED, disabled = disabled)
 				rect.position.x += DELTA
-				draw_neon_button(rect, "*Outline*", appearance = .Outline, shape = .Rounded, disabled = disabled)
+				tgui_draw_button(rect, "*Outline*", appearance = .OUTLINE, shape = .ROUNDED, disabled = disabled)
 				rect.position.x += DELTA
-				draw_neon_button(rect, "*Subtle*", appearance = .Subtle, shape = .Rounded, disabled = disabled)
+				tgui_draw_button(rect, "*Subtle*", appearance = .SUBTLE, shape = .ROUNDED, disabled = disabled)
 				rect.position.x += DELTA
-				draw_neon_button(rect, "*Transp*", appearance = .Transparent, shape = .Rounded, disabled = disabled) } } }
+				tgui_draw_button(rect, "*Transp*", appearance = .TRANSPARENT, shape = .ROUNDED, disabled = disabled) } } }
 	return }

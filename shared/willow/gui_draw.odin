@@ -5,11 +5,6 @@ import "core:math/linalg"
 import "core:fmt"
 import "core:strings"
 
-Neon_Button_Shape :: enum {
-	Rounded,
-	Circular,
-	Square }
-
 draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
 	style := style
 	using style
@@ -42,12 +37,12 @@ draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: 
 		if symbol == ' ' do symbol_delta += space_delta
 		symbol_position.x += symbol_delta } }
 
-draw_text_box :: proc(style: Text_Style, rect: Rect, args: ..any, h_align: H_Align = .Center, v_align: V_Align = .Center, depth: f32 = 0.0, sep: string = "", integer: bool = true) {
+draw_text_box :: proc(style: Text_Style, rect: Rect, args: ..any, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, depth: f32 = 0.0, sep: string = "", integer: bool = true) {
 	style := style
 	using style
 	// draw_rect_outline(graphics_manager, rect, BLUE, 0.1)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
-	if h_align == .Justify do spacing = 1.0
+	if h_align == .JUSTIFY do spacing = 1.0
 	text := fmt.aprint(..args, sep = sep)
 	// (TODO): This looks wrong v
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
@@ -60,23 +55,23 @@ draw_text_box :: proc(style: Text_Style, rect: Rect, args: ..any, h_align: H_Ali
 	desired_width: Maybe(f32)
 	pivot: bit_set[Compass]
 	switch v_align {
-	case .Top: position.y += rect.size.y / 2 - height
-	case .Bottom: position.y += -rect.size.y / 2 + total_height - height
-	case .Center: position.y += 0.5 * total_height - line_height + height / 2 }
+	case .TOP: position.y += rect.size.y / 2 - height
+	case .BOTTOM: position.y += -rect.size.y / 2 + total_height - height
+	case .CENTER: position.y += 0.5 * total_height - line_height + height / 2 }
 	switch h_align {
-	case .Justify:
+	case .JUSTIFY:
 		desired_width = rect.size.x
-	case .Center:
-	case .Left:
+	case .CENTER:
+	case .LEFT:
 		pivot = { .West }
 		position.x -= rect.size.x / 2
-	case .Right:
+	case .RIGHT:
 		desired_width = nil
 		pivot = { .East }
 		position.x += rect.size.x / 2
 	}
 	for line, i in lines {
-		if h_align == .Justify && i == len(lines) - 1 {
+		if h_align == .JUSTIFY && i == len(lines) - 1 {
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }

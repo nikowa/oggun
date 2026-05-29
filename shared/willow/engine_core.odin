@@ -12,7 +12,7 @@ import "core:mem"
 // window_manager: Window_Manager
 // tick_manager: Tick_Manager
 // stopwatch: time.Stopwatch
-// neon_manager: Neon_Manager
+// tgui_manager: TGUI_Manager
 
 WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
 nil_stub: rawptr
@@ -30,7 +30,7 @@ Engine :: struct {
 	graphics_manager: Graphics_Manager,
 	window_manager: Window_Manager,
 	tick_manager: Tick_Manager,
-	neon_manager: Neon_Manager,
+	tgui_manager: TGUI_Manager,
 	settings_manager: Settings_Manager }
 
 engine_loop_context :: proc() -> runtime.Context {
@@ -84,7 +84,7 @@ engine_init :: proc(
 	asset_manager_init(asset_config, backing_allocator)
 	window_init(window_config)
 	graphics_init(graphics_config)
-	neon_manager_init()
+	tgui_manager_init()
 	input_init(input_config)
 	settings_manager_init(&engine.settings_manager, settings_config)
 	tick_manager_init(&engine.tick_manager, tick_config) }
