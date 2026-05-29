@@ -229,9 +229,11 @@ Draw_Text_Params :: struct {
 	position: [3]f32,
 	italic: bool,
 	bold: bool,
-	angle: f32 }
+	angle: f32,
+	uv_offset: [2]f32 }
 
-draw_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
+// (TODO): implement "integer" param. It does nothng right now.
+draw_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {
 	using style
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
@@ -243,12 +245,13 @@ draw_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_St
 		scale_factor = scale_factor,
 		color = color }
 	command.symbol = symbol
-	command.position = { rect.position.x, rect.position.y, depth }
+	command.position = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2, depth }
 	command.scale_factor = f32(scale_factor)
 	command.color = color
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
 	command.angle = angle
+	command.uv_offset = uv_offset
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 draw_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
@@ -271,6 +274,7 @@ draw_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_S
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
 	command.bold = bold
 	command.angle = angle
+	command.uv_offset = { 0, 0 }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 submit_draw_text :: proc(_command: Command, index: int) {
@@ -282,12 +286,10 @@ submit_draw_text :: proc(_command: Command, index: int) {
 	set_shader_param(RES, engine.graphics_manager.active_resolution)
 	set_shader_param(SYMBOL_SIZE, command.symbol_size == {} ? command.font.symbol_size : command.symbol_size)
 	set_shader_param(TIME, engine.graphics_manager.time)
-	// DICK
 
 	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
-	// for command in commands do fmt.printfln("%c -- %v", command.base.(Draw_Text_Command).symbol, command.base.(Draw_Text_Command).position)
 
-	buffers := make_buffers(7)
+	buffers := make_buffers(8)
 	defer delete_buffers(buffers)
 
 	n: int = 6 * len(commands)
@@ -298,6 +300,7 @@ submit_draw_text :: proc(_command: Command, index: int) {
 	italic := make([]u32, n)
 	bold := make([]u32, n)
 	angle := make([]f32, n)
+	uv_offset := make([][2]f32, n)
 	for _command, i in commands do for j in 0 ..< 6 {
 		command := _command.base.(Draw_Text_Command)
 		k := 6 * i + j
@@ -307,7 +310,8 @@ submit_draw_text :: proc(_command: Command, index: int) {
 		position[k] = command.position
 		italic[k] = cast(u32)command.italic
 		bold[k] = cast(u32)command.bold
-		angle[k] = command.angle }
+		angle[k] = command.angle
+		uv_offset[k] = command.uv_offset }
 
 	upload_vertex_buffer_data(0, buffers[0], 1, gl.UNSIGNED_INT, symbol)
 	upload_vertex_buffer_data(1, buffers[1], 4, gl.FLOAT, color)
@@ -316,6 +320,7 @@ submit_draw_text :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(4, buffers[4], 1, gl.UNSIGNED_INT, italic)
 	upload_vertex_buffer_data(5, buffers[5], 1, gl.UNSIGNED_INT, bold)
 	upload_vertex_buffer_data(6, buffers[6], 1, gl.FLOAT, angle)
+	upload_vertex_buffer_data(7, buffers[7], 2, gl.FLOAT, uv_offset)
 
 	bind_texture(0, command.font.bitmap_image.handle)
 	bind_texture(1, command.font.bitmap_image_bold.handle)

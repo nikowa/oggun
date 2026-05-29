@@ -50,8 +50,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	engine_init(
 		"Graph Example",
-		graphics_config = { clear_color = NEUTRAL_BACKGROUND_1_NORMAL_LIGHT },
-		tick_config = { tickrate_setting = .LIMITED_60_FPS })
+		graphics_config = { clear_color = NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
 
 	font_group: Font_Group
 	font_group_init(&font_group,
@@ -88,7 +87,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			arrow -= 0.5 * symbol_size_from_text_style(text_style, char)
 			// arrow.y -= f32(text_style.font_size) / 2
 			arrow_rect: Rect = { { 0, 200 }, { 40, 40 } }
-			draw_text_symbol_rect('V', arrow_rect, 0.5, style = text_style)
+			draw_text_symbol_rect('V', arrow_rect, 0.5, style = text_style, uv_offset = { -0.5 / 12, 0 }, angle = time)
 			draw_rect_outline(arrow_rect, RED, depth = 0.4)
 			// draw_text_symbol(char, arrow, depth = 0.1, style = text_style, angle = angle, integer = false)
 			draw_rect(gui_margins(rect, Interval(-8)), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)

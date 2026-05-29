@@ -5,6 +5,7 @@ layout(location = 3) in vec3 position;
 layout(location = 4) in uint italic;
 layout(location = 5) in uint bold;
 layout(location = 6) in float angle;
+layout(location = 7) in vec2 uv_offset;
 
 layout(location = 0) uniform vec2 res;
 layout(location = 1) uniform vec2 symbol_size;
@@ -15,6 +16,7 @@ flat out uint _symbol;
 flat out vec4 _text_color;
 flat out vec2 quad_size;
 flat out uint _bold;
+flat out vec2 _uv_offset;
 
 void main(void) {
 	_symbol = symbol;
@@ -27,6 +29,7 @@ void main(void) {
 	float y = (float(position.y) / res.y) * 2 + h / 2;
 	float z = position.z;
 	quad_size = vec2(w, h) * res;
+	_uv_offset = uv_offset;
 	tex_coords = vec2(0, 0);
 	float italic_offset = float(italic) * 0.16 * h;
 	mat2 angle_mat = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));

@@ -8,6 +8,7 @@ flat in uint _symbol;
 flat in vec4 _text_color;
 flat in vec2 quad_size;
 flat in uint _bold;
+flat in vec2 _uv_offset;
 out vec4 color;
 
 #define bold _bold
@@ -41,8 +42,9 @@ vec4 sample_styled(vec2 uv) {
 	// return pc; }
 
 void main(void) {
+	vec2 uv = tex_coords + _uv_offset;
 	msaa16_scope_begin(color.w, quad_size)
-		color.w += sample_styled(tex_coords + msaa_off).w;
+		color.w += sample_styled(uv + msaa_off).w;
 	msaa16_scope_end(color.w)
 	// color.w = 1 - pow(1 - color.w, 2.0);
 	if (color.w < 0.25) color.w = 0.0;
