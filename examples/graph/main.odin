@@ -86,9 +86,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			char: u8 = '\x1F'
 			arrow -= 0.5 * symbol_size_from_text_style(text_style, char)
 			// arrow.y -= f32(text_style.font_size) / 2
-			arrow_rect: Rect = { { 0, 200 }, { 40, 40 } }
-			draw_text_symbol_rect('V', arrow_rect, 0.5, style = text_style, uv_offset = { -0.5 / 12, 0 }, angle = time)
-			draw_rect_outline(arrow_rect, RED, depth = 0.4)
+			arrow_rect: Rect = { { 0, 200 }, { 12, 12 } }
+			draw_text_symbol_rect(char, arrow_rect, 0.5, style = text_style, uv_offset = { -0.5 / 12, 0 }, angle = time)
+			// draw_rect_outline(arrow_rect, RED, depth = 0.4)
 			// draw_text_symbol(char, arrow, depth = 0.1, style = text_style, angle = angle, integer = false)
 			draw_rect(gui_margins(rect, Interval(-8)), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
 			draw_text_box(text_style, rect, text, h_align = .Justify, v_align = .Center, integer = false) }
