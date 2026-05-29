@@ -147,6 +147,7 @@ TGUI_Icon :: enum u8 {
 	Filter,
 	Upload,
 	Expand,
+	Camera,
 	Accept,
 	Zoom_In,
 	Video_1,
@@ -284,6 +285,7 @@ TGUI_Appearance :: enum {
 TGUI_BUTTON_SIZE_SMALL:  [2]f32 : { 64, 24 }
 TGUI_BUTTON_SIZE_MEDIUM: [2]f32 : { 96, 32 }
 TGUI_BUTTON_SIZE_LARGE:  [2]f32 : { 96, 40 }
+TGUI_ICON_SIZE:          [2]f32 : { 24, 24 }
 
 tgui_manager_init :: proc() {
 	using TGUI_Theme_Key
@@ -949,7 +951,7 @@ tgui_set_theme :: proc(theme: ^TGUI_Theme) {
 	fg_color := engine.tgui_manager.theme[TGUI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
 	engine.tgui_manager.text_style = default_text_style(font_group = engine.tgui_manager.font_group, color = fg_color, font_size = 8)
 	engine.tgui_manager.icons_text_style = default_text_style(font_group = engine.tgui_manager.icons_font_group, color = fg_color, font_size = 24)
-	set_clear_color(theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_1][0]) }
+	set_clear_color(theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_2][0]) }
 
 tgui_theme_ms_light: ^TGUI_Theme
 tgui_theme_ms_dark: ^TGUI_Theme
@@ -1026,3 +1028,6 @@ tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .RO
 	draw_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)
 	if hover do set_cursor(.Hand)
 	draw_text_box(text_style, rect, text, h_align = .CENTER, v_align = .CENTER, depth = 0.0) }
+
+tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {
+	draw_text_symbol_rect(cast(u8)icon, { position, TGUI_ICON_SIZE }, depth, style = engine.tgui_manager.icons_text_style, angle = angle) }
