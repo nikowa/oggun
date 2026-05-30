@@ -41,6 +41,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
+			// Buttons //
 			position: [2]f32 = { -500, 400 }
 			ys: [3]f32 = { 24, -24, -48 - 24 }
 			ds: [3]bool = { false, true, false }
@@ -50,22 +51,26 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				icon := icons[i]
 				DELTA :: 120
 				rect: Rect = { position + { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL * { 1, 1 } }
-				tgui_draw_button(rect, "*Fish*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled, icon=icon ? .Notes : .None)
+				tgui_button(rect, "*Fish*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled, icon=icon ? .Notes : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Soup*", appearance=.PRIMARY, shape=.ROUNDED, disabled=disabled, icon=icon ? .Image : .None)
+				tgui_button(rect, "*Soup*", appearance=.PRIMARY, shape=.ROUNDED, disabled=disabled, icon=icon ? .Image : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Tea*", appearance=.OUTLINE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Person : .None)
+				tgui_button(rect, "*Tea*", appearance=.OUTLINE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Person : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Cup*", appearance=.SUBTLE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Delete : .None)
+				tgui_button(rect, "*Cup*", appearance=.SUBTLE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Delete : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Fork*", appearance=.TRANSPARENT, shape=.ROUNDED, disabled=disabled, icon=icon ? .Sticker : .None) }
+				tgui_button(rect, "*Fork*", appearance=.TRANSPARENT, shape=.ROUNDED, disabled=disabled, icon=icon ? .Sticker : .None) }
 
+			// Transition Animation //
 			position = { -740, 280 }
 			rect: Rect = { position, TGUI_BUTTON_SIZE_SMALL }
 			x0: f32 = position.x + 120
 			x1: f32 = position.x + 120 * 4
-			x := x0 + (x1 - x0) * ease_sine(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
+			x := x0 + (x1 - x0) * ease_sin_3(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
 			tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
-			// tgui_draw_icon(.Camera, { x, y })
+
+			tgui_chevron({})
+			// Accordion //
+			// tgui_accordion({ 0, 0 })
 		} }
 	return }

@@ -43,9 +43,9 @@ vec4 sample_styled(vec2 uv) {
 
 void main(void) {
 	vec2 uv = tex_coords + _uv_offset;
-	msaa16_scope_begin(color.w, quad_size)
+	msaa4_scope_begin(color.w, quad_size)
 		color.w += sample_styled(uv + msaa_off).w;
-	msaa16_scope_end(color.w)
+	msaa4_scope_end(color.w)
 	// color.w = 1 - pow(1 - color.w, 2.0);
 	if (color.w < 0.25) color.w = 0.0;
 	// color.w = pow(color.w, 0.5);

@@ -1,4 +1,5 @@
 
+- Option to disable antialiasing on MSAA renderer, MSAA should be off for icons
 - Implement Badge Neon primitive
 - MS paint demo
 - Add aliasing to lines

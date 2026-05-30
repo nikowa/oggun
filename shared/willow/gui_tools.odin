@@ -966,12 +966,9 @@ tgui_theme_ms_dark: ^TGUI_Theme
 // (TODO): Arrange these in a 4xN table, where the empty trailing rows are filled with the value of the last filled row.
 // Then GUI functions take a slice, so you can just give it a slice off this table.
 
-tgui_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .ROUNDED, appearance: TGUI_Appearance = .DEFAULT, disabled: bool = false, sep: string = "") -> (actions: bit_set[GUI_Action]) {
-	hovered := rect_hovered(rect)
-	pressed := hovered && input_query(.Mouse_Left, .PRESSED)
-	if hovered do actions += { .HOVER }
-	if pressed do actions += { .PRESS }
-	tgui_draw_button(rect, ..args, shape = shape, appearance = appearance, disabled = disabled, sep = sep)
+tgui_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .ROUNDED, appearance: TGUI_Appearance = .DEFAULT, disabled: bool = false, icon: TGUI_Icon = .None, sep: string = "") -> (actions: bit_set[GUI_Action]) {
+	actions = gui_button(rect, disabled)
+	tgui_draw_button(rect, ..args, shape=shape, appearance=appearance, disabled=disabled, sep=sep, icon=icon)
 	return actions }
 
 // (TODO): Pack most of these params in a "Neon_Button_Config" struct. //
@@ -1027,13 +1024,13 @@ tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .RO
 		case .PRIMARY:
 			fill_color = theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_4][0]
 			stroke_color = theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_4][0] }
-		if hover do set_cursor(.Disabled)
+		// if hover do set_cursor(.Disabled)
 		hover = false
 		press = false }
 
 // case .PRIMARY
 	draw_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)
-	if hover do set_cursor(.Hand)
+	// if hover do set_cursor(.Hand)
 	// tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {
 	if icon != .None {
 		icon_position := rect.position + { - rect.size.x / 2 + rect.size.y / 2, 0 }
@@ -1077,3 +1074,9 @@ tgui_anim_transition :: proc(range: [2]f32, initial_value: f32, speed: f32, init
 	engine.tgui_manager.anim_transitions[location] = state
 	// fmt.println(state.value)
 	return state.value }
+
+tgui_chevron :: proc(position: [2]f32, location := #caller_location) -> f32 {
+	rect: Rect = { position, TGUI_ICON_SIZE }
+	t := tgui_anim_transition([2]f32{ 0, 1 }, 0, 4, true, .PRESS in gui_button(rect), location=location)
+	tgui_draw_icon(.Chevron, position, angle = t * math.PI / 2)
+	return t }
