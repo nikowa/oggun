@@ -1040,6 +1040,7 @@ tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .RO
 		rect = rect_margins_variate(rect, west=Interval(TGUI_ICON_SIZE.y))
 	}
 	draw_text_box(text_style, rect, text, h_align = .CENTER, v_align = .CENTER, depth = 0.1)
+	// draw_rect_outline(rect, RED)
 }
 
 tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {

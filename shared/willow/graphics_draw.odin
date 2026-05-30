@@ -178,7 +178,8 @@ draw_image :: proc(image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buf
 		render_buffer = render_buffer,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
-		depth = depth }
+		depth = depth,
+		clip = gx_get_clip() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 // (NOTE): This will do the batching. //
@@ -219,7 +220,7 @@ submit_draw_image :: proc(_command: Command, index: int) {
 		clip[k] = rect_to_4f32(command.clip) }
 	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
 	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
-	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, clip)
+	upload_vertex_buffer_data(6, buffers[2], 4, gl.FLOAT, clip)
 
 	bind_texture(0, command.image.handle)
 	polygon_mode(.Fill)
@@ -279,7 +280,8 @@ draw_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_S
 		font = font,
 		res = engine.graphics_manager.active_resolution,
 		scale_factor = scale_factor,
-		color = color }
+		color = color,
+		clip = gx_get_clip() }
 	command.symbol = symbol
 	command.position = [3]f32{ f32(position.x), f32(position.y), depth }
 	command.position.x -= f32(command.font.bearings[symbol]) * scale_factor

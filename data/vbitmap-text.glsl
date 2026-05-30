@@ -6,6 +6,7 @@ layout(location = 4) in uint italic;
 layout(location = 5) in uint bold;
 layout(location = 6) in float angle;
 layout(location = 7) in vec2 uv_offset;
+layout(location = 8) in vec4 clip;
 
 layout(location = 0) uniform vec2 res;
 layout(location = 1) uniform vec2 symbol_size;
@@ -17,11 +18,14 @@ flat out vec4 _text_color;
 flat out vec2 quad_size;
 flat out uint _bold;
 flat out vec2 _uv_offset;
+flat out vec4 _clip;
 
 void main(void) {
 	_symbol = symbol;
 	_text_color = text_color;
 	_bold = bold;
+	_clip = clip;
+
 	int j = gl_VertexID / 6;
 	float w = (symbol_size.x / res.x) * 2 * scale_factor;
 	float h = (symbol_size.y / res.y) * 2 * scale_factor;

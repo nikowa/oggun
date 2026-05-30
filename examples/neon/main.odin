@@ -34,6 +34,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		input_config = default_input_config(raw_input = false))
 	tgui_set_theme(tgui_theme_ms_light)
 
+	image: Image_Asset
+	init_image(&image, { url = "image:kitten-1.png" })
+	assert(asset_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+
 	zero_stopwatch(&stopwatch)
 
 	context = engine_loop_context()
@@ -42,10 +46,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
 			// draw_rect(rect_screen(), BLACK, depth = 0.9)
-			clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
-			draw_rect_outline(clip_rect, RED)
+			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
+			// draw_rect_outline(clip_rect, RED)
 			{
-				gx_clip_scope(clip_rect)
+				// gx_clip_scope(clip_rect)
 
 				// Buttons //
 				position: [2]f32 = { -500, 400 }
@@ -74,6 +78,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				x1: f32 = position.x + 120 * 4
 				x := x0 + (x1 - x0) * ease_sin_3(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
 				tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
+
+				draw_image(&image, make_rect(0, 0, 120, 120), depth = 0.0)
 
 				tgui_chevron({}) }
 			// Accordion //

@@ -9,11 +9,15 @@ flat in vec4 _text_color;
 flat in vec2 quad_size;
 flat in uint _bold;
 flat in vec2 _uv_offset;
+flat in vec4 _clip;
 out vec4 color;
 
 #define bold _bold
 
 #include <msaa>
+#include <clip>
+
+#define clip _clip
 
 vec4 sample_raw(vec2 uv) {
 	vec2 offset = vec2(_symbol % 16, _symbol / 16 - 15);
@@ -53,4 +57,5 @@ void main(void) {
 	color.a *= _text_color.a;
 	// color.xyz = sample_raw(uv).xyz;
 	// color.w = 1;
+	color = clip_color(color, gl_FragCoord.xy - res / 2, clip);
 	if (color.w == 0.0) { gl_FragDepth = 1.0; } }
