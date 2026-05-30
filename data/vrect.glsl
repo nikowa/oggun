@@ -4,6 +4,7 @@ layout(location = 2) in vec4 fill_color;
 layout(location = 3) in float rounding;
 layout(location = 4) in float stroke;
 layout(location = 5) in vec4 stroke_color;
+layout(location = 6) in vec4 clip;
 layout(location = 0) uniform vec2 res;
 
 out vec2 tex_coord;
@@ -13,6 +14,7 @@ flat out vec4 _fill_color;
 flat out float _rounding;
 flat out float _stroke;
 flat out vec4 _stroke_color;
+flat out vec4 _clip;
 
 void main(void) {
 	_rect = rect;
@@ -21,6 +23,7 @@ void main(void) {
 	_rounding = rounding;
 	_stroke = stroke;
 	_stroke_color = stroke_color;
+	_clip = clip;
 	vec2 pos = rect.xy;
 	vec2 size = rect.zw;
 	float x0 = (float(pos.x - size.x / 2) / res.x) * 2;
