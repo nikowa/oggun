@@ -1,12 +1,16 @@
 #+feature using-stmt
 package willow
+import "base:runtime"
 import "core:fmt"
+import "core:time"
+import "core:math"
 
 TGUI_Manager :: struct {
 	font_group: Font_Group,
 	icons_font_group: Font_Group,
 	text_style: Text_Style,
 	icons_text_style: Text_Style,
+	anim_transitions: map[runtime.Source_Code_Location]TGUI_Anim_Transition,
 	// caption2_font_group: Font_Group,  // 10px
 	// caption1_font_group: Font_Group,  // 12px
 	// body1_font_group: Font_Group,     // 14px
@@ -943,7 +947,9 @@ tgui_manager_init :: proc() {
 		italic = default_font_config(name = "terminus-italic"))
 	font_group_init(&engine.tgui_manager.icons_font_group,
 		normal = default_font_config(name = "icons"))
-	tgui_set_theme(tgui_theme_ms_dark) }
+	tgui_set_theme(tgui_theme_ms_dark)
+
+	engine.tgui_manager.anim_transitions = make(map[runtime.Source_Code_Location]TGUI_Anim_Transition) }
 
 tgui_set_theme :: proc(theme: ^TGUI_Theme) {
 	engine.tgui_manager.theme = theme
@@ -1031,3 +1037,33 @@ tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .RO
 
 tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {
 	draw_text_symbol_rect(cast(u8)icon, { position, TGUI_ICON_SIZE }, depth, style = engine.tgui_manager.icons_text_style, angle = angle) }
+
+TGUI_Anim_Transition :: struct {
+	value: f32,
+	action_time: time.Duration,
+	action_value: f32,
+	direction: bool }
+
+tgui_anim_transition :: proc(range: [2]f32, initial_value: f32, speed: f32, initial_direction: bool, action: bool, location := #caller_location) -> (value: f32) {
+	assert(range[1] > range[0])
+	action := action
+	state, ok := engine.tgui_manager.anim_transitions[location]
+	time_now := time.stopwatch_duration(engine.stopwatch)
+	if ! ok {
+		action = true
+		state = { value = initial_value, action_time = time_now, action_value = initial_value, direction = initial_direction } }
+	if action {
+		state.action_time = time_now
+		state.action_value = state.value
+		state.direction = ! state.direction }
+	time_passed := time.duration_seconds(time_now - state.action_time)
+	if state.direction {
+		period: f32 = (1 / speed) * (range[1] - state.action_value) / (range[1] - range[0])
+		state.value = math.lerp(state.action_value, range[1], f32(time_passed) / period) }
+	else {
+		period: f32 = (1 / speed) * (state.action_value - range[0]) / (range[1] - range[0])
+		state.value = math.lerp(state.action_value, range[0], f32(time_passed) / period) }
+	state.value = clamp(state.value, range[0], range[1])
+	engine.tgui_manager.anim_transitions[location] = state
+	// fmt.println(state.value)
+	return state.value }

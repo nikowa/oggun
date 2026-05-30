@@ -41,13 +41,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			buttons_position: [2]f32 = { -500, 400 }
+			position: [2]f32 = { -500, 400 }
 			ys: [2]f32 = { -24, 24 }
 			ds: [2]bool = { true, false }
 			for y, i in ys {
 				disabled := ds[i]
 				DELTA :: 120
-				rect: Rect = { buttons_position + { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL }
+				rect: Rect = { position + { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL }
 				if .PRESS in tgui_button(rect, "*Default*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled) do log.warn("Press")
 				rect.position.x += DELTA
 				tgui_draw_button(rect, "*Primary*", appearance = .PRIMARY, shape = .ROUNDED, disabled = disabled)
@@ -58,7 +58,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				rect.position.x += DELTA
 				tgui_draw_button(rect, "*Transp*", appearance = .TRANSPARENT, shape = .ROUNDED, disabled = disabled) }
 
-			tgui_draw_icon(.Camera, { 0, 0 })
-			// draw_text_symbol_rect(cast(u8)TGUI_Icon.Notifications_0, { { 0, 0 }, TGUI_ICON_SIZE }, 0.5, style = engine.tgui_manager.icons_text_style, angle = 0 * time)
+			position = { -740, 328 }
+			rect: Rect = { position, TGUI_BUTTON_SIZE_SMALL }
+			x0: f32 = position.x + 120
+			x1: f32 = position.x + 120 * 4
+			action := tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)
+			x := x0 + (x1 - x0) * ease_sine(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in action))
+			tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
+			// tgui_draw_icon(.Camera, { x, y })
 		} }
 	return }

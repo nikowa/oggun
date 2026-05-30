@@ -5,6 +5,7 @@ import "core:thread"
 import "core:sys/windows"
 import "core:log"
 import "core:mem"
+import "core:time"
 
 // asset_manager: Asset_Manager
 // input_manager: Input_Manager
@@ -24,6 +25,7 @@ Entry_Point :: #type proc(data: ^Thread_Data)
 Engine :: struct {
 	game_name: string,
 	ticked: bool,
+	stopwatch: time.Stopwatch,
 	backing_allocator: runtime.Allocator,
 	asset_manager: Asset_Manager,
 	input_manager: Input_Manager,
@@ -87,7 +89,8 @@ engine_init :: proc(
 	tgui_manager_init()
 	input_init(input_config)
 	settings_manager_init(&engine.settings_manager, settings_config)
-	tick_manager_init(&engine.tick_manager, tick_config) }
+	tick_manager_init(&engine.tick_manager, tick_config)
+	zero_stopwatch(&engine.stopwatch) }
 
 engine_running :: proc() -> bool {
 	return ! engine.graphics_manager.window_closed }
