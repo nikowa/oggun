@@ -5,10 +5,12 @@ import "core:math/linalg"
 import "core:fmt"
 import "core:strings"
 
-draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = {}, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
+// (TODO): Add TGUI versions of all of these, using the default TGUI styles.
+
+draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = { .South }, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
 	style := style
 	using style
-	// draw_rect(graphics_manager, { position = position, size = { 4, 4 } }, BLUE)
+	// draw_rect({ position = position, size = { 4, 4 } }, BLUE)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	text := fmt.aprint(..args, sep = sep)
 	position := position
@@ -18,11 +20,15 @@ draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: 
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
 	if space_delta != 0 { width = desired_width.(f32) }
 	position.x -= 0.5 * width
+	position.y -= cast(f32)font_group.normal.origin * scale_factor
+	position.y -= 0.5 * height
 	if .East  in pivot do position.x -= 0.5 * width
 	if .West  in pivot do position.x += 0.5 * width
+	if .North  in pivot do position.y -= 0.5 * height
+	if .South  in pivot do position.y += 0.5 * height
 	// draw_line(graphics_manager, { position, position + { width, 0 } }, RED)
 	// draw_rect(graphics_manager, { position + { width / 2, height / 2 }, { width, height } }, GREEN, depth = 0.1)
-	position.y -= cast(f32)font_group.normal.origin * scale_factor
+	// position.y -= cast(f32)font_group.normal.origin * scale_factor
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
 		if symbol == '_' {
@@ -75,7 +81,7 @@ draw_text_box :: proc(style: Text_Style, rect: Rect, args: ..any, h_align: GUI_H
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		draw_text_line(style, position, line, pivot = pivot, desired_width = desired_width, depth = depth, integer = integer)
+		draw_text_line(style, position, line, pivot = pivot + { .South }, desired_width = desired_width, depth = depth, integer = integer)
 		position.y -= line_height } }
 
 _measure_text :: proc(style: Text_Style, text: string, scale_factor: f32) -> (width: f32, space_count: int) {

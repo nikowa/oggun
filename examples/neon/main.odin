@@ -38,6 +38,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	init_image(&image, { url = "image:kitten-1.png" })
 	assert(asset_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
+	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
+
 	zero_stopwatch(&stopwatch)
 
 	context = engine_loop_context()
@@ -79,9 +81,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				x := x0 + (x1 - x0) * ease_sin_3(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
 				tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
 
-				draw_image(&image, make_rect(0, 0, 120, 120), depth = 0.0)
-
-				tgui_chevron({}) }
+				{
+					panel_rect := tgui_chevron({}, "*Header*", { 400, 100 })
+					// draw_image(&image, make_rect(0, 0, 120, 120), depth = 0.0)
+					draw_text_box(engine.tgui_manager.text_style, panel_rect, text, h_align=.JUSTIFY, v_align=.TOP)
+				}
+			}
 			// Accordion //
 			// tgui_accordion({ 0, 0 })
 		} }

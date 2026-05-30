@@ -1076,8 +1076,15 @@ tgui_anim_transition :: proc(range: [2]f32, initial_value: f32, speed: f32, init
 	// fmt.println(state.value)
 	return state.value }
 
-tgui_chevron :: proc(position: [2]f32, location := #caller_location) -> f32 {
+@(deferred_none=gx_clip_pop)
+tgui_chevron :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
 	rect: Rect = { position, TGUI_ICON_SIZE }
-	t := tgui_anim_transition([2]f32{ 0, 1 }, 0, 4, true, .PRESS in gui_button(rect), location=location)
+	t := tgui_anim_transition([2]f32{ 0, 1 }, 0, 8, true, .PRESS in gui_button(rect), location=location)
 	tgui_draw_icon(.Chevron, position, angle = t * math.PI / 2)
-	return t }
+	// draw_rect_outline(rect, RED)
+	draw_text_line(engine.tgui_manager.text_style, position + { TGUI_ICON_SIZE.x / 2 + TGUI_SPACING_XS, 0 }, header, pivot={ .West })
+	panel = { position + { - TGUI_ICON_SIZE.x / 2, - TGUI_ICON_SIZE.y / 2 } + { panel_size.x / 2, -panel_size.y / 2 }, panel_size }
+	panel = rect_margins_variate_r(panel, south=Ratio(t))
+	// draw_rect_outline(panel, RED)
+	gx_clip_push(panel)
+	return panel }
