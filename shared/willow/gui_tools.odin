@@ -975,7 +975,8 @@ tgui_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .ROUNDED
 	return actions }
 
 // (TODO): Pack most of these params in a "Neon_Button_Config" struct. //
-tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .ROUNDED, appearance: TGUI_Appearance = .DEFAULT, disabled: bool = false, sep: string = "") {
+tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .ROUNDED, appearance: TGUI_Appearance = .DEFAULT, disabled: bool = false, icon: TGUI_Icon = .None, sep: string = "") {
+	rect := rect
 	text := fmt.aprint(..args, sep = sep)
 	rounding: f32 = 0.0
 	switch shape {
@@ -1033,7 +1034,16 @@ tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .RO
 // case .PRIMARY
 	draw_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding, depth = 0.9)
 	if hover do set_cursor(.Hand)
-	draw_text_box(text_style, rect, text, h_align = .CENTER, v_align = .CENTER, depth = 0.0) }
+	// tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {
+	if icon != .None {
+		icon_position := rect.position + { - rect.size.x / 2 + rect.size.y / 2, 0 }
+		tgui_draw_icon(icon, icon_position)
+		// draw_rect_outline(rect, RED)
+		// DICK
+		rect = rect_margins_variate(rect, west=Interval(TGUI_ICON_SIZE.y))
+	}
+	draw_text_box(text_style, rect, text, h_align = .CENTER, v_align = .CENTER, depth = 0.1)
+}
 
 tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {
 	draw_text_symbol_rect(cast(u8)icon, { position, TGUI_ICON_SIZE }, depth, style = engine.tgui_manager.icons_text_style, angle = angle) }

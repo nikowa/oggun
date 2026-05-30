@@ -42,28 +42,29 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
 			position: [2]f32 = { -500, 400 }
-			ys: [2]f32 = { -24, 24 }
-			ds: [2]bool = { true, false }
+			ys: [3]f32 = { 24, -24, -48 - 24 }
+			ds: [3]bool = { false, true, false }
+			icons: [3]bool = { false, false, true }
 			for y, i in ys {
 				disabled := ds[i]
+				icon := icons[i]
 				DELTA :: 120
-				rect: Rect = { position + { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL }
-				if .PRESS in tgui_button(rect, "*Default*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled) do log.warn("Press")
+				rect: Rect = { position + { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL * { 1, 1 } }
+				tgui_draw_button(rect, "*Fish*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled, icon=icon ? .Notes : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Primary*", appearance = .PRIMARY, shape = .ROUNDED, disabled = disabled)
+				tgui_draw_button(rect, "*Soup*", appearance=.PRIMARY, shape=.ROUNDED, disabled=disabled, icon=icon ? .Image : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Outline*", appearance = .OUTLINE, shape = .ROUNDED, disabled = disabled)
+				tgui_draw_button(rect, "*Tea*", appearance=.OUTLINE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Person : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Subtle*", appearance = .SUBTLE, shape = .ROUNDED, disabled = disabled)
+				tgui_draw_button(rect, "*Cup*", appearance=.SUBTLE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Delete : .None)
 				rect.position.x += DELTA
-				tgui_draw_button(rect, "*Transp*", appearance = .TRANSPARENT, shape = .ROUNDED, disabled = disabled) }
+				tgui_draw_button(rect, "*Fork*", appearance=.TRANSPARENT, shape=.ROUNDED, disabled=disabled, icon=icon ? .Sticker : .None) }
 
-			position = { -740, 328 }
+			position = { -740, 280 }
 			rect: Rect = { position, TGUI_BUTTON_SIZE_SMALL }
 			x0: f32 = position.x + 120
 			x1: f32 = position.x + 120 * 4
-			action := tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)
-			x := x0 + (x1 - x0) * ease_sine(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in action))
+			x := x0 + (x1 - x0) * ease_sine(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
 			tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
 			// tgui_draw_icon(.Camera, { x, y })
 		} }
