@@ -13,12 +13,11 @@ Raw_Input_Manager :: struct {
 // }
 
 raw_input_init :: proc() {
-	switch engine.window_manager.backend {
-	case .GLFW:
+	when WINDOW_VARIANT == .GLFW {
 		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		assert(auto_cast glfw.RawMouseMotionSupported())
-		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.RAW_MOUSE_MOTION, auto_cast true)
-	case .Win32:
+		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.RAW_MOUSE_MOTION, auto_cast true) }
+	else {
 		// Get handles //
 		devices: []windows.RAWINPUTDEVICELIST
 		n_devices: u32

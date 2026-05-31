@@ -235,3 +235,14 @@ rgb_denormalize :: proc(color: [3]f32) -> [3]u8 {
 	return { u8_denormalize(color.r), u8_denormalize(color.g), u8_denormalize(color.b) } }
 
 */
+
+string_to_cstring16 :: proc(s: string, allocator := context.allocator) -> (res: cstring16) {
+	chars := make([]u16, len(s) + 1, allocator)
+	for i in 0 ..< len(s) do chars[i] = cast(u16)s[i]
+	return cstring16(&chars[0]) }
+
+cstring16_to_string :: proc(s: cstring16, allocator := context.allocator) -> (res: string) {
+	chars16: [^]u16 = cast([^]u16)s
+	chars := make([]u8, len(s), allocator)
+	for i in 0 ..< len(s) do chars[i] = cast(u8)chars16[i]
+	return string(chars) }

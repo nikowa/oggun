@@ -277,8 +277,7 @@ input_init :: proc(input_config: Input_Config) {
 	assert(bit_array.set(&engine.input_manager._inputs_pressed, INDEX_MOUSE_MAX, false))
 	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, false))
 
-	switch engine.window_manager.backend {
-	case .GLFW:
+	when WINDOW_VARIANT == .GLFW {
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
 		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
 		// glfw.SetScrollCallback(draw.window, scroll_callback)
@@ -289,7 +288,9 @@ input_init :: proc(input_config: Input_Config) {
 		// glfw.SetDropCallback(draw.window, drop_callback)
 		// glfw.SetInputMode(draw.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
-	case .Win32: }
+	}
+	else {
+	}
 	if input_config.raw_input {
 		engine.input_manager._raw_input_manager = new(Raw_Input_Manager)
 		raw_input_init() }

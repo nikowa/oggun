@@ -1145,7 +1145,6 @@ tick_graphics_manager :: proc() {
 // @(tag = "job")
 tick_graphics_manager_begin :: proc() {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
-	glfw.PollEvents()
 	clear_frame_buffer(0)
 	engine.graphics_manager.time = read_stopwatch(&engine.graphics_manager.stopwatch)
 	select_render_buffer(&engine.graphics_manager.canvas_rb)
@@ -1224,8 +1223,9 @@ tick_graphics_manager_end :: proc() {
 // 	// set_blend(false)
 // 	// get_hovered_index()
 // 	// cap_fps()
-	glfw.SwapBuffers(cast(glfw.WindowHandle)engine.window_manager.handle)
-	if glfw.WindowShouldClose(cast(glfw.WindowHandle)engine.window_manager.handle) do engine.graphics_manager.window_closed = true
+	when WINDOW_VARIANT == .GLFW {
+		// (TODO): This should be in "window_tick"
+		if glfw.WindowShouldClose(cast(glfw.WindowHandle)engine.window_manager.handle) do engine.graphics_manager.window_closed = true }
 
 // 	// TODO: Add a draw_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //
 // 	watch_models(draw, "beach")
