@@ -27,7 +27,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.temp_allocator = mem.arena_allocator(&arena)
 
 	engine_init(
-		"Neon Example",
+		"Willow",
 		asset_config = default_asset_manager_config(watch = false),
 		graphics_config = default_graphics_config(clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),

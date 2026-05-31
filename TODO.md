@@ -1,4 +1,5 @@
 
+- Figure out why the "input" example is so slow
 - Option to disable antialiasing on MSAA renderer, MSAA should be off for icons
 - Implement Badge Neon primitive
 - MS paint demo

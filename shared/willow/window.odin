@@ -79,7 +79,19 @@ window_init :: proc(window_config: Window_Config) {
 		engine.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
-		glfw.SetInputMode(cast(glfw.WindowHandle)engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_NORMAL) }
+		glfw.SetInputMode(cast(glfw.WindowHandle)engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_NORMAL)
+		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
+		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
+		// glfw.SetScrollCallback(draw.window, scroll_callback)
+		glfw.SetCursorPosCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_position_callback)
+		glfw.SetMouseButtonCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_key_callback)
+		// glfw.SetWindowRefreshCallback(draw.window, window_refresh_callback)
+		// glfw.SetWindowSizeCallback(draw.window, resolution_callback)
+		// glfw.SetDropCallback(draw.window, drop_callback)
+		// glfw.SetInputMode(draw.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
+		// if glfw.JoystickPresent(glfw.JOYSTICK_1) && glfw.JoystickIsGamepad(glfw.JOYSTICK_1) {}
+		}
 	else {
 		instance := win32.GetModuleHandleW(nil)
 		assert(cast(win32.HANDLE)instance != win32.INVALID_HANDLE)
@@ -120,6 +132,11 @@ window_init :: proc(window_config: Window_Config) {
 			hWnd=cast(win32.HWND)engine.window_manager.handle,
 			dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
 			pvAttribute=&corner_preference, cbAttribute=size_of(win32.DWM_WINDOW_CORNER_PREFERENCE))
+
+			// DICK
+		// DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &captionColor, sizeof(COLORREF));
+		// DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR,    &textColor,    sizeof(COLORREF));
+
 		engine.window_manager.device_context = win32.GetDC(cast(win32.HWND)engine.window_manager.handle)
 		assert(cast(win32.HANDLE)engine.window_manager.device_context != win32.INVALID_HANDLE)
 		pixel_format_desc: win32.PIXELFORMATDESCRIPTOR = {
@@ -142,6 +159,24 @@ window_init :: proc(window_config: Window_Config) {
 	}
 	wnd_set_pos(window_config.position)
 }
+
+color_to_win32_color :: proc(color: Color) -> (win32_color: win32.COLORREF) {
+	vec := color_to_4u8(color)
+	return auto_cast color_from_4u8({ 0, vec.b, vec.g, vec.r }) }
+
+wnd_customize :: proc(header_color, border_color: Color) {
+	header_colorref := color_to_win32_color(header_color)
+	win32.DwmSetWindowAttribute(
+		hWnd=cast(win32.HWND)engine.window_manager.handle,
+		dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR,
+		pvAttribute=&header_colorref,
+		cbAttribute=size_of(win32.COLORREF))
+	border_colorref := color_to_win32_color(border_color)
+	win32.DwmSetWindowAttribute(
+		hWnd=cast(win32.HWND)engine.window_manager.handle,
+		dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_BORDER_COLOR,
+		pvAttribute=&border_colorref,
+		cbAttribute=size_of(win32.COLORREF)) }
 
 wnd_get_display_size :: proc() -> [2]f32 {
 	if cast(rawptr)engine.window_manager.handle == nil do return DEFAULT_WINDOW_CONFIG.size
@@ -385,3 +420,35 @@ set_cursor :: proc(cursor: Cursor) {
 set_cursor_immediate :: proc(cursor: Cursor) {
 	when WINDOW_VARIANT == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)engine.window_manager.handle, engine.window_manager.cursors[int(cursor)])
 	else do win32.SetCursor(engine.window_manager.cursors[int(cursor)]) }
+
+@(private="file")
+glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
+	context = runtime.default_context()
+	context.logger = log.create_console_logger()
+	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
+
+@(private="file")
+glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
+	context = runtime.default_context()
+	context.logger = log.create_console_logger()
+	@(static) called: bool = false
+	width, height: i32 = glfw.GetWindowSize(window)
+	mouse_position := [2]f32{ - f32(width) / 2 + f32(x), - f32(height) / 2 + f32(height) - f32(y) }
+	if called do engine.input_manager.mouse_delta += mouse_position - engine.input_manager.mouse_position
+	// if (abs(input_manager.mouse_delta.x) > 100) && (abs(input_manager.mouse_delta.y) > 100) { input_manager.mouse_delta = { 0, 0 } }
+	input_record_mouse_position(mouse_position)
+	called = true }
+
+@(private="file")
+glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, glfw_key, glfw_action, mods: i32) {
+	context = runtime.default_context()
+	context.logger = log.create_console_logger()
+	key: Input
+	switch glfw_key {
+	case glfw.MOUSE_BUTTON_LEFT:  key = .Mouse_Left
+	case glfw.MOUSE_BUTTON_RIGHT: key = .Mouse_Right }
+	action: Action
+	switch glfw_action {
+	case glfw.PRESS: action = .Press
+	case glfw.RELEASE: action = .Release }
+	if action != .None do input_record_key(cast(Input)key, action) }

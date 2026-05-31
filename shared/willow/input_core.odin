@@ -190,12 +190,6 @@ input_record_key :: proc(input: Input, action: Action) {
 	case .Release:
 		bit_array.set(&engine.input_manager._inputs_pressed, cast(uint)input, false, engine.backing_allocator) } }
 
-@(private="file")
-glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
-	context = runtime.default_context()
-	context.logger = log.create_console_logger()
-	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
-
 // @(private="file")
 // scroll_callback :: proc "c" (window: glfw.WindowHandle, dx, dy: f64) {
 // 	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
@@ -208,32 +202,6 @@ glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action,
 
 input_record_mouse_position :: proc(position: [2]f32) {
 	engine.input_manager.mouse_position = position }
-
-@(private="file")
-glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
-	context = runtime.default_context()
-	context.logger = log.create_console_logger()
-	@(static) called: bool = false
-	width, height: i32 = glfw.GetWindowSize(window)
-	mouse_position := [2]f32{ - f32(width) / 2 + f32(x), - f32(height) / 2 + f32(height) - f32(y) }
-	if called do engine.input_manager.mouse_delta += mouse_position - engine.input_manager.mouse_position
-	// if (abs(input_manager.mouse_delta.x) > 100) && (abs(input_manager.mouse_delta.y) > 100) { input_manager.mouse_delta = { 0, 0 } }
-	input_record_mouse_position(mouse_position)
-	called = true }
-
-@(private="file")
-glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, glfw_key, glfw_action, mods: i32) {
-	context = runtime.default_context()
-	context.logger = log.create_console_logger()
-	key: Input
-	switch glfw_key {
-	case glfw.MOUSE_BUTTON_LEFT:  key = .Mouse_Left
-	case glfw.MOUSE_BUTTON_RIGHT: key = .Mouse_Right }
-	action: Action
-	switch glfw_action {
-	case glfw.PRESS: action = .Press
-	case glfw.RELEASE: action = .Release }
-	if action != .None do input_record_key(cast(Input)key, action) }
 
 // DICK
 // Input.Mouse_Left
@@ -277,23 +245,6 @@ input_init :: proc(input_config: Input_Config) {
 	assert(bit_array.set(&engine.input_manager._inputs_pressed, INDEX_MOUSE_MAX, false))
 	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, false))
 
-	when WINDOW_VARIANT == .GLFW {
-		// (TODO): Move these, and the callback functions to "window.odin"
-		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
-		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
-		// glfw.SetScrollCallback(draw.window, scroll_callback)
-		glfw.SetCursorPosCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_position_callback)
-		glfw.SetMouseButtonCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_key_callback)
-		// glfw.SetWindowRefreshCallback(draw.window, window_refresh_callback)
-		// glfw.SetWindowSizeCallback(draw.window, resolution_callback)
-		// glfw.SetDropCallback(draw.window, drop_callback)
-		// glfw.SetInputMode(draw.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
-		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
-	}
-	else {
-	}
 	if input_config.raw_input {
 		engine.input_manager._raw_input_manager = new(Raw_Input_Manager)
-		raw_input_init() }
-// 	if glfw.JoystickPresent(glfw.JOYSTICK_1) && glfw.JoystickIsGamepad(glfw.JOYSTICK_1) {}
-}
+		raw_input_init() } }

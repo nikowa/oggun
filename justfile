@@ -3,8 +3,8 @@ set shell := ["powershell.exe", "-c"]
 
 default: current
 
-current: example_input
-	examples/input.exe
+current: example_neon
+	examples/neon.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
 

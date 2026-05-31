@@ -196,6 +196,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	for engine_running() {
 		engine_tick()
+		log.info(engine.tick_manager.frame_rate)
 		for rect, i in rects {
 			down: bool = false
 			if inputs[i] != .None do down = input_query(inputs[i], .DOWN)

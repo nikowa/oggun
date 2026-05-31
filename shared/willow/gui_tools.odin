@@ -240,6 +240,7 @@ COLOR_BRAND_STROKE_1_HOVER_LIGHT :: 0x0f6cbdff
 COLOR_BRAND_STROKE_1_PRESSED_LIGHT :: 0x0f6cbdff
 COLOR_BRAND_STROKE_1_SELECTED_LIGHT :: 0x0f6cbdff
 COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK :: 0x292929ff
+COLOR_NEUTRAL_STROKE_1_HOVER_DARK :: 0x757575ff
 
 TGUI_FONT_SIZE_CAPTION_2 ::   10
 TGUI_FONT_SIZE_CAPTION_1 ::   12
@@ -747,7 +748,7 @@ tgui_manager_init :: proc() {
 			SELECTED = 0x479ef5ff },
 		NEUTRAL_STROKE_1 = {
 			NORMAL   = 0x666666ff,
-			HOVER    = 0x757575ff,
+			HOVER    = COLOR_NEUTRAL_STROKE_1_HOVER_DARK,
 			PRESSED  = 0x6b6b6bff,
 			SELECTED = 0x707070ff },
 		NEUTRAL_STROKE_2 = {
@@ -957,7 +958,9 @@ tgui_set_theme :: proc(theme: ^TGUI_Theme) {
 	fg_color := engine.tgui_manager.theme[TGUI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
 	engine.tgui_manager.text_style = default_text_style(font_group = engine.tgui_manager.font_group, color = fg_color, font_size = 8)
 	engine.tgui_manager.icons_text_style = default_text_style(font_group = engine.tgui_manager.icons_font_group, color = fg_color, font_size = 24)
-	set_clear_color(theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_2][0]) }
+	background_color := theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_2][0]
+	set_clear_color(background_color)
+	wnd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK) }
 
 tgui_theme_ms_light: ^TGUI_Theme
 tgui_theme_ms_dark: ^TGUI_Theme

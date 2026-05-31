@@ -22,12 +22,26 @@ color_to_4f32 :: proc "contextless" (color: Color) -> [4]f32 {
 		f32((color & 0x0000FF00) >> 8)  / 255.0,
 		f32((color & 0x000000FF))       / 255.0 } }
 
+color_to_4u8 :: proc "contextless" (color: Color) -> [4]u8 {
+	return {
+		u8((color & 0xFF000000) >> 24),
+		u8((color & 0x00FF0000) >> 16),
+		u8((color & 0x0000FF00) >> 8),
+		u8((color & 0x000000FF)) } }
+
 color_from_4f32 :: proc "contextless" (vec: [4]f32) -> (color: Color) {
 	return \
 		(cast(u32)cast(u8)(vec[0] * 255)) << 24 |
 		(cast(u32)cast(u8)(vec[1] * 255)) << 16 |
 		(cast(u32)cast(u8)(vec[2] * 255)) << 8  |
 		(cast(u32)cast(u8)(vec[3] * 255)) }
+
+color_from_4u8 :: proc "contextless" (vec: [4]u8) -> (color: Color) {
+	return \
+		(cast(u32)vec[0]) << 24 |
+		(cast(u32)vec[1]) << 16 |
+		(cast(u32)vec[2]) << 8  |
+		(cast(u32)vec[3]) }
 
 color_random :: proc() -> Color {
 	return \
