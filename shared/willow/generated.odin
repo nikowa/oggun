@@ -1,6 +1,6 @@
 package willow
 import "core:time"
-// Generated at 17:28:52 //
+// Generated at 18:15:04 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -145,7 +145,7 @@ default_camera_config :: proc(
 		far_clip = far_clip } }
 
 default_window_config :: proc(
-		position: Maybe([2]f32) = DEFAULT_WINDOW_CONFIG.position,
+		position: [2]f32 = DEFAULT_WINDOW_CONFIG.position,
 		size: [2]f32 = DEFAULT_WINDOW_CONFIG.size,
 		fullscreen: bool = DEFAULT_WINDOW_CONFIG.fullscreen,
 		cursor: Cursor = DEFAULT_WINDOW_CONFIG.cursor,

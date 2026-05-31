@@ -8,11 +8,13 @@ import "core:os"
 import "core:fmt"
 import "core:log"
 
-// WINDOW_VARIANT: Window_Variant : .Win32
-WINDOW_VARIANT: Window_Variant : .GLFW
+// (TODO): Prefix all procedures in this with "wnd_"
+
+WINDOW_VARIANT: Window_Variant : .Win32
+// WINDOW_VARIANT: Window_Variant : .GLFW
 
 Window_Config :: struct #all_or_none {
-	position: Maybe([2]f32),
+	position: [2]f32,
 	size: [2]f32,
 	fullscreen: bool,
 	cursor: Cursor }
@@ -67,13 +69,6 @@ window_init :: proc(window_config: Window_Config) {
 			title   = strings.clone_to_cstring(engine.game_name),
 			monitor = nil,
 			share   = nil)
-		display: glfw.MonitorHandle = glfw.GetPrimaryMonitor()
-		video_mode: ^glfw.VidMode = glfw.GetVideoMode(display)
-		display_res: [2]i32 = { video_mode.width, video_mode.height }
-		if window_config.position != nil do glfw.SetWindowPos(
-			window = cast(glfw.WindowHandle)engine.window_manager.handle,
-			xpos   = cast(i32)window_config.position.([2]f32).x + display_res.x / 2 - cast(i32)window_config.size.x / 2,
-			ypos   = -cast(i32)window_config.position.([2]f32).y + display_res.y / 2 - cast(i32)window_config.size.y / 2)
 		assert(cast(glfw.WindowHandle)engine.window_manager.handle != nil)
 		glfw.MakeContextCurrent(cast(glfw.WindowHandle)engine.window_manager.handle)
 		glfw.SwapInterval(0)
@@ -97,15 +92,15 @@ window_init :: proc(window_config: Window_Config) {
 		engine.window_manager.cursors[int(Cursor.Hand)] = win32.LoadCursorA(nil, win32.IDC_HAND)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = win32.LoadCursorA(nil, win32.IDC_NO)
 		window_class: win32.WNDCLASSEXW = {
-			cbSize=size_of(win32.WNDCLASSEXW), style=win32.CS_OWNDC, lpfnWndProc=win32_window_proc,
+			cbSize=size_of(win32.WNDCLASSEXW), style=win32.CS_OWNDC|win32.CS_DROPSHADOW|win32.CS_HREDRAW|win32.CS_VREDRAW, lpfnWndProc=win32_window_proc,
 			hInstance=cast(win32.HANDLE)instance, hIcon=icon, hCursor=engine.window_manager.cursors[int(Cursor.Arrow)],
 			lpszClassName=CLASS_NAME }
 		win32.RegisterClassExW(&window_class)
 		engine.window_manager.handle = cast(win32.HWND)win32.CreateWindowExW(
-			dwExStyle=win32.WS_EX_TOPMOST|win32.WS_EX_ACCEPTFILES,
+			dwExStyle=win32.WS_EX_TOPMOST|win32.WS_EX_ACCEPTFILES|win32.WS_EX_DLGMODALFRAME,
 			lpClassName=CLASS_NAME,
 			lpWindowName=string_to_cstring16(engine.game_name),
-			dwStyle=win32.WS_POPUP|win32.WS_VISIBLE,
+			dwStyle=win32.WS_VISIBLE|win32.WS_OVERLAPPEDWINDOW,
 			X=win32.CW_USEDEFAULT, Y=win32.CW_USEDEFAULT,
 			nWidth=cast(i32)window_config.size.x,
 			nHeight=cast(i32)window_config.size.y,
@@ -138,7 +133,41 @@ window_init :: proc(window_config: Window_Config) {
 		win32.wglMakeCurrent(engine.window_manager.device_context, opengl_context)
 		gl.load_up_to(4, 6, win32.gl_set_proc_address)
 		// os.exit(0)
-		} }
+	}
+	wnd_set_pos(window_config.position)
+}
+
+wnd_get_display_size :: proc() -> [2]f32 {
+	if cast(rawptr)engine.window_manager.handle == nil do return DEFAULT_WINDOW_CONFIG.size
+	when WINDOW_VARIANT == .GLFW {
+		display: glfw.MonitorHandle = glfw.GetPrimaryMonitor()
+		video_mode: ^glfw.VidMode = glfw.GetVideoMode(display)
+		return { cast(f32)video_mode.width, cast(f32)video_mode.height } }
+	else {
+		monitor: win32.HMONITOR = win32.MonitorFromWindow(
+			hwnd=cast(win32.HWND)engine.window_manager.handle, dwFlags=win32.Monitor_From_Flags.MONITOR_DEFAULTTONEAREST)
+		monitor_info: win32.MONITORINFO = { cbSize = size_of(win32.MONITORINFO) }
+		win32.GetMonitorInfoW(monitor, &monitor_info)
+		return {
+			f32(monitor_info.rcMonitor.right - monitor_info.rcMonitor.left),
+		    f32(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top) } }
+	return {} }
+
+wnd_set_pos :: proc(position: [2]f32) {
+	engine.window_manager.position = position
+	display_size: [2]f32 = wnd_get_display_size()
+	position_normalized: [2]i32 = {
+		i32(engine.window_manager.position.x + display_size.x / 2 - engine.window_manager.size.x / 2),
+		i32(-engine.window_manager.position.y + display_size.y / 2 - engine.window_manager.size.y / 2) }
+	when WINDOW_VARIANT == .GLFW {
+		glfw.SetWindowPos(
+			window=cast(glfw.WindowHandle)engine.window_manager.handle,
+			xpos=position_normalized.x, ypos=position_normalized.y) }
+	else {
+		win32.SetWindowPos(
+			hWnd=cast(win32.HWND)engine.window_manager.handle, hWndInsertAfter=win32.HWND_TOP,
+			X=position_normalized.x, Y=position_normalized.y,
+			cx=0, cy=0, uFlags=win32.SWP_NOSIZE|win32.SWP_NOZORDER) } }
 
 // public Bool draw_window_WGL() {
 // 	if (wcx.closed) { return false; }
