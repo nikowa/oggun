@@ -78,7 +78,8 @@ window_init :: proc(window_config: Window_Config) {
 		engine.window_manager.size = { cast(f32)width, cast(f32)height }
 		engine.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
-		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR) }
+		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
+		glfw.SetInputMode(cast(glfw.WindowHandle)engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_NORMAL) }
 	else {
 		instance := win32.GetModuleHandleW(nil)
 		assert(cast(win32.HANDLE)instance != win32.INVALID_HANDLE)
@@ -109,6 +110,11 @@ window_init :: proc(window_config: Window_Config) {
 			hInstance=cast(win32.HANDLE)instance,
 			lpParam=nil)
 		assert(cast(win32.HANDLE)engine.window_manager.handle != win32.INVALID_HANDLE)
+		client_rect: win32.RECT
+		win32.GetClientRect(cast(win32.HWND)engine.window_manager.handle, &client_rect)
+		engine.window_manager.size = {
+			f32(client_rect.right - client_rect.left),
+			f32(client_rect.bottom - client_rect.top) }
 		corner_preference: win32.DWM_WINDOW_CORNER_PREFERENCE = .DONOTROUND
 		win32.DwmSetWindowAttribute(
 			hWnd=cast(win32.HWND)engine.window_manager.handle,
@@ -179,6 +185,121 @@ wnd_set_pos :: proc(position: [2]f32) {
 // 	DispatchMessage(&message);
 // 	return true; }
 
+WIN32_KEY_MAP: [512]Input = {
+	0 = Input.None,
+	win32.VK_SPACE = Input.Space,
+	win32.VK_OEM_7 = Input.Apostrophe,
+	win32.VK_OEM_COMMA = Input.Comma,
+	win32.VK_OEM_MINUS = Input.Minus,
+	win32.VK_OEM_PERIOD = Input.Period,
+	win32.VK_OEM_2 = Input.Slash,
+	'0' = Input.Num_0,
+	'1' = Input.Num_1,
+	'2' = Input.Num_2,
+	'3' = Input.Num_3,
+	'4' = Input.Num_4,
+	'5' = Input.Num_5,
+	'6' = Input.Num_6,
+	'7' = Input.Num_7,
+	'8' = Input.Num_8,
+	'9' = Input.Num_9,
+	win32.VK_OEM_1 = Input.Semicolon,
+	win32.VK_OEM_PLUS = Input.Equal,
+	'A' = Input.A,
+	'B' = Input.B,
+	'C' = Input.C,
+	'D' = Input.D,
+	'E' = Input.E,
+	'F' = Input.F,
+	'G' = Input.G,
+	'H' = Input.H,
+	'I' = Input.I,
+	'J' = Input.J,
+	'K' = Input.K,
+	'L' = Input.L,
+	'M' = Input.M,
+	'N' = Input.N,
+	'O' = Input.O,
+	'P' = Input.P,
+	'Q' = Input.Q,
+	'R' = Input.R,
+	'S' = Input.S,
+	'T' = Input.T,
+	'U' = Input.U,
+	'V' = Input.V,
+	'W' = Input.W,
+	'X' = Input.X,
+	'Y' = Input.Y,
+	'Z' = Input.Z,
+	win32.VK_OEM_4 = Input.Left_Bracket,
+	win32.VK_OEM_5 = Input.Backslash,
+	win32.VK_OEM_6 = Input.Right_Bracket,
+	win32.VK_OEM_3 = Input.Backtick,
+	win32.VK_ESCAPE = Input.Escape,
+	win32.VK_RETURN = Input.Enter,
+	win32.VK_TAB = Input.Tab,
+	win32.VK_BACK = Input.Backspace,
+	win32.VK_INSERT = Input.Insert,
+	win32.VK_DELETE = Input.Delete,
+	win32.VK_RIGHT = Input.Right,
+	win32.VK_LEFT = Input.Left,
+	win32.VK_DOWN = Input.Down,
+	win32.VK_UP = Input.Up,
+	win32.VK_PRIOR = Input.Page_Up,
+	win32.VK_NEXT = Input.Page_Down,
+	win32.VK_HOME = Input.Home,
+	win32.VK_END = Input.End,
+	win32.VK_CAPITAL = Input.Caps_Lock,
+	win32.VK_SCROLL = Input.Scroll_Lock,
+	win32.VK_NUMLOCK = Input.Num_Lock,
+	win32.VK_PRINT = Input.Print_Screen,
+	win32.VK_PAUSE = Input.Pause,
+	win32.VK_F1 = Input.F1,
+	win32.VK_F2 = Input.F2,
+	win32.VK_F3 = Input.F3,
+	win32.VK_F4 = Input.F4,
+	win32.VK_F5 = Input.F5,
+	win32.VK_F6 = Input.F6,
+	win32.VK_F7 = Input.F7,
+	win32.VK_F8 = Input.F8,
+	win32.VK_F9 = Input.F9,
+	win32.VK_F10 = Input.F10,
+	win32.VK_F11 = Input.F11,
+	win32.VK_F12 = Input.F12,
+	win32.VK_F13 = Input.F13,
+	win32.VK_F14 = Input.F14,
+	win32.VK_F15 = Input.F15,
+	win32.VK_F16 = Input.F16,
+	win32.VK_F17 = Input.F17,
+	win32.VK_F18 = Input.F18,
+	win32.VK_F19 = Input.F19,
+	win32.VK_F20 = Input.F20,
+	win32.VK_F21 = Input.F21,
+	win32.VK_F22 = Input.F22,
+	win32.VK_F23 = Input.F23,
+	win32.VK_F24 = Input.F24,
+	win32.VK_NUMPAD0 = Input.Numpad_0,
+	win32.VK_NUMPAD1 = Input.Numpad_1,
+	win32.VK_NUMPAD2 = Input.Numpad_2,
+	win32.VK_NUMPAD3 = Input.Numpad_3,
+	win32.VK_NUMPAD4 = Input.Numpad_4,
+	win32.VK_NUMPAD5 = Input.Numpad_5,
+	win32.VK_NUMPAD6 = Input.Numpad_6,
+	win32.VK_NUMPAD7 = Input.Numpad_7,
+	win32.VK_NUMPAD8 = Input.Numpad_8,
+	win32.VK_NUMPAD9 = Input.Numpad_9,
+	win32.VK_DECIMAL = Input.Numpad_Decimal,
+	win32.VK_DIVIDE = Input.Numpad_Divide,
+	win32.VK_MULTIPLY = Input.Numpad_Multiply,
+	win32.VK_SUBTRACT = Input.Numpad_Subtract,
+	win32.VK_ADD = Input.Numpad_Add,
+	// = Input.Numpad_Enter,
+	// = Input.Numpad_Equal,
+	win32.VK_SHIFT = Input.Left_Shift,
+	win32.VK_CONTROL = Input.Left_Control,
+	win32.VK_MENU = Input.Left_Alt,
+	win32.VK_LWIN = Input.Left_Super }
+
 when WINDOW_VARIANT == .Win32 {
 
 	win32_window_proc :: proc "stdcall" (handle: win32.HWND, message: u32, w_param: uintptr, l_param: int) -> int {
@@ -203,13 +324,20 @@ when WINDOW_VARIANT == .Win32 {
 			fmt.println("WM_LBUTTONUP")
 			return 0
 		case win32.WM_MOUSEMOVE:
-			fmt.println("WM_MOUSEMOVE")
+			position: [2]f32 = {
+				cast(f32)win32.GET_X_LPARAM(l_param),
+				cast(f32)win32.GET_Y_LPARAM(l_param) }
+		// i32(position.x + display_size.x / 2 - engine.window_manager.size.x / 2),
+		// i32(-position.y + display_size.y / 2 - engine.window_manager.size.y / 2) }
+			engine.input_manager.mouse_position = {
+				- engine.window_manager.size.x / 2 + position.x,
+				engine.window_manager.size.y / 2 - position.y }
 			return 0
 		case win32.WM_KEYDOWN:
-			fmt.println("WM_KEYDOWN")
+			input_record_key(WIN32_KEY_MAP[w_param], .Press)
 			return 0
 		case win32.WM_KEYUP:
-			fmt.println("WM_KEYUP")
+			input_record_key(WIN32_KEY_MAP[w_param], .Release)
 			return 0
 		case win32.WM_CLOSE:
 		case win32.WM_DESTROY:
@@ -219,8 +347,6 @@ when WINDOW_VARIANT == .Win32 {
 			engine.graphics_manager.window_closed = true
 			return 0
 			// DICK
-		// case WM_PAINT:
-		// DICK
 		}
 		return win32.DefWindowProcW(handle, message, w_param, l_param) }
 

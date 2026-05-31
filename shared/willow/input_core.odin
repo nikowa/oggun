@@ -278,6 +278,7 @@ input_init :: proc(input_config: Input_Config) {
 	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, false))
 
 	when WINDOW_VARIANT == .GLFW {
+		// (TODO): Move these, and the callback functions to "window.odin"
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
 		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
 		// glfw.SetScrollCallback(draw.window, scroll_callback)

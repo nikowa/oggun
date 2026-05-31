@@ -149,7 +149,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	engine_init("Input Example", input_config = default_input_config(raw_input = true))
+	engine_init("Input Example", input_config = default_input_config(raw_input = false))
 
 	font_group: Font_Group
 	font_group_init(&font_group,
@@ -201,6 +201,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			if inputs[i] != .None do down = input_query(inputs[i], .DOWN)
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
 			if down do draw_rect(rect, DARK_GRAY, depth = 0.99)
+			draw_rect({ engine.input_manager.mouse_position, { 4, 4 } }, RED)
 			draw_rect_outline(rect, WHITE)
 			draw_rect_outline(rect_translate(key_margins(rect), down_offset), GRAY)
 			draw_text_line(text_style, rect.position + down_offset, keys[i]) } }
