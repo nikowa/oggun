@@ -47,6 +47,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
+			draw_rect({ engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
+			draw_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
 			// draw_rect(rect_screen(), BLACK, depth = 0.9)
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
 			// draw_rect_outline(clip_rect, RED)
@@ -54,7 +56,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				// gx_clip_scope(clip_rect)
 
 				// Buttons //
-				position: [2]f32 = { -500, 400 }
+				// position: [2]f32 = { -500, 400 }
+				position: [2]f32 = { 0, 0 }
 				ys: [3]f32 = { 24, -24, -48 - 24 }
 				ds: [3]bool = { false, true, false }
 				icons: [3]bool = { false, false, true }

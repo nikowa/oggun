@@ -124,6 +124,7 @@ Render_Buffer :: struct {
 
 graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) {
 	engine.graphics_manager.graphics_config = graphics_config
+	wnd_update_size()
 	when BACKEND == .OpenGL do init_opengl()
 	command_buffer_init(&engine.graphics_manager.command_buffer)
 // 	width:         i32
@@ -989,13 +990,6 @@ texture_filtering :: proc(mode: i32) {
 texture_wrapping :: proc(mode: i32) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, mode)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, mode) }
-
-
-// resolution_callback :: proc "c" (window: glfw.WindowHandle, width, height: i32) {
-// // NOTE: Resizing the window manually is not allowed. You can only do it through settings.
-// 	// resolution = [2]f32{ cast(f32)width, cast(f32)height }
-// }
-
 
 // render_symbol :: proc(draw: ^Draw, font: ^Font, symbol: rune, position: [2]f32, depth: f32, color: Color = WHITE) {
 // 	texture: ^Texture

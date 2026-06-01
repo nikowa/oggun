@@ -1,6 +1,6 @@
 package willow
 import "core:time"
-// Generated at 12:11:06 //
+// Generated at 14:02:09 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,

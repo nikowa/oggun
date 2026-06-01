@@ -5,7 +5,6 @@ import gl "vendor:OpenGL"
 init_opengl :: proc() {
 	assert(gl.DebugMessageCallback != nil)
 	gl.DebugMessageCallback(error_callback, nil)
-	gl.Viewport(0, 0, cast(i32)engine.window_manager.size.x, cast(i32)engine.window_manager.size.y)
 	gl.GenVertexArrays(1, &engine.graphics_manager.vertex_array)
 	gl.BindVertexArray(engine.graphics_manager.vertex_array)
 	gl.GenBuffers(1, &engine.graphics_manager.vertex_buffer)
@@ -21,5 +20,5 @@ init_opengl :: proc() {
 	gl.CullFace(gl.FRONT)
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-	gl.Enable(gl.MULTISAMPLE)
+	gl.Disable(gl.MULTISAMPLE)
 	gl.Enable(gl.DEBUG_OUTPUT) }

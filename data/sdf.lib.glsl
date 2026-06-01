@@ -8,7 +8,13 @@
   |        HELPERS        |
   |_______________________|*/
 
+vec2 get_p(vec2 res) {
+	vec2 pixel = gl_FragCoord.xy; // + vec2(0.5);
+	return vec2(pixel.x - res.x / 2, res.y / 2 - pixel.y); }
+
 vec2 p_from_rect_uv(vec2 uv, vec4 rect) {
+	// vec2 pixel = gl_FragCoord.xy + vec2(0.5);
+	// return vec2(pixel.x - res.x / 2, res.y / 2 - pixel.y); }
 	return ((uv - vec2(0.5)) * rect.zw + vec2(rect.x, -rect.y)); }
 
 
