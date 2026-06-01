@@ -10,8 +10,8 @@ import "core:log"
 
 // (TODO): Prefix all procedures in this with "wnd_"
 
-WINDOW_VARIANT: Window_Variant : .Win32
-// WINDOW_VARIANT: Window_Variant : .GLFW
+// WINDOW_VARIANT: Window_Variant : .Win32
+WINDOW_VARIANT: Window_Variant : .GLFW
 
 Window_Config :: struct #all_or_none {
 	position: [2]f32,
@@ -116,7 +116,7 @@ window_init :: proc(window_config: Window_Config) {
 			lpszClassName=CLASS_NAME }
 		win32.RegisterClassExW(&window_class)
 		engine.window_manager.handle = cast(win32.HWND)win32.CreateWindowExW(
-			dwExStyle=win32.WS_EX_TOPMOST|win32.WS_EX_ACCEPTFILES|win32.WS_EX_DLGMODALFRAME,
+			dwExStyle=win32.WS_EX_ACCEPTFILES|win32.WS_EX_OVERLAPPEDWINDOW,
 			lpClassName=CLASS_NAME,
 			lpWindowName=string_to_cstring16(engine.game_name),
 			dwStyle=win32.WS_VISIBLE|win32.WS_OVERLAPPEDWINDOW,
