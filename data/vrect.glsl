@@ -27,7 +27,7 @@ void main(void) {
 	_stroke_color = stroke_color;
 	_clip = clip;
 	vec2 pos = rect.xy;
-	vec2 size = rect.zw + vec2(16);
+	vec2 size = rect.zw;
 	float x0 = (float(pos.x - size.x / 2) / res.x) * 2;
 	float x1 = (float(pos.x + size.x / 2) / res.x) * 2;
 	float y0 = (float(pos.y - size.y / 2) / res.y) * 2;

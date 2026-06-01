@@ -86,9 +86,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 				{
 					panel_rect := tgui_chevron({}, "*Header*", { 400, 100 })
-					// draw_image(&image, make_rect(0, 0, 120, 120), depth = 0.0)
 					draw_text_box(engine.tgui_manager.text_style, panel_rect, text, h_align=.JUSTIFY, v_align=.TOP)
 				}
+				image_rect := make_rect(0, 0, 120, 120)
+				image_rect = rect_top_to(image_rect, engine.input_manager.mouse_position.y)
+				draw_image(&image, image_rect, depth = 0.0)
 			}
 			// Accordion //
 			// tgui_accordion({ 0, 0 })

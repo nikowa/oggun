@@ -2,7 +2,7 @@
 
 out vec4 color;
 layout(location = 0) uniform vec2 res;
-// layout(pixel_center_integer) in vec4 gl_FragCoord;
+layout(pixel_center_integer) in vec4 gl_FragCoord;
 // in vec4 gl_FragCoord;
 in vec2 tex_coord;
 flat in vec4 _rect;
@@ -46,9 +46,9 @@ void main(void) {
 	gl_FragDepth = _depth;
 	vec2 b = rect.zw / 2 - vec2(rounding);
 	color.w = sample_a(vec2(0));
-	msaa8_scope_begin(color.rgb, vec2(0.5))
+	msaaoff_scope_begin(color.rgb, vec2(0.5))
 		color.rgb += sample_rgb(msaa_off);
-	msaa8_scope_end(color.rgb)
+	msaaoff_scope_end(color.rgb)
 
 	// color.xyzw = vec4(0, 0, 0, 1);
 	// vec2 uva = p_from_rect_uv(tex_coord, rect);

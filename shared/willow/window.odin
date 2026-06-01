@@ -10,8 +10,8 @@ import "core:log"
 
 // (TODO): Prefix all procedures in this with "wnd_"
 
-// WINDOW_VARIANT: Window_Variant : .Win32
-WINDOW_VARIANT: Window_Variant : .GLFW
+WINDOW_VARIANT: Window_Variant : .Win32
+// WINDOW_VARIANT: Window_Variant : .GLFW
 
 Window_Config :: struct #all_or_none {
 	position: [2]f32,
@@ -250,8 +250,8 @@ wnd_update_size :: proc() {
 		// log.warn(point_0)
 		// size: [2]f32 = { f32(point_0.x - point_1.x), f32(point_0.y - point_1.y) }
 		engine.window_manager.size = {
-			f32(client_rect.right - client_rect.left) + 1,
-			f32(client_rect.bottom - client_rect.top) + 1 }
+			f32(client_rect.right - client_rect.left),
+			f32(client_rect.bottom - client_rect.top) + 1 } // (NOTE): Rects do not render properly unless 1 is added here. //
 		// monitor := win32.MonitorFromWindow(cast(win32.HWND)engine.window_manager.handle, {})
 		// monitor_dpi: [2]u32
 		// win32.GetDpiForMonitor(monitor, .MDT_EFFECTIVE_DPI, &monitor_dpi.x, &monitor_dpi.y)

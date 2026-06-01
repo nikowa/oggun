@@ -342,3 +342,18 @@ rect_translate :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 
 rect_scale :: proc(rect_in: Rect, scale: [2]f32) -> (rect_out: Rect) {
 	return { rect_in.position, scale * rect_in.size } }
+
+rect_top_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
+	rect_out = rect_in
+	rect_out.position.y = target - rect_out.size.y / 2
+	return rect_out }
+
+rect_bottom_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
+	rect_out = rect_in
+	rect_out.position.y = target + rect_out.size.y / 2
+	return rect_out }
+
+rect_left_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
+	rect_out = rect_in
+	rect_out.position.x = target - rect_out.size.x / 2
+	return rect_out }
