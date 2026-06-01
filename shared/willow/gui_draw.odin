@@ -7,7 +7,7 @@ import "core:strings"
 
 // (TODO): Add TGUI versions of all of these, using the default TGUI styles.
 
-draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = { .South }, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) {
+draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: bit_set[Compass] = { .South }, depth: f32 = 0.0, sep: string = "", desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
 	style := style
 	using style
 	// draw_rect({ position = position, size = { 4, 4 } }, BLUE)
@@ -41,7 +41,8 @@ draw_text_line :: proc(style: Text_Style, position: [2]f32, args: ..any, pivot: 
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
 		if symbol == ' ' do symbol_delta += space_delta
-		symbol_position.x += symbol_delta } }
+		symbol_position.x += symbol_delta }
+	return width }
 
 draw_text_box :: proc(style: Text_Style, rect: Rect, args: ..any, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, depth: f32 = 0.0, sep: string = "", integer: bool = true) {
 	style := style

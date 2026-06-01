@@ -519,8 +519,8 @@ set_cursor :: proc(cursor: Cursor) {
 
 set_cursor_immediate :: proc(cursor: Cursor) {
 	// (TEMP):
-	// when WINDOW_VARIANT == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)engine.window_manager.handle, engine.window_manager.cursors[int(cursor)])
-	// else do win32.SetCursor(engine.window_manager.cursors[int(cursor)])
+	when WINDOW_VARIANT == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)engine.window_manager.handle, engine.window_manager.cursors[int(cursor)])
+	else do win32.SetCursor(engine.window_manager.cursors[int(cursor)])
 }
 
 @(private="file")

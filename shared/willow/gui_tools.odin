@@ -1049,6 +1049,7 @@ tgui_draw_button :: proc(rect: Rect, args: ..any, shape: TGUI_Button_Shape = .RO
 }
 
 tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angle: f32 = 0.0) {
+	// draw_rect_outline({ position, TGUI_ICON_SIZE }, RED)
 	draw_text_symbol_rect(cast(u8)icon, { position, TGUI_ICON_SIZE }, depth, style = engine.tgui_manager.icons_text_style, angle = angle) }
 
 TGUI_Anim_Transition :: struct {
@@ -1083,13 +1084,31 @@ tgui_anim_transition :: proc(range: [2]f32, initial_value: f32, speed: f32, init
 
 @(deferred_none=gx_clip_pop)
 tgui_chevron :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
+	return tgui_chevron_begin(position, header, panel_size, location) }
+
+tgui_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
 	rect: Rect = { position, TGUI_ICON_SIZE }
-	t := tgui_anim_transition([2]f32{ 0, 1 }, 0, 8, true, .PRESS in gui_button(rect), location=location)
+	width := draw_text_line(engine.tgui_manager.text_style, position + { TGUI_ICON_SIZE.x / 2 + TGUI_SPACING_XS, 0 }, header, pivot={ .West })
+	icon_rect: Rect = { position, TGUI_ICON_SIZE }
+	button_rect := rect_extend_variate(icon_rect, east=Interval(width + TGUI_SPACING_XS))
+	t := tgui_anim_transition([2]f32{ 0, 1 }, 0, 8, true, .PRESS in gui_button(button_rect), location=location)
 	tgui_draw_icon(.Chevron, position, angle = t * math.PI / 2)
 	// draw_rect_outline(rect, RED)
-	draw_text_line(engine.tgui_manager.text_style, position + { TGUI_ICON_SIZE.x / 2 + TGUI_SPACING_XS, 0 }, header, pivot={ .West })
+	// draw_rect_outline(button_rect, RED)
 	panel = { position + { - TGUI_ICON_SIZE.x / 2, - TGUI_ICON_SIZE.y / 2 } + { panel_size.x / 2, -panel_size.y / 2 }, panel_size }
 	panel = rect_margins_variate_r(panel, south=Ratio(t))
 	// draw_rect_outline(panel, RED)
 	gx_clip_push(panel)
 	return panel }
+
+Accordion :: struct {
+	position: [2]f32 }
+
+tgui_accordion :: proc(position: [2]f32) -> Accordion {
+	return { position=position } }
+
+@(deferred_none=gx_clip_pop)
+tgui_accordion_add :: proc(accordion: ^Accordion, header: string, panel_size: [2]f32, location := #caller_location) -> (panel_rect: Rect) {
+	panel_rect = tgui_chevron_begin(accordion.position, header, panel_size, location)
+	accordion.position.y = rect_bottom(panel_rect) - TGUI_SPACING_L
+	return panel_rect }

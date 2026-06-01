@@ -84,13 +84,17 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				x := x0 + (x1 - x0) * ease_sin_3(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
 				tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
 
-				{
-					panel_rect := tgui_chevron({}, "*Header*", { 400, 100 })
-					draw_text_box(engine.tgui_manager.text_style, panel_rect, text, h_align=.JUSTIFY, v_align=.TOP)
-				}
-				image_rect := make_rect(0, 0, 120, 120)
-				image_rect = rect_top_to(image_rect, engine.input_manager.mouse_position.y)
-				draw_image(&image, image_rect, depth = 0.0)
+				// Accordion //
+				accordion := tgui_accordion({ -500, 0 })
+				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(&accordion, "*Header* _A_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
+				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(&accordion, "*Header* _B_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
+				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(&accordion, "*Header* _C_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
+				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(&accordion, "*Header* _D_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
+
+				// image_rect := make_rect(0, 0, 120, 120)
+				// image_rect = rect_top_to(image_rect, rect_bottom(panel_rect))
+				// draw_image(&image, image_rect, depth = 0.0)
+
 			}
 			// Accordion //
 			// tgui_accordion({ 0, 0 })

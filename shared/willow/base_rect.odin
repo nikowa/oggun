@@ -49,3 +49,6 @@ rect_hovered :: proc(rect: Rect) -> bool {
 
 rect_to_4f32 :: proc(rect: Rect) -> [4]f32 {
 	return { rect.position.x, rect.position.y, rect.size.x, rect.size.y } }
+
+rect_is_empty :: proc(rect: Rect) -> bool {
+	return rect.size.x <= 0 || rect.size.y <= 0 }

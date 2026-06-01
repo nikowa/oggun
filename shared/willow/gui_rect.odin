@@ -355,5 +355,10 @@ rect_bottom_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
 
 rect_left_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
+	rect_out.position.x = target + rect_out.size.x / 2
+	return rect_out }
+
+rect_right_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
+	rect_out = rect_in
 	rect_out.position.x = target - rect_out.size.x / 2
 	return rect_out }
