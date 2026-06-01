@@ -32,7 +32,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		graphics_config = default_graphics_config(clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
 		input_config = default_input_config(raw_input = false))
-	tgui_set_theme(tgui_theme_ms_light)
+	tgui_set_theme(tgui_theme_ms_dark)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })

@@ -960,7 +960,9 @@ tgui_set_theme :: proc(theme: ^TGUI_Theme) {
 	engine.tgui_manager.icons_text_style = default_text_style(font_group = engine.tgui_manager.icons_font_group, color = fg_color, font_size = 24)
 	background_color := theme[TGUI_Theme_Key.NEUTRAL_BACKGROUND_2][0]
 	set_clear_color(background_color)
-	wnd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK) }
+	wnd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK)
+	// wnd_customize(RED, RED)
+}
 
 tgui_theme_ms_light: ^TGUI_Theme
 tgui_theme_ms_dark: ^TGUI_Theme

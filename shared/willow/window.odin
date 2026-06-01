@@ -123,6 +123,8 @@ window_init :: proc(window_config: Window_Config) {
 			lpParam=nil)
 		assert(cast(win32.HANDLE)engine.window_manager.handle != win32.INVALID_HANDLE)
 		client_rect: win32.RECT
+		win32.SetProcessDpiAwarenessContext(win32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+		win32.SetProcessDpiAwareness(win32.PROCESS_DPI_AWARENESS.PROCESS_PER_MONITOR_DPI_AWARE)
 		win32.GetClientRect(cast(win32.HWND)engine.window_manager.handle, &client_rect)
 		engine.window_manager.size = {
 			f32(client_rect.right - client_rect.left),
@@ -145,8 +147,9 @@ window_init :: proc(window_config: Window_Config) {
 			dwFlags=win32.PFD_DRAW_TO_WINDOW|win32.PFD_SUPPORT_OPENGL|win32.PFD_DOUBLEBUFFER,
 			iPixelType=win32.PFD_TYPE_RGBA,
 			cColorBits=24,
-			cDepthBits=32,
-			cStencilBits=0,
+			cAlphaBits=8,
+			cDepthBits=24,
+			cStencilBits=8,
 			cAuxBuffers=0,
 			iLayerType=win32.PFD_MAIN_PLANE }
 		pixel_format: i32 = win32.ChoosePixelFormat(engine.window_manager.device_context, &pixel_format_desc)
@@ -155,8 +158,13 @@ window_init :: proc(window_config: Window_Config) {
 		opengl_context := win32.wglCreateContext(engine.window_manager.device_context)
 		win32.wglMakeCurrent(engine.window_manager.device_context, opengl_context)
 		gl.load_up_to(4, 6, win32.gl_set_proc_address)
+
+
+
+// DICK
 		// os.exit(0)
 	}
+	log.info(string(gl.GetString(gl.VERSION)))
 	wnd_set_pos(window_config.position)
 }
 
@@ -343,7 +351,10 @@ when WINDOW_VARIANT == .Win32 {
 		case win32.WM_CREATE:
 			fmt.println("WM_CREATE")
 		case win32.WM_SIZE:
-			fmt.println("WM_SIZE")
+			size: [2]f32 = {
+				cast(f32)win32.GET_X_LPARAM(l_param),
+				cast(f32)win32.GET_Y_LPARAM(l_param) }
+			fmt.println("WM_SIZE", size)
 		case win32.WM_CONTEXTMENU:
 			fmt.println("WM_CONTEXTMENU")
 		case win32.WM_RBUTTONDOWN:
