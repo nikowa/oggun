@@ -58,4 +58,12 @@ void main(void) {
 	// color.xyz = sample_raw(uv).xyz;
 	// color.w = 1;
 	color = clip_color(color, gl_FragCoord.xy - res / 2, clip);
-	if (color.w == 0.0) { gl_FragDepth = 1.0; } }
+
+	// TEMP
+	// color.a = 1;
+	// color.rgb = vec3(0);
+	// color.rg = tex_coords;
+
+	if (color.w == 0.0) { gl_FragDepth = 1.0; }
+
+}

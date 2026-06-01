@@ -132,8 +132,8 @@ window_init :: proc(window_config: Window_Config) {
 		client_rect: win32.RECT
 		win32.GetClientRect(cast(win32.HWND)engine.window_manager.handle, &client_rect)
 		engine.window_manager.size = {
-			f32(client_rect.right - client_rect.left),
-			f32(client_rect.bottom - client_rect.top) }
+			f32(client_rect.right - client_rect.left) + 1,
+			f32(client_rect.bottom - client_rect.top) + 1 }
 		corner_preference: win32.DWM_WINDOW_CORNER_PREFERENCE = .DONOTROUND
 		win32.DwmSetWindowAttribute(
 			hWnd=cast(win32.HWND)engine.window_manager.handle,

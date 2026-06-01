@@ -12,6 +12,8 @@ layout(location = 0) uniform vec2 res;
 layout(location = 1) uniform vec2 symbol_size;
 layout(location = 2) uniform float time;
 
+out vec4 gl_Position;
+
 out vec2 tex_coords;
 flat out uint _symbol;
 flat out vec4 _text_color;
