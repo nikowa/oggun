@@ -171,6 +171,8 @@ window_init :: proc(window_config: Window_Config) {
 		assert(win32.wglChoosePixelFormatARB != nil)
 		win32.wglCreateContextAttribsARB = auto_cast win32.wglGetProcAddress("wglCreateContextAttribsARB")
 		assert(win32.wglCreateContextAttribsARB != nil)
+
+		// Create Proper Context //
 		pixel_attribs: []i32 = {
 			win32.WGL_DRAW_TO_WINDOW_ARB, 1,
 			win32.WGL_SUPPORT_OPENGL_ARB, 1,
@@ -189,10 +191,7 @@ window_init :: proc(window_config: Window_Config) {
 		assert(n_formats == 1)
 		pixel_format_descriptor: win32.PIXELFORMATDESCRIPTOR
 		assert(win32.DescribePixelFormat(engine.window_manager.device_context, pixel_format, size_of(pixel_format_descriptor), &pixel_format_descriptor) != 0)
-
-		// Create Proper Context //
-		ok := cast(bool)win32.SetPixelFormat(engine.window_manager.device_context, pixel_format, &pixel_format_descriptor)
-		if !ok do fmt.println(win32_get_last_error())
+		assert(cast(bool)win32.SetPixelFormat(engine.window_manager.device_context, pixel_format, &pixel_format_descriptor))
 		context_attribs: []i32 = {
 			win32.WGL_CONTEXT_MAJOR_VERSION_ARB, 4, // use constant
 			win32.WGL_CONTEXT_MINOR_VERSION_ARB, 6, // use constant
@@ -448,16 +447,16 @@ when WINDOW_VARIANT == .Win32 {
 		case win32.WM_CONTEXTMENU:
 			fmt.println("WM_CONTEXTMENU")
 		case win32.WM_RBUTTONDOWN:
-			fmt.println("WM_RBUTTONDOWN")
+			input_record_key(.Mouse_Right, .Press)
 			return 0
 		case win32.WM_RBUTTONUP:
-			fmt.println("WM_RBUTTONUP")
+			input_record_key(.Mouse_Right, .Release)
 			return 0
 		case win32.WM_LBUTTONDOWN:
-			fmt.println("WM_LBUTTONDOWN")
+			input_record_key(.Mouse_Left, .Press)
 			return 0
 		case win32.WM_LBUTTONUP:
-			fmt.println("WM_LBUTTONUP")
+			input_record_key(.Mouse_Left, .Release)
 			return 0
 		case win32.WM_MOUSEMOVE:
 			position: [2]f32 = {
@@ -511,9 +510,7 @@ window_tick :: proc() {
 		for cast(bool)win32.PeekMessageW(&message, nil, 0, 0, win32.PM_REMOVE) {
 			win32.TranslateMessage(&message)
 			win32.DispatchMessageW(&message) }
-		win32.SwapBuffers(engine.window_manager.device_context)
-		// DICK
-	}
+		win32.SwapBuffers(engine.window_manager.device_context) }
 	set_cursor_immediate(engine.window_manager.cursor)
 	set_cursor(.Arrow) }
 

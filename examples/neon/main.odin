@@ -56,8 +56,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				// gx_clip_scope(clip_rect)
 
 				// Buttons //
-				// position: [2]f32 = { -500, 400 }
-				position: [2]f32 = { 0, 0 }
+				position: [2]f32 = { -500, 400 }
+				// position: [2]f32 = { 0, 0 }
 				ys: [3]f32 = { 24, -24, -48 - 24 }
 				ds: [3]bool = { false, true, false }
 				icons: [3]bool = { false, false, true }

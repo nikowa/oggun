@@ -670,7 +670,7 @@ render_render_buffer :: proc(render_buffer: ^Render_Buffer, channel: u32) {
 	use_shader(&engine.graphics_manager.buffer_shader)
 	set_shader_param(RES, linalg.array_cast(engine.graphics_manager.active_resolution, f32))
 	bind_texture(0, render_buffer.texture_handles[cast(int)channel])
-	texture_filtering(gl.LINEAR)
+	texture_filtering(gl.NEAREST)
 	polygon_mode(.Fill)
 	render_triangles(6) }
 

@@ -38,7 +38,7 @@ float sample_a(vec2 off) {
 	float acc = 0;
 	vec2 p = get_p(res) + off;
 	float dist = sdf_rounded_rect(p - vec2(rect.x, -rect.y), rect.zw / 2, vec4(rounding));
-	if (dist < 0.2) return 1;
+	if (dist < 0.5) return 1;
 	return 0; }
 
 void main(void) {
