@@ -3,6 +3,7 @@ package willow
 import gl "vendor:OpenGL"
 
 init_opengl :: proc() {
+	assert(gl.DebugMessageCallback != nil)
 	gl.DebugMessageCallback(error_callback, nil)
 	gl.Viewport(0, 0, cast(i32)engine.window_manager.size.x, cast(i32)engine.window_manager.size.y)
 	gl.GenVertexArrays(1, &engine.graphics_manager.vertex_array)

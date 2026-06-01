@@ -93,17 +93,20 @@ window_init :: proc(window_config: Window_Config) {
 		// if glfw.JoystickPresent(glfw.JOYSTICK_1) && glfw.JoystickIsGamepad(glfw.JOYSTICK_1) {}
 		}
 	else {
+		// Prelude //
 		instance := win32.GetModuleHandleW(nil)
 		assert(cast(win32.HANDLE)instance != win32.INVALID_HANDLE)
 		icon_path := path_from_url(cast(URL)"image:icon.ico", context.temp_allocator)
 		icon: win32.HICON = cast(win32.HICON)win32.LoadImageW(
 			hInst=nil, name=string_to_cstring16(icon_path), type=win32.IMAGE_ICON, cx=0, cy=0, fuLoad=win32.LR_LOADFROMFILE)
 		assert(cast(win32.HANDLE)icon != win32.INVALID_HANDLE)
-		CLASS_NAME: cstring16 : "Willow Window"
 		// fmt.println(win32_get_last_error())
 		engine.window_manager.cursors[int(Cursor.Arrow)] = win32.LoadCursorA(nil, win32.IDC_ARROW)
 		engine.window_manager.cursors[int(Cursor.Hand)] = win32.LoadCursorA(nil, win32.IDC_HAND)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = win32.LoadCursorA(nil, win32.IDC_NO)
+
+		// Create Proper Window //
+		CLASS_NAME: cstring16 : "Willow Window"
 		window_class: win32.WNDCLASSEXW = {
 			cbSize=size_of(win32.WNDCLASSEXW), style=win32.CS_OWNDC|win32.CS_DROPSHADOW|win32.CS_HREDRAW|win32.CS_VREDRAW, lpfnWndProc=win32_window_proc,
 			hInstance=cast(win32.HANDLE)instance, hIcon=icon, hCursor=engine.window_manager.cursors[int(Cursor.Arrow)],
@@ -122,9 +125,11 @@ window_init :: proc(window_config: Window_Config) {
 			hInstance=cast(win32.HANDLE)instance,
 			lpParam=nil)
 		assert(cast(win32.HANDLE)engine.window_manager.handle != win32.INVALID_HANDLE)
-		client_rect: win32.RECT
+		engine.window_manager.device_context = win32.GetDC(cast(win32.HWND)engine.window_manager.handle)
+		assert(cast(win32.HANDLE)engine.window_manager.device_context != win32.INVALID_HANDLE)
 		win32.SetProcessDpiAwarenessContext(win32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 		win32.SetProcessDpiAwareness(win32.PROCESS_DPI_AWARENESS.PROCESS_PER_MONITOR_DPI_AWARE)
+		client_rect: win32.RECT
 		win32.GetClientRect(cast(win32.HWND)engine.window_manager.handle, &client_rect)
 		engine.window_manager.size = {
 			f32(client_rect.right - client_rect.left),
@@ -135,36 +140,84 @@ window_init :: proc(window_config: Window_Config) {
 			dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
 			pvAttribute=&corner_preference, cbAttribute=size_of(win32.DWM_WINDOW_CORNER_PREFERENCE))
 
-			// DICK
-		// DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &captionColor, sizeof(COLORREF));
-		// DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR,    &textColor,    sizeof(COLORREF));
-
-		engine.window_manager.device_context = win32.GetDC(cast(win32.HWND)engine.window_manager.handle)
-		assert(cast(win32.HANDLE)engine.window_manager.device_context != win32.INVALID_HANDLE)
+		// Create Dummy Window & Context //
+		DUMMY_CLASS_NAME: cstring16 : "Dummy-Class"
+		dummy_window_class: win32.WNDCLASSW = {
+			lpfnWndProc=win32_dummy_window_proc, hInstance=cast(win32.HANDLE)instance, lpszClassName=DUMMY_CLASS_NAME }
+		assert(win32.RegisterClassW(&dummy_window_class) != 0)
+		DUMMY_WINDOW_NAME: cstring16 : "Dummy-Window"
+		dummy_window_handle := cast(win32.HWND)win32.CreateWindowW(
+			lpClassName=DUMMY_CLASS_NAME, lpWindowName=DUMMY_WINDOW_NAME, dwStyle=win32.WS_OVERLAPPED,
+			X=win32.CW_USEDEFAULT, Y=win32.CW_USEDEFAULT,
+			nWidth=1, nHeight=1, hWndParent=nil, hMenu=nil,
+			hInstance=cast(win32.HANDLE)instance, lpParam=nil)
+		assert(cast(win32.HANDLE)dummy_window_handle != win32.INVALID_HANDLE)
+		dummy_device_context := win32.GetDC(cast(win32.HWND)dummy_window_handle)
+		assert(cast(win32.HANDLE)dummy_device_context != win32.INVALID_HANDLE)
 		pixel_format_desc: win32.PIXELFORMATDESCRIPTOR = {
 			nSize=size_of(win32.PIXELFORMATDESCRIPTOR),
 			nVersion=1,
 			dwFlags=win32.PFD_DRAW_TO_WINDOW|win32.PFD_SUPPORT_OPENGL|win32.PFD_DOUBLEBUFFER,
 			iPixelType=win32.PFD_TYPE_RGBA,
-			cColorBits=24,
+			cColorBits=32,
 			cAlphaBits=8,
 			cDepthBits=24,
 			cStencilBits=8,
 			cAuxBuffers=0,
 			iLayerType=win32.PFD_MAIN_PLANE }
-		pixel_format: i32 = win32.ChoosePixelFormat(engine.window_manager.device_context, &pixel_format_desc)
+		pixel_format: i32 = win32.ChoosePixelFormat(dummy_device_context, &pixel_format_desc)
 		assert(pixel_format != 0)
-		assert(cast(bool)win32.SetPixelFormat(engine.window_manager.device_context, pixel_format, &pixel_format_desc))
-		opengl_context := win32.wglCreateContext(engine.window_manager.device_context)
+		assert(cast(bool)win32.SetPixelFormat(dummy_device_context, pixel_format, &pixel_format_desc))
+		dummy_opengl_context := win32.wglCreateContext(dummy_device_context)
+		assert(cast(win32.HANDLE)dummy_opengl_context != win32.INVALID_HANDLE)
+		win32.wglMakeCurrent(dummy_device_context, dummy_opengl_context)
+		win32.wglChoosePixelFormatARB = auto_cast win32.wglGetProcAddress("wglChoosePixelFormatARB")
+		assert(win32.wglChoosePixelFormatARB != nil)
+		win32.wglCreateContextAttribsARB = auto_cast win32.wglGetProcAddress("wglCreateContextAttribsARB")
+		assert(win32.wglCreateContextAttribsARB != nil)
+		pixel_attribs: []i32 = {
+			win32.WGL_DRAW_TO_WINDOW_ARB, 1,
+			win32.WGL_SUPPORT_OPENGL_ARB, 1,
+			win32.WGL_DOUBLE_BUFFER_ARB,  1,
+			win32.WGL_PIXEL_TYPE_ARB,     win32.WGL_TYPE_RGBA_ARB,
+			win32.WGL_COLOR_BITS_ARB,     32,
+			win32.WGL_ALPHA_BITS_ARB,     8,
+			win32.WGL_DEPTH_BITS_ARB,     24,
+			win32.WGL_STENCIL_BITS_ARB,   8,
+			win32.WGL_ACCELERATION_ARB,   win32.WGL_FULL_ACCELERATION_ARB,
+			win32.WGL_SAMPLE_BUFFERS_ARB, 0,
+			win32.WGL_SAMPLES_ARB,        0,
+			0 }
+		n_formats: u32
+		assert(cast(bool)win32.wglChoosePixelFormatARB(engine.window_manager.device_context, &pixel_attribs[0], nil, 1, &pixel_format, &n_formats))
+		assert(n_formats == 1)
+		pixel_format_descriptor: win32.PIXELFORMATDESCRIPTOR
+		assert(win32.DescribePixelFormat(engine.window_manager.device_context, pixel_format, size_of(pixel_format_descriptor), &pixel_format_descriptor) != 0)
+
+		// Create Proper Context //
+		ok := cast(bool)win32.SetPixelFormat(engine.window_manager.device_context, pixel_format, &pixel_format_descriptor)
+		if !ok do fmt.println(win32_get_last_error())
+		context_attribs: []i32 = {
+			win32.WGL_CONTEXT_MAJOR_VERSION_ARB, 4, // use constant
+			win32.WGL_CONTEXT_MINOR_VERSION_ARB, 6, // use constant
+			win32.WGL_CONTEXT_PROFILE_MASK_ARB,  win32.WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+			win32.WGL_CONTEXT_FLAGS_ARB,         win32.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+			0 }
+		opengl_context := win32.wglCreateContextAttribsARB(engine.window_manager.device_context, nil, &context_attribs[0])
+		// opengl_context := win32.wglCreateContext(engine.window_manager.device_context)
+		assert(cast(win32.HANDLE)opengl_context != win32.INVALID_HANDLE)
+
+		win32.wglMakeCurrent(nil, nil)
+		win32.wglDeleteContext(dummy_opengl_context)
+		win32.ReleaseDC(dummy_window_handle, dummy_device_context)
+		win32.DestroyWindow(dummy_window_handle)
+
 		win32.wglMakeCurrent(engine.window_manager.device_context, opengl_context)
+		assert(win32.wglGetCurrentContext() != nil)
 		gl.load_up_to(4, 6, win32.gl_set_proc_address)
-
-
-
-// DICK
 		// os.exit(0)
 	}
-	log.info(string(gl.GetString(gl.VERSION)))
+	// log.info(string(gl.GetString(gl.VERSION)))
 	wnd_set_pos(window_config.position)
 }
 
@@ -345,6 +398,9 @@ WIN32_KEY_MAP: [512]Input = {
 
 when WINDOW_VARIANT == .Win32 {
 
+	win32_dummy_window_proc :: proc "stdcall" (handle: win32.HWND, message: u32, w_param: uintptr, l_param: int) -> int {
+		return win32.DefWindowProcW(handle, message, w_param, l_param) }
+
 	win32_window_proc :: proc "stdcall" (handle: win32.HWND, message: u32, w_param: uintptr, l_param: int) -> int {
 		context = runtime.default_context()
 		switch message {
@@ -386,7 +442,9 @@ when WINDOW_VARIANT == .Win32 {
 			input_record_key(WIN32_KEY_MAP[w_param], .Release)
 			return 0
 		case win32.WM_CLOSE:
+			fmt.println("WM_CLOSE")
 		case win32.WM_DESTROY:
+			fmt.println("WM_DESTROY")
 			// win32.ReleaseDC(window, wcx.device_context);
 			// win32.wglDeleteContext(wcx.opengl_context);
 			// win32.PostQuitMessage(0);
