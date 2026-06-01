@@ -4,6 +4,7 @@ import "base:runtime"
 import "core:fmt"
 import "core:time"
 import "core:math"
+import "core:log"
 
 TGUI_Manager :: struct {
 	font_group: Font_Group,
@@ -1052,46 +1053,18 @@ tgui_draw_icon :: proc(icon: TGUI_Icon, position: [2]f32, depth: f32 = 0.0, angl
 	// draw_rect_outline({ position, TGUI_ICON_SIZE }, RED)
 	draw_text_symbol_rect(cast(u8)icon, { position, TGUI_ICON_SIZE }, depth, style = engine.tgui_manager.icons_text_style, angle = angle) }
 
-TGUI_Anim_Transition :: struct {
-	value: f32,
-	action_time: time.Duration,
-	action_value: f32,
-	direction: bool }
-
-tgui_anim_transition :: proc(range: [2]f32, initial_value: f32, speed: f32, initial_direction: bool, action: bool, location := #caller_location) -> (value: f32) {
-	assert(range[1] > range[0])
-	action := action
-	state, ok := engine.tgui_manager.anim_transitions[location]
-	time_now := time.stopwatch_duration(engine.stopwatch)
-	if ! ok {
-		action = true
-		state = { value = initial_value, action_time = time_now, action_value = initial_value, direction = initial_direction } }
-	if action {
-		state.action_time = time_now
-		state.action_value = state.value
-		state.direction = ! state.direction }
-	time_passed := time.duration_seconds(time_now - state.action_time)
-	if state.direction {
-		period: f32 = (1 / speed) * (range[1] - state.action_value) / (range[1] - range[0])
-		state.value = math.lerp(state.action_value, range[1], f32(time_passed) / period) }
-	else {
-		period: f32 = (1 / speed) * (state.action_value - range[0]) / (range[1] - range[0])
-		state.value = math.lerp(state.action_value, range[0], f32(time_passed) / period) }
-	state.value = clamp(state.value, range[0], range[1])
-	engine.tgui_manager.anim_transitions[location] = state
-	// fmt.println(state.value)
-	return state.value }
-
 @(deferred_none=gx_clip_pop)
 tgui_chevron :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
 	return tgui_chevron_begin(position, header, panel_size, location) }
+
+CHEVRON_ANIM_SPEED :: 6
 
 tgui_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
 	rect: Rect = { position, TGUI_ICON_SIZE }
 	width := draw_text_line(engine.tgui_manager.text_style, position + { TGUI_ICON_SIZE.x / 2 + TGUI_SPACING_XS, 0 }, header, pivot={ .West })
 	icon_rect: Rect = { position, TGUI_ICON_SIZE }
 	button_rect := rect_extend_variate(icon_rect, east=Interval(width + TGUI_SPACING_XS))
-	t := tgui_anim_transition([2]f32{ 0, 1 }, 0, 8, true, .PRESS in gui_button(button_rect), location=location)
+	t := tgui_anim_transition([2]f32{ 0, 1 }, 1, CHEVRON_ANIM_SPEED, false, .PRESS in gui_button(button_rect), location=location)
 	tgui_draw_icon(.Chevron, position, angle = t * math.PI / 2)
 	// draw_rect_outline(rect, RED)
 	// draw_rect_outline(button_rect, RED)
@@ -1101,14 +1074,51 @@ tgui_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32,
 	gx_clip_push(panel)
 	return panel }
 
-Accordion :: struct {
-	position: [2]f32 }
+extract_location :: proc(location := #caller_location, dest: ^runtime.Source_Code_Location) -> runtime.Source_Code_Location {
+	dest^ = location
+	return location }
 
-tgui_accordion :: proc(position: [2]f32) -> Accordion {
-	return { position=position } }
+Accordion :: struct {
+	multiple: bool,
+	collapsible: bool,
+	position: [2]f32,
+	locations: [dynamic]runtime.Source_Code_Location }
+
+@(deferred_out=tgui_accordion_end)
+tgui_accordion :: proc(position: [2]f32, multiple: bool=true, collapsible: bool=true) -> (accordion: ^Accordion) {
+	return tgui_accordion_begin(position, multiple=multiple, collapsible=collapsible) }
+
+tgui_accordion_begin :: proc(position: [2]f32, multiple: bool=true, collapsible: bool=true) -> (accordion: ^Accordion) {
+	accordion = new(Accordion, context.temp_allocator)
+	accordion^ = {
+		multiple=multiple,
+		collapsible=collapsible,
+		position=position,
+		locations=make([dynamic]runtime.Source_Code_Location, context.temp_allocator) }
+	return accordion }
+
+tgui_accordion_end :: proc(accordion: ^Accordion) {
+	if ! accordion.multiple {
+		last_open_location: runtime.Source_Code_Location
+		last_open_location_state: TGUI_Anim_Transition
+		for location in accordion.locations {
+			state := engine.tgui_manager.anim_transitions[location] or_continue
+			if state.direction == false {
+				if last_open_location_state.action_time < state.action_time {
+					last_open_location = location
+					last_open_location_state = engine.tgui_manager.anim_transitions[location] } } }
+		if last_open_location != {} do for location in accordion.locations {
+			state := engine.tgui_manager.anim_transitions[location] or_continue
+			if state.direction == false {
+				if location != last_open_location do tgui_anim_transition([2]f32{ 0, 1 }, 0, CHEVRON_ANIM_SPEED, true, true, location=location) } } }
+	if ! accordion.collapsible {
+		// Count how many are closed. If there are 0 closed, open the one with the most recent action. //
+	}
+}
 
 @(deferred_none=gx_clip_pop)
 tgui_accordion_add :: proc(accordion: ^Accordion, header: string, panel_size: [2]f32, location := #caller_location) -> (panel_rect: Rect) {
 	panel_rect = tgui_chevron_begin(accordion.position, header, panel_size, location)
 	accordion.position.y = rect_bottom(panel_rect) - TGUI_SPACING_L
+	append(&accordion.locations, location)
 	return panel_rect }
