@@ -201,7 +201,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			down: bool = false
 			if inputs[i] != .None do down = input_query(inputs[i], .DOWN)
 			down_offset: [2]f32 = { 0, down ? -4 : 0 }
-			if down do dr_rect(rect, DARK_GRAY, depth = 0.99)
+			if down do dr_rect(rect, DARK_GRAY)
 			dr_rect({ engine.input_manager.mouse_position, { 4, 4 } }, RED)
 			dr_rect_outline(rect, WHITE)
 			dr_rect_outline(gi_rect_translate(key_margins(rect), down_offset), GRAY)

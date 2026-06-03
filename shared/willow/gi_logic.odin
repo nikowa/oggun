@@ -7,9 +7,10 @@ import "core:math"
 import "core:log"
 import "core:strings"
 
-gi_logic_button :: proc(rect: Rect, disabled: bool = false) -> (actions: bit_set[GUI_Action]) {
+gi_logic_button :: proc(rect: Rect) -> (actions: bit_set[GUI_Action]) {
 	hovered := rect_hovered(rect)
 	pressed := hovered && input_query(.Mouse_Left, .PRESSED)
+	disabled := gi_get_disabled()
 	if hovered do actions += { .HOVER }
 	if pressed do actions += { .PRESS }
 	if hovered {

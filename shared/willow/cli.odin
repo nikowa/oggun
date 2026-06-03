@@ -29,7 +29,7 @@ main :: proc() {
 		src_dir, _ := os.get_executable_directory(context.allocator)
 		src_dir, _ = os.join_path({ src_dir, "shared", "willow" }, context.allocator)
 		dst_dir, _ := os.join_path({ ODIN_ROOT, "shared", "willow" }, context.allocator)
-		generate(src_dir)
+		gn_generate(src_dir)
 		os.remove_all(dst_dir)
 		err := os.copy_directory_all(dst_dir, src_dir)
 		if err != nil {

@@ -47,9 +47,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
-			dr_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
-			// dr_rect(gi_rect_screen(), BLACK, depth = 0.9)
+			dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
+			dr_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED)
+			// dr_rect(gi_rect_screen(), BLACK)
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
 			// dr_rect_outline(clip_rect, RED)
 			{
@@ -62,27 +62,29 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				ds: [3]bool = { false, true, false }
 				icons: [3]bool = { false, false, true }
 				for y, i in ys {
-					disabled := ds[i]
+					gi_disabled_scope(ds[i])
 					icon := icons[i]
 					DELTA :: 120
 					rect: Rect = { position + { - 2 * DELTA, y }, GI_BUTTON_SIZE_SMALL * { 1, 1 } }
-					gi_button(rect, "*Fish*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled, icon=icon ? .Notes : .None)
+					{ gi_appearance_scope(.DEFAULT); gi_button(rect, "*Fish*", icon=icon ? .Notes : .None) }
 					rect.position.x += DELTA
-					gi_button(rect, "*Soup*", appearance=.PRIMARY, shape=.ROUNDED, disabled=disabled, icon=icon ? .Image : .None)
+					{ gi_appearance_scope(.PRIMARY); gi_button(rect, "*Soup*", icon=icon ? .Image : .None) }
 					rect.position.x += DELTA
-					gi_button(rect, "*Tea*", appearance=.OUTLINE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Person : .None)
+					{ gi_appearance_scope(.OUTLINE); gi_button(rect, "*Tea*", icon=icon ? .Person : .None) }
 					rect.position.x += DELTA
-					gi_button(rect, "*Cup*", appearance=.SUBTLE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Delete : .None)
+					{ gi_appearance_scope(.SUBTLE); gi_button(rect, "*Cup*", icon=icon ? .Delete : .None) }
 					rect.position.x += DELTA
-					gi_button(rect, "*Fork*", appearance=.TRANSPARENT, shape=.ROUNDED, disabled=disabled, icon=icon ? .Sticker : .None) }
+					{ gi_appearance_scope(.TRANSPARENT); gi_button(rect, "*Fork*", icon=icon ? .Sticker : .None) } }
 
 				// Transition Animation //
 				position = { -740, 280 }
 				rect: Rect = { position, GI_BUTTON_SIZE_SMALL }
 				x0: f32 = position.x + 120
 				x1: f32 = position.x + 120 * 4
-				x := x0 + (x1 - x0) * ease_sin_3(gi_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in gi_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
-				gi_button({ { x, position.y }, GI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
+				gi_appearance_push(.DEFAULT)
+				x := x0 + (x1 - x0) * ease_sin_3(gi_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in gi_button(rect, "*Anim*")))
+				gi_appearance_pop()
+				{ gi_appearance_scope(.PRIMARY); gi_button({ { x, position.y }, GI_BUTTON_SIZE_SMALL }, "") }
 
 				// Accordion //
 				accordion := gi_accordion({ 0, 0 }, multiple=false)
@@ -93,7 +95,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 				// image_rect := make_rect(0, 0, 120, 120)
 				// image_rect = gi_rect_top_to(image_rect, rect_bottom(panel_rect))
-				// dr_image(&image, image_rect, depth = 0.0)
+				// dr_image(&image, image_rect)
 
 			}
 			// Accordion //

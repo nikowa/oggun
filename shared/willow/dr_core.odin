@@ -32,7 +32,7 @@ Draw_Rect_Group_Params :: struct {
 
 // (TODO): Rename "rounding" to "radius" and make it "f32". //
 // (TODO): Change "stroke" to u8
-dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, depth: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Draw_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = integer ? rect_round(rect) : rect,
@@ -41,19 +41,19 @@ dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRA
 		stroke_color = stroke_color,
 		rounding = rounding,
 		stroke = stroke,
-		depth = depth,
+		depth = gx_get_depth(),
 		clip = gx_get_clip() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
-dr_rect_outline :: proc(rect: Rect, color: Color = BLACK, depth: f32 = 0.0, integer: bool = true) {
+dr_rect_outline :: proc(rect: Rect, color: Color = BLACK, integer: bool = true) {
 	a: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2 }
 	b: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y - rect.size.y / 2 }
 	c: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y + rect.size.y / 2 + 1 }
 	d: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y + rect.size.y / 2 + 1 }
-	dr_line({ a, b }, color, depth, integer)
-	dr_line({ b, d }, color, depth, integer)
-	dr_line({ d, c }, color, depth, integer)
-	dr_line({ c, a }, color, depth, integer) }
+	dr_line({ a, b }, color, integer)
+	dr_line({ b, d }, color, integer)
+	dr_line({ d, c }, color, integer)
+	dr_line({ c, a }, color, integer) }
 
 Draw_Line_Command :: struct {
 	using params: Draw_Line_Params,
@@ -69,12 +69,12 @@ Draw_Line_Params :: struct {
 Draw_Line_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
-dr_line :: proc(points: [2][2]f32, color: Color, depth: f32 = 0.0, integer: bool = true) {
+dr_line :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
 	command: Draw_Line_Command = {
 		point_a = integer ? { math.round_f32(points[0].x), math.round_f32(points[0].y) } : points[0],
 		point_b = integer ? { math.round_f32(points[1].x), math.round_f32(points[1].y) } : points[1],
 		color = color,
-		depth = depth,
+		depth = gx_get_depth(),
 		clip = gx_get_clip() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
@@ -92,12 +92,12 @@ dr_image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
 	image: ^Image_Asset }
 
-dr_image :: proc(image: ^Image_Asset, rect: Rect, depth: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+dr_image :: proc(image: ^Image_Asset, rect: Rect, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Draw_Image_Command = {
 		render_buffer = render_buffer,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
-		depth = depth,
+		depth = gx_get_depth(),
 		clip = gx_get_clip() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
@@ -123,7 +123,7 @@ Draw_Text_Params :: struct {
 	clip: Rect }
 
 // (TODO): implement "integer" param. It does nothng right now.
-dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {
+dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {
 	using style
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
@@ -136,7 +136,7 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_Styl
 		color = color,
 		clip = gx_get_clip() }
 	command.symbol = symbol
-	command.position = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2, depth }
+	command.position = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2, gx_get_depth() }
 	command.scale_factor = f32(scale_factor)
 	command.color = color
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
@@ -145,7 +145,7 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, depth: f32, style: Text_Styl
 	command.uv_offset = uv_offset
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
-dr_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
+dr_text_symbol :: proc(symbol: u8, position: [2]f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
 	using style
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
@@ -157,7 +157,7 @@ dr_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_Sty
 		color = color,
 		clip = gx_get_clip() }
 	command.symbol = symbol
-	command.position = [3]f32{ f32(position.x), f32(position.y), depth }
+	command.position = [3]f32{ f32(position.x), f32(position.y), gx_get_depth() }
 	command.position.x -= f32(command.font.bearings[symbol]) * scale_factor
 	command.scale_factor = f32(scale_factor)
 	command.color = color
@@ -169,7 +169,7 @@ dr_text_symbol :: proc(symbol: u8, position: [2]f32, depth: f32, style: Text_Sty
 	command.uv_offset = { 0, 0 }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
-dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: bit_set[Compass] = { .South }, depth: f32 = 0.0, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
+dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: bit_set[Compass] = { .South }, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
 	style := style
 	using style
 	// dr_rect({ position = position, size = { 4, 4 } }, BLUE)
@@ -197,7 +197,7 @@ dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: b
 		if symbol == '*' {
 			style.bold = ! style.bold; continue }
 		font := font_group_select(font_group, style)
-		dr_text_symbol(cast(u8)symbol, symbol_position, depth, style, integer = integer)
+		dr_text_symbol(cast(u8)symbol, symbol_position, style, integer = integer)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
@@ -205,7 +205,7 @@ dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: b
 		symbol_position.x += symbol_delta }
 	return width }
 
-dr_text_box :: proc(text: string, style: Text_Style, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, depth: f32 = 0.0, integer: bool = true) {
+dr_text_box :: proc(text: string, style: Text_Style, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) {
 	style := style
 	using style
 	// dr_rect_outline(graphics_manager, rect, BLUE, 0.1)
@@ -242,5 +242,5 @@ dr_text_box :: proc(text: string, style: Text_Style, rect: Rect, h_align: GUI_H_
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		dr_text_line(line, style, position, pivot = pivot + { .South }, desired_width = desired_width, depth = depth, integer = integer)
+		dr_text_line(line, style, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
 		position.y -= line_height } }

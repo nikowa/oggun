@@ -112,7 +112,7 @@ dr_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	dr_image(image, { screen_position, image_size }, depth = entity.depth)
+	{ gx_depth_scope(entity.depth); dr_image(image, { screen_position, image_size }) }
 	dr_text_line(label, text_style, screen_position + { 0, image_size.y / 2 }) }
 
 @(export)
@@ -156,14 +156,17 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			dr_image(&background_image, screen_rect, depth = 0.99)
+			dr_image(&background_image, screen_rect)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
 				dr_entity(entity) }
 
-			dr_image(&meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			dr_image(&zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			{
+				gx_depth_scope(0.0)
+				dr_image(&meerkat_image, { { -50, 0 }, MEERKAT_SIZE })
+				dr_image(&zebra_image, { { 50, 0 }, ZEBRA_SIZE })
+			}
 			// dr_text("Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
 		}
 

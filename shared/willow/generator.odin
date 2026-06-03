@@ -13,7 +13,25 @@ import "core:slice"
 
 stub_error_handler :: proc(_: tokenizer.Pos, _: string, _: ..any) { }
 
-generate :: proc(willow_path: string) {
+Generator :: struct {
+	prefix: string,
+	builder: strings.Builder }
+
+generators: map[string]Generator
+
+gn_get_generator :: proc(member_path: string) -> ^Generator {
+	prefix := strings.split(member_path, "_")[0]
+	if prefix not_in generators {
+		generator: Generator = gx_make_generator(prefix, 10_000)
+		fmt.sbprintfln(&generator.builder, `package willow`)
+		generators[prefix] = generator }
+	return &generators[prefix] }
+
+gn_generate :: proc(willow_path: string) {
+	gn_generate_defaults(willow_path)
+	gn_generate_stacks(willow_path) }
+
+gn_generate_defaults :: proc(willow_path: string) {
 	builder: strings.Builder
 	strings.builder_init_len_cap(&builder, 0, 10_000, context.allocator)
 	fmt.sbprintln(&builder, "package willow")
@@ -109,7 +127,6 @@ generate :: proc(willow_path: string) {
 		if value_decl.type != nil {
 			type_ident, ok := value_decl.type.derived.(^ast.Ident)
 			if ! ok do return v
-			// if ! strings.contains(type_ident.name, "Config") do return v
 			selected: bool = false
 			for _, i in config_type_infos[:] {
 				type_info := &config_type_infos[i]
@@ -117,10 +134,7 @@ generate :: proc(willow_path: string) {
 					selected = true
 					type_info.selected = true
 					break } }
-			if ! selected do return v
-			// fmt.println("______________________________________")
-			// fmt.println(name_ident.name, type_ident.name)
-			}
+			if ! selected do return v }
 		return v }
 
 	for file_info in file_infos {
@@ -141,13 +155,6 @@ generate :: proc(willow_path: string) {
 	selected_config_type_infos := make([dynamic]Config_Type_Info, context.allocator)
 	for type_info in config_type_infos do if type_info.selected do append(&selected_config_type_infos, type_info)
 
-	// fmt.sbprintln(&builder, "/*")
-	// Config_Type_Info :: struct {
-	// 	selected:     bool,
-	// 	name:         string,
-	// 	default_name: string,
-	// 	field_names:  []string,
-	// 	field_types:  []string }
 	for type_info in selected_config_type_infos {
 		fmt.sbprintfln(&builder, "%s :: proc(", strings.to_lower(type_info.default_name))
 		for _, i in type_info.field_names do if type_info.field_types[i] == "typeid" {
@@ -171,16 +178,63 @@ generate :: proc(willow_path: string) {
 			if i < len(type_info.field_names) - 1 do fmt.sbprintln(&builder, ",") }
 		fmt.sbprintln(&builder, " } }\n")
 	}
-	// fmt.sbprintln(&builder, "*/")
-
-// default_font_config :: proc(
-// 	name: string = DEFAULT_FONT_CONFIG.name,
-// 	default_bearing: u8 = DEFAULT_FONT_CONFIG.default_bearing,
-// 	default_advance: u8 = DEFAULT_FONT_CONFIG.default_advance) -> (font_config: Font_Config) {
-// 	return {
-// 		name = name,
-// 		default_bearing = default_bearing,
-// 		default_advance = default_advance } }
 
 	path, _ := os.join_path({ willow_path, "generated.odin" }, context.allocator)
 	_ = os.write_entire_file(path, strings.to_string(builder)) }
+
+// gi_get_appearance :: proc() -> GI_Appearance {
+// 	if len(engine.gi_manager.appearance_stack) == 0 do return .DEFAULT
+// 	return engine.gi_manager.appearance_stack[len(engine.gi_manager.appearance_stack) - 1] }
+
+// @(deferred_none=gi_appearance_pop)
+// gi_appearance_scope :: proc(appearance: GI_Appearance) {
+// 	gi_appearance_push(appearance) }
+
+// gi_appearance_push :: proc(appearance: GI_Appearance) {
+// 	append(&engine.gi_manager.appearance_stack, appearance) }
+
+// gi_appearance_pop :: proc() {
+// 	pop(&engine.gi_manager.appearance_stack) }
+
+gn_generate_stack :: proc(generator: ^Generator, name: string, type: string, default: string, field: string) {
+	fmt.sbprintfln(&generator.builder, `
+gi_get_%s :: proc() -> %s {{
+	if len(engine.%s.%s_stack) == 0 do return %s
+	return engine.%s.%s_stack[len(engine.%s.%s_stack) - 1] }}`,
+		name, type, field, name, default, field, name, field, name)
+
+	fmt.sbprintfln(&generator.builder, `
+@(deferred_none=gi_%s_pop)
+gi_%s_scope :: proc(%s: %s) {{
+	gi_%s_push(%s) }}`,
+		name, name, name, type, name, name)
+
+	fmt.sbprintfln(&generator.builder, `
+gi_%s_push :: proc(%s: %s) {{
+	append(&engine.%s.%s_stack, %s) }}`,
+		name, name, type, field, name, name)
+
+	fmt.sbprintfln(&generator.builder, `
+gi_%s_pop :: proc() {{
+	pop(&engine.%s.%s_stack) }}`,
+		name, field, name) }
+
+gx_make_generator :: proc(prefix: string, cap: int) -> Generator {
+	builder: strings.Builder
+	strings.builder_init_len_cap(&builder, 0, cap, context.allocator)
+	return {
+		prefix=prefix,
+		builder=builder } }
+
+gn_generator_commit :: proc(generator: ^Generator, willow_path: string) {
+	path, _ := os.join_path({ willow_path, fmt.aprintf("%s_generated.odin", generator.prefix) }, context.allocator)
+	_ = os.write_entire_file(path, strings.to_string(generator.builder)) }
+
+gn_generate_stacks :: proc(willow_path: string) {
+	generator := gn_get_generator("gi")
+	// generator := gx_make_generator("gi", 10_000)
+	gn_generate_stack(generator, "disabled", "bool", "false", "gi_manager")
+	gn_generate_stack(generator, "button_shape", "GI_Button_Shape", ".ROUNDED", "gi_manager")
+	gn_generate_stack(generator, "appearance", "GI_Appearance", ".DEFAULT", "gi_manager")
+	gn_generator_commit(generator, willow_path)
+}

@@ -17,28 +17,6 @@ main :: proc() {
 	context.logger = log.create_console_logger()
 	willow.start(entry_point, n_workers_override = 1) }
 
-Sprite :: struct {
-	position: [2]f32,
-	direction: [2]f32,
-	depth: f32,
-	speed: f32 }
-
-sprite_init :: proc(sprite: ^Sprite) {
-	sprite.position = { rand.float32(), rand.float32() }
-	sprite.depth = rand.float32()
-	angle: f32 = 2 * math.PI * rand.float32()
-	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
-	sprite.speed = 0.1 * (1 + rand.float32()) }
-
-Settings :: struct {
-	player_name: string,
-	resolution: [2]f32,
-	fullscreen: bool }
-
-Color :: struct {
-	name: string,
-	hex: u32 }
-
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
@@ -87,8 +65,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// char: u8 = cast(u8)GI_Icon.Save
 			char: u8 = cast(u8)time
 			arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
-			dr_text_symbol_rect(char, arrow_rect, 0.5, style = engine.gi_manager.icons_text_style, angle = 0 * time)
-			dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, depth = 0.2, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			dr_text_symbol_rect(char, arrow_rect, style = engine.gi_manager.icons_text_style, angle = 0 * time)
+			dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
 			dr_text_box(text, text_style, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false) }
 		free_all(context.temp_allocator) }
 	return }

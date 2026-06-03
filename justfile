@@ -14,7 +14,7 @@ release:
 	make -C ./build
 	./build.exe -release
 
-check:
+check: lib
 	cls
 	odin check shared/willow {{check_flags}}
 	odin check examples/input {{check_flags}}

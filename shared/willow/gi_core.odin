@@ -18,7 +18,10 @@ GI_Manager :: struct {
 	// body1_font_group: Font_Group,     // 14px
 	// body2_font_group: Font_Group,     // 16px
 	// subtitle1_font_group: Font_Group, // 20px
-	theme: ^GI_Theme }
+	theme: ^GI_Theme,
+	button_shape_stack: [dynamic]GI_Button_Shape,
+	appearance_stack: [dynamic]GI_Appearance,
+	disabled_stack: [dynamic]bool }
 
 GI_Variant :: enum {
 	NORMAL = 0,
@@ -974,9 +977,9 @@ gi_theme_ms_dark: ^GI_Theme
 // Then GUI functions take a slice, so you can just give it a slice off this table.
 
 // (TODO): Add "depth" stack in "GX_Manager". Depth should never be set manually.
-gi_button :: proc(rect: Rect, text: string, shape: GI_Button_Shape = .ROUNDED, appearance: GI_Appearance = .DEFAULT, disabled: bool = false, icon: GI_Icon = .None) -> (actions: bit_set[GUI_Action]) {
-	actions = gi_logic_button(rect, disabled)
-	dr_button(rect, text, shape=shape, appearance=appearance, disabled=disabled, icon=icon)
+gi_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) -> (actions: bit_set[GUI_Action]) {
+	actions = gi_logic_button(rect)
+	dr_button(rect, text, icon=icon)
 	return actions }
 
 @(deferred_none=gx_clip_pop)
