@@ -117,12 +117,12 @@ package willow
 // 	data: []u8
 
 // 	texture.config = config
-// 	path = relpath_to_source_path(database, relpath_from_url(database, url, context.allocator), context.allocator)
-// 	if entry, ok = db.get_entry(&database, url); ok {
+// 	path = am_relpath_to_source_path(database, am_relpath_from_url(database, url, context.allocator), context.allocator)
+// 	if entry, ok = db.am_get_entry(&database, url); ok {
 // 		data = entry.data }
 // 	else {
 // 		data = os.read_entire_file_from_path(path, context.allocator) or_return
-// 		db.make_entry(url, data, os.modification_time_by_path(path)) }
+// 		db.am_make_entry(url, data, os.modification_time_by_path(path)) }
 
 // 	// DICK
 // 	texture_image, image_err = load_proc(bytes, { .alpha_add_if_missing }, context.allocator)

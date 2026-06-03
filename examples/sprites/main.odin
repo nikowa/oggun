@@ -58,7 +58,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	init_image(&images[2], { url = "image:kitten-3.png" })
 	init_image(&images[3], { url = "image:kitten-4.png" })
 	init_image(&images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(asset_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	N :: 10000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
@@ -80,7 +80,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			rect_screen := rect_screen()
+			gi_rect_screen := gi_rect_screen()
 			image_index: int = 0
 			for &sprite, i in sprites {
 				sprite.position += engine.tick_manager.delta_time * sprite.speed * sprite.direction
@@ -97,6 +97,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
 				sprite_rect: Rect = { engine.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				draw_image(&images[image_index], sprite_rect, depth = sprite.depth)
+				dr_image(&images[image_index], sprite_rect, depth = sprite.depth)
 				if i > splits[image_index] do image_index += 1 } } }
 	return }

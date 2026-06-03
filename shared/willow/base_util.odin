@@ -47,23 +47,11 @@ decompress :: proc(compressed_bytes: []u8, allocator: runtime.Allocator) -> (byt
 		delete(bytes_buffer, allocator)
 		return bytes } }
 
+extract_location :: proc(location := #caller_location, dest: ^runtime.Source_Code_Location) -> runtime.Source_Code_Location {
+	dest^ = location
+	return location }
+
 /*
-print_log :: proc(args: ..any, sep := " ", flush := true) -> int{
-	when PRINT_LOGS { fmt.print(LOG); return fmt.println(..args, sep = sep, flush = flush) } else { return 0 } }
-
-
-print_bad :: proc(args: ..any, sep := " ", flush := true) -> int{
-	when PRINT_BADS { fmt.print(BAD); return fmt.println(..args, sep = sep, flush = flush) } else { return 0 } }
-
-
-print_warn :: proc(args: ..any, sep := " ", flush := true) -> int{
-	when PRINT_WARNS { fmt.print(WARN); return fmt.println(..args, sep = sep, flush = flush) } else { return 0 } }
-
-
-print_date :: proc(args: ..any, sep := " ", flush := true) -> int{
-	when PRINT_DATES { fmt.print(DATE); return fmt.println(..args, sep = sep, flush = flush) } else { return 0 } }
-
-
 mix :: proc(x: f32, y: f32, t: f32) -> f32 {
 	return x + (y - x) * t }
 

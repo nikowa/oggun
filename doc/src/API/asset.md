@@ -38,8 +38,7 @@ To make a custom asset type, you need to do these four things:
 1. Define a struct type that derives from `Asset`.
 
 ```c
-My_Asset :: struct {
-	using asset: Asset,
+My_Asset :: ---
 	... }
 ```
 

@@ -192,13 +192,13 @@ GLSL_Builder :: struct {
 	global_variables: [dynamic][2]string }
 
 init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, config: Shader_Config) -> (err: os.Error) {
-	init_asset(Shader_Asset, &shader.asset, asset_config)
+	am_init_asset(Shader_Asset, &shader.asset, asset_config)
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader.shader_config = config
-	init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
-	init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
+	am_init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
+	am_init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
 	append(&engine.graphics_manager.shaders, shader) or_return
-	assert(asset_commands(Shader_Asset, shader, { .Import, .Load }))
+	assert(am_commands(Shader_Asset, shader, { .Import, .Load }))
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -245,7 +245,7 @@ compile_shader :: proc(shader_asset: ^Shader_Asset, allocator := context.allocat
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
-	shader_asset.last_modification_time = time_max(get_entry(shader_asset.vert_asset.url).modification_time, get_entry(shader_asset.frag_asset.url).modification_time)
+	shader_asset.last_modification_time = time_max(am_get_entry(shader_asset.vert_asset.url).modification_time, am_get_entry(shader_asset.frag_asset.url).modification_time)
 	return os.General_Error.None }
 
 
@@ -339,7 +339,7 @@ preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, 
 			if ((open == '\"') && (close == '\"')) || ((open == '<') && (close == '>')) {
 				relpath: string
 				relpath, err = os.join_filename(fields[1][1:len(fields[1]) - 1], "lib.glsl", context.temp_allocator)
-				path := relpath_to_source_path(relpath, context.temp_allocator)
+				path := am_relpath_to_source_path(relpath, context.temp_allocator)
 				// log.infof("Including shader library \"%s\".", path)
 				bytes: []u8
 				bytes, err = os.read_entire_file_from_path(path, context.allocator)
@@ -389,19 +389,19 @@ preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, 
 
 shader_outdated :: proc(shader_asset: ^Shader_Asset) -> (outdated: bool) {
 	outdated = true
-	vert_entry := get_entry(shader_asset.vert_asset.url)
-	frag_entry := get_entry(shader_asset.frag_asset.url)
+	vert_entry := am_get_entry(shader_asset.vert_asset.url)
+	frag_entry := am_get_entry(shader_asset.frag_asset.url)
 	latest_modification_time: time.Time = time_max(vert_entry.modification_time, frag_entry.modification_time)
 	return time.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
 shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
-	shader_asset := asset_object(asset, Shader_Asset, "asset")
+	shader_asset := am_asset_base(asset, Shader_Asset, "asset")
 	switch command {
 	case .Validate:
 		return true
 	case .Query_Location:
-		assert(asset_command(String_Asset, &shader_asset.vert_asset, .Query_Location))
-		assert(asset_command(String_Asset, &shader_asset.frag_asset, .Query_Location))
+		assert(am_command(String_Asset, &shader_asset.vert_asset, .Query_Location))
+		assert(am_command(String_Asset, &shader_asset.frag_asset, .Query_Location))
 		assert(.Source_Directory in shader_asset.vert_asset.location)
 		assert(.Source_Directory in shader_asset.frag_asset.location)
 	case .Import:
@@ -412,15 +412,15 @@ shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool 
 			// If one of the strings' modification times are newer than the shader's modification time, update the shader with
 			// the new strings.
 		}
-		assert(asset_command(String_Asset, &shader_asset.vert_asset, .Import))
-		assert(asset_command(String_Asset, &shader_asset.frag_asset, .Import))
+		assert(am_command(String_Asset, &shader_asset.vert_asset, .Import))
+		assert(am_command(String_Asset, &shader_asset.frag_asset, .Import))
 		asset.location += { .Database }
 		return true
 	case .Load:
 		// TEMP
 		// context.allocator = engine.backing_allocator
-		assert(asset_command(String_Asset, &shader_asset.vert_asset, .Load))
-		assert(asset_command(String_Asset, &shader_asset.frag_asset, .Load))
+		assert(am_command(String_Asset, &shader_asset.vert_asset, .Load))
+		assert(am_command(String_Asset, &shader_asset.frag_asset, .Load))
 		err := compile_shader(shader_asset)
 		return err == nil
 	case .Export, .Save, .Upload, .Download:

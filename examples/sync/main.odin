@@ -95,7 +95,7 @@ spawn_car :: proc(position: [2]f32) {
 swing :: proc() -> f32 {
 	return rand.float32_range(-0.05, 0.05) }
 
-draw_entity :: proc(entity: ^Entity) {
+dr_entity :: proc(entity: ^Entity) {
 	using willow
 
 	screen_position: [2]f32
@@ -112,8 +112,8 @@ draw_entity :: proc(entity: ^Entity) {
 		image = &car_image
 		image_size = CAR_SIZE
 		label = "Car" }
-	draw_image(image, { screen_position, image_size }, depth = entity.depth)
-	draw_text_line(text_style, screen_position + { 0, image_size.y / 2 }, label) }
+	dr_image(image, { screen_position, image_size }, depth = entity.depth)
+	dr_text_line(label, text_style, screen_position + { 0, image_size.y / 2 }) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
@@ -126,7 +126,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.temp_allocator = mem.arena_allocator(&arena)
 
 	engine_init("Sync Example")
-	screen_rect = rect_screen()
+	screen_rect = gi_rect_screen()
 
 	init_image(&background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
@@ -141,7 +141,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	init_image(&zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(asset_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
 	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
 	text_style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
@@ -156,15 +156,15 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			draw_image(&background_image, screen_rect, depth = 0.99)
+			dr_image(&background_image, screen_rect, depth = 0.99)
 
 			iter := list.iterator_head(entities, Entity, "node")
 			for entity in list.iterate_next(&iter) {
-				draw_entity(entity) }
+				dr_entity(entity) }
 
-			draw_image(&meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
-			draw_image(&zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
-			// draw_text("Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
+			dr_image(&meerkat_image, { { -50, 0 }, MEERKAT_SIZE }, depth = 0.0)
+			dr_image(&zebra_image, { { 50, 0 }, ZEBRA_SIZE }, depth = 0.0)
+			// dr_text("Hello, world!", font = &font, color = WHITE, scale_factor = 1.0)
 		}
 
 		free_all(context.temp_allocator) }

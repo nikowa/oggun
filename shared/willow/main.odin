@@ -92,6 +92,6 @@ package willow
 // 		sync_start(unwrap(&sync))
 // 	}
 // 	thread_proc(&main_thread_handle)
-// 	draw_destroy(unwrap(&draw))
+// 	dr_destroy(unwrap(&draw))
 // 	free_all(context.allocator) }
 

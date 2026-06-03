@@ -30,12 +30,12 @@ image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 init_image :: proc(image: ^Image_Asset, config: Asset_Config) {
 	config := config
 	config.derived_type = Image_Asset
-	init_asset(Image_Asset, &image.asset, config) }
+	am_init_asset(Image_Asset, &image.asset, config) }
 
 image_modification_time :: proc(image: ^Image_Asset, location: Asset_Location_Field) -> (modification_time: time.Time) {
 	switch location {
 	case .Source_Directory:
-		path := path_from_url(image.url, context.temp_allocator)
+		path := am_path_from_url(image.url, context.temp_allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database_File:
@@ -43,7 +43,7 @@ image_modification_time :: proc(image: ^Image_Asset, location: Asset_Location_Fi
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database:
-		entry := get_entry(image.url)
+		entry := am_get_entry(image.url)
 		return (entry != nil) ? entry.modification_time : {}
 	case .Main_Memory:
 		return image.modification_time
@@ -53,17 +53,17 @@ image_modification_time :: proc(image: ^Image_Asset, location: Asset_Location_Fi
 
 @private
 image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
-	img := asset_object(asset, Image_Asset, "asset")
+	img := am_asset_base(asset, Image_Asset, "asset")
 	switch command {
 	case .Validate:
 	case .Query_Location:
-		path := path_from_url(asset.url, context.temp_allocator)
+		path := am_path_from_url(asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
 		// TEMP
 		// context.allocator = engine.backing_allocator
 		err: os.Error
-		path := path_from_url(img.url, context.allocator)
+		path := am_path_from_url(img.url, context.allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		if time.diff(img.modification_time, modification_time) <= 0 do return true
 		loader_proc: image.Loader_Proc
@@ -80,7 +80,7 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		img.image = image_temp^
 		free(image_temp)
 		bytes, _ = image_serialize(img, context.allocator)
-		add_or_update_entry(make_entry(img.url, bytes, modification_time))
+		am_add_or_update_entry(am_make_entry(img.url, bytes, modification_time))
 		asset.location += { .Database, .Main_Memory }
 		img.modification_time = modification_time
 		return true
@@ -144,8 +144,8 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 // 	modification_time: t.Time
 // 	bytes: []u8
 
-// 	entry, ok = get_entry(database, url)
-// 	if ok do if entry_was_modified(database, entry) || database.spec_modified do ok = false
+// 	entry, ok = am_get_entry(database, url)
+// 	if ok do if am_entry_was_modified(database, entry) || database.spec_modified do ok = false
 // 	if ok do image = image_deserialize(entry.data, allocator) or_return
 // 	else {
 // 		log.infof("Reading image %s from source.", url)
@@ -153,7 +153,7 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 // 		image = load_image_from_path(path, url, allocator) or_return
 // 		modification_time = os.modification_time_by_path(path) or_return
 // 		bytes = image_serialize(&image, allocator) or_return
-// 		add_or_update_entry(database, make_entry(url, bytes, modification_time), true) or_return }
+// 		am_add_or_update_entry(database, am_make_entry(url, bytes, modification_time), true) or_return }
 // 	return image, os.General_Error.None }
 
 @(require_results)

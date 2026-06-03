@@ -475,8 +475,8 @@ sync_tick_filters: Thread_Filters : { .MAIN_THREAD }
 	job_queue_append_non_duplicate(unwrap(&sync.job_queue), "Clock", clock_tick, clock_tick_filters, Clock_Tick_Data{ clock=clock })
 	// 	watch_data()
 	job_queue_append_non_duplicate(unwrap(&sync.job_queue), "Input", input_tick, input_tick_filters, Input_Tick_Data{ input=input })
-	if clock.frame_rate_controller.should_tick && ! job_queue_contains(&sync.job_queue, draw_tick) {
-		job_queue_append_non_duplicate(unwrap(&sync.job_queue), "Draw", draw_tick, draw_tick_filters, Draw_Tick_Data{ draw=draw, camera=camera, physics=physics, clock=clock, sync=sync, input=input, working_directory_path=working_directory_path }) }
+	if clock.frame_rate_controller.should_tick && ! job_queue_contains(&sync.job_queue, dr_tick) {
+		job_queue_append_non_duplicate(unwrap(&sync.job_queue), "Draw", dr_tick, dr_tick_filters, Draw_Tick_Data{ draw=draw, camera=camera, physics=physics, clock=clock, sync=sync, input=input, working_directory_path=working_directory_path }) }
 	job_queue_append_non_duplicate(unwrap(&sync.job_queue), "Physics", physics_tick, physics_tick_filters, Physics_Tick_Data{ physics=physics, clock=clock, camera=camera })
 	job_queue_append_non_duplicate(unwrap(&sync.job_queue), "Camera", camera_tick, camera_tick_filters, Camera_Tick_Data{ camera=camera, input=input, ui=ui, physics=physics, clock=clock })
 	// 	audio_tick()

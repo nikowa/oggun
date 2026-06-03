@@ -32,11 +32,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		graphics_config = default_graphics_config(clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
 		input_config = default_input_config(raw_input = false))
-	tgui_set_theme(tgui_theme_ms_dark)
+	gi_set_theme(gi_theme_ms_dark)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })
-	assert(asset_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 
@@ -47,11 +47,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			draw_rect({ engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
-			draw_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
-			// draw_rect(rect_screen(), BLACK, depth = 0.9)
+			dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
+			dr_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED, depth = 0.9)
+			// dr_rect(gi_rect_screen(), BLACK, depth = 0.9)
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
-			// draw_rect_outline(clip_rect, RED)
+			// dr_rect_outline(clip_rect, RED)
 			{
 				// gx_clip_scope(clip_rect)
 
@@ -65,38 +65,38 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 					disabled := ds[i]
 					icon := icons[i]
 					DELTA :: 120
-					rect: Rect = { position + { - 2 * DELTA, y }, TGUI_BUTTON_SIZE_SMALL * { 1, 1 } }
-					tgui_button(rect, "*Fish*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled, icon=icon ? .Notes : .None)
+					rect: Rect = { position + { - 2 * DELTA, y }, GI_BUTTON_SIZE_SMALL * { 1, 1 } }
+					gi_button(rect, "*Fish*", appearance = .DEFAULT, shape = .ROUNDED, disabled = disabled, icon=icon ? .Notes : .None)
 					rect.position.x += DELTA
-					tgui_button(rect, "*Soup*", appearance=.PRIMARY, shape=.ROUNDED, disabled=disabled, icon=icon ? .Image : .None)
+					gi_button(rect, "*Soup*", appearance=.PRIMARY, shape=.ROUNDED, disabled=disabled, icon=icon ? .Image : .None)
 					rect.position.x += DELTA
-					tgui_button(rect, "*Tea*", appearance=.OUTLINE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Person : .None)
+					gi_button(rect, "*Tea*", appearance=.OUTLINE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Person : .None)
 					rect.position.x += DELTA
-					tgui_button(rect, "*Cup*", appearance=.SUBTLE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Delete : .None)
+					gi_button(rect, "*Cup*", appearance=.SUBTLE, shape=.ROUNDED, disabled=disabled, icon=icon ? .Delete : .None)
 					rect.position.x += DELTA
-					tgui_button(rect, "*Fork*", appearance=.TRANSPARENT, shape=.ROUNDED, disabled=disabled, icon=icon ? .Sticker : .None) }
+					gi_button(rect, "*Fork*", appearance=.TRANSPARENT, shape=.ROUNDED, disabled=disabled, icon=icon ? .Sticker : .None) }
 
 				// Transition Animation //
 				position = { -740, 280 }
-				rect: Rect = { position, TGUI_BUTTON_SIZE_SMALL }
+				rect: Rect = { position, GI_BUTTON_SIZE_SMALL }
 				x0: f32 = position.x + 120
 				x1: f32 = position.x + 120 * 4
-				x := x0 + (x1 - x0) * ease_sin_3(tgui_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in tgui_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
-				tgui_button({ { x, position.y }, TGUI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
+				x := x0 + (x1 - x0) * ease_sin_3(gi_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in gi_button(rect, "*Anim*", appearance = .DEFAULT, shape = .ROUNDED)))
+				gi_button({ { x, position.y }, GI_BUTTON_SIZE_SMALL }, "", appearance = .PRIMARY, shape = .ROUNDED)
 
 				// Accordion //
-				accordion := tgui_accordion({ 0, 0 }, multiple=false)
-				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(accordion, "*Header* _A_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
-				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(accordion, "*Header* _B_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
-				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(accordion, "*Header* _C_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
-				{ draw_text_box(engine.tgui_manager.text_style, tgui_accordion_add(accordion, "*Header* _D_", { 400, 100 }), text, h_align=.JUSTIFY, v_align=.TOP) }
+				accordion := gi_accordion({ 0, 0 }, multiple=false)
+				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _A_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _B_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _C_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _D_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
 
 				// image_rect := make_rect(0, 0, 120, 120)
-				// image_rect = rect_top_to(image_rect, rect_bottom(panel_rect))
-				// draw_image(&image, image_rect, depth = 0.0)
+				// image_rect = gi_rect_top_to(image_rect, rect_bottom(panel_rect))
+				// dr_image(&image, image_rect, depth = 0.0)
 
 			}
 			// Accordion //
-			// tgui_accordion({ 0, 0 })
+			// gi_accordion({ 0, 0 })
 		} }
 	return }

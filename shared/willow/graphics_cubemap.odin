@@ -33,16 +33,16 @@ package willow
 
 // 	cell_size = size / [2]f32{ 4, 3 }
 // 	cell_position = position - { 1.5 * cell_size.x, 0 }
-// 	draw_texture_by_handle(draw, cubemap[Cubemap_Direction.LEFT].texture_handles[0], cell_position, cell_size)
+// 	dr_texture_by_handle(draw, cubemap[Cubemap_Direction.LEFT].texture_handles[0], cell_position, cell_size)
 // 	cell_position.x += cell_size.x
-// 	draw_texture_by_handle(draw, cubemap[Cubemap_Direction.FRONT].texture_handles[0], cell_position, cell_size)
+// 	dr_texture_by_handle(draw, cubemap[Cubemap_Direction.FRONT].texture_handles[0], cell_position, cell_size)
 // 	cell_position.y += cell_size.y
-// 	draw_texture_by_handle(draw, cubemap[Cubemap_Direction.UP].texture_handles[0], cell_position, cell_size)
+// 	dr_texture_by_handle(draw, cubemap[Cubemap_Direction.UP].texture_handles[0], cell_position, cell_size)
 // 	cell_position.y -= 2 * cell_size.y
-// 	draw_texture_by_handle(draw, cubemap[Cubemap_Direction.DOWN].texture_handles[0], cell_position, cell_size)
+// 	dr_texture_by_handle(draw, cubemap[Cubemap_Direction.DOWN].texture_handles[0], cell_position, cell_size)
 // 	cell_position.y += cell_size.y
 // 	cell_position.x += cell_size.x
-// 	draw_texture_by_handle(draw, cubemap[Cubemap_Direction.RIGHT].texture_handles[0], cell_position, cell_size)
+// 	dr_texture_by_handle(draw, cubemap[Cubemap_Direction.RIGHT].texture_handles[0], cell_position, cell_size)
 // 	cell_position.x += cell_size.x
-// 	draw_texture_by_handle(draw, cubemap[Cubemap_Direction.BACK].texture_handles[0], cell_position, cell_size) }
+// 	dr_texture_by_handle(draw, cubemap[Cubemap_Direction.BACK].texture_handles[0], cell_position, cell_size) }
 

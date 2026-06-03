@@ -23,8 +23,8 @@ import hsh "core:crypto/hash"
 RO_State :: struct {
 	_: u8 }
 
-Example_DLL :: struct {
-	using base: dll.DLL,
+Example_DL :: struct {
+	using base: dll.DL,
 	dev_tick: proc(camera_node: ^scn.Camera_Node, done_onces: ^map[rt.Source_Code_Location]bool, time: f32) }
 
 asset_manager: as.Asset_Manager
@@ -47,7 +47,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	camera_node: ^scn.Camera_Node
 	scene: scn.Scene
 	node_config: scn.Node_Config
-	example_dll: Example_DLL
+	example_dll: Example_DL
 	modification_time: tm.Time
 	stopwatch: tm.Stopwatch
 	time: f32
@@ -62,10 +62,10 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	// for digest_size in hsh.DIGEST_SIZES do log.info(digest_size)
 	context.logger = log.create_console_logger()
 	bs.zero_stopwatch(&stopwatch)
-	example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
+	example_dll, err = dll.dl_make(Example_DL, "example-dll/example-dll.odin")
 	assert(err == nil)
 	assert(example_dll.dev_tick != nil)
-	asset_manager = as.asset_manager_init({
+	asset_manager = as.am_init({
 		relpath = "Data.bin",
 		source_directory_relpath = "data",
 		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,
@@ -120,7 +120,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	for ! graphics_manager.window_closed {
 		time = bs.read_stopwatch(&stopwatch)
 		example_dll.dev_tick(camera_node, &done_onces, time)
-		dll.watch_dll(&example_dll)
+		dll.dl_watch(&example_dll)
 		// if as.file_was_modified("example-dll/example-dll.odin", &modification_time) do log.info("Main modified.")
 		as.watch_assets(&asset_manager) // TEMP
 		// as.autosave(&asset_manager) // TEMP

@@ -97,7 +97,7 @@ window_init :: proc(window_config: Window_Config) {
 		// Prelude //
 		instance := win32.GetModuleHandleW(nil)
 		assert(cast(win32.HANDLE)instance != win32.INVALID_HANDLE)
-		icon_path := path_from_url(cast(URL)"image:icon.ico", context.temp_allocator)
+		icon_path := am_path_from_url(cast(URL)"image:icon.ico", context.temp_allocator)
 		icon: win32.HICON = cast(win32.HICON)win32.LoadImageW(
 			hInst=nil, name=string_to_cstring16(icon_path), type=win32.IMAGE_ICON, cx=0, cy=0, fuLoad=win32.LR_LOADFROMFILE)
 		assert(cast(win32.HANDLE)icon != win32.INVALID_HANDLE)
@@ -303,7 +303,7 @@ wnd_set_pos :: proc(position: [2]f32) {
 			X=position_normalized.x, Y=position_normalized.y,
 			cx=0, cy=0, uFlags=win32.SWP_NOSIZE|win32.SWP_NOZORDER) } }
 
-// public Bool draw_window_WGL() {
+// public Bool dr_window_WGL() {
 // 	if (wcx.closed) { return false; }
 // 	// TODO Return false if the window was closed. //
 // 	MSG message = { };
