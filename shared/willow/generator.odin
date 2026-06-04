@@ -216,7 +216,7 @@ gi_%s_push :: proc(%s: %s) {{
 
 	fmt.sbprintfln(&generator.builder, `
 gi_%s_pop :: proc() {{
-	pop(&engine.%s.%s_stack) }}`,
+	pop_safe(&engine.%s.%s_stack) }}`,
 		name, field, name) }
 
 gx_make_generator :: proc(prefix: string, cap: int) -> Generator {
@@ -236,5 +236,6 @@ gn_generate_stacks :: proc(willow_path: string) {
 	gn_generate_stack(generator, "disabled", "bool", "false", "gi_manager")
 	gn_generate_stack(generator, "button_shape", "GI_Button_Shape", ".ROUNDED", "gi_manager")
 	gn_generate_stack(generator, "appearance", "GI_Appearance", ".DEFAULT", "gi_manager")
+	gn_generate_stack(generator, "text_style", "Text_Style", "engine.gi_manager.text_style", "gi_manager")
 	gn_generator_commit(generator, willow_path)
 }

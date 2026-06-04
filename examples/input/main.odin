@@ -157,6 +157,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
 	text_style: Text_Style = default_text_style(font_group = font_group, color = WHITE)
+	gi_text_style_push(text_style)
 
 	ASPECT_RATIO :: 3.5
 	keyboard_rect: Rect = { { 0, 0 }, { ASPECT_RATIO * 256, 256 } }
@@ -171,7 +172,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		"Ctrl", "Win", "Alt", "----", "Alt", "Win", "Fn", "Ctrl",
 		"Ins", "Home", "PgUp", "Del", "End", "PgDn",
 		"^", "<", "v", ">",
-		"NumLk", "/", "*", "-",
+		"NumLk", "/", "x", "-",
 		"7", "8", "9", "+",
 		"4", "5", "6",
 		"1", "2", "3", "<-'",
@@ -205,6 +206,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			dr_rect({ engine.input_manager.mouse_position, { 4, 4 } }, RED)
 			dr_rect_outline(rect, WHITE)
 			dr_rect_outline(gi_rect_translate(key_margins(rect), down_offset), GRAY)
-			dr_text_line(keys[i], text_style, rect.position + down_offset) } }
+			dr_text_line(keys[i], rect.position + down_offset) } }
 	k: f32 = query().scalar
 	return }

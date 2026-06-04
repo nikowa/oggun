@@ -77,10 +77,11 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 		// DICK
 		rect = gi_rect_margins_variate(rect, west=Interval(GI_ICON_SIZE.y))
 	}
-	dr_text_box(text, text_style, rect, h_align = .CENTER, v_align = .CENTER)
+	{ gi_text_style_scope(text_style); dr_text_box(text, rect, h_align = .CENTER, v_align = .CENTER) }
 	// dr_rect_outline(rect, RED)
 }
 
 dr_icon :: proc(icon: GI_Icon, position: [2]f32, angle: f32 = 0.0) {
 	// dr_rect_outline({ position, GI_ICON_SIZE }, RED)
-	dr_text_symbol_rect(cast(u8)icon, { position, GI_ICON_SIZE }, style = engine.gi_manager.icons_text_style, angle = angle) }
+	gi_text_style_scope(engine.gi_manager.icons_text_style)
+	dr_text_symbol_rect(cast(u8)icon, { position, GI_ICON_SIZE }, angle = angle) }

@@ -17,7 +17,6 @@ screen_rect: willow.Rect
 images: [dynamic]^willow.Image_Asset
 background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
 font_group: willow.Font_Group
-text_style: willow.Text_Style
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -113,7 +112,7 @@ dr_entity :: proc(entity: ^Entity) {
 		image_size = CAR_SIZE
 		label = "Car" }
 	{ gx_depth_scope(entity.depth); dr_image(image, { screen_position, image_size }) }
-	dr_text_line(label, text_style, screen_position + { 0, image_size.y / 2 }) }
+	dr_text_line(label, screen_position + { 0, image_size.y / 2 }) }
 
 @(export)
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
@@ -144,7 +143,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for &image in images do assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
 	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
-	text_style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
+	text_style: willow.Text_Style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
+	gi_text_style_push(text_style)
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())

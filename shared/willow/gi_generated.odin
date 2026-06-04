@@ -12,7 +12,7 @@ gi_disabled_push :: proc(disabled: bool) {
 	append(&engine.gi_manager.disabled_stack, disabled) }
 
 gi_disabled_pop :: proc() {
-	pop(&engine.gi_manager.disabled_stack) }
+	pop_safe(&engine.gi_manager.disabled_stack) }
 
 gi_get_button_shape :: proc() -> GI_Button_Shape {
 	if len(engine.gi_manager.button_shape_stack) == 0 do return .ROUNDED
@@ -26,7 +26,7 @@ gi_button_shape_push :: proc(button_shape: GI_Button_Shape) {
 	append(&engine.gi_manager.button_shape_stack, button_shape) }
 
 gi_button_shape_pop :: proc() {
-	pop(&engine.gi_manager.button_shape_stack) }
+	pop_safe(&engine.gi_manager.button_shape_stack) }
 
 gi_get_appearance :: proc() -> GI_Appearance {
 	if len(engine.gi_manager.appearance_stack) == 0 do return .DEFAULT
@@ -40,4 +40,18 @@ gi_appearance_push :: proc(appearance: GI_Appearance) {
 	append(&engine.gi_manager.appearance_stack, appearance) }
 
 gi_appearance_pop :: proc() {
-	pop(&engine.gi_manager.appearance_stack) }
+	pop_safe(&engine.gi_manager.appearance_stack) }
+
+gi_get_text_style :: proc() -> Text_Style {
+	if len(engine.gi_manager.text_style_stack) == 0 do return engine.gi_manager.text_style
+	return engine.gi_manager.text_style_stack[len(engine.gi_manager.text_style_stack) - 1] }
+
+@(deferred_none=gi_text_style_pop)
+gi_text_style_scope :: proc(text_style: Text_Style) {
+	gi_text_style_push(text_style) }
+
+gi_text_style_push :: proc(text_style: Text_Style) {
+	append(&engine.gi_manager.text_style_stack, text_style) }
+
+gi_text_style_pop :: proc() {
+	pop_safe(&engine.gi_manager.text_style_stack) }

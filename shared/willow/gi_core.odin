@@ -19,9 +19,10 @@ GI_Manager :: struct {
 	// body2_font_group: Font_Group,     // 16px
 	// subtitle1_font_group: Font_Group, // 20px
 	theme: ^GI_Theme,
-	button_shape_stack: [dynamic]GI_Button_Shape,
-	appearance_stack: [dynamic]GI_Appearance,
-	disabled_stack: [dynamic]bool }
+	button_shape_stack, button_shape_stack_store: [dynamic]GI_Button_Shape,
+	appearance_stack, appearance_stack_store: [dynamic]GI_Appearance,
+	disabled_stack, disabled_stack_store: [dynamic]bool,
+	text_style_stack, text_style_stack_store: [dynamic]Text_Style }
 
 GI_Variant :: enum {
 	NORMAL = 0,
@@ -990,7 +991,8 @@ CHEVRON_ANIM_SPEED :: 6
 
 gi_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
 	rect: Rect = { position, GI_ICON_SIZE }
-	width := dr_text_line(header, engine.gi_manager.text_style, position + { GI_ICON_SIZE.x / 2 + GI_SPACING_XS, 0 }, pivot={ .West })
+	gi_text_style_scope(engine.gi_manager.text_style)
+	width := dr_text_line(header, position + { GI_ICON_SIZE.x / 2 + GI_SPACING_XS, 0 }, pivot={ .West })
 	icon_rect: Rect = { position, GI_ICON_SIZE }
 	button_rect := gi_rect_extend_variate(icon_rect, east=Interval(width + GI_SPACING_XS))
 	t := gi_anim_transition([2]f32{ 0, 1 }, 1, CHEVRON_ANIM_SPEED, false, .PRESS in gi_logic_button(button_rect), location=location)
@@ -1048,9 +1050,8 @@ gi_accordion_add :: proc(accordion: ^Accordion, header: string, panel_size: [2]f
 	append(&accordion.locations, location)
 	return panel_rect }
 
-gi_measure_text :: proc(style: Text_Style, text: string, scale_factor: f32) -> (width: f32, space_count: int) {
-	style := style
-	using style
+gi_measure_text :: proc(text: string, scale_factor: f32) -> (width: f32, space_count: int) {
+	using style := gi_get_text_style()
 	for symbol, i in text {
 		font := font_group_select(font_group, style)
 		if symbol == '_' {
@@ -1063,10 +1064,10 @@ gi_measure_text :: proc(style: Text_Style, text: string, scale_factor: f32) -> (
 		if symbol == ' ' do space_count += 1 }
 	return width, space_count }
 
-gi_measure_text_iterate :: proc(style: ^Text_Style, text: string, i: ^int, width: ^f32, space_count: ^int, scale_factor: f32) -> bool {
-	using style
+gi_measure_text_iterate :: proc(text: string, i: ^int, width: ^f32, space_count: ^int, scale_factor: f32) -> bool {
+	using style := gi_get_text_style()
 	if i^ >= len(text) do return false
-	font := font_group_select(font_group, style^)
+	font := font_group_select(font_group, style)
 	symbol: u8 = text[i^]
 	if symbol == '_' || symbol == '*' {
 		style.italic = ! style.italic
@@ -1080,14 +1081,13 @@ gi_measure_text_iterate :: proc(style: ^Text_Style, text: string, i: ^int, width
 	i^ += 1
 	return true }
 
-gi_text_box_lines :: proc(style: Text_Style, rect: Rect, text: string, scale_factor: f32) -> []string {
-	using style
+gi_text_box_lines :: proc(rect: Rect, text: string, scale_factor: f32) -> []string {
+	using style := gi_get_text_style()
 	lines := make([dynamic]string, context.temp_allocator)
 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
 	width, width_acc: f32
-	_style := style
 	for {
-		ok := gi_measure_text_iterate(&_style, text, &curr_i, &width, &space_count, scale_factor)
+		ok := gi_measure_text_iterate(text, &curr_i, &width, &space_count, scale_factor)
 		if (width <= rect.size.x) && ok {
 			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' {
 				prev_word_end_i = prev_i
@@ -1105,13 +1105,29 @@ gi_text_box_lines :: proc(style: Text_Style, rect: Rect, text: string, scale_fac
 	shrink(&lines)
 	return lines[:] }
 
-gi_measure_text_box :: proc(text: string, style: Text_Style, width: f32) -> (total_height: f32) {
-	using style
+gi_measure_text_box :: proc(text: string, width: f32) -> (total_height: f32) {
+	using style := gi_get_text_style()
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	line_distance: f32 = height * style.leading
 	rect := make_rect(0, 0, width, 0)
-	lines := gi_text_box_lines(style, rect, text, scale_factor)
+	lines := gi_text_box_lines(rect, text, scale_factor)
 	n: int = len(lines)
 	total_height = height * f32(n) + cast(f32)max(0, n - 1) * line_distance
 	return total_height }
+
+// (TODO): Add these to the generator. //
+gi_text_style_store :: proc() {
+	// (TODO): Enabling these causes weird things to happen. //
+	delete(engine.gi_manager.text_style_stack_store)
+	engine.gi_manager.text_style_stack_store = clone_dynamic_array(engine.gi_manager.text_style_stack, engine.backing_allocator)
+	}
+
+gi_text_style_restore :: proc() {
+	delete(engine.gi_manager.text_style_stack)
+	engine.gi_manager.text_style_stack = clone_dynamic_array(engine.gi_manager.text_style_stack_store, engine.backing_allocator)
+	}
+
+@(deferred_none=gi_text_style_restore)
+gi_text_style_checkpoint :: proc() {
+	gi_text_style_store() }

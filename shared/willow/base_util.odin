@@ -234,3 +234,9 @@ cstring16_to_string :: proc(s: cstring16, allocator := context.allocator) -> (re
 	chars := make([]u8, len(s), allocator)
 	for i in 0 ..< len(s) do chars[i] = cast(u8)chars16[i]
 	return string(chars) }
+
+clone_dynamic_array :: proc(array: $A/[dynamic]$T, allocator := context.allocator) -> A {
+	if len(array) == 0 do return nil
+	res := make(A, len(array), allocator)
+	for elem, i in array do res[i] = elem
+	return res }

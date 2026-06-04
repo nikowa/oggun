@@ -88,10 +88,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 				// Accordion //
 				accordion := gi_accordion({ 0, 0 }, multiple=false)
-				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _A_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
-				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _B_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
-				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _C_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
-				{ dr_text_box(text, engine.gi_manager.text_style, gi_accordion_add(accordion, "*Header* _D_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _A_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _B_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _C_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+				{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _D_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
 
 				// image_rect := make_rect(0, 0, 120, 120)
 				// image_rect = gi_rect_top_to(image_rect, rect_bottom(panel_rect))

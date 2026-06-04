@@ -123,8 +123,8 @@ Draw_Text_Params :: struct {
 	clip: Rect }
 
 // (TODO): implement "integer" param. It does nothng right now.
-dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {
-	using style
+dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {
+	using style := gi_get_text_style()
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
 	command: Draw_Text_Command = {
@@ -145,8 +145,8 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, style: Text_Style = DEFAULT_
 	command.uv_offset = uv_offset
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
-dr_text_symbol :: proc(symbol: u8, position: [2]f32, style: Text_Style = DEFAULT_TEXT_STYLE, angle: f32 = 0.0, integer: bool = true) {
-	using style
+dr_text_symbol :: proc(symbol: u8, position: [2]f32, angle: f32 = 0.0, integer: bool = true) {
+	using style := gi_get_text_style()
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
 	command: Draw_Text_Command = {
@@ -169,13 +169,17 @@ dr_text_symbol :: proc(symbol: u8, position: [2]f32, style: Text_Style = DEFAULT
 	command.uv_offset = { 0, 0 }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
-dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: bit_set[Compass] = { .South }, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
-	style := style
-	using style
+// (TODO): "integer" should also be a stack parameter. //
+dr_text_line :: proc(text: string, position: [2]f32, pivot: bit_set[Compass] = { .South }, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
+	gi_text_style_checkpoint()
+	return dr_text_line_compound(text, position, pivot, desired_width, integer) }
+
+dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Compass] = { .South }, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
+	using style := gi_get_text_style()
 	// dr_rect({ position = position, size = { 4, 4 } }, BLUE)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	position := position
-	width, space_count := gi_measure_text(style, text, scale_factor)
+	width, space_count := gi_measure_text(text, scale_factor)
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	space_delta: f32 = 0
 	if space_count != 0 && desired_width != nil do space_delta = (desired_width.(f32) - width) / cast(f32)space_count
@@ -192,12 +196,23 @@ dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: b
 	// position.y -= cast(f32)font_group.normal.origin * scale_factor
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
+		// (TODO): Add an option for these to be escaped, so that they can be printed. //
 		if symbol == '_' {
-			style.italic = ! style.italic; continue }
+			if style.italic do gi_text_style_pop()
+			else {
+				new_style := style
+				new_style.italic = true
+				gi_text_style_push(new_style) }
+			continue }
 		if symbol == '*' {
-			style.bold = ! style.bold; continue }
+			if style.bold do gi_text_style_pop()
+			else {
+				new_style := style
+				new_style.bold = true
+				gi_text_style_push(new_style) }
+			continue }
 		font := font_group_select(font_group, style)
-		dr_text_symbol(cast(u8)symbol, symbol_position, style, integer = integer)
+		dr_text_symbol(cast(u8)symbol, symbol_position, integer = integer)
 		symbol_delta: f32 = 0.0
 		symbol_delta = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 		if desired_width == nil && symbol == ' ' do symbol_delta *= spacing
@@ -205,9 +220,9 @@ dr_text_line :: proc(text: string, style: Text_Style, position: [2]f32, pivot: b
 		symbol_position.x += symbol_delta }
 	return width }
 
-dr_text_box :: proc(text: string, style: Text_Style, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) {
-	style := style
-	using style
+dr_text_box :: proc(text: string, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) {
+	using style := gi_get_text_style()
+	gi_text_style_checkpoint()
 	// dr_rect_outline(graphics_manager, rect, BLUE, 0.1)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	if h_align == .JUSTIFY do spacing = 1.0
@@ -216,7 +231,7 @@ dr_text_box :: proc(text: string, style: Text_Style, rect: Rect, h_align: GUI_H_
 	line_distance: f32 = height * style.leading
 	line_height: f32 = height * (1.0 + style.leading)
 	position: [2]f32 = rect.position
-	lines := gi_text_box_lines(style, rect, text, scale_factor)
+	lines := gi_text_box_lines(rect, text, scale_factor)
 	n: int = len(lines)
 	total_height := height * f32(n) + cast(f32)max(0, n - 1) * line_distance
 	desired_width: Maybe(f32)
@@ -242,5 +257,5 @@ dr_text_box :: proc(text: string, style: Text_Style, rect: Rect, h_align: GUI_H_
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		dr_text_line(line, style, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
+		dr_text_line_compound(line, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
 		position.y -= line_height } }

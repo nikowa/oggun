@@ -40,6 +40,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	fg_color := engine.gi_manager.theme[GI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
 	stroke_color := engine.gi_manager.theme[GI_Theme_Key.NEUTRAL_STROKE_1][0]
 	text_style: Text_Style = default_text_style(font_group = font_group, color = fg_color, font_size = 8)
+	gi_text_style_push(text_style)
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 	zero_stopwatch(&stopwatch)
 
@@ -49,8 +50,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			rect := make_rect(0, 0, 400 + 300 * math.sin(0.05 * time), 320)
-			rect.size.y = gi_measure_text_box(text, text_style, rect.size.x)
+			rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
+			rect.size.y = gi_measure_text_box(text, rect.size.x)
 			// points: [2][2]f32 = {
 			// 	{  }
 			// }
@@ -65,8 +66,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// char: u8 = cast(u8)GI_Icon.Save
 			char: u8 = cast(u8)time
 			arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
-			dr_text_symbol_rect(char, arrow_rect, style = engine.gi_manager.icons_text_style, angle = 0 * time)
+			{ gi_text_style_scope(engine.gi_manager.icons_text_style); dr_text_symbol_rect(char, arrow_rect, angle = 0 * time) }
 			dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
-			dr_text_box(text, text_style, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false) }
+			dr_text_box(text, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false) }
 		free_all(context.temp_allocator) }
 	return }
