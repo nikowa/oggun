@@ -83,5 +83,7 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 
 dr_icon :: proc(icon: GI_Icon, position: [2]f32, angle: f32 = 0.0) {
 	// dr_rect_outline({ position, GI_ICON_SIZE }, RED)
-	gi_text_style_scope(engine.gi_manager.icons_text_style)
+	icons_text_style := engine.gi_manager.icons_text_style
+	icons_text_style.color = gi_get_text_style().color
+	gi_text_style_scope(icons_text_style)
 	dr_text_symbol_rect(cast(u8)icon, { position, GI_ICON_SIZE }, angle = angle) }
