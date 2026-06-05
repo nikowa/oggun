@@ -12,6 +12,7 @@ flat in float _rounding;
 flat in float _stroke;
 flat in vec4 _stroke_color;
 flat in vec4 _clip;
+flat in float _clip_radius;
 
 #include <sdf>
 #include <msaa>
@@ -23,6 +24,7 @@ flat in vec4 _clip;
 #define stroke _stroke
 #define stroke_color _stroke_color
 #define clip _clip
+#define clip_radius _clip_radius
 
 // gl_FragCoord
 
@@ -57,5 +59,5 @@ void main(void) {
 	// color.xy = (gl_FragCoord.xy - res / 2) / res;
 	// return;
 
-	color = clip_color(color, gl_FragCoord.xy - res / 2, clip);
-	}
+	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
+}

@@ -6,12 +6,14 @@ out vec4 color;
 flat in float _depth;
 flat in vec4 _rect;
 flat in vec4 _clip;
+flat in float _clip_radius;
 
 #include <msaa>
 #include <clip>
 
 #define rect _rect
 #define clip _clip
+#define clip_radius _clip_radius
 
 void main(void) {
 
@@ -21,6 +23,6 @@ void main(void) {
 
 	// color = texture(samp, tex_coord);
 	gl_FragDepth = _depth;
-	color = clip_color(color, gl_FragCoord.xy - res / 2, clip);
+	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
 	if (color.w == 0.0) {
 		gl_FragDepth = 1.0; } }

@@ -21,6 +21,14 @@ rect_bottom :: proc(rect: Rect) -> f32 {
 rect_top :: proc(rect: Rect) -> f32 {
 	return rect.position.y + rect.size.y / 2 }
 
+rect_from_sides :: proc(left, right, bottom, top: f32) -> Rect {
+	return {
+		position = { (left + right) / 2, (top + bottom) / 2 },
+		size = { right - left, top - bottom } } }
+
+rect_sides :: proc(rect: Rect) -> (left, right, bottom, top: f32) {
+	return rect_left(rect), rect_right(rect), rect_bottom(rect), rect_top(rect) }
+
 rect_contains_point :: proc(rect: Rect, point: [2]f32) -> bool {
 	return in_range(point.x, rect.position.x - rect.size.x / 2, rect.position.x + rect.size.x / 2) &&
 		   in_range(point.y, rect.position.y - rect.size.y / 2, rect.position.y + rect.size.y / 2) }
@@ -52,3 +60,21 @@ rect_to_4f32 :: proc(rect: Rect) -> [4]f32 {
 
 rect_is_empty :: proc(rect: Rect) -> bool {
 	return rect.size.x <= 0 || rect.size.y <= 0 }
+
+rect_sect :: proc(rect_a, rect_b: Rect) -> (rect: Rect) {
+	a_left, a_right, a_bottom, a_top := rect_sides(rect_a)
+	b_left, b_right, b_bottom, b_top := rect_sides(rect_b)
+	return rect_from_sides(
+		left   = max(a_left, b_left),
+		right  = min(a_right, b_right),
+		bottom = max(a_bottom, b_bottom),
+		top    = min(a_top, b_top)) }
+
+rect_union :: proc(rect_a, rect_b: Rect) -> (rect: Rect) {
+	a_left, a_right, a_bottom, a_top := rect_sides(rect_a)
+	b_left, b_right, b_bottom, b_top := rect_sides(rect_b)
+	return rect_from_sides(
+		left   = min(a_left, b_left),
+		right  = max(a_right, b_right),
+		bottom = min(a_bottom, b_bottom),
+		top    = max(a_top, b_top)) }

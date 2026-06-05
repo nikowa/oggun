@@ -50,9 +50,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
 			dr_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED)
 			// dr_rect(gi_rect_screen(), BLACK)
-			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
-			// dr_rect_outline(clip_rect, RED)
-			// gx_clip_scope(clip_rect)
+			clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
+			dr_rect_outline(clip_rect, RED)
+			gx_clip_scope({ rect = clip_rect, radius = 200 })
 
 			// Buttons //
 			position: [2]f32 = { -500, 400 }
@@ -91,6 +91,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _B_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
 			{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _C_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
 			{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _D_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
+
+			// Image //
+			dr_image(&image, { { 0, 0 }, { 400, 400 } })
 
 			// Avatar //
 			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)

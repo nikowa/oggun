@@ -1002,7 +1002,9 @@ gi_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, l
 	panel = { position + { - GI_ICON_SIZE.x / 2, - GI_ICON_SIZE.y / 2 } + { panel_size.x / 2, -panel_size.y / 2 }, panel_size }
 	panel = gi_rect_margins_variate_r(panel, south=Ratio(t))
 	// dr_rect_outline(panel, RED)
-	gx_clip_push(panel)
+	// DICK
+	clip: Clip = { rect = rect_sect(panel, gx_get_clip().rect) }
+	gx_clip_push(clip)
 	return panel }
 
 Accordion :: struct {

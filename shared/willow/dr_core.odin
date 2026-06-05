@@ -25,7 +25,7 @@ Draw_Rect_Params :: struct {
 	depth: f32,
 	stroke: f32,
 	stroke_color: Color,
-	clip: Rect }
+	clip: Clip }
 
 Draw_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
@@ -63,7 +63,7 @@ Draw_Line_Params :: struct {
 	point_b: [2]f32,
 	color: Color,
 	depth: f32,
-	clip: Rect }
+	clip: Clip }
 
 Draw_Line_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
@@ -85,7 +85,7 @@ Draw_Image_Command :: struct {
 dr_image_Params :: struct {
 	rect: Rect,
 	depth: f32,
-	clip: Rect }
+	clip: Clip }
 
 dr_image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
@@ -119,7 +119,7 @@ Draw_Text_Params :: struct {
 	bold: bool,
 	angle: f32,
 	uv_offset: [2]f32,
-	clip: Rect }
+	clip: Clip }
 
 // (TODO): implement "integer" param. It does nothng right now.
 dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {

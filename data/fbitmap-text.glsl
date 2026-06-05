@@ -10,6 +10,7 @@ flat in vec2 quad_size;
 flat in uint _bold;
 flat in vec2 _uv_offset;
 flat in vec4 _clip;
+flat in float _clip_radius;
 out vec4 color;
 
 #define bold _bold
@@ -18,6 +19,7 @@ out vec4 color;
 #include <clip>
 
 #define clip _clip
+#define clip_radius _clip_radius
 
 float sample_alpha(vec2 uv) {
 	vec2 offset = vec2(_symbol % 16, _symbol / 16 - 15);
@@ -42,7 +44,7 @@ void main(void) {
 	color.a *= _text_color.a;
 	// color.xyz = sample_raw(uv).xyz;
 	// color.w = 1;
-	color = clip_color(color, gl_FragCoord.xy - res / 2, clip);
+	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
 
 	// TEMP
 	// color.a = 1;

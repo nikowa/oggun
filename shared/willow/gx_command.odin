@@ -112,7 +112,7 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 
 	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Rect_Command, _command_0, _command_1) })
 
-	buffers := make_buffers(7)
+	buffers := make_buffers(8)
 	defer delete_buffers(buffers)
 
 	n: int = QUAD_VERTS_LEN * len(commands)
@@ -123,6 +123,7 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 	stroke := make([]f32, n)
 	stroke_color := make([][4]f32, n)
 	clip := make([][4]f32, n)
+	clip_radius := make([]f32, n)
 
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
 		command := _command.base.(Draw_Rect_Command)
@@ -133,7 +134,8 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 		radius[k] = command.radius
 		stroke[k] = command.stroke
 		stroke_color[k] = gx_color_to_4f32(command.stroke_color)
-		clip[k] = rect_to_4f32(command.clip) }
+		clip[k] = rect_to_4f32(command.clip.rect)
+		clip_radius[k] = command.clip.radius }
 	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
 	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
 	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, fill_color)
@@ -141,6 +143,7 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(4, buffers[4], 1, gl.FLOAT, stroke)
 	upload_vertex_buffer_data(5, buffers[5], 4, gl.FLOAT, stroke_color)
 	upload_vertex_buffer_data(6, buffers[6], 4, gl.FLOAT, clip)
+	upload_vertex_buffer_data(7, buffers[7], 1, gl.FLOAT, clip_radius)
 
 	polygon_mode(.Fill)
 	render_triangles(cast(i32)n) }
@@ -155,7 +158,7 @@ gx_submit_line :: proc(_command: Command, index: int) {
 
 	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Line_Command, _command_0, _command_1) })
 
-	buffers := make_buffers(5)
+	buffers := make_buffers(6)
 	defer delete_buffers(buffers)
 
 	n: int = POINT_VERTS_LEN * len(commands)
@@ -164,6 +167,7 @@ gx_submit_line :: proc(_command: Command, index: int) {
 	color := make([][4]f32, n)
 	depth := make([]f32, n)
 	clip := make([][4]f32, n)
+	clip_radius := make([]f32, n)
 
 	for _command, i in commands do for j in 0 ..< POINT_VERTS_LEN {
 		command := _command.base.(Draw_Line_Command)
@@ -172,12 +176,14 @@ gx_submit_line :: proc(_command: Command, index: int) {
 		point_b[k] = command.point_b
 		color[k] = gx_color_to_4f32(command.color)
 		depth[k] = command.depth
-		clip[k] = rect_to_4f32(command.clip) }
+		clip[k] = rect_to_4f32(command.clip.rect)
+		clip_radius[k] = command.clip.radius }
 	upload_vertex_buffer_data(0, buffers[0], 2, gl.FLOAT, point_a)
 	upload_vertex_buffer_data(1, buffers[1], 2, gl.FLOAT, point_b)
 	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, color)
 	upload_vertex_buffer_data(3, buffers[3], 1, gl.FLOAT, depth)
 	upload_vertex_buffer_data(4, buffers[4], 4, gl.FLOAT, clip)
+	upload_vertex_buffer_data(5, buffers[5], 1, gl.FLOAT, clip_radius)
 
 	// (TODO): Make sure "polygon_mode" before every draw call. //
 	polygon_mode(.Line)
@@ -194,22 +200,25 @@ gx_submit_image :: proc(_command: Command, index: int) {
 
 	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Image_Command, _command_0, _command_1) })
 
-	buffers := make_buffers(3)
+	buffers := make_buffers(4)
 	defer delete_buffers(buffers)
 
 	n: int = QUAD_VERTS_LEN * len(commands)
 	rect := make([]Rect, n)
 	depth := make([]f32, n)
 	clip := make([][4]f32, n)
+	clip_radius := make([]f32, n)
 	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
 		command := _command.base.(Draw_Image_Command)
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth
-		clip[k] = rect_to_4f32(command.clip) }
+		clip[k] = rect_to_4f32(command.clip.rect)
+		clip_radius[k] = command.clip.radius }
 	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
 	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
 	upload_vertex_buffer_data(6, buffers[2], 4, gl.FLOAT, clip)
+	upload_vertex_buffer_data(7, buffers[3], 1, gl.FLOAT, clip_radius)
 
 	bind_texture(0, command.image.handle)
 	polygon_mode(.Fill)
@@ -228,7 +237,7 @@ gx_submit_text :: proc(_command: Command, index: int) {
 
 	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
 
-	buffers := make_buffers(9)
+	buffers := make_buffers(10)
 	defer delete_buffers(buffers)
 
 	n: int = 6 * len(commands)
@@ -241,6 +250,7 @@ gx_submit_text :: proc(_command: Command, index: int) {
 	angle := make([]f32, n)
 	uv_offset := make([][2]f32, n)
 	clip := make([][4]f32, n)
+	clip_radius := make([]f32, n)
 	for _command, i in commands do for j in 0 ..< 6 {
 		command := _command.base.(Draw_Text_Command)
 		k := 6 * i + j
@@ -252,7 +262,8 @@ gx_submit_text :: proc(_command: Command, index: int) {
 		bold[k] = cast(u32)command.bold
 		angle[k] = command.angle
 		uv_offset[k] = command.uv_offset
-		clip[k] = rect_to_4f32(command.clip) }
+		clip[k] = rect_to_4f32(command.clip.rect)
+		clip_radius[k] = command.clip.radius }
 
 	upload_vertex_buffer_data(0, buffers[0], 1, gl.UNSIGNED_INT, symbol)
 	upload_vertex_buffer_data(1, buffers[1], 4, gl.FLOAT, color)
@@ -263,6 +274,7 @@ gx_submit_text :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(6, buffers[6], 1, gl.FLOAT, angle)
 	upload_vertex_buffer_data(7, buffers[7], 2, gl.FLOAT, uv_offset)
 	upload_vertex_buffer_data(8, buffers[8], 4, gl.FLOAT, clip)
+	upload_vertex_buffer_data(9, buffers[9], 1, gl.FLOAT, clip_radius)
 
 	bind_texture(0, command.font.bitmap_image.handle)
 	bind_texture(1, command.font.bitmap_image_bold.handle)

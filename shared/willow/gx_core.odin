@@ -94,8 +94,12 @@ Graphics_Manager :: struct {
 	vertex_array: u32,
 	vertex_buffer: u32,
 // 	cubemap:                         Cubemap
-	clip_stack: [dynamic]Rect,
+	clip_stack: [dynamic]Clip,
 	depth_stack: [dynamic]f32 }
+
+Clip :: struct {
+	rect: Rect,
+	radius: f32 }
 
 Compass :: enum u8 {
 	East,
@@ -257,7 +261,7 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 	else {
 		log.warn("No asset manager.") }
 	zero_stopwatch(&engine.graphics_manager.stopwatch)
-	engine.graphics_manager.clip_stack = make([dynamic]Rect)
+	engine.graphics_manager.clip_stack = make([dynamic]Clip)
 	engine.graphics_manager.depth_stack = make([dynamic]f32)
 	return nil }
 
@@ -1282,15 +1286,16 @@ set_clear_color :: proc(color: u32) {
 	color_4f32 := gx_color_to_4f32(color)
 	gl.ClearColor(color_4f32.r, color_4f32.g, color_4f32.b, color_4f32.a) }
 
-gx_get_clip :: proc() -> Rect {
-	if len(engine.graphics_manager.clip_stack) == 0 do return gi_rect_screen()
+// (TODO): Generate all these stacks. //
+gx_get_clip :: proc() -> Clip {
+	if len(engine.graphics_manager.clip_stack) == 0 do return { rect = gi_rect_screen(), radius = 0 }
 	return engine.graphics_manager.clip_stack[len(engine.graphics_manager.clip_stack) - 1] }
 
 @(deferred_none=gx_clip_pop)
-gx_clip_scope :: proc(clip: Rect) {
+gx_clip_scope :: proc(clip: Clip) {
 	gx_clip_push(clip) }
 
-gx_clip_push :: proc(clip: Rect) {
+gx_clip_push :: proc(clip: Clip) {
 	append(&engine.graphics_manager.clip_stack, clip) }
 
 gx_clip_pop :: proc() {
