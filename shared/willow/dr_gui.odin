@@ -10,13 +10,13 @@ import "core:strings"
 // (TODO): Pack most of these params in a "Neon_Button_Config" struct. //
 dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 	rect := rect
-	rounding: f32 = 0.0
+	radius: f32 = 0.0
 	shape := gi_get_button_shape()
 	disabled := gi_get_disabled()
 	switch shape {
-	case .ROUNDED: rounding = GI_RADIUS_MEDIUM
-	case .CIRCULAR: rounding = rect.size.y / 2
-	case .SQUARE: rounding = 0.0 }
+	case .ROUNDED: radius = GI_RADIUS_MEDIUM
+	case .CIRCULAR: radius = rect.size.y / 2
+	case .SQUARE: radius = 0.0 }
 	hover: bool = rect_hovered(rect)
 	press: bool = hover && input_query(.Mouse_Left, .DOWN)
 
@@ -67,7 +67,7 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 		press = false }
 
 // case .PRIMARY
-	dr_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, rounding = rounding)
+	dr_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, radius = radius)
 	// if hover do set_cursor(.Hand)
 	// dr_icon :: proc(icon: GI_Icon, position: [2]f32, angle: f32 = 0.0) {
 	if icon != .None {

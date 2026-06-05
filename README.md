@@ -3,7 +3,27 @@
 
 Game engine for my various solo projects. [Doc](https://nikowa.github.io/willow/).
 
-# Roadmap
+## Components
+
+| Name             | Abbreviation |
+| ---------------- | ------------ |
+| Base             | bs           |
+| Window           | wd           |
+| Graphics         | gx           |
+| Audio            | au           |
+| Asset Management | am           |
+| Dynamic Loading  | dl           |
+| Input            | ip           |
+| Draw             | dr           |
+| GUI              | gi           |
+| Meta             | mt           |
+| Dialogue         | dg           |
+| Plot             | pt           |
+| Mesh             | ms           |
+| Physics          | px           |
+| Scene            | sn           |
+
+## Roadmap
 
 - [x] OpenGL rendering backend
 - [x] Asset manager

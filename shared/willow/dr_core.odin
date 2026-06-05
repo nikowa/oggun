@@ -21,7 +21,7 @@ Draw_Rect_Command :: struct {
 Draw_Rect_Params :: struct {
 	rect: Rect,
 	fill_color: Color,
-	rounding: f32,
+	radius: f32,
 	depth: f32,
 	stroke: f32,
 	stroke_color: Color,
@@ -30,16 +30,15 @@ Draw_Rect_Params :: struct {
 Draw_Rect_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer) }
 
-// (TODO): Rename "rounding" to "radius" and make it "f32". //
 // (TODO): Change "stroke" to u8
-dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, rounding: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, radius: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Draw_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = integer ? rect_round(rect) : rect,
 		// rect = integer ? rect_round_offset(rect, { 0.5, 0.5 }) : rect,
 		fill_color = fill_color,
 		stroke_color = stroke_color,
-		rounding = rounding,
+		radius = radius,
 		stroke = stroke,
 		depth = gx_get_depth(),
 		clip = gx_get_clip() }

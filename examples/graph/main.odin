@@ -67,7 +67,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			char: u8 = cast(u8)time
 			arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
 			{ gi_text_style_scope(engine.gi_manager.icons_text_style); dr_text_symbol_rect(char, arrow_rect, angle = 0 * time) }
-			dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, rounding = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, radius = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
 			dr_text_box(text, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false) }
 		free_all(context.temp_allocator) }
 	return }

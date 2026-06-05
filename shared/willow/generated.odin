@@ -1,6 +1,6 @@
 package willow
 import "core:time"
-// Generated at 11:17:16 //
+// Generated at 15:06:01 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -104,6 +104,18 @@ default_input_config :: proc(
 	return {
 		raw_input = raw_input } }
 
+default_camera_config :: proc(
+		focal_length: f32 = DEFAULT_CAMERA_CONFIG.focal_length,
+		sensor_size: [2]f32 = DEFAULT_CAMERA_CONFIG.sensor_size,
+		near_clip: f32 = DEFAULT_CAMERA_CONFIG.near_clip,
+		far_clip: f32 = DEFAULT_CAMERA_CONFIG.far_clip,
+) -> Camera_Config {
+	return {
+		focal_length = focal_length,
+		sensor_size = sensor_size,
+		near_clip = near_clip,
+		far_clip = far_clip } }
+
 default_scene_config :: proc(
 		url: URL = DEFAULT_SCENE_CONFIG.url,
 		haze_color: Color = DEFAULT_SCENE_CONFIG.haze_color,
@@ -131,18 +143,6 @@ default_node_config :: proc(
 		rotate = rotate,
 		scale = scale,
 		visible = visible } }
-
-default_camera_config :: proc(
-		focal_length: f32 = DEFAULT_CAMERA_CONFIG.focal_length,
-		sensor_size: [2]f32 = DEFAULT_CAMERA_CONFIG.sensor_size,
-		near_clip: f32 = DEFAULT_CAMERA_CONFIG.near_clip,
-		far_clip: f32 = DEFAULT_CAMERA_CONFIG.far_clip,
-) -> Camera_Config {
-	return {
-		focal_length = focal_length,
-		sensor_size = sensor_size,
-		near_clip = near_clip,
-		far_clip = far_clip } }
 
 default_window_config :: proc(
 		position: [2]f32 = DEFAULT_WINDOW_CONFIG.position,

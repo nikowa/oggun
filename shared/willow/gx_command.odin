@@ -27,7 +27,6 @@ Command_Buffer :: struct {
 
 Command_Group :: [dynamic]^Command
 
-// (TODO): params_union is defined in a tarnsparent way, so that it can be easily compared byte-by-byte, without checking for the underlying type.
 Command_Config :: struct {
 	base: union {
 		Generic_Command,
@@ -120,7 +119,7 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 	rect := make([]Rect, n)
 	depth := make([]f32, n)
 	fill_color := make([][4]f32, n)
-	rounding := make([]f32, n)
+	radius := make([]f32, n)
 	stroke := make([]f32, n)
 	stroke_color := make([][4]f32, n)
 	clip := make([][4]f32, n)
@@ -130,15 +129,15 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 		k := QUAD_VERTS_LEN * i + j
 		rect[k] = command.rect
 		depth[k] = command.depth
-		fill_color[k] = color_to_4f32(command.fill_color)
-		rounding[k] = command.rounding
+		fill_color[k] = gx_color_to_4f32(command.fill_color)
+		radius[k] = command.radius
 		stroke[k] = command.stroke
-		stroke_color[k] = color_to_4f32(command.stroke_color)
+		stroke_color[k] = gx_color_to_4f32(command.stroke_color)
 		clip[k] = rect_to_4f32(command.clip) }
 	upload_vertex_buffer_data(0, buffers[0], 4, gl.FLOAT, rect)
 	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, depth)
 	upload_vertex_buffer_data(2, buffers[2], 4, gl.FLOAT, fill_color)
-	upload_vertex_buffer_data(3, buffers[3], 1, gl.FLOAT, rounding)
+	upload_vertex_buffer_data(3, buffers[3], 1, gl.FLOAT, radius)
 	upload_vertex_buffer_data(4, buffers[4], 1, gl.FLOAT, stroke)
 	upload_vertex_buffer_data(5, buffers[5], 4, gl.FLOAT, stroke_color)
 	upload_vertex_buffer_data(6, buffers[6], 4, gl.FLOAT, clip)
@@ -171,7 +170,7 @@ gx_submit_line :: proc(_command: Command, index: int) {
 		k := POINT_VERTS_LEN * i + j
 		point_a[k] = command.point_a
 		point_b[k] = command.point_b
-		color[k] = color_to_4f32(command.color)
+		color[k] = gx_color_to_4f32(command.color)
 		depth[k] = command.depth
 		clip[k] = rect_to_4f32(command.clip) }
 	upload_vertex_buffer_data(0, buffers[0], 2, gl.FLOAT, point_a)
@@ -246,7 +245,7 @@ gx_submit_text :: proc(_command: Command, index: int) {
 		command := _command.base.(Draw_Text_Command)
 		k := 6 * i + j
 		scale_factor[k] = command.scale_factor
-		color[k] = color_to_4f32(command.color)
+		color[k] = gx_color_to_4f32(command.color)
 		symbol[k] = cast(u32)command.symbol
 		position[k] = command.position
 		italic[k] = cast(u32)command.italic
