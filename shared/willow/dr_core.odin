@@ -196,6 +196,7 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 	// position.y -= cast(f32)font_group.normal.origin * scale_factor
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
+		style = gi_get_text_style()
 		// (TODO): Add an option for these to be escaped, so that they can be printed. //
 		if symbol == '_' {
 			if style.italic do gi_text_style_pop()
