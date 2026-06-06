@@ -8,6 +8,7 @@ import "core:container/intrusive/list"
 import "core:slice"
 import "core:log"
 import "vendor:compress/lz4"
+import "core:fmt"
 
 time_max :: proc(a, b: time.Time) -> (time.Time) {
 	return time.diff(b, a) >= 0 ? a : b }
@@ -235,8 +236,14 @@ cstring16_to_string :: proc(s: cstring16, allocator := context.allocator) -> (re
 	for i in 0 ..< len(s) do chars[i] = cast(u8)chars16[i]
 	return string(chars) }
 
-clone_dynamic_array :: proc(array: $A/[dynamic]$T, allocator := context.allocator) -> A {
+clone_dynamic_array :: proc(array: $A/[dynamic]$T, allocator := context.allocator, loc := #caller_location) -> A {
 	if len(array) == 0 do return nil
-	res := make(A, len(array), allocator)
+	res := make(A, len(array), allocator, loc)
 	for elem, i in array do res[i] = elem
 	return res }
+
+aprint_size_symbolic :: proc(#any_int size: uint, allocator := context.allocator) -> string {
+	if size > mem.Gigabyte do return fmt.aprintf("%f GB", cast(f32)size / cast(f32)mem.Gigabyte, allocator=allocator)
+	if size > mem.Megabyte do return fmt.aprintf("%f MB", cast(f32)size / cast(f32)mem.Megabyte, allocator=allocator)
+	if size > mem.Kilobyte do return fmt.aprintf("%f KB", cast(f32)size / cast(f32)mem.Kilobyte, allocator=allocator)
+	return fmt.aprintf("%d B", size) }

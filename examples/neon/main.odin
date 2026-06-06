@@ -23,12 +23,15 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
 	context = engine_begin_init(
-		"Neon Example",
-		asset_config = default_asset_manager_config(watch = false),
-		graphics_config = default_graphics_config(clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
-		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
-		input_config = default_input_config(raw_input = false),
-		log_allocations = true)
+		engine_config=default_engine_config(
+			game_name="Neon Example",
+			track_backing_allocations=true,
+			track_temp_allocations=true,
+			log_backing_allocations=false),
+		asset_config=default_asset_manager_config(watch=false),
+		graphics_config=default_graphics_config(clear_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
+		tick_config=default_tick_manager_config(tickrate_setting=.LIMITED_144_FPS),
+		input_config=default_input_config(raw_input=false))
 	gi_set_theme(gi_theme_ms_dark)
 
 	image: Image_Asset
@@ -40,10 +43,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	zero_stopwatch(&stopwatch)
 
 	context = engine_end_init()
+	// log.info("-------------------------------------------------")
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
+			// log.info("-------------------------------------------------")
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
 			// dr_rect_outline(clip_rect, RED)
 			// gx_clip_scope({ rect = clip_rect, radius = 200 })
@@ -121,5 +126,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				dr_rect({ avatar_rect.position + { 10, -10 }, { 10, 10 } }, badge_color, radius = 5, integer=false)
 				// DICK
 			}
-		} }
+
+			// Metrics //
+			gi_metrics_widget()
+			// metrics_rect := gi_rect_embed(gi_rect_margins(gi_rect_screen(), Interval(8)), { 160, 12 }, { .East, .North })
+			// dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(engine.tracking_allocator.current_memory_allocated)), metrics_rect, h_align=.LEFT, v_align=.TOP)
+			// dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), gi_rect_translate(metrics_rect, { 0, -14 }), h_align=.RIGHT, v_align=.TOP)
+
+		}
+	}
 	return }

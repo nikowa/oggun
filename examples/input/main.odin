@@ -144,12 +144,9 @@ make_rects :: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> 
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
-	context.logger = log.create_console_logger()
-	arena: mem.Arena
-	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
-	context.temp_allocator = mem.arena_allocator(&arena)
-
-	engine_begin_init("Input Example", input_config = default_input_config(raw_input = false))
+	context = engine_begin_init(
+		engine_config=default_engine_config(game_name="Input Example", temp_allocator_cap=1000 * mem.Megabyte),
+		input_config=default_input_config(raw_input = false))
 
 	font_group: Font_Group
 	font_group_init(&font_group,

@@ -22,13 +22,30 @@ DEFAULT_NAME :: "unnamed"
 
 Entry_Point :: #type proc(data: ^Thread_Data)
 
-Engine :: struct {
+Engine_Config :: struct {
 	game_name: string,
+	backing_allocator: runtime.Allocator,
+	temp_allocator_cap: uintptr,
+	log_backing_allocations: bool,
+	log_temp_allocations: bool,
+	track_backing_allocations: bool,
+	track_temp_allocations: bool }
+
+DEFAULT_ENGINE_CONFIG: Engine_Config : {
+	game_name = "Willow Game",
+	backing_allocator = {},
+	temp_allocator_cap = 100 * mem.Megabyte,
+	log_backing_allocations = false,
+	log_temp_allocations = false,
+	track_backing_allocations = false,
+	track_temp_allocations = false }
+
+Engine :: struct {
+	using engine_config: Engine_Config,
 	ticked: bool,
 	tick_count: uint,
 	stopwatch: time.Stopwatch,
 	temp_arena: mem.Arena,
-	backing_allocator: runtime.Allocator,
 	asset_manager: Asset_Manager,
 	input_manager: Input_Manager,
 	graphics_manager: Graphics_Manager,
@@ -37,7 +54,9 @@ Engine :: struct {
 	gi_manager: GI_Manager,
 	settings_manager: Settings_Manager,
 	log_allocator: log.Log_Allocator,
-	log_temp_allocator: log.Log_Allocator }
+	log_temp_allocator: log.Log_Allocator,
+	tracking_allocator: mem.Tracking_Allocator,
+	tracking_temp_allocator: mem.Tracking_Allocator }
 
 engine_end_init :: proc() -> runtime.Context {
 	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
@@ -75,35 +94,38 @@ worker_proc :: proc(data: rawptr) {
 ptr_is_nil :: proc(ptr: ^$T) -> bool {
 	return (ptr == nil) || (ptr == nil_stub) }
 
+@require_results
 engine_begin_init :: proc(
-		game_name: string,
+		engine_config: Engine_Config = DEFAULT_ENGINE_CONFIG,
 		asset_config: Asset_Manager_Config = DEFAULT_ASSET_MANAGER_CONFIG,
 		window_config: Window_Config = DEFAULT_WINDOW_CONFIG,
 		graphics_config: Graphics_Config = DEFAULT_GRAPHICS_CONFIG,
 		tick_config: Tick_Manager_Config = DEFAULT_TICK_MANAGER_CONFIG,
 		input_config: Input_Config = DEFAULT_INPUT_CONFIG,
-		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG,
-		// (TODO): Put these two inside Engine_Config:
-		temp_allocator_cap: uintptr = 100 * mem.Megabyte,
-		log_allocations: bool = false,
-		backing_allocator := context.allocator) -> runtime.Context {
+		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) -> runtime.Context {
 	engine = new(Engine)
-	engine.backing_allocator = backing_allocator
-	engine.game_name = game_name
+	engine.engine_config = engine_config
+	if engine.backing_allocator == {} do engine.backing_allocator = context.allocator
 	context.logger = log.create_console_logger()
-	mem.arena_init(&engine.temp_arena, make([]u8, temp_allocator_cap))
+	mem.arena_init(&engine.temp_arena, make([]u8, engine.temp_allocator_cap))
 	context.temp_allocator = mem.arena_allocator(&engine.temp_arena)
 	allocator := context.allocator
 	temp_allocator := context.temp_allocator
-	if log_allocations {
-		log.info("Enabling logging allocators.")
+	if engine.log_backing_allocations {
 		log.log_allocator_init(&engine.log_allocator, level=.Debug, size_fmt=.Human, allocator=context.allocator)
+		allocator = log.log_allocator(&engine.log_allocator) }
+	if engine.log_temp_allocations {
 		log.log_allocator_init(&engine.log_temp_allocator, level=.Debug, size_fmt=.Human, allocator=context.temp_allocator)
-		allocator = log.log_allocator(&engine.log_allocator)
 		temp_allocator = log.log_allocator(&engine.log_temp_allocator) }
+	if engine.track_backing_allocations {
+		mem.tracking_allocator_init(&engine.tracking_allocator, context.allocator)
+		allocator = mem.tracking_allocator(&engine.tracking_allocator) }
+	if engine.track_temp_allocations {
+		mem.tracking_allocator_init(&engine.tracking_temp_allocator, context.temp_allocator)
+		temp_allocator = mem.tracking_allocator(&engine.tracking_temp_allocator) }
 	context.allocator = allocator
 	context.temp_allocator = temp_allocator
-	am_init(asset_config, backing_allocator)
+	am_init(asset_config, engine.backing_allocator)
 	wd_init(window_config)
 	graphics_init(graphics_config)
 	gi_init()

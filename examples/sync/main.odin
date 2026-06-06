@@ -119,12 +119,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 	sync_context: Context = make_context()
 
-	context.logger = log.create_console_logger()
-	arena: mem.Arena
-	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
-	context.temp_allocator = mem.arena_allocator(&arena)
-
-	engine_begin_init("Sync Example")
+	context = engine_begin_init(
+		engine_config=default_engine_config(game_name="Sync Example", temp_allocator_cap=1000 * mem.Megabyte))
 	screen_rect = gi_rect_screen()
 
 	init_image(&background_image, { url = "image:savanna-background.png" })

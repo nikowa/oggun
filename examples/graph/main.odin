@@ -21,14 +21,9 @@ main :: proc() {
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
-	context.logger = log.create_console_logger()
-	arena: mem.Arena
-	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
-	context.temp_allocator = mem.arena_allocator(&arena)
-
-	engine_begin_init(
-		"Graph Example",
-	graphics_config = { clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
+	context = engine_begin_init(
+		engine_config=default_engine_config(game_name="Graph Example", temp_allocator_cap=1000 * mem.Megabyte),
+		graphics_config={ clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
 	gi_set_theme(gi_theme_ms_dark)
 
 	font_group: Font_Group

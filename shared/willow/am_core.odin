@@ -114,6 +114,10 @@ am_init :: proc(config: Asset_Manager_Config, backing_allocator: runtime.Allocat
 	am_register_builtin_kinds()
 	engine.asset_manager.initialized = true }
 
+am_verify_watch_no_leak :: proc(Asset_Type: typeid, asset: ^Asset, command: Asset_Command) -> (ok: bool) {
+	// (TODO): Implement this. //
+	return true }
+
 am_command :: proc(Asset_Type: typeid, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
 	asset_kind, registered := engine.asset_manager.asset_kinds[Asset_Type]
 	if ! registered do log.errorf("Type %v not registered!", Asset_Type)
@@ -149,7 +153,6 @@ am_register_asset_kind :: proc($Type: typeid, kind: Asset_Kind) {
 
 am_tick :: proc() {
 	if ! engine.asset_manager.watch do return
-	context.allocator = engine.backing_allocator
 	for asset in engine.asset_manager.assets {
 		asset_kind, ok := engine.asset_manager.asset_kinds[asset.derived_type]
 		assert(ok)
@@ -295,8 +298,8 @@ am_write :: proc(allocator: runtime.Allocator, relpath_override: string = "") {
 am_url_join :: proc(urls: []URL, allocator: runtime.Allocator) -> URL {
 	return cast(URL)strings.join(transmute([]string)urls, sep = ":", allocator = allocator) }
 
-am_url_split :: proc(url: URL, allocator: runtime.Allocator) -> (res: []string) {
-	res, _ = strings.split(cast(string)url, ":")
+am_url_split :: proc(url: URL, allocator: runtime.Allocator, loc := #caller_location) -> (res: []string) {
+	res, _ = strings.split(cast(string)url, ":", loc=loc)
 	return res }
 
 am_relpath_from_url :: proc(url: URL, allocator: runtime.Allocator) -> (path: string) {

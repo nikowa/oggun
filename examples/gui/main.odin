@@ -21,17 +21,12 @@ main :: proc() {
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
-	context.logger = log.create_console_logger()
-	arena: mem.Arena
-	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
-	context.temp_allocator = mem.arena_allocator(&arena)
-
-	engine_begin_init(
-		"GUI Example",
-		asset_config = default_asset_manager_config(watch = false),
-		graphics_config = default_graphics_config(clear_color = BLACK),
-		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
-		input_config = default_input_config(raw_input = false))
+	context = engine_begin_init(
+		engine_config=default_engine_config(game_name="GUI Example", temp_allocator_cap=1000 * mem.Megabyte),
+		asset_config=default_asset_manager_config(watch=false),
+		graphics_config=default_graphics_config(clear_color=BLACK),
+		tick_config=default_tick_manager_config(tickrate_setting=.LIMITED_144_FPS),
+		input_config=default_input_config(raw_input=false))
 	set_clear_color(WHITE)
 
 	zero_stopwatch(&stopwatch)

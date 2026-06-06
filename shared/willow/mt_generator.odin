@@ -36,6 +36,7 @@ gn_generate_defaults :: proc(willow_path: string) {
 	strings.builder_init_len_cap(&builder, 0, 10_000, context.allocator)
 	fmt.sbprintln(&builder, "package willow")
 	fmt.sbprintln(&builder, `import "core:time"`)
+	fmt.sbprintln(&builder, `import "base:runtime"`)
 	timestamp_buf: [time.MIN_HMS_LEN]u8
 	fmt.sbprintfln(&builder, "// Generated at %s //\n", time.time_to_string_hms(time.now(), timestamp_buf[:]))
 

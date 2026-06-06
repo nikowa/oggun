@@ -1,6 +1,7 @@
 package willow
 import "core:time"
-// Generated at 09:48:05 //
+import "base:runtime"
+// Generated at 11:36:56 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -39,6 +40,24 @@ default_tick_manager_config :: proc(
 ) -> Tick_Manager_Config {
 	return {
 		tickrate_setting = tickrate_setting } }
+
+default_engine_config :: proc(
+		game_name: string = DEFAULT_ENGINE_CONFIG.game_name,
+		backing_allocator: runtime.Allocator = DEFAULT_ENGINE_CONFIG.backing_allocator,
+		temp_allocator_cap: uintptr = DEFAULT_ENGINE_CONFIG.temp_allocator_cap,
+		log_backing_allocations: bool = DEFAULT_ENGINE_CONFIG.log_backing_allocations,
+		log_temp_allocations: bool = DEFAULT_ENGINE_CONFIG.log_temp_allocations,
+		track_backing_allocations: bool = DEFAULT_ENGINE_CONFIG.track_backing_allocations,
+		track_temp_allocations: bool = DEFAULT_ENGINE_CONFIG.track_temp_allocations,
+) -> Engine_Config {
+	return {
+		game_name = game_name,
+		backing_allocator = backing_allocator,
+		temp_allocator_cap = temp_allocator_cap,
+		log_backing_allocations = log_backing_allocations,
+		log_temp_allocations = log_temp_allocations,
+		track_backing_allocations = track_backing_allocations,
+		track_temp_allocations = track_temp_allocations } }
 
 default_settings_manager_config :: proc(
 		settings_name: string = DEFAULT_SETTINGS_MANAGER_CONFIG.settings_name,
