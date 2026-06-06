@@ -297,6 +297,7 @@ GI_BUTTON_SIZE_SMALL:  [2]f32 : { 64, 24 }
 GI_BUTTON_SIZE_MEDIUM: [2]f32 : { 96, 32 }
 GI_BUTTON_SIZE_LARGE:  [2]f32 : { 96, 40 }
 GI_ICON_SIZE:          [2]f32 : { 24, 24 }
+GI_AVATAR_SIZE:        [2]f32 : { 32, 32 }
 
 gi_init :: proc() {
 	using GI_Theme_Key
@@ -953,7 +954,8 @@ gi_init :: proc() {
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
 	font_group_init(&engine.gi_manager.icons_font_group,
-		normal = default_font_config(name = "icons"))
+		normal = default_font_config(name = "icons"),
+		bold = default_font_config(name = "icons-bold"))
 	gi_set_theme(gi_theme_ms_dark)
 
 	engine.gi_manager.anim_transitions = make(map[runtime.Source_Code_Location]GI_Anim_Transition) }

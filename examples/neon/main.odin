@@ -106,36 +106,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 			// Avatar //
 			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
-			{
-				avatar_rect: Rect = { { 0, 0 }, { 32, 32 } }
-				avatar_image: ^Image_Asset = &image
-				avatar_name: string = "Nikola Petrov Stefanov"
-				subnames: []string = strings.split(avatar_name, " ")
-				avatar_initials: string = strings.to_upper(strings.concatenate({ subnames[0][0:1], subnames[len(subnames) - 1][0:1] }))
-				theme := engine.gi_manager.theme
-				fill_color: Color = theme[GI_Theme_Key.NEUTRAL_BACKGROUND_2][GI_Variant.SELECTED]
-				if avatar_image != nil {
-					gx_clip_scope({ rect = avatar_rect, radius = 16 })
-					dr_image(avatar_image, avatar_rect) }
-				else {
-					dr_rect(avatar_rect, fill_color, radius = 16)
-					avatar_text_style := gi_get_text_style()
-					avatar_text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_4][0]
-					if avatar_name != "" {
-						avatar_text_style.font_size = 10
-						avatar_text_style.bold = true
-						gi_text_style_scope(avatar_text_style)
-						dr_text_box(avatar_initials, avatar_rect, h_align = .CENTER, v_align = .CENTER) }
-					else {
-						gi_text_style_scope(avatar_text_style)
-						dr_icon(.Person, { 0, 0 }) } }
-				gx_depth_scope_dec(0.01)
-				dr_rect({ avatar_rect.position + { 10, -10 }, { 12, 12 } }, gi_get_background_color()[0], radius = 6, integer=false)
-				gx_depth_scope_dec(0.01)
-				badge_color := theme[GI_Theme_Key.GREEN_BACKGROUND][2]
-				dr_rect({ avatar_rect.position + { 10, -10 }, { 10, 10 } }, badge_color, radius = 5, integer=false)
-				// DICK
-			}
+			dr_avatar({ 0, 0 }, name=""/*"Nikola Petrov Stefanov"*/, image=nil/*&image*/)
 
 			// Test string //
 			// assert(am_command(String_Asset, &string_asset.asset, .Import, watch=true))

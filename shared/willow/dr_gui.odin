@@ -81,9 +81,43 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 	// dr_rect_outline(rect, RED)
 }
 
-dr_icon :: proc(icon: GI_Icon, position: [2]f32, angle: f32 = 0.0) {
+dr_icon :: proc(icon: GI_Icon, position: [2]f32, angle: f32=0.0, bold: bool=false, scale: f32=1.0) {
 	// dr_rect_outline({ position, GI_ICON_SIZE }, RED)
 	icons_text_style := engine.gi_manager.icons_text_style
 	icons_text_style.color = gi_get_text_style().color
+	icons_text_style.bold = bold
+	icons_text_style.font_size = Font_Size(scale * cast(f32)icons_text_style.font_size)
 	gi_text_style_scope(icons_text_style)
 	dr_text_symbol_rect(cast(u8)icon, { position, GI_ICON_SIZE }, angle = angle) }
+
+dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, icon: GI_Icon=.Person) {
+	avatar_rect: Rect = { position, GI_AVATAR_SIZE }
+	theme := engine.gi_manager.theme
+	fill_color: Color = theme[GI_Theme_Key.NEUTRAL_BACKGROUND_2][GI_Variant.SELECTED]
+	if image != nil {
+		gx_clip_scope({ rect = avatar_rect, radius = 16 })
+		dr_image(image, avatar_rect) }
+	else {
+		dr_rect(avatar_rect, fill_color, radius = 16)
+		avatar_text_style := gi_get_text_style()
+		avatar_text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_4][0]
+		if name != "" {
+			subnames: []string = strings.split(name, " ")
+			avatar_initials: string = strings.to_upper(strings.concatenate({ subnames[0][0:1], subnames[len(subnames) - 1][0:1] }))
+			avatar_text_style.font_size = 10
+			avatar_text_style.bold = true
+			gi_text_style_scope(avatar_text_style)
+			dr_text_box(avatar_initials, avatar_rect, h_align = .CENTER, v_align = .CENTER) }
+		else {
+			gi_text_style_scope(avatar_text_style)
+			dr_icon(icon, position) } }
+	gx_depth_scope_dec(0.01)
+	dr_rect({ avatar_rect.position + { 10, -10 }, { 12, 12 } }, gi_get_background_color()[0], radius = 6, integer=false)
+	gx_depth_scope_dec(0.01)
+	badge_color := theme[GI_Theme_Key.GREEN_BACKGROUND][2]
+	barge_rect: Rect = { avatar_rect.position + { 10, -10 }, { 10, 10 } }
+	dr_rect(barge_rect, badge_color, radius = 6, integer=false)
+	// Accept
+	dr_icon(.Accept, barge_rect.position, bold=true, scale=0.5)
+	// DICK
+}

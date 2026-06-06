@@ -135,7 +135,7 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset:
 		color = color,
 		clip = gx_get_clip() }
 	command.symbol = symbol
-	command.position = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2, gx_get_depth() }
+	command.position = { rect.position.x - scale_factor * rect.size.x / 2, rect.position.y - scale_factor * rect.size.y / 2, gx_get_depth() }
 	command.scale_factor = f32(scale_factor)
 	command.color = color
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false

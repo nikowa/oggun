@@ -1,12 +1,11 @@
 
+- Make sure icon is always centered on its "position", even when scaled.
 - Figure out the depth on the GUI draw functions.
 - Prevent crash when attempting to recompile a shader with an error.
 - Make '\n' work in text box.
 - Add scope suffix to all procedures that have @deferred attribute
 - Add a special logger for the allocations and add filter options to. Like options that trim line that contain certain substrings, for example "gi_text_style_store" and "gi_text_style_restore", which I know are safe.
 - Make sure that when an asset is reloaded, the old memory is freed
-- Fix shader recompiling
-- Fix MSAA
 - Figure out why the "input" example is so slow
 - Option to disable antialiasing on MSAA renderer, MSAA should be off for icons
 - Implement Badge Neon primitive
