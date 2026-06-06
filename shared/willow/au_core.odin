@@ -69,7 +69,7 @@ package willow
 // 		audio.ma_eng_confs[i].pDevice = &audio.ma_devs[i]
 // 		audio.ma_eng_confs[i].pResourceManager = &audio.ma_rm
 // 		audio.ma_eng_confs[i].noAutoStart = true
-// 		audio.ma_res = miniaudio.engine_init(&audio.ma_eng_confs[i], &audio.ma_engs[i])
+// 		audio.ma_res = miniaudio.engine_begin_init(&audio.ma_eng_confs[i], &audio.ma_engs[i])
 // 		if audio.ma_res != miniaudio.result.SUCCESS { miniaudio.device_uninit(&audio.ma_devs[i]); return } }
 // 	for i in 0 ..< audio.ma_dev_count {
 // 		audio.ma_res = miniaudio.engine_start(&audio.ma_engs[i])

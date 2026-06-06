@@ -124,7 +124,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	engine_init("Sync Example")
+	engine_begin_init("Sync Example")
 	screen_rect = gi_rect_screen()
 
 	init_image(&background_image, { url = "image:savanna-background.png" })
@@ -151,7 +151,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	zero_stopwatch(&stopwatch)
 
-	context = engine_loop_context()
+	context = engine_end_init()
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)

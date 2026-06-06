@@ -26,7 +26,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	engine_init(
+	engine_begin_init(
 		"GUI Example",
 		asset_config = default_asset_manager_config(watch = false),
 		graphics_config = default_graphics_config(clear_color = BLACK),
@@ -36,7 +36,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	zero_stopwatch(&stopwatch)
 
-	context = engine_loop_context()
+	context = engine_end_init()
 
 	screen_rect := gi_rect_screen()
 	for engine_running() do if engine_tick() {

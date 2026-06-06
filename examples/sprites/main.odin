@@ -44,7 +44,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	engine_init("Sprites Example")
+	engine_begin_init("Sprites Example")
 
 	settings: Settings = {
 		player_name = "Destroyer",
@@ -73,7 +73,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	zero_stopwatch(&stopwatch)
 
-	context = engine_loop_context()
+	context = engine_end_init()
 	// backing_allocator := context.allocator
 	// context.allocator = context.temp_allocator
 

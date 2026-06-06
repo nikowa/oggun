@@ -149,6 +149,7 @@ am_register_asset_kind :: proc($Type: typeid, kind: Asset_Kind) {
 
 am_tick :: proc() {
 	if ! engine.asset_manager.watch do return
+	context.allocator = engine.backing_allocator
 	for asset in engine.asset_manager.assets {
 		asset_kind, ok := engine.asset_manager.asset_kinds[asset.derived_type]
 		assert(ok)

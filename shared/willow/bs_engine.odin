@@ -25,7 +25,9 @@ Entry_Point :: #type proc(data: ^Thread_Data)
 Engine :: struct {
 	game_name: string,
 	ticked: bool,
+	tick_count: uint,
 	stopwatch: time.Stopwatch,
+	temp_arena: mem.Arena,
 	backing_allocator: runtime.Allocator,
 	asset_manager: Asset_Manager,
 	input_manager: Input_Manager,
@@ -33,9 +35,11 @@ Engine :: struct {
 	window_manager: Window_Manager,
 	tick_manager: Tick_Manager,
 	gi_manager: GI_Manager,
-	settings_manager: Settings_Manager }
+	settings_manager: Settings_Manager,
+	log_allocator: log.Log_Allocator,
+	log_temp_allocator: log.Log_Allocator }
 
-engine_loop_context :: proc() -> runtime.Context {
+engine_end_init :: proc() -> runtime.Context {
 	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
 	// explicitly use "engine.backing_allocator".
 	engine.backing_allocator = context.allocator
@@ -71,7 +75,7 @@ worker_proc :: proc(data: rawptr) {
 ptr_is_nil :: proc(ptr: ^$T) -> bool {
 	return (ptr == nil) || (ptr == nil_stub) }
 
-engine_init :: proc(
+engine_begin_init :: proc(
 		game_name: string,
 		asset_config: Asset_Manager_Config = DEFAULT_ASSET_MANAGER_CONFIG,
 		window_config: Window_Config = DEFAULT_WINDOW_CONFIG,
@@ -79,10 +83,26 @@ engine_init :: proc(
 		tick_config: Tick_Manager_Config = DEFAULT_TICK_MANAGER_CONFIG,
 		input_config: Input_Config = DEFAULT_INPUT_CONFIG,
 		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG,
-		backing_allocator := context.allocator) {
+		// (TODO): Put these two inside Engine_Config:
+		temp_allocator_cap: uintptr = 100 * mem.Megabyte,
+		log_allocations: bool = false,
+		backing_allocator := context.allocator) -> runtime.Context {
 	engine = new(Engine)
 	engine.backing_allocator = backing_allocator
 	engine.game_name = game_name
+	context.logger = log.create_console_logger()
+	mem.arena_init(&engine.temp_arena, make([]u8, temp_allocator_cap))
+	context.temp_allocator = mem.arena_allocator(&engine.temp_arena)
+	allocator := context.allocator
+	temp_allocator := context.temp_allocator
+	if log_allocations {
+		log.info("Enabling logging allocators.")
+		log.log_allocator_init(&engine.log_allocator, level=.Debug, size_fmt=.Human, allocator=context.allocator)
+		log.log_allocator_init(&engine.log_temp_allocator, level=.Debug, size_fmt=.Human, allocator=context.temp_allocator)
+		allocator = log.log_allocator(&engine.log_allocator)
+		temp_allocator = log.log_allocator(&engine.log_temp_allocator) }
+	context.allocator = allocator
+	context.temp_allocator = temp_allocator
 	am_init(asset_config, backing_allocator)
 	wd_init(window_config)
 	graphics_init(graphics_config)
@@ -90,7 +110,8 @@ engine_init :: proc(
 	input_init(input_config)
 	settings_manager_init(&engine.settings_manager, settings_config)
 	tick_manager_init(&engine.tick_manager, tick_config)
-	zero_stopwatch(&engine.stopwatch) }
+	zero_stopwatch(&engine.stopwatch)
+	return context }
 
 engine_running :: proc() -> bool {
 	return ! engine.graphics_manager.window_closed }
@@ -106,6 +127,7 @@ engine_tick_begin :: proc() -> bool {
 		tick_graphics_manager()
 		input_manager_tick()
 		engine.ticked = true
+		engine.tick_count += 1
 		return true }
 	return false }
 

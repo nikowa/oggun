@@ -960,15 +960,21 @@ gi_init :: proc() {
 
 gi_set_theme :: proc(theme: ^GI_Theme) {
 	engine.gi_manager.theme = theme
-	engine.gi_manager.text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
+	engine.gi_manager.text_style.color = gi_get_text_color()[0]
 	fg_color := engine.gi_manager.theme[GI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
 	engine.gi_manager.text_style = default_text_style(font_group = engine.gi_manager.font_group, color = fg_color, font_size = 8)
 	engine.gi_manager.icons_text_style = default_text_style(font_group = engine.gi_manager.icons_font_group, color = fg_color, font_size = 24)
-	background_color := theme[GI_Theme_Key.NEUTRAL_BACKGROUND_2][0]
+	background_color := gi_get_background_color()[0]
 	set_clear_color(background_color)
 	wnd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK)
 	// wnd_customize(RED, RED)
 }
+
+gi_get_background_color :: proc() -> GI_Color {
+	return engine.gi_manager.theme[GI_Theme_Key.NEUTRAL_BACKGROUND_1] }
+
+gi_get_text_color :: proc() -> GI_Color {
+	return engine.gi_manager.theme[GI_Theme_Key.NEUTRAL_FOREGROUND_1] }
 
 gi_theme_ms_light: ^GI_Theme
 gi_theme_ms_dark: ^GI_Theme

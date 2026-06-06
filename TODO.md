@@ -1,4 +1,7 @@
 
+- Make sure that when an asset is reloaded, the old memory is freed
+- Fix shader recompiling
+- Fix MSAA
 - Figure out why the "input" example is so slow
 - Option to disable antialiasing on MSAA renderer, MSAA should be off for icons
 - Implement Badge Neon primitive

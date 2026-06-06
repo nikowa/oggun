@@ -10,6 +10,7 @@ import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
 import "core:mem"
+import "core:strings"
 
 stopwatch: time.Stopwatch
 
@@ -21,18 +22,14 @@ main :: proc() {
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
-	context.logger = log.create_console_logger()
-	arena: mem.Arena
-	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
-	context.temp_allocator = mem.arena_allocator(&arena)
-
-	engine_init(
-		"Willow",
+	context = engine_begin_init(
+		"Neon Example",
 		asset_config = default_asset_manager_config(watch = false),
 		graphics_config = default_graphics_config(clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config = default_tick_manager_config(tickrate_setting = .LIMITED_144_FPS),
-		input_config = default_input_config(raw_input = false))
-	gi_set_theme(gi_theme_ms_light)
+		input_config = default_input_config(raw_input = false),
+		log_allocations = true)
+	gi_set_theme(gi_theme_ms_dark)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })
@@ -42,17 +39,14 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	zero_stopwatch(&stopwatch)
 
-	context = engine_loop_context()
+	context = engine_end_init()
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
-			dr_rect({ -engine.window_manager.size/2, { 4, 4 } }, RED)
-			// dr_rect(gi_rect_screen(), BLACK)
-			clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
-			dr_rect_outline(clip_rect, RED)
-			gx_clip_scope({ rect = clip_rect, radius = 200 })
+			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
+			// dr_rect_outline(clip_rect, RED)
+			// gx_clip_scope({ rect = clip_rect, radius = 200 })
 
 			// Buttons //
 			position: [2]f32 = { -500, 400 }
@@ -93,18 +87,39 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			{ dr_text_box(text, gi_accordion_add(accordion, "*Header* _D_", { 400, 100 }), h_align=.JUSTIFY, v_align=.TOP) }
 
 			// Image //
-			dr_image(&image, { { 0, 0 }, { 400, 400 } })
+			// dr_image(&image, { { 0, 0 }, { 400, 400 } })
 
 			// Avatar //
 			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
 			{
+				avatar_rect: Rect = { { 0, 0 }, { 32, 32 } }
+				avatar_image: ^Image_Asset = &image
+				avatar_name: string = "Nikola Petrov Stefanov"
+				subnames: []string = strings.split(avatar_name, " ")
+				avatar_initials: string = strings.to_upper(strings.concatenate({ subnames[0][0:1], subnames[len(subnames) - 1][0:1] }))
 				theme := engine.gi_manager.theme
 				fill_color: Color = theme[GI_Theme_Key.NEUTRAL_BACKGROUND_2][GI_Variant.SELECTED]
-				dr_rect({ { 0, 0 }, { 32, 32 } }, fill_color, radius = 16)
-				icon_text_style := gi_get_text_style()
-				icon_text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_4][0]
-				gi_text_style_scope(icon_text_style)
-				dr_icon(.Person, { 0, 0 })
+				if avatar_image != nil {
+					gx_clip_scope({ rect = avatar_rect, radius = 16 })
+					dr_image(avatar_image, avatar_rect) }
+				else {
+					dr_rect(avatar_rect, fill_color, radius = 16)
+					avatar_text_style := gi_get_text_style()
+					avatar_text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_4][0]
+					if avatar_name != "" {
+						avatar_text_style.font_size = 10
+						avatar_text_style.bold = true
+						gi_text_style_scope(avatar_text_style)
+						dr_text_box(avatar_initials, avatar_rect, h_align = .CENTER, v_align = .CENTER) }
+					else {
+						gi_text_style_scope(avatar_text_style)
+						dr_icon(.Person, { 0, 0 }) } }
+				gx_depth_scope_dec(0.01)
+				dr_rect({ avatar_rect.position + { 10, -10 }, { 12, 12 } }, gi_get_background_color()[0], radius = 6, integer=false)
+				gx_depth_scope_dec(0.01)
+				badge_color := theme[GI_Theme_Key.GREEN_BACKGROUND][2]
+				dr_rect({ avatar_rect.position + { 10, -10 }, { 10, 10 } }, badge_color, radius = 5, integer=false)
+				// DICK
 			}
 		} }
 	return }

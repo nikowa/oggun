@@ -149,7 +149,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	engine_init("Input Example", input_config = default_input_config(raw_input = false))
+	engine_begin_init("Input Example", input_config = default_input_config(raw_input = false))
 
 	font_group: Font_Group
 	font_group_init(&font_group,
@@ -193,7 +193,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		.Numpad_1, .Numpad_2, .Numpad_3, .Numpad_Enter,
 		.Numpad_0, .Numpad_Decimal }
 
-	context = engine_loop_context()
+	context = engine_end_init()
 
 	for engine_running() {
 		engine_tick()

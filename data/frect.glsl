@@ -60,4 +60,5 @@ void main(void) {
 	// return;
 
 	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
+	color = vec4(0, 0, 1, 1);
 }

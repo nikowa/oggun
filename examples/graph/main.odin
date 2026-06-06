@@ -26,7 +26,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	mem.arena_init(&arena, make([]u8, 1000 * mem.Megabyte))
 	context.temp_allocator = mem.arena_allocator(&arena)
 
-	engine_init(
+	engine_begin_init(
 		"Graph Example",
 	graphics_config = { clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
 	gi_set_theme(gi_theme_ms_dark)
