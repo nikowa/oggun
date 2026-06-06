@@ -1097,7 +1097,7 @@ gi_text_box_lines :: proc(rect: Rect, text: string, scale_factor: f32) -> []stri
 	for {
 		ok := gi_measure_text_iterate(text, &curr_i, &width, &space_count, scale_factor)
 		if (width <= rect.size.x) && ok {
-			if text[prev_i] == ' ' && text[prev_i - 1] != ' ' {
+			if text[prev_i] == ' ' && (prev_i == 0 ? true : (text[prev_i - 1] != ' ')) {
 				prev_word_end_i = prev_i
 				width_acc = width - cast(f32)font_group.normal.advances[' '] * scale_factor + tracking }
 			prev_i = curr_i

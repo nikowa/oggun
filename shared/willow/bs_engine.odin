@@ -6,6 +6,7 @@ import "core:sys/windows"
 import "core:log"
 import "core:mem"
 import "core:time"
+import "core:slice"
 
 // asset_manager: Asset_Manager
 // input_manager: Input_Manager
@@ -94,6 +95,10 @@ worker_proc :: proc(data: rawptr) {
 ptr_is_nil :: proc(ptr: ^$T) -> bool {
 	return (ptr == nil) || (ptr == nil_stub) }
 
+ptr_is_temp :: proc(ptr: rawptr) -> bool {
+	return (cast(uintptr)ptr >= cast(uintptr)slice.first_ptr(engine.temp_arena.data)) &&
+	       (cast(uintptr)ptr <= cast(uintptr)slice.last_ptr(engine.temp_arena.data)) }
+
 @require_results
 engine_begin_init :: proc(
 		engine_config: Engine_Config = DEFAULT_ENGINE_CONFIG,
@@ -125,7 +130,7 @@ engine_begin_init :: proc(
 	context.allocator = allocator
 	context.temp_allocator = temp_allocator
 	if engine.backing_allocator == {} do engine.backing_allocator = context.allocator
-	am_init(asset_config, engine.backing_allocator)
+	am_init(asset_config)
 	wd_init(window_config)
 	graphics_init(graphics_config)
 	gi_init()

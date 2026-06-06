@@ -14,6 +14,8 @@ import "core:container/intrusive/list"
 import "core:fmt"
 import "core:math/bits"
 
+// (TOOD): All functions that might want to use the backing allocator should have an explicit allocator param.
+
 URL :: distinct string
 
 MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
@@ -42,7 +44,6 @@ DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
 Asset_Manager :: struct {
 	using config: Asset_Manager_Config,
 	initialized: bool,
-	backing_allocator: runtime.Allocator,
 	last_autosave_time: time.Time,
 	modification_time: time.Time,
 	entries: list.List,
@@ -104,10 +105,8 @@ Entry :: struct {
 	node: list.Node,
 	hash: u32 }
 
-am_init :: proc(config: Asset_Manager_Config, backing_allocator: runtime.Allocator = context.allocator) {
-	context.allocator = backing_allocator
+am_init :: proc(config: Asset_Manager_Config) {
 	engine.asset_manager.config = config
-	engine.asset_manager.backing_allocator = backing_allocator
 	engine.asset_manager.entries_map = make_map(map[URL]^Entry)
 	engine.asset_manager.asset_kinds = make(map[typeid]Asset_Kind)
 	engine.asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32)
@@ -201,8 +200,9 @@ am_entry_integrity :: proc(entry: ^Entry) -> (ok: bool) {
 
 // (TODO): Have only 1 backing allocator: "engine.allocator"
 am_add_entry :: proc(config: Entry_Config) -> (entry: ^Entry) {
+	// (TODO): There is no point in checking if the entry exists. THere is "am_get_or_add_entry" for that.
 	if am_contains_entry(config.url) do return am_get_entry(config.url)
-	entry = new(Entry, engine.asset_manager.backing_allocator)
+	entry = new(Entry, engine.backing_allocator)
 	entry.config = config
 	list.push_back(&engine.asset_manager.entries, &entry.node)
 	engine.asset_manager.modification_time = time.now()
@@ -231,14 +231,14 @@ am_relpath_to_source_path :: proc(relpath: string, allocator: runtime.Allocator)
 	path, _ = os.join_path({ relpath_to_path(engine.asset_manager.source_directory_relpath, allocator), relpath }, allocator = allocator)
 	return path }
 
-am_read_or_init :: proc(config: Asset_Manager_Config, allocator: runtime.Allocator) {
-	if os.exists(relpath_to_path(config.relpath, context.temp_allocator)) do am_read(config, allocator)
-	else do am_init(config, allocator) }
+am_read_or_init :: proc(config: Asset_Manager_Config) {
+	if os.exists(relpath_to_path(config.relpath, context.temp_allocator)) do am_read(config)
+	else do am_init(config) }
 
-am_read :: proc(config: Asset_Manager_Config, allocator: runtime.Allocator, relpath_override: string = "") {
-	am_init(config, allocator)
+am_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
+	am_init(config)
 	engine.asset_manager.config = config
-	path := relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, allocator)
+	path := relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, context.allocator)
 	compressed_data, err := os.read_entire_file_from_path(path, allocator = context.temp_allocator)
 	assert(err == nil)
 	data := decompress(compressed_data, context.temp_allocator)
@@ -253,13 +253,13 @@ am_read :: proc(config: Asset_Manager_Config, allocator: runtime.Allocator, relp
 		entry: Entry
 		url_len: u8
 		_, err = bytes.reader_read_ptr(&reader, &url_len, size_of(url_len)); assert(err == nil)
-		url: []u8 = make([]u8, url_len, allocator)
+		url: []u8 = make([]u8, url_len, context.allocator)
 		_, err = bytes.reader_read_slice(&reader, url); assert(err == nil)
 		entry.url = cast(URL)url
 		_, err = bytes.reader_read_ptr(&reader, &entry.modification_time, size_of(entry.modification_time)); assert(err == nil)
 		data_len: u32
 		_, err = bytes.reader_read_ptr(&reader, &data_len, size_of(data_len)); assert(err == nil)
-		entry.data = make([]u8, data_len, allocator)
+		entry.data = make([]u8, data_len, context.allocator)
 		_, err = bytes.reader_read_slice(&reader, entry.data); assert(err == nil)
 		// log.infof("Reading entry \"%s\".", entry.url)
 		am_add_entry(entry)
@@ -302,15 +302,15 @@ am_url_split :: proc(url: URL, allocator: runtime.Allocator, loc := #caller_loca
 	res, _ = strings.split(cast(string)url, ":", loc=loc)
 	return res }
 
-am_relpath_from_url :: proc(url: URL, allocator: runtime.Allocator) -> (path: string) {
-	url_components: []string = am_url_split(url, allocator)
+am_relpath_from_url :: proc(url: URL, allocator: runtime.Allocator, loc := #caller_location) -> (path: string) {
+	url_components: []string = am_url_split(url, allocator, loc=loc)
 	working_directory, _ := os.get_executable_directory(allocator)
 	filename := url_components[1]
 	path, _ = os.join_path({ engine.asset_manager.source_directory_relpath, filename }, allocator)
 	return path }
 
-am_path_from_url :: proc(url: URL, allocator: runtime.Allocator) -> (path: string) {
-	relpath: string = am_relpath_from_url(url, allocator)
+am_path_from_url :: proc(url: URL, allocator: runtime.Allocator, loc := #caller_location) -> (path: string) {
+	relpath: string = am_relpath_from_url(url, allocator, loc=loc)
 	return relpath_to_path(relpath, allocator) }
 
 am_entry_was_modified :: proc(entry: ^Entry) -> (outdated: bool) {
@@ -324,7 +324,7 @@ am_entry_was_modified :: proc(entry: ^Entry) -> (outdated: bool) {
 	return outdated }
 
 am_entry_hash :: proc(entry: ^Entry) -> (hashed: u32) {
-	digest := hash.hash_bytes(.Insecure_MD5, entry.data, context.temp_allocator)
+	digest := hash.hash_bytes(.Insecure_MD5, entry.data, engine.backing_allocator)
 	return slice.reinterpret([]u32, digest)[0] }
 
 am_entry_update_hash :: proc(entry: ^Entry) {
