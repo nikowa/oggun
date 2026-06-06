@@ -93,6 +93,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
 				sprite_rect: Rect = { engine.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				{ gx_depth_scope(sprite.depth); dr_image(&images[image_index], sprite_rect) }
+				{ gx_depth_scope(sprite.depth); dr_image(&images[image_index], sprite_rect, integer=false) }
 				if i > splits[image_index] do image_index += 1 } } }
 	return }

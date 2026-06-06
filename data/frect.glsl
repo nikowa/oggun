@@ -26,8 +26,6 @@ flat in float _clip_radius;
 #define clip _clip
 #define clip_radius _clip_radius
 
-// gl_FragCoord
-
 vec3 sample_rgb(vec2 off) {
 	vec3 acc = vec3(0);
 	vec2 p = get_p(res) + off;
@@ -47,18 +45,9 @@ void main(void) {
 	color = vec4(0);
 	gl_FragDepth = _depth;
 	vec2 b = rect.zw / 2 - vec2(rounding);
-	color.w = sample_a(vec2(0));
-	msaaoff_scope_begin(color.rgb, vec2(0.5))
+	vec3 _color;
+	msaa16_scope_begin(color, vec2(1.0))
 		color.rgb += sample_rgb(msaa_off);
-	msaaoff_scope_end(color.rgb)
-
-	// color.xyzw = vec4(0, 0, 0, 1);
-	// vec2 uva = p_from_rect_uv(tex_coord, rect);
-	// vec2 uvb = vec2(gl_FragCoord.x - res.x / 2, res.y / 2 - gl_FragCoord.y);
-	// color.xy = 10000000 * abs(uva - uvb);
-	// color.xy = (gl_FragCoord.xy - res / 2) / res;
-	// return;
-
-	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
-	// color = vec4(0, 0, 1, 1);
+		color.a += clip_value_rounded(sample_a(msaa_off), gl_FragCoord.xy - res / 2 + msaa_off, clip, clip_radius);
+	msaa16_scope_end(color)
 }

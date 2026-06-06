@@ -22,3 +22,7 @@ vec4 clip_color_rounded(vec4 color, vec2 point, vec4 clip_rect, float clip_radiu
 	// return vec4(vec3(dist) / 1000, 1);
 	if (clip_point_rounded(point, clip_rect, clip_radius)) return color;
 	return vec4(0); }
+
+float clip_value_rounded(float value, vec2 point, vec4 clip_rect, float clip_radius) {
+	if (clip_point_rounded(point, clip_rect, clip_radius)) return value;
+	return 0; }

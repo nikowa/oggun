@@ -17,12 +17,15 @@ flat in float _clip_radius;
 
 void main(void) {
 
-	msaa8_scope_begin(color, 2 * rect.zw)
-		color += texture(samp, tex_coord + 1 * msaa_off);
-	msaa8_scope_end(color)
+	msaa16_scope_begin(color, vec2(1.0))
+		// color += texture(samp, tex_coord + 1 * msaa_off);
+		// (TODO): Why can't I use "get_p" here instead of "gl_FragCoord.xy - res / 2"? Why is "get_p" inverted-Y?
+		//         One of them must be changed. Have some consistency, please!
+		color += clip_color_rounded(texture(samp, tex_coord + msaa_off / rect.zw), gl_FragCoord.xy - res / 2 + msaa_off, clip, clip_radius);
+	msaa16_scope_end(color)
 
 	// color = texture(samp, tex_coord);
 	gl_FragDepth = _depth;
-	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
+	// color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius);
 	if (color.w == 0.0) {
 		gl_FragDepth = 1.0; } }

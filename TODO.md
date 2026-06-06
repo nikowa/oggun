@@ -1,4 +1,6 @@
 
+- Figure out the depth on the GUI draw functions.
+- Prevent crash when attempting to recompile a shader with an error.
 - Make '\n' work in text box.
 - Add scope suffix to all procedures that have @deferred attribute
 - Add a special logger for the allocations and add filter options to. Like options that trim line that contain certain substrings, for example "gi_text_style_store" and "gi_text_style_restore", which I know are safe.

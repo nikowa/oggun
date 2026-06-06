@@ -25,15 +25,15 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context = engine_begin_init(
 		engine_config=default_engine_config(
 			game_name="Neon Example",
-			track_backing_allocations=false,
-			track_temp_allocations=false,
+			track_backing_allocations=true,
+			track_temp_allocations=true,
 			log_backing_allocations=false,
 			log_temp_allocations=false),
-		asset_config=default_asset_manager_config(watch=false),
+		asset_config=default_asset_manager_config(watch=true),
 		graphics_config=default_graphics_config(clear_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config=default_tick_manager_config(tickrate_setting=.LIMITED_144_FPS),
 		input_config=default_input_config(raw_input=false))
-	gi_set_theme(gi_theme_ms_light)
+	gi_set_theme(gi_theme_ms_dark)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })
@@ -138,12 +138,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			}
 
 			// Test string //
-			assert(am_command(String_Asset, &string_asset.asset, .Import, watch=true))
-			assert(! ptr_is_temp(raw_data(string_asset.str)))
-			assert(am_command(String_Asset, &string_asset.asset, .Load, watch=true))
-			// log.warn(string_asset.str)
-			assert(! ptr_is_temp(raw_data(string_asset.str)))
-			dr_text_box(string_asset.str, { { 0, 0 }, { 120, 20 } }, h_align=.CENTER, v_align=.CENTER)
+			// assert(am_command(String_Asset, &string_asset.asset, .Import, watch=true))
+			// assert(! ptr_is_temp(raw_data(string_asset.str)))
+			// assert(am_command(String_Asset, &string_asset.asset, .Load, watch=true))
+			// // log.warn(string_asset.str)
+			// assert(! ptr_is_temp(raw_data(string_asset.str)))
+			// dr_text_box(string_asset.str, { { 0, 0 }, { 120, 20 } }, h_align=.CENTER, v_align=.CENTER)
 
 			// Metrics //
 			gi_metrics_widget()
