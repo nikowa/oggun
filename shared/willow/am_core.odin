@@ -331,7 +331,8 @@ am_entry_update_hash :: proc(entry: ^Entry) {
 	entry.hash = am_entry_hash(entry) }
 
 am_update_entry :: proc(entry: ^Entry, config: Entry_Config) {
-	if len(entry.data) > 0 do delete(entry.data)
+	// (TODO): This triggers a "bad free" error. //
+	// if len(entry.data) > 0 do delete(entry.data)
 	entry.config = config
 	am_entry_update_hash(entry)
 	engine.asset_manager.modification_time = time.now() }

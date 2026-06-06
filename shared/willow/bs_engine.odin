@@ -105,26 +105,26 @@ engine_begin_init :: proc(
 		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) -> runtime.Context {
 	engine = new(Engine)
 	engine.engine_config = engine_config
-	if engine.backing_allocator == {} do engine.backing_allocator = context.allocator
 	context.logger = log.create_console_logger()
 	mem.arena_init(&engine.temp_arena, make([]u8, engine.temp_allocator_cap))
 	context.temp_allocator = mem.arena_allocator(&engine.temp_arena)
 	allocator := context.allocator
 	temp_allocator := context.temp_allocator
 	if engine.log_backing_allocations {
-		log.log_allocator_init(&engine.log_allocator, level=.Debug, size_fmt=.Human, allocator=context.allocator)
+		log.log_allocator_init(&engine.log_allocator, level=.Debug, size_fmt=.Human, allocator=allocator)
 		allocator = log.log_allocator(&engine.log_allocator) }
 	if engine.log_temp_allocations {
-		log.log_allocator_init(&engine.log_temp_allocator, level=.Debug, size_fmt=.Human, allocator=context.temp_allocator)
+		log.log_allocator_init(&engine.log_temp_allocator, level=.Debug, size_fmt=.Human, allocator=temp_allocator)
 		temp_allocator = log.log_allocator(&engine.log_temp_allocator) }
 	if engine.track_backing_allocations {
-		mem.tracking_allocator_init(&engine.tracking_allocator, context.allocator)
+		mem.tracking_allocator_init(&engine.tracking_allocator, allocator)
 		allocator = mem.tracking_allocator(&engine.tracking_allocator) }
 	if engine.track_temp_allocations {
-		mem.tracking_allocator_init(&engine.tracking_temp_allocator, context.temp_allocator)
+		mem.tracking_allocator_init(&engine.tracking_temp_allocator, temp_allocator)
 		temp_allocator = mem.tracking_allocator(&engine.tracking_temp_allocator) }
 	context.allocator = allocator
 	context.temp_allocator = temp_allocator
+	if engine.backing_allocator == {} do engine.backing_allocator = context.allocator
 	am_init(asset_config, engine.backing_allocator)
 	wd_init(window_config)
 	graphics_init(graphics_config)

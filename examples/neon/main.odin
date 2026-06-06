@@ -28,7 +28,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			track_backing_allocations=true,
 			track_temp_allocations=true,
 			log_backing_allocations=false),
-		asset_config=default_asset_manager_config(watch=false),
+		asset_config=default_asset_manager_config(watch=true),
 		graphics_config=default_graphics_config(clear_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config=default_tick_manager_config(tickrate_setting=.LIMITED_144_FPS),
 		input_config=default_input_config(raw_input=false))

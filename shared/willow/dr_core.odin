@@ -220,6 +220,7 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 		symbol_position.x += symbol_delta }
 	return width }
 
+// (TODO): Maybe some of these params should be on a stack. //
 dr_text_box :: proc(text: string, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) {
 	using style := gi_get_text_style()
 	gi_text_style_checkpoint()
