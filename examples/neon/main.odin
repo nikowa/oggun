@@ -33,7 +33,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		graphics_config=default_graphics_config(clear_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK),
 		tick_config=default_tick_manager_config(tickrate_setting=.LIMITED_144_FPS),
 		input_config=default_input_config(raw_input=false))
-	gi_set_theme(gi_theme_ms_dark)
+	gi_set_theme(gi_theme_ms_light)
+
+	BORDER_COLOR :: willow.COLOR_BRAND_STROKE_1_NORMAL_LIGHT
+
+	// DICK
+	wnd_customize(BORDER_COLOR, BORDER_COLOR)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })
@@ -58,6 +63,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
+
+			// Background //
+			screen_rect := gi_rect_screen()
+			dr_rect(gi_rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
+			gx_depth_scope_dec(0.01)
+			dr_rect(gi_rect_margins(screen_rect, Interval(GI_SPACING_XS)), gi_get_background_color()[0], radius=GI_RADIUS_LARGE)
+			gx_depth_scope_dec(0.01)
 
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
 			// dr_rect_outline(clip_rect, RED)
@@ -103,6 +115,22 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 			// Image //
 			// dr_image(&image, { { 0, 0 }, { 400, 400 } })
+
+			// Badge //
+			sizes: [3]GI_Size = { .S, .M, .L }
+			for size, i in sizes {
+				position = { 0, -100 + 32 * f32(i) }
+				{	gi_appearance_scope(.DEFAULT)
+					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Accept) }
+				position.x += 24
+				{	gi_appearance_scope(.SUBTLE)
+					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Save) }
+				position.x += 24
+				{	gi_appearance_scope(.OUTLINE)
+					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.File_Error) }
+				position.x += 24
+				{	gi_appearance_scope(.TRANSPARENT)
+					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Accept) } }
 
 			// Avatar //
 			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)

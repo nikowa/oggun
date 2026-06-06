@@ -126,11 +126,12 @@ wd_init :: proc(window_config: Window_Config) {
 		assert(cast(win32.HANDLE)engine.window_manager.handle != win32.INVALID_HANDLE)
 		engine.window_manager.device_context = win32.GetDC(cast(win32.HWND)engine.window_manager.handle)
 		assert(cast(win32.HANDLE)engine.window_manager.device_context != win32.INVALID_HANDLE)
-		corner_preference: win32.DWM_WINDOW_CORNER_PREFERENCE = .DONOTROUND
-		win32.DwmSetWindowAttribute(
-			hWnd=cast(win32.HWND)engine.window_manager.handle,
-			dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
-			pvAttribute=&corner_preference, cbAttribute=size_of(win32.DWM_WINDOW_CORNER_PREFERENCE))
+		// (TEMP):
+		// corner_preference: win32.DWM_WINDOW_CORNER_PREFERENCE = .DONOTROUND
+		// win32.DwmSetWindowAttribute(
+		// 	hWnd=cast(win32.HWND)engine.window_manager.handle,
+		// 	dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
+		// 	pvAttribute=&corner_preference, cbAttribute=size_of(win32.DWM_WINDOW_CORNER_PREFERENCE))
 
 		// Create Dummy Window & Context //
 		DUMMY_CLASS_NAME: cstring16 : "Dummy-Class"

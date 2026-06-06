@@ -112,12 +112,50 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, ic
 			gi_text_style_scope(avatar_text_style)
 			dr_icon(icon, position) } }
 	gx_depth_scope_dec(0.01)
-	dr_rect({ avatar_rect.position + { 10, -10 }, { 12, 12 } }, gi_get_background_color()[0], radius = 6, integer=false)
+	dr_badge(avatar_rect.position + { 10, -10 }, color=.GREEN_BACKGROUND, size=.S, icon=.Accept)
+
+	// badge_color := theme[GI_Theme_Key.GREEN_BACKGROUND][2]
+	// barge_rect: Rect = { avatar_rect.position + { 10, -10 }, { 10, 10 } }
+	// dr_rect(barge_rect, badge_color, radius = 6, integer=false)
+	// dr_icon(.Accept, barge_rect.position, bold=true, scale=0.5)
+}
+
+dr_badge :: proc(position: [2]f32, size: GI_Size=.S, color: GI_Theme_Key, icon: GI_Icon=.None, h_align: GUI_H_Align=.CENTER) {
+	theme := engine.gi_manager.theme
 	gx_depth_scope_dec(0.01)
-	badge_color := theme[GI_Theme_Key.GREEN_BACKGROUND][2]
-	barge_rect: Rect = { avatar_rect.position + { 10, -10 }, { 10, 10 } }
-	dr_rect(barge_rect, badge_color, radius = 6, integer=false)
-	// Accept
-	dr_icon(.Accept, barge_rect.position, bold=true, scale=0.5)
-	// DICK
+	rect_size: [2]f32
+	switch size {
+	case .XXS, .XS, .S:        rect_size = GI_BADGE_SIZE_S
+	case .M:                   rect_size = GI_BADGE_SIZE_M
+	case .L, .XL, .XXL, .XXXL: rect_size = GI_BADGE_SIZE_L }
+	// size.x += 40
+	appearance := gi_get_appearance()
+	icon_style := gi_get_text_style()
+	radius: f32 = rect_size.y / 2
+	#partial switch appearance {
+	case .DEFAULT, .PRIMARY:
+		dr_rect({ position, rect_size }, theme[color][2], radius=radius + 1, integer=true)
+		icon_style.color = gi_get_background_color()[0]
+	case .SUBTLE:
+		dr_rect({ position, rect_size }, gi_get_background_color()[0], radius=radius + 1, integer=true)
+		icon_style.color = theme[color][2]
+	case .OUTLINE:
+		dr_rect({ position, rect_size }, theme[color][2], radius=radius + 1, integer=true)
+		gx_depth_scope_dec(0.01)
+		icon_style.color = theme[color][2]
+		dr_rect({ position, rect_size - { 2, 2 } }, gi_get_background_color()[0], radius=radius, integer=true)
+	case .TRANSPARENT:
+		dr_rect({ position, rect_size }, theme[color][1], radius=radius + 1, integer=true)
+		gx_depth_scope_dec(0.01)
+		icon_style.color = theme[auto_cast (int(color) + 1)][0]
+		dr_rect({ position, rect_size - { 2, 2 } }, theme[color][0], radius=radius, integer=true)
+	}
+// theme[color][2]
+
+	if icon != .None {
+		gi_text_style_scope(icon_style)
+		dr_icon(icon, position, bold=true, scale=0.04 * f32(rect_size.y)) }
+
+	// gx_depth_scope_dec(0.01)
+	// dr_rect({ position, { 2, 2 } }, RED, integer=false)
 }
