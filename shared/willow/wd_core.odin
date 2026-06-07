@@ -10,8 +10,8 @@ import "core:log"
 
 // (TODO): Prefix all procedures in this with "wnd_"
 
-WINDOW_VARIANT: Window_Variant : .Win32
-// WINDOW_VARIANT: Window_Variant : .GLFW
+// WINDOW_VARIANT: Window_Variant : .Win32
+WINDOW_VARIANT: Window_Variant : .GLFW
 
 Window_Config :: struct #all_or_none {
 	position: [2]f32,

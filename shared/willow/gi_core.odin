@@ -78,6 +78,9 @@ GI_Theme_Key :: enum {
 	NEUTRAL_STROKE_SUBTLE,
 	COMPOUND_BRAND_STROKE,
 	NEUTRAL_STROKE_DISABLED,
+	BLUE_BACKGROUND,
+	BLUE_FOREGROUND,
+	BLUE_BORDER,
 	RED_BACKGROUND,
 	RED_FOREGROUND,
 	RED_BORDER,
@@ -478,6 +481,21 @@ gi_init :: proc() {
 			HOVER    = 0xe0e0e0ff,
 			PRESSED  = 0xe0e0e0ff,
 			SELECTED = 0xe0e0e0ff },
+		BLUE_BACKGROUND = {
+			NORMAL   = 0xebf3fcff,
+			HOVER    = 0xcfe4faff,
+			PRESSED  = 0x0f6cbdff,
+			SELECTED = 0x0f6cbdff },
+		BLUE_FOREGROUND = {
+			NORMAL   = 0x115ea3ff,
+			HOVER    = 0x0f548cff,
+			PRESSED  = 0x0f6cbdff,
+			SELECTED = 0x0f6cbdff },
+		BLUE_BORDER = {
+			NORMAL   = 0xb4d6faff,
+			HOVER    = 0x0f6cbdff,
+			PRESSED  = 0x0f6cbdff,
+			SELECTED = 0x0f6cbdff },
 		RED_BACKGROUND = {
 			VARIANT_1 = 0xfdf6f6ff,
 			VARIANT_2 = 0xf1bbbcff,
@@ -785,6 +803,21 @@ gi_init :: proc() {
 			HOVER    = 0x424242ff,
 			PRESSED  = 0x424242ff,
 			SELECTED = 0x424242ff },
+		BLUE_BACKGROUND = {
+			NORMAL   = 0x061724ff,
+			HOVER    = 0x082338ff,
+			PRESSED  = 0x0c3b5eff,
+			SELECTED = 0x0c3b5eff },
+		BLUE_FOREGROUND = {
+			NORMAL   = 0x62abf5ff,
+			HOVER    = 0x96c6faff,
+			PRESSED  = 0x62abf5ff,
+			SELECTED = 0x62abf5ff },
+		BLUE_BORDER = {
+			NORMAL   = 0x0e4775ff,
+			HOVER    = 0x62abf5ff,
+			PRESSED  = 0x62abf5ff,
+			SELECTED = 0x62abf5ff },
 		RED_BACKGROUND = {
 			VARIANT_1 = 0x3f1011ff,
 			VARIANT_2 = 0x751d1fff,

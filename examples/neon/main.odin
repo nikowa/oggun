@@ -64,6 +64,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
 
+			// DICK
+			dr_rect({ { 0, 0 }, { 400, 120} }, fill_color=WHITE, stroke_color=BLACK, radius=24, stroke=1)
+
 			// Background //
 			screen_rect := gi_rect_screen()
 			// dr_rect(gi_rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
@@ -76,15 +79,15 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// gx_clip_scope({ rect = clip_rect, radius = 200 })
 
 			// Buttons //
-			position: [2]f32 = { -500, 400 }
+			position: [2]f32 = { -640, 430 }
 			// position: [2]f32 = { 0, 0 }
-			ys: [3]f32 = { 24, -24, -48 - 24 }
+			ys: [3]f32 = { 0, -30, -60 }
 			ds: [3]bool = { false, true, false }
 			icons: [3]bool = { false, false, true }
+			DELTA :: 72
 			for y, i in ys {
 				gi_disabled_scope(ds[i])
 				icon := icons[i]
-				DELTA :: 120
 				rect: Rect = { position + { - 2 * DELTA, y }, GI_BUTTON_SIZE_SMALL * { 1, 1 } }
 				{ gi_appearance_scope(.DEFAULT); gi_button(rect, "*Fish*", icon=icon ? .Notes : .None) }
 				rect.position.x += DELTA
@@ -97,10 +100,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				{ gi_appearance_scope(.TRANSPARENT); gi_button(rect, "*Fork*", icon=icon ? .Sticker : .None) } }
 
 			// Transition Animation //
-			position = { -740, 280 }
+			position = { -640 - 2 * DELTA, 340 }
 			rect: Rect = { position, GI_BUTTON_SIZE_SMALL }
-			x0: f32 = position.x + 120
-			x1: f32 = position.x + 120 * 4
+			x0: f32 = position.x + DELTA
+			x1: f32 = position.x + DELTA * 4
 			gi_appearance_push(.DEFAULT)
 			x := x0 + (x1 - x0) * ease_sin_3(gi_anim_transition([2]f32{ 0, 1 }, 0, 1, true, .PRESS in gi_button(rect, "*Anim*")))
 			gi_appearance_pop()
@@ -119,33 +122,33 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// Badge //
 			sizes: [3]GI_Size = { .S, .M, .L }
 			for size, i in sizes {
-				position = { 0, -100 + 32 * f32(i) }
+				position = { -400, 360 + 32 * f32(i) }
 				{	gi_appearance_scope(.DEFAULT)
-					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Accept) }
+					dr_badge(position, size=size, color=.BLUE_BACKGROUND, h_align=.CENTER, icon=.Accept) }
 				position.x += 24
 				{	gi_appearance_scope(.SUBTLE)
-					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Save) }
+					dr_badge(position, size=size, color=.BLUE_BACKGROUND, h_align=.CENTER, icon=.Save) }
 				position.x += 24
 				{	gi_appearance_scope(.OUTLINE)
-					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.File_Error) }
+					dr_badge(position, size=size, color=.BLUE_BACKGROUND, h_align=.CENTER, icon=.File_Error) }
 				position.x += 24
 				{	gi_appearance_scope(.TRANSPARENT)
-					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Accept) } }
-			position = { 0, -100 - 32 }
+					dr_badge(position, size=size, color=.BLUE_BACKGROUND, h_align=.CENTER, icon=.Accept) } }
+			position = { -400, 360 - 32 }
 			{	gi_appearance_scope(.DEFAULT)
-				dr_badge(position, text="*420+*", size=.S, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+				dr_badge(position, text="*420+*", size=.S, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 			{	gi_appearance_scope(.TRANSPARENT)
-				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.S, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.S, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 			position.y -= 24
 			{	gi_appearance_scope(.DEFAULT)
-				dr_badge(position, text="*420+*", size=.M, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+				dr_badge(position, text="*420+*", size=.M, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 			{	gi_appearance_scope(.TRANSPARENT)
-				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.M, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.M, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 			position.y -= 24
 			{	gi_appearance_scope(.DEFAULT)
-				dr_badge(position, text="*420+*", size=.L, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+				dr_badge(position, text="*420+*", size=.L, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 			{	gi_appearance_scope(.TRANSPARENT)
-				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.L, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.L, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 
 			// Colors //
 			_, colors_rect := gi_rect_split_h(gi_rect_screen(), Ratio(0.8), Interval(0))
@@ -162,15 +165,17 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 					dr_rect(values_grid[gi_rect_grid_index({ 4, ROWS }, j, ROWS - i - 1)], color, integer=false)
 				}
 			}
-			// GI_Theme_Key.NEUTRAL_BACKGROUND_1
-			// gi_rect_grid_index(size: [2]int, i, j: int) -> int
-
-			// colors_rect := gi_rect_embed(gi_rect_margins(gi_rect_screen(), Interval(8)), { 320, 24 }, { .West, .South })
-			// DICK
 
 			// Avatar //
-			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
-			dr_avatar({ 0, 0 }, name=""/*"Nikola Petrov Stefanov"*/, image=nil/*&image*/)
+			position = { -260, 420 }
+			{	gi_appearance_scope(.OUTLINE)
+				dr_avatar(position, name="", image=nil) }
+			position.x += 40
+			{	gi_appearance_scope(.DEFAULT)
+				dr_avatar(position, name="Nikola Petrov Stefanov", image=nil) }
+			position.x += 40
+			{	gi_appearance_scope(.DEFAULT)
+				dr_avatar(position, name="Nikola Petrov Stefanov", image=&image) }
 
 			// Test string //
 			// assert(am_command(String_Asset, &string_asset.asset, .Import, watch=true))

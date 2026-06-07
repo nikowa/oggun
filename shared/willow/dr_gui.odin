@@ -112,7 +112,7 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, ic
 			gi_text_style_scope(avatar_text_style)
 			dr_icon(icon, position) } }
 	gx_depth_scope_dec(0.01)
-	dr_badge(avatar_rect.position + { 10, -10 }, color=.GREEN_BACKGROUND, size=.S, icon=.Accept)
+	dr_badge(avatar_rect.position + { 10, -10 }, color=.BLUE_BACKGROUND, size=.S, icon=.Accept)
 
 	// badge_color := theme[GI_Theme_Key.GREEN_BACKGROUND][2]
 	// barge_rect: Rect = { avatar_rect.position + { 10, -10 }, { 10, 10 } }

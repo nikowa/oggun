@@ -31,7 +31,9 @@ vec3 sample_rgb(vec2 off) {
 	vec2 p = get_p(res) + off;
 	float dist = sdf_rounded_rect(p - vec2(rect.x, -rect.y), rect.zw / 2, vec4(rounding));
 	acc = fill_color.xyz;
-	if (stroke != 0) if (dist > - stroke) acc = stroke_color.xyz;
+	if (stroke != 0) if ((dist > - stroke) && (dist < 0)) {
+		acc = stroke_color.xyz;
+	}
 	return acc; }
 
 float sample_a(vec2 off) {
@@ -46,7 +48,7 @@ void main(void) {
 	gl_FragDepth = _depth;
 	vec2 b = rect.zw / 2 - vec2(rounding);
 	vec3 _color;
-	msaa16_scope_begin(color, vec2(1.0))
+	msaa16_scope_begin(color, vec2(1))
 		color.rgb += sample_rgb(msaa_off);
 		color.a += clip_value_rounded(sample_a(msaa_off), gl_FragCoord.xy - res / 2 + msaa_off, clip, clip_radius);
 	msaa16_scope_end(color)
