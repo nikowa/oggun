@@ -27,7 +27,7 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 	appearance := gi_get_appearance()
 	#partial switch appearance {
 	case .PRIMARY:
-		gi_fill_color = theme[GI_Theme_Key.BRAND_BACKGROUND]
+		gi_fill_color = theme[GI_Theme_Key.BRAND_BACKGROUND_1]
 		stroke_neon_color = gi_fill_color
 		text_style.color = WHITE
 	case .OUTLINE:

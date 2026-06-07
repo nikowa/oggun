@@ -133,13 +133,40 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Accept) } }
 			position = { 0, -100 - 32 }
 			{	gi_appearance_scope(.DEFAULT)
-				dr_badge(position, text="*9+*", size=.S, color=.BRAND_FOREGROUND_1, h_align=.CENTER) }
+				dr_badge(position, text="*420+*", size=.S, color=.BERRY_BACKGROUND, h_align=.CENTER) }
 			{	gi_appearance_scope(.TRANSPARENT)
-				dr_badge(position + { 3 * 24, 0 }, text="*9+*", size=.S, color=.BRAND_FOREGROUND_1, h_align=.CENTER) }
+				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.S, color=.BERRY_BACKGROUND, h_align=.CENTER) }
 			position.y -= 24
-			dr_badge(position, text="*99+*", size=.M, color=.BRAND_FOREGROUND_1, h_align=.CENTER)
+			{	gi_appearance_scope(.DEFAULT)
+				dr_badge(position, text="*420+*", size=.M, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+			{	gi_appearance_scope(.TRANSPARENT)
+				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.M, color=.BERRY_BACKGROUND, h_align=.CENTER) }
 			position.y -= 24
-			dr_badge(position, text="*999+*", size=.L, color=.BRAND_FOREGROUND_1, h_align=.CENTER)
+			{	gi_appearance_scope(.DEFAULT)
+				dr_badge(position, text="*420+*", size=.L, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+			{	gi_appearance_scope(.TRANSPARENT)
+				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.L, color=.BERRY_BACKGROUND, h_align=.CENTER) }
+
+			// Colors //
+			_, colors_rect := gi_rect_split_h(gi_rect_screen(), Ratio(0.8), Interval(0))
+			// dr_rect_outline(colors_rect, RED)
+			ROWS :: len(GI_Theme_Key)
+			keys_rect, values_rect := gi_rect_split_h(colors_rect, Ratio(0.5), Interval(0))
+			keys_grid := gi_rect_grid_make(keys_rect, { 1, ROWS })
+			values_grid := gi_rect_grid_make(values_rect, { 4, ROWS })
+			for i in 0 ..< len(GI_Theme_Key) {
+				key_string, _ := strings.replace_all(strings.to_ada_case(fmt.aprintf("%v", cast(GI_Theme_Key)i)), "_", " ")
+				dr_text_box(key_string, keys_grid[gi_rect_grid_index({ 1, ROWS }, 0, ROWS - i - 1)], h_align=.LEFT)
+				for j in 0 ..< 4 {
+					color := engine.gi_manager.theme[i][j]
+					dr_rect(values_grid[gi_rect_grid_index({ 4, ROWS }, j, ROWS - i - 1)], color, integer=false)
+				}
+			}
+			// GI_Theme_Key.NEUTRAL_BACKGROUND_1
+			// gi_rect_grid_index(size: [2]int, i, j: int) -> int
+
+			// colors_rect := gi_rect_embed(gi_rect_margins(gi_rect_screen(), Interval(8)), { 320, 24 }, { .West, .South })
+			// DICK
 
 			// Avatar //
 			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)
