@@ -32,15 +32,20 @@ float sample_alpha(vec2 uv) {
 
 void main(void) {
 	vec2 uv = tex_coords + _uv_offset;
-	msaa8_scope_begin(color.w, 0.5 * quad_size)
+
+	// Sharp //
+	// msaa8_scope_begin(color.w, 0.5 * quad_size)
+	// 	color.w += sample_alpha(uv + msaa_off);
+	// msaa8_scope_end(color.w)
+
+	// Smooth //
+	msaa8_scope_begin(color.w, 0.4 * quad_size)
 		color.w += sample_alpha(uv + msaa_off);
 	msaa8_scope_end(color.w)
-	color.w *= 1.2;
-	// color.w = 1 - pow(1 - color.w, 2.0);
+	color.w = pow(color.w, 1.5);
+	color.w = 1 - pow(1 - color.w, 2.0);
+	if (color.w < 0.1) color.w = 0.0;
 
-	// if (color.w < 0.25) color.w = 0.0;
-
-	// color.w = pow(color.w, 0.5);
 	color.rgb = _text_color.rgb;
 	color.a *= _text_color.a;
 	// color.xyz = sample_raw(uv).xyz;

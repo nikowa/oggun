@@ -36,6 +36,7 @@ Font_Group :: struct {
 	normal: ^Font,
 	bold, italic: ^Font }
 
+// (TODO): Why is this "distinct"? //
 Font_Size :: distinct u8
 
 font_size_to_font_scale :: proc(font_size: Font_Size, font: ^Font) -> (font_scale: f32) {

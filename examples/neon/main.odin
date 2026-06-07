@@ -35,10 +35,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		input_config=default_input_config(raw_input=false))
 	gi_set_theme(gi_theme_ms_light)
 
-	BORDER_COLOR :: willow.COLOR_BRAND_STROKE_1_NORMAL_LIGHT
+	// BORDER_COLOR :: willow.COLOR_BRAND_STROKE_1_NORMAL_LIGHT
 
-	// DICK
-	wnd_customize(BORDER_COLOR, BORDER_COLOR)
+	// // DICK
+	// wnd_customize(BORDER_COLOR, BORDER_COLOR)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })
@@ -66,10 +66,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 			// Background //
 			screen_rect := gi_rect_screen()
-			dr_rect(gi_rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
-			gx_depth_scope_dec(0.01)
-			dr_rect(gi_rect_margins(screen_rect, Interval(GI_SPACING_XS)), gi_get_background_color()[0], radius=GI_RADIUS_LARGE)
-			gx_depth_scope_dec(0.01)
+			// dr_rect(gi_rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
+			// gx_depth_scope_dec(0.01)
+			// dr_rect(gi_rect_margins(screen_rect, Interval(GI_SPACING_XS)), gi_get_background_color()[0], radius=GI_RADIUS_LARGE)
+			// gx_depth_scope_dec(0.01)
 
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
 			// dr_rect_outline(clip_rect, RED)
@@ -131,6 +131,15 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				position.x += 24
 				{	gi_appearance_scope(.TRANSPARENT)
 					dr_badge(position, size=size, color=.GREEN_BACKGROUND, h_align=.CENTER, icon=.Accept) } }
+			position = { 0, -100 - 32 }
+			{	gi_appearance_scope(.DEFAULT)
+				dr_badge(position, text="*9+*", size=.S, color=.BRAND_FOREGROUND_1, h_align=.CENTER) }
+			{	gi_appearance_scope(.TRANSPARENT)
+				dr_badge(position + { 3 * 24, 0 }, text="*9+*", size=.S, color=.BRAND_FOREGROUND_1, h_align=.CENTER) }
+			position.y -= 24
+			dr_badge(position, text="*99+*", size=.M, color=.BRAND_FOREGROUND_1, h_align=.CENTER)
+			position.y -= 24
+			dr_badge(position, text="*999+*", size=.L, color=.BRAND_FOREGROUND_1, h_align=.CENTER)
 
 			// Avatar //
 			// dr_rect({ engine.window_manager.size/2, { 4, 4 } }, RED)

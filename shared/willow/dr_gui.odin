@@ -120,41 +120,56 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, ic
 	// dr_icon(.Accept, barge_rect.position, bold=true, scale=0.5)
 }
 
-dr_badge :: proc(position: [2]f32, size: GI_Size=.S, color: GI_Theme_Key, icon: GI_Icon=.None, h_align: GUI_H_Align=.CENTER) {
+dr_badge :: proc(position: [2]f32, size: GI_Size=.S, color: GI_Theme_Key, text: string="", icon: GI_Icon=.None, h_align: GUI_H_Align=.CENTER) {
 	theme := engine.gi_manager.theme
-	gx_depth_scope_dec(0.01)
-	rect_size: [2]f32
-	switch size {
-	case .XXS, .XS, .S:        rect_size = GI_BADGE_SIZE_S
-	case .M:                   rect_size = GI_BADGE_SIZE_M
-	case .L, .XL, .XXL, .XXXL: rect_size = GI_BADGE_SIZE_L }
-	// size.x += 40
 	appearance := gi_get_appearance()
-	icon_style := gi_get_text_style()
-	radius: f32 = rect_size.y / 2
+	text_style := gi_get_text_style()
+	gx_depth_scope_dec(0.01)
+	rect: Rect = { position=position }
+	font_size: Font_Size
+	switch size {
+	case .XXS, .XS, .S:
+		rect.size = GI_BADGE_SIZE_S
+		text_style.font_size = 5
+	case .M:
+		rect.size = GI_BADGE_SIZE_M
+		text_style.font_size = 7
+	case .L, .XL, .XXL, .XXXL:
+		rect.size = GI_BADGE_SIZE_L
+		text_style.font_size = 9 }
+	if text != "" {
+		scale_factor := font_size_to_font_scale(text_style.font_size, text_style.font_group.normal)
+		width, _ := gi_measure_text(text, scale_factor)
+		rect.size.x += max(0, width - rect.size.x / 2) }
+	radius: f32 = rect.size.y / 2
 	#partial switch appearance {
 	case .DEFAULT, .PRIMARY:
-		dr_rect({ position, rect_size }, theme[color][2], radius=radius + 1, integer=true)
-		icon_style.color = gi_get_background_color()[0]
+		dr_rect(rect, theme[color][2], radius=radius + 1, integer=true)
+		text_style.color = gi_get_background_color()[0]
 	case .SUBTLE:
-		dr_rect({ position, rect_size }, gi_get_background_color()[0], radius=radius + 1, integer=true)
-		icon_style.color = theme[color][2]
+		dr_rect(rect, gi_get_background_color()[0], radius=radius + 1, integer=true)
+		text_style.color = theme[color][2]
 	case .OUTLINE:
-		dr_rect({ position, rect_size }, theme[color][2], radius=radius + 1, integer=true)
+		dr_rect(rect, theme[color][2], radius=radius + 1, integer=true)
 		gx_depth_scope_dec(0.01)
-		icon_style.color = theme[color][2]
-		dr_rect({ position, rect_size - { 2, 2 } }, gi_get_background_color()[0], radius=radius, integer=true)
+		text_style.color = theme[color][2]
+		dr_rect({ position, rect.size - { 2, 2 } }, gi_get_background_color()[0], radius=radius, integer=true)
 	case .TRANSPARENT:
-		dr_rect({ position, rect_size }, theme[color][1], radius=radius + 1, integer=true)
+		dr_rect(rect, theme[color][1], radius=radius + 1, integer=true)
 		gx_depth_scope_dec(0.01)
-		icon_style.color = theme[auto_cast (int(color) + 1)][0]
-		dr_rect({ position, rect_size - { 2, 2 } }, theme[color][0], radius=radius, integer=true)
+		text_style.color = theme[auto_cast (int(color) + 1)][0]
+		dr_rect({ rect.position, rect.size - { 2, 2 } }, theme[color][0], radius=radius, integer=true)
 	}
 // theme[color][2]
 
-	if icon != .None {
-		gi_text_style_scope(icon_style)
-		dr_icon(icon, position, bold=true, scale=0.04 * f32(rect_size.y)) }
+	gx_depth_scope_dec(0.01)
+	// dr_rect_outline(rect, RED)
+	if text != "" {
+		gi_text_style_scope(text_style)
+		dr_text_box(text, rect) }
+	else if icon != .None {
+		gi_text_style_scope(text_style)
+		dr_icon(icon, position, bold=true, scale=0.04 * f32(rect.size.y)) }
 
 	// gx_depth_scope_dec(0.01)
 	// dr_rect({ position, { 2, 2 } }, RED, integer=false)
