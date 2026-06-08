@@ -40,8 +40,8 @@ dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRA
 		stroke_color = stroke_color,
 		radius = radius,
 		stroke = stroke,
-		depth = gx_get_depth(),
-		clip = gx_get_clip() }
+		depth = gx_depth_get(),
+		clip = gx_clip_get() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 dr_rect_outline :: proc(rect: Rect, color: Color = BLACK, integer: bool = true) {
@@ -73,8 +73,8 @@ dr_line :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
 		point_a = integer ? { math.round_f32(points[0].x), math.round_f32(points[0].y) } : points[0],
 		point_b = integer ? { math.round_f32(points[1].x), math.round_f32(points[1].y) } : points[1],
 		color = color,
-		depth = gx_get_depth(),
-		clip = gx_get_clip() }
+		depth = gx_depth_get(),
+		clip = gx_clip_get() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 Draw_Image_Command :: struct {
@@ -96,8 +96,8 @@ dr_image :: proc(image: ^Image_Asset, rect: Rect, render_buffer: Maybe(^Render_B
 		render_buffer = render_buffer,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
-		depth = gx_get_depth(),
-		clip = gx_get_clip() }
+		depth = gx_depth_get(),
+		clip = gx_clip_get() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 Draw_Text_Command :: struct {
@@ -123,7 +123,7 @@ Draw_Text_Params :: struct {
 
 // (TODO): implement "integer" param. It does nothng right now.
 dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset: [2]f32 = { 0, 0 }, integer: bool = true) {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
 	command: Draw_Text_Command = {
@@ -133,9 +133,9 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset:
 		res = engine.graphics_manager.active_resolution,
 		scale_factor = scale_factor,
 		color = color,
-		clip = gx_get_clip() }
+		clip = gx_clip_get() }
 	command.symbol = symbol
-	command.position = { rect.position.x - scale_factor * rect.size.x / 2, rect.position.y - scale_factor * rect.size.y / 2, gx_get_depth() }
+	command.position = { rect.position.x - scale_factor * rect.size.x / 2, rect.position.y - scale_factor * rect.size.y / 2, gx_depth_get() }
 	command.scale_factor = f32(scale_factor)
 	command.color = color
 	command.italic = italic ? (font_group.italic == font_group.normal) ? true : false : false
@@ -145,7 +145,7 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset:
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 dr_text_symbol :: proc(symbol: u8, position: [2]f32, angle: f32 = 0.0, integer: bool = true) {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	font := font_group_select(font_group, style)
 	scale_factor := font_size_to_font_scale(font_size, font)
 	command: Draw_Text_Command = {
@@ -154,9 +154,9 @@ dr_text_symbol :: proc(symbol: u8, position: [2]f32, angle: f32 = 0.0, integer: 
 		res = engine.graphics_manager.active_resolution,
 		scale_factor = scale_factor,
 		color = color,
-		clip = gx_get_clip() }
+		clip = gx_clip_get() }
 	command.symbol = symbol
-	command.position = [3]f32{ f32(position.x), f32(position.y), gx_get_depth() }
+	command.position = [3]f32{ f32(position.x), f32(position.y), gx_depth_get() }
 	command.position.x -= f32(command.font.bearings[symbol]) * scale_factor
 	command.scale_factor = f32(scale_factor)
 	command.color = color
@@ -174,7 +174,7 @@ dr_text_line :: proc(text: string, position: [2]f32, pivot: bit_set[Compass] = {
 	return dr_text_line_compound(text, position, pivot, desired_width, integer) }
 
 dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Compass] = { .South }, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	// dr_rect({ position = position, size = { 4, 4 } }, BLUE)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	position := position
@@ -195,21 +195,27 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 	// position.y -= cast(f32)font_group.normal.origin * scale_factor
 	symbol_position: [2]f32 = position
 	for symbol, i in text {
-		style = gi_get_text_style()
+		style = gi_text_style_get()
 		// (TODO): Add an option for these to be escaped, so that they can be printed. //
 		if symbol == '_' {
-			if style.italic do gi_text_style_pop()
+			if style.italic {
+				gi_text_style_pop()
+			}
 			else {
 				new_style := style
 				new_style.italic = true
-				gi_text_style_push(new_style) }
+				gi_text_style_push(new_style)
+			}
 			continue }
 		if symbol == '*' {
-			if style.bold do gi_text_style_pop()
+			if style.bold {
+				gi_text_style_pop()
+			}
 			else {
 				new_style := style
 				new_style.bold = true
-				gi_text_style_push(new_style) }
+				gi_text_style_push(new_style)
+			}
 			continue }
 		font := font_group_select(font_group, style)
 		dr_text_symbol(cast(u8)symbol, symbol_position, integer = integer)
@@ -222,7 +228,7 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 
 // (TODO): Maybe some of these params should be on a stack. //
 dr_text_box :: proc(text: string, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	gi_text_style_checkpoint()
 	// dr_rect_outline(graphics_manager, rect, BLUE, 0.1)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)

@@ -316,7 +316,6 @@ sync_init :: proc(sync: ^Sync) {
 	fmt.println(LOG, "Number of logical cores:", n_logical_cores)
 	fmt.println(LOG, "Number of physical cores:", n_physical_cores)
 	sync.n_logical_cores = min(n_physical_cores, n_logical_cores - n_relieved_cores)
-	// sync.n_logical_cores = 1 // TEMP
 	fmt.println(LOG, "Number of threads:", sync.n_logical_cores)
 	for i in 0 ..< sync.n_logical_cores - 1 {
 		thread = {}

@@ -130,7 +130,6 @@ package willow
 // 	lock_guard(&camera.lock)
 // 	lock_guard(&clock.lock)
 // 	lock_guard(&physics.lock)
-// 	// TEMP
 // 	// walking_physics_tick(physics, clock, camera)
 // }
 

@@ -11,8 +11,8 @@ import "core:strings"
 dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 	rect := rect
 	radius: f32 = 0.0
-	shape := gi_get_button_shape()
-	disabled := gi_get_disabled()
+	shape := gi_button_shape_get()
+	disabled := gi_disabled_get()
 	switch shape {
 	case .ROUNDED: radius = GI_RADIUS_MEDIUM
 	case .CIRCULAR: radius = rect.size.y / 2
@@ -24,7 +24,7 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 	gi_fill_color: GI_Color = theme[GI_Theme_Key.NEUTRAL_BACKGROUND_2]
 	stroke_neon_color: GI_Color = theme[GI_Theme_Key.NEUTRAL_STROKE_1]
 	text_style: Text_Style = engine.gi_manager.text_style
-	appearance := gi_get_appearance()
+	appearance := gi_appearance_get()
 	#partial switch appearance {
 	case .PRIMARY:
 		gi_fill_color = theme[GI_Theme_Key.BRAND_BACKGROUND_1]
@@ -84,7 +84,7 @@ dr_button :: proc(rect: Rect, text: string, icon: GI_Icon = .None) {
 dr_icon :: proc(icon: GI_Icon, position: [2]f32, angle: f32=0.0, bold: bool=false, scale: f32=1.0) {
 	// dr_rect_outline({ position, GI_ICON_SIZE }, RED)
 	icons_text_style := engine.gi_manager.icons_text_style
-	icons_text_style.color = gi_get_text_style().color
+	icons_text_style.color = gi_text_style_get().color
 	icons_text_style.bold = bold
 	icons_text_style.font_size = Font_Size(scale * cast(f32)icons_text_style.font_size)
 	gi_text_style_scope(icons_text_style)
@@ -95,11 +95,12 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, ic
 	theme := engine.gi_manager.theme
 	fill_color: Color = theme[GI_Theme_Key.NEUTRAL_BACKGROUND_2][GI_Variant.SELECTED]
 	if image != nil {
-		gx_clip_scope({ rect = avatar_rect, radius = 16 })
+		// gx_clip_scope({ rect = avatar_rect, radius = 16 })
 		dr_image(image, avatar_rect) }
 	else {
 		dr_rect(avatar_rect, fill_color, radius = 16)
-		avatar_text_style := gi_get_text_style()
+		// avatar_text_style := gi_text_style_get()
+		avatar_text_style := Text_Style{}
 		avatar_text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_4][0]
 		if name != "" {
 			subnames: []string = strings.split(name, " ")
@@ -122,8 +123,8 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, ic
 
 dr_badge :: proc(position: [2]f32, size: GI_Size=.S, color: GI_Theme_Key, text: string="", icon: GI_Icon=.None, h_align: GUI_H_Align=.CENTER) {
 	theme := engine.gi_manager.theme
-	appearance := gi_get_appearance()
-	text_style := gi_get_text_style()
+	appearance := gi_appearance_get()
+	text_style := gi_text_style_get()
 	gx_depth_scope_dec(0.01)
 	rect: Rect = { position=position }
 	font_size: Font_Size

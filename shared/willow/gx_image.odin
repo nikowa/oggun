@@ -60,8 +60,6 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		path := am_path_from_url(asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
-		// TEMP
-		// context.allocator = engine.backing_allocator
 		err: os.Error
 		path := am_path_from_url(img.url, context.allocator)
 		modification_time, _ := os.modification_time_by_path(path)
@@ -86,12 +84,9 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		return true
 	case .Export:
 	case .Load:
-	// DICK
 		return image_asset_command(asset, .Import, watch)
 	case .Save:
 	case .Upload:
-		// TEMP
-		// context.allocator = engine.backing_allocator
 		if img.handle != 0 do download_image(img)
 		gl.GenTextures(1, &img.handle)
 		gl.BindTexture(gl.TEXTURE_2D, img.handle)
@@ -130,7 +125,6 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)img.width, cast(i32)img.height, 0, data_format, data_format_type, &img.pixels.buf[0])
 		texture_wrapping(gl.REPEAT)
 		texture_filtering(gl.NEAREST)
-		// DICK
 		img.gpu_modification_time = img.modification_time
 		asset.location += { .GPU_Memory }
 		return true

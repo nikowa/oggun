@@ -222,7 +222,7 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 // 		if linalg.length(color) > 0.1 do append(&random_colors, color) }
 // 	draw.random_colors = random_colors[:]
 // 	load_models_from_gltf(draw, working_directory_path, "beach")
-// 	bake_models(draw, cache) // TEMP
+// 	bake_models(draw, cache)
 // 	init_cubemap(&draw.cubemap, { 512, 512 })
 	if engine.asset_manager.initialized {
 		am_register_asset_kind(Shader_Asset, { command = shader_asset_command })
@@ -1116,7 +1116,6 @@ tick_graphics_manager_end :: proc() {
 // 	if .MODELS in draw.dr_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.dr_mask {
 // 		// TODO: Separate skybox renderer from water effect renderer.
-// 		// TEMP
 // 		// set_depth_test(false)
 // 		render_water_effect(draw, camera, clock.net_time)
 // 		// c:[3]f32=physics.surfer_position
@@ -1285,46 +1284,3 @@ tick_graphics_manager_end :: proc() {
 set_clear_color :: proc(color: u32) {
 	color_4f32 := gx_color_to_4f32(color)
 	gl.ClearColor(color_4f32.r, color_4f32.g, color_4f32.b, color_4f32.a) }
-
-// (TODO): Generate all these stacks. //
-gx_get_clip :: proc() -> Clip {
-	if len(engine.graphics_manager.clip_stack) == 0 do return { rect = gi_rect_screen(), radius = 0 }
-	return engine.graphics_manager.clip_stack[len(engine.graphics_manager.clip_stack) - 1] }
-
-@(deferred_none=gx_clip_pop)
-gx_clip_scope :: proc(clip: Clip) {
-	gx_clip_push(clip) }
-
-gx_clip_push :: proc(clip: Clip) {
-	append(&engine.graphics_manager.clip_stack, clip) }
-
-gx_clip_pop :: proc() {
-	pop(&engine.graphics_manager.clip_stack) }
-
-@(deferred_none=gx_depth_pop)
-gx_depth_scope :: proc(depth: f32) {
-	gx_depth_push(depth) }
-
-gx_depth_push :: proc(depth: f32) {
-	append(&engine.graphics_manager.depth_stack, depth) }
-
-@(deferred_none=gx_depth_pop)
-gx_depth_scope_dec :: proc(dec: f32) {
-	gx_depth_push_dec(dec) }
-
-gx_depth_push_dec :: proc(dec: f32) {
-	gx_depth_push(gx_get_depth() - dec) }
-
-@(deferred_none=gx_depth_pop)
-gx_depth_scope_inc :: proc(inc: f32) {
-	gx_depth_push_inc(inc) }
-
-gx_depth_push_inc :: proc(inc: f32) {
-	gx_depth_push(gx_get_depth() + inc) }
-
-gx_depth_pop :: proc() {
-	pop(&engine.graphics_manager.depth_stack) }
-
-gx_get_depth :: proc() -> f32 {
-	if len(engine.graphics_manager.depth_stack) == 0 do return 0.9999999
-	return engine.graphics_manager.depth_stack[len(engine.graphics_manager.depth_stack) - 1] }

@@ -405,8 +405,6 @@ shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool 
 		assert(.Source_Directory in shader_asset.vert_asset.location)
 		assert(.Source_Directory in shader_asset.frag_asset.location)
 	case .Import:
-		// TEMP
-		// context.allocator = engine.backing_allocator
 		if watch do if ! shader_outdated(shader_asset) do return
 		// If one of the strings' modification times are newer than the shader's modification time, update the shader with
 		// the new strings.
@@ -415,8 +413,6 @@ shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool 
 		asset.location += { .Database }
 		return true
 	case .Load:
-		// TEMP
-		// context.allocator = engine.backing_allocator
 		if watch do if ! shader_outdated(shader_asset) do return
 		assert(am_command(String_Asset, &shader_asset.vert_asset, .Load))
 		assert(am_command(String_Asset, &shader_asset.frag_asset, .Load))

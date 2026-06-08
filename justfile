@@ -33,7 +33,7 @@ doc:
 
 lib:
 	cls
-	odin build shared/willow -out:willow.exe {{flags}}
+	odin build shared/willow -out:willow.exe {{flags}} -ignore-unknown-attributes -ignore-warnings
 	./willow.exe install
 
 example_input: lib

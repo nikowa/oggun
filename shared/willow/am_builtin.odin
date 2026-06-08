@@ -23,9 +23,6 @@ am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = f
 		if os.exists(path) do asset.location += { .Source_Directory }
 		return true
 	case .Import:
-		// There is a problem here: watch imports this every time
-		// TEMP
-		// context.allocator = engine.backing_allocator
 		if .Source_Directory not_in asset.location do return false
 		err: os.Error
 		entry, existed := am_get_or_add_entry(asset.url)
@@ -38,8 +35,6 @@ am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = f
 		asset.location += { .Database }
 		return true
 	case .Load:
-		// TEMP
-		// context.allocator = engine.backing_allocator
 		if .Database not_in asset.location {
 			log.errorf("Failed to load string %s because it hasn't been imported.", asset.url)
 			return false }

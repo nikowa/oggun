@@ -1030,8 +1030,7 @@ gi_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, l
 	panel = { position + { - GI_ICON_SIZE.x / 2, - GI_ICON_SIZE.y / 2 } + { panel_size.x / 2, -panel_size.y / 2 }, panel_size }
 	panel = gi_rect_margins_variate_r(panel, south=Ratio(t))
 	// dr_rect_outline(panel, RED)
-	// DICK
-	clip: Clip = { rect = rect_sect(panel, gx_get_clip().rect) }
+	clip: Clip = { rect = rect_sect(panel, gx_clip_get().rect) }
 	gx_clip_push(clip)
 	return panel }
 
@@ -1081,7 +1080,7 @@ gi_accordion_add :: proc(accordion: ^Accordion, header: string, panel_size: [2]f
 	return panel_rect }
 
 gi_measure_text :: proc(text: string, scale_factor: f32) -> (width: f32, space_count: int) {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	for symbol, i in text {
 		font := font_group_select(font_group, style)
 		if symbol == '_' {
@@ -1095,7 +1094,7 @@ gi_measure_text :: proc(text: string, scale_factor: f32) -> (width: f32, space_c
 	return width, space_count }
 
 gi_measure_text_iterate :: proc(text: string, i: ^int, width: ^f32, space_count: ^int, scale_factor: f32) -> bool {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	if i^ >= len(text) do return false
 	font := font_group_select(font_group, style)
 	symbol: u8 = text[i^]
@@ -1112,7 +1111,7 @@ gi_measure_text_iterate :: proc(text: string, i: ^int, width: ^f32, space_count:
 	return true }
 
 gi_text_box_lines :: proc(rect: Rect, text: string, scale_factor: f32) -> []string {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	lines := make([dynamic]string, context.temp_allocator)
 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
 	width, width_acc: f32
@@ -1136,7 +1135,7 @@ gi_text_box_lines :: proc(rect: Rect, text: string, scale_factor: f32) -> []stri
 	return lines[:] }
 
 gi_measure_text_box :: proc(text: string, width: f32) -> (total_height: f32) {
-	using style := gi_get_text_style()
+	using style := gi_text_style_get()
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	line_distance: f32 = height * style.leading

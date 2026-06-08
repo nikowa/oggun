@@ -247,3 +247,12 @@ aprint_size_symbolic :: proc(#any_int size: uint, allocator := context.allocator
 	if size > mem.Megabyte do return fmt.aprintf("%f MB", cast(f32)size / cast(f32)mem.Megabyte, allocator=allocator)
 	if size > mem.Kilobyte do return fmt.aprintf("%f KB", cast(f32)size / cast(f32)mem.Kilobyte, allocator=allocator)
 	return fmt.aprintf("%d B", size) }
+
+// (TODO): Use these to generate "_get_ith" stack procedures. //
+dynamic_array_get_top :: proc(dynamic_array: ^[dynamic]$T, default: T) -> T {
+	if len(dynamic_array) == 0 do return default
+	return dynamic_array[len(dynamic_array) - 1] }
+
+dynamic_array_get_from_top :: proc(dynamic_array: ^[dynamic]$T, i: int, default: T) -> T {
+	if len(dynamic_array) <= i do return default
+	return dynamic_array[len(dynamic_array) - 1 - i] }

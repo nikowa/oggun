@@ -24,6 +24,7 @@ gn_get_generator :: proc(member_path: string) -> ^Generator {
 	if prefix not_in generators {
 		generator: Generator = gx_make_generator(prefix, 10_000)
 		fmt.sbprintfln(&generator.builder, `package willow`)
+		gn_timestamp(&generator.builder)
 		generators[prefix] = generator }
 	return &generators[prefix] }
 
@@ -31,14 +32,18 @@ gn_generate :: proc(willow_path: string) {
 	gn_generate_defaults(willow_path)
 	gn_generate_stacks(willow_path) }
 
+timestamp_buf: [time.MIN_HMS_LEN]u8
+
+gn_timestamp :: proc(sb: ^strings.Builder) {
+	fmt.sbprintfln(sb, "// Generated at %s //\n", time.time_to_string_hms(time.now(), timestamp_buf[:])) }
+
 gn_generate_defaults :: proc(willow_path: string) {
 	builder: strings.Builder
 	strings.builder_init_len_cap(&builder, 0, 10_000, context.allocator)
 	fmt.sbprintln(&builder, "package willow")
 	fmt.sbprintln(&builder, `import "core:time"`)
 	fmt.sbprintln(&builder, `import "base:runtime"`)
-	timestamp_buf: [time.MIN_HMS_LEN]u8
-	fmt.sbprintfln(&builder, "// Generated at %s //\n", time.time_to_string_hms(time.now(), timestamp_buf[:]))
+	gn_timestamp(&builder)
 
 	parse_file :: proc(source_path: string, source: string) -> (node: ast.Node) {
 		NO_POS :: tokenizer.Pos{}
@@ -183,42 +188,30 @@ gn_generate_defaults :: proc(willow_path: string) {
 	path, _ := os.join_path({ willow_path, "generated.odin" }, context.allocator)
 	_ = os.write_entire_file(path, strings.to_string(builder)) }
 
-// gi_get_appearance :: proc() -> GI_Appearance {
-// 	if len(engine.gi_manager.appearance_stack) == 0 do return .DEFAULT
-// 	return engine.gi_manager.appearance_stack[len(engine.gi_manager.appearance_stack) - 1] }
-
-// @(deferred_none=gi_appearance_pop)
-// gi_appearance_scope :: proc(appearance: GI_Appearance) {
-// 	gi_appearance_push(appearance) }
-
-// gi_appearance_push :: proc(appearance: GI_Appearance) {
-// 	append(&engine.gi_manager.appearance_stack, appearance) }
-
-// gi_appearance_pop :: proc() {
-// 	pop(&engine.gi_manager.appearance_stack) }
-
 gn_generate_stack :: proc(generator: ^Generator, name: string, type: string, default: string, field: string) {
+	prefix := generator.prefix
+
 	fmt.sbprintfln(&generator.builder, `
-gi_get_%s :: proc() -> %s {{
+%s_%s_get :: proc() -> %s {{
 	if len(engine.%s.%s_stack) == 0 do return %s
 	return engine.%s.%s_stack[len(engine.%s.%s_stack) - 1] }}`,
-		name, type, field, name, default, field, name, field, name)
+		prefix, name, type, field, name, default, field, name, field, name)
 
 	fmt.sbprintfln(&generator.builder, `
-@(deferred_none=gi_%s_pop)
-gi_%s_scope :: proc(%s: %s) {{
-	gi_%s_push(%s) }}`,
-		name, name, name, type, name, name)
+@(deferred_none=%s_%s_pop)
+%s_%s_scope :: proc(%s: %s) {{
+	%s_%s_push(%s) }}`,
+		prefix, name, prefix, name, name, type, prefix, name, name)
 
 	fmt.sbprintfln(&generator.builder, `
-gi_%s_push :: proc(%s: %s) {{
+%s_%s_push :: proc(%s: %s) {{
 	append(&engine.%s.%s_stack, %s) }}`,
-		name, name, type, field, name, name)
+		prefix, name, name, type, field, name, name)
 
 	fmt.sbprintfln(&generator.builder, `
-gi_%s_pop :: proc() {{
-	pop_safe(&engine.%s.%s_stack) }}`,
-		name, field, name) }
+%s_%s_pop :: proc() -> (res: %s, ok: bool) {{
+	return pop_safe(&engine.%s.%s_stack) }}`,
+		prefix, name, type, field, name) }
 
 gx_make_generator :: proc(prefix: string, cap: int) -> Generator {
 	builder: strings.Builder
@@ -233,10 +226,30 @@ gn_generator_commit :: proc(generator: ^Generator, willow_path: string) {
 
 gn_generate_stacks :: proc(willow_path: string) {
 	generator := gn_get_generator("gi")
-	// generator := gx_make_generator("gi", 10_000)
 	gn_generate_stack(generator, "disabled", "bool", "false", "gi_manager")
 	gn_generate_stack(generator, "button_shape", "GI_Button_Shape", ".ROUNDED", "gi_manager")
 	gn_generate_stack(generator, "appearance", "GI_Appearance", ".DEFAULT", "gi_manager")
 	gn_generate_stack(generator, "text_style", "Text_Style", "engine.gi_manager.text_style", "gi_manager")
 	gn_generator_commit(generator, willow_path)
+	generator = gn_get_generator("gx")
+	gn_generate_stack(generator, "clip", "Clip", "{ gi_rect_screen(), 0 }", "graphics_manager")
+	gn_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
+	gn_generator_commit(generator, willow_path) }
+
+// @(deferred_none=gx_depth_pop)
+gx_depth_scope_dec :: proc(dec: f32) {
+	// gx_depth_push_dec(dec)
+}
+
+gx_depth_push_dec :: proc(dec: f32) {
+	// gx_depth_push(gx_depth_get() - dec)
+}
+
+// @(deferred_none=gx_depth_pop)
+gx_depth_scope_inc :: proc(inc: f32) {
+	// gx_depth_push_inc(inc)
+}
+
+gx_depth_push_inc :: proc(inc: f32) {
+	// gx_depth_push(gx_depth_get() + inc)
 }

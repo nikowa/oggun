@@ -10,7 +10,7 @@ import "core:strings"
 gi_logic_button :: proc(rect: Rect) -> (actions: bit_set[GUI_Action]) {
 	hovered := rect_hovered(rect)
 	pressed := hovered && input_query(.Mouse_Left, .PRESSED)
-	disabled := gi_get_disabled()
+	disabled := gi_disabled_get()
 	if hovered do actions += { .HOVER }
 	if pressed do actions += { .PRESS }
 	if hovered {
