@@ -99,8 +99,7 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, ic
 		dr_image(image, avatar_rect) }
 	else {
 		dr_rect(avatar_rect, fill_color, radius = 16)
-		// avatar_text_style := gi_text_style_get()
-		avatar_text_style := Text_Style{}
+		avatar_text_style := gi_text_style_get()
 		avatar_text_style.color = theme[GI_Theme_Key.NEUTRAL_FOREGROUND_4][0]
 		if name != "" {
 			subnames: []string = strings.split(name, " ")
