@@ -1284,3 +1284,17 @@ tick_graphics_manager_end :: proc() {
 set_clear_color :: proc(color: u32) {
 	color_4f32 := gx_color_to_4f32(color)
 	gl.ClearColor(color_4f32.r, color_4f32.g, color_4f32.b, color_4f32.a) }
+
+@(deferred_none=gx_depth_pop)
+gx_depth_scope_dec :: proc(dec: f32) {
+	gx_depth_push_dec(dec) }
+
+gx_depth_push_dec :: proc(dec: f32) {
+	gx_depth_push(gx_depth_get() - dec) }
+
+@(deferred_none=gx_depth_pop)
+gx_depth_scope_inc :: proc(inc: f32) {
+	gx_depth_push_inc(inc) }
+
+gx_depth_push_inc :: proc(inc: f32) {
+	gx_depth_push(gx_depth_get() + inc) }

@@ -235,21 +235,3 @@ gn_generate_stacks :: proc(willow_path: string) {
 	gn_generate_stack(generator, "clip", "Clip", "{ gi_rect_screen(), 0 }", "graphics_manager")
 	gn_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
 	gn_generator_commit(generator, willow_path) }
-
-// @(deferred_none=gx_depth_pop)
-gx_depth_scope_dec :: proc(dec: f32) {
-	// gx_depth_push_dec(dec)
-}
-
-gx_depth_push_dec :: proc(dec: f32) {
-	// gx_depth_push(gx_depth_get() - dec)
-}
-
-// @(deferred_none=gx_depth_pop)
-gx_depth_scope_inc :: proc(inc: f32) {
-	// gx_depth_push_inc(inc)
-}
-
-gx_depth_push_inc :: proc(inc: f32) {
-	// gx_depth_push(gx_depth_get() + inc)
-}

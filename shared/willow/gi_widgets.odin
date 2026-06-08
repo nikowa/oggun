@@ -9,9 +9,16 @@ import "core:strings"
 
 gi_metrics_widget :: proc() {
 	metrics_rect := gi_rect_embed(gi_rect_margins(gi_rect_screen(), Interval(8)), { 320, 24 }, { .West, .South })
+
+	bg_color := gi_get_background_color()[0]
+
+	dr_text_box(fmt.aprintf("FPS: %d", cast(int)get_frame_rate()), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
+	metrics_rect = gi_rect_translate(metrics_rect, { 0, 14 })
+
 	if engine.track_backing_allocations {
-		dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(engine.tracking_allocator.current_memory_allocated)), metrics_rect, h_align=.LEFT, v_align=.BOTTOM)
+		dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(engine.tracking_allocator.current_memory_allocated)), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
 		metrics_rect = gi_rect_translate(metrics_rect, { 0, 14 }) }
+
 	if engine.track_temp_allocations {
-		dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), metrics_rect, h_align=.LEFT, v_align=.BOTTOM)
+		dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
 		metrics_rect = gi_rect_translate(metrics_rect, { 0, 14 }) } }

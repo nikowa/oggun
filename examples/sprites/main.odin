@@ -25,7 +25,7 @@ Sprite :: struct {
 
 sprite_init :: proc(sprite: ^Sprite) {
 	sprite.position = { rand.float32(), rand.float32() }
-	sprite.depth = rand.float32()
+	sprite.depth = rand.float32_range(0.1, 0.9999) // (TODO): Make a "DEPTH_MAX" constant.
 	angle: f32 = 2 * math.PI * rand.float32()
 	sprite.direction = { linalg.cos(angle), linalg.sin(angle) }
 	sprite.speed = 0.01 * (1 + rand.float32()) }
@@ -40,7 +40,11 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
 	context = engine_begin_init(
-		engine_config=default_engine_config(game_name="Sprites Example", temp_allocator_cap=1000 * mem.Megabyte))
+		engine_config=default_engine_config(
+			game_name="Sprites Example",
+			track_backing_allocations=true,
+			track_temp_allocations=true,
+			temp_allocator_cap=1000 * mem.Megabyte))
 
 	settings: Settings = {
 		player_name = "Destroyer",
@@ -70,13 +74,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	zero_stopwatch(&stopwatch)
 
 	context = engine_end_init()
-	// backing_allocator := context.allocator
-	// context.allocator = context.temp_allocator
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
 			gi_rect_screen := gi_rect_screen()
+
+			// Sprites //
 			image_index: int = 0
 			for &sprite, i in sprites {
 				sprite.position += engine.tick_manager.delta_time * sprite.speed * sprite.direction
@@ -94,5 +98,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 					sprite.direction.y *= -1 }
 				sprite_rect: Rect = { engine.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
 				{ gx_depth_scope(sprite.depth); dr_image(&images[image_index], sprite_rect, integer=false) }
-				if i > splits[image_index] do image_index += 1 } } }
+				if i > splits[image_index] do image_index += 1 }
+
+			// Metrics //
+			{ gx_depth_scope(0.0); gi_metrics_widget() } } }
 	return }

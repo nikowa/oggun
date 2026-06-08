@@ -1,7 +1,7 @@
 
-- Make sure icon is always centered on its "position", even when scaled.
+- Use linked list for commands instead of dynamic array, so they can be more efficiently rearranged.
+- Fix the data graph
 - Figure out the depth on the GUI draw functions.
-- Prevent crash when attempting to recompile a shader with an error.
 - Make '\n' work in text box.
 - Add scope suffix to all procedures that have @deferred attribute
 - Add a special logger for the allocations and add filter options to. Like options that trim line that contain certain substrings, for example "gi_text_style_store" and "gi_text_style_restore", which I know are safe.

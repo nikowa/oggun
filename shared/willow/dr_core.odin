@@ -227,7 +227,8 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 	return width }
 
 // (TODO): Maybe some of these params should be on a stack. //
-dr_text_box :: proc(text: string, rect: Rect, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) {
+dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: GUI_H_Align = .CENTER, v_align: GUI_V_Align = .CENTER, integer: bool = true) -> (max_width: f32) {
+	if rect_is_empty(rect) do return
 	using style := gi_text_style_get()
 	gi_text_style_checkpoint()
 	// dr_rect_outline(graphics_manager, rect, BLUE, 0.1)
@@ -259,10 +260,20 @@ dr_text_box :: proc(text: string, rect: Rect, h_align: GUI_H_Align = .CENTER, v_
 		pivot = { .East }
 		position.x += rect.size.x / 2
 	}
+	origin := position
 	for line, i in lines {
 		if h_align == .JUSTIFY && i == len(lines) - 1 {
 			desired_width = nil
 			pivot = { .West }
 			position.x -= rect.size.x / 2 }
-		dr_text_line_compound(line, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
-		position.y -= line_height } }
+		width := dr_text_line_compound(line, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
+		if width > max_width do max_width = width
+		position.y -= line_height }
+	gx_depth_scope_inc(0.01) // (TODO): Make this a DEPTH_DELTA constant. //
+	if background_color != 0 {
+		background_rect: Rect
+		background_rect.size = { max_width, total_height }
+		background_rect.position = origin + background_rect.size / 2
+		// (TODO): Add "margins" and "padding" stacks to "gi_manager". //
+		dr_rect(gi_rect_extend(background_rect, Interval(4)), background_color) }
+	return max_width }

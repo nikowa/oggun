@@ -59,6 +59,9 @@ Engine :: struct {
 	tracking_allocator: mem.Tracking_Allocator,
 	tracking_temp_allocator: mem.Tracking_Allocator }
 
+get_frame_rate :: proc() -> f32 {
+	return engine.tick_manager.frame_rate }
+
 engine_end_init :: proc() -> runtime.Context {
 	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
 	// explicitly use "engine.backing_allocator".

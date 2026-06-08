@@ -17,7 +17,10 @@ Tick_Manager :: struct {
 	accumulation_to_now:       i64,
 	accumulation_to_last_tick: i64,
 	delta_time:                f32,
+	time_sec:                  f32,
 	frame_rate:                f32,
+	measure_sec:               i32,
+	// measure_period_sec:        i32,
 	flag:                      bool }
 
 Tick_Manager_Config :: struct {
@@ -51,11 +54,14 @@ tick_manager_init :: proc(tick_man: ^Tick_Manager, config: Tick_Manager_Config) 
 
 tick_manager_tick :: proc(tick_man: ^Tick_Manager) -> bool {
 	tick_man.accumulation_to_now = time.duration_nanoseconds(time.stopwatch_duration(tick_man.stopwatch))
+	tick_man.time_sec = read_stopwatch(&tick_man.stopwatch)
+	if tick_man.time_sec > cast(f32)tick_man.measure_sec {
+		tick_man.frame_rate = 1.0 / tick_man.delta_time
+		tick_man.measure_sec += 1 }
 	if tick_man.flag do return false
 	delta_time_nsec: i64 = tick_man.accumulation_to_now - tick_man.accumulation_to_last_tick
 	if delta_time_nsec >= tick_man.tick_period_nsec {
 		tick_man.delta_time = f32(cast(f64)delta_time_nsec / cast(f64)time.Second)
-		tick_man.frame_rate = 1.0 / tick_man.delta_time
 		tick_man.accumulation_to_last_tick = tick_man.accumulation_to_now
 		tick_man.flag = true
 		return true }
