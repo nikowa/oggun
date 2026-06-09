@@ -343,6 +343,9 @@ gi_rect_translate :: proc(rect_in: Rect, offset: [2]f32) -> (rect_out: Rect) {
 gi_rect_scale :: proc(rect_in: Rect, scale: [2]f32) -> (rect_out: Rect) {
 	return { rect_in.position, scale * rect_in.size } }
 
+gi_rect_resize :: proc(rect_in: Rect, size: [2]f32) -> (rect_out: Rect) {
+	return { rect_in.position, size } }
+
 gi_rect_top_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
 	rect_out.position.y = target - rect_out.size.y / 2

@@ -1,7 +1,7 @@
 package willow
 import "core:time"
 import "base:runtime"
-// Generated at 14:06:57 //
+// Generated at 11:42:41 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -122,6 +122,34 @@ default_input_config :: proc(
 ) -> Input_Config {
 	return {
 		raw_input = raw_input } }
+
+default_plot_node :: proc(
+		id: u32 = DEFAULT_PLOT_NODE.id,
+		class: string = DEFAULT_PLOT_NODE.class,
+		background_color: Color = DEFAULT_PLOT_NODE.background_color,
+		foreground_color: Color = DEFAULT_PLOT_NODE.foreground_color,
+		stroke_color: Color = DEFAULT_PLOT_NODE.stroke_color,
+		size: Maybe([2]f32) = DEFAULT_PLOT_NODE.size,
+		label: string = DEFAULT_PLOT_NODE.label,
+		position: Maybe([2]f32) = DEFAULT_PLOT_NODE.position,
+		pin: bool = DEFAULT_PLOT_NODE.pin,
+		root: bool = DEFAULT_PLOT_NODE.root,
+		tooltip: string = DEFAULT_PLOT_NODE.tooltip,
+		xlabel: string = DEFAULT_PLOT_NODE.xlabel,
+) -> Plot_Node {
+	return {
+		id = id,
+		class = class,
+		background_color = background_color,
+		foreground_color = foreground_color,
+		stroke_color = stroke_color,
+		size = size,
+		label = label,
+		position = position,
+		pin = pin,
+		root = root,
+		tooltip = tooltip,
+		xlabel = xlabel } }
 
 default_camera_config :: proc(
 		focal_length: f32 = DEFAULT_CAMERA_CONFIG.focal_length,

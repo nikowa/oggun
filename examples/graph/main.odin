@@ -42,27 +42,39 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	backing_allocator := context.allocator
 	context.allocator = context.temp_allocator
 
+	plot_graph: Plot_Graph
+	pt_graph_init(&plot_graph, { background_color = gi_get_background_color()[0], text_style = gi_text_style_get(), margins = 4, padding = 4, radius = 0 })
+
+	plot_node: Plot_Node = DEFAULT_PLOT_NODE
+	plot_node.background_color = BLUE
+	plot_node.stroke_color = DARK_BLUE
+	plot_node.label = "A very very long label inside the node"
+	plot_node.xlabel = "External Label"
+	plot_node.size = [2]f32{ 80, 0 }
+
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
-			rect.size.y = gi_measure_text_box(text, rect.size.x)
-			// points: [2][2]f32 = {
-			// 	{  }
-			// }
+			dr_plot_node(&plot_node, &plot_graph)
 
-			tail: [2]f32 = { -400, 100 }
-			head: [2]f32 = { 0, 200 }
-			head = engine.input_manager.mouse_position
-			vector := head - tail
-			angle: f32 = linalg.angle_between([2]f32{ 0, -1 }, vector) * (vector.x >= 0 ? 1 : -1)
-			dr_line({ tail, head }, text_style.color, integer = false)
-			arrow := head
-			// char: u8 = cast(u8)GI_Icon.Save
-			char: u8 = cast(u8)time
-			arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
-			{ gi_text_style_scope(engine.gi_manager.icons_text_style); dr_text_symbol_rect(char, arrow_rect, angle = 0 * time) }
-			dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, radius = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
-			dr_text_box(text, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false) }
+
+
+			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
+			// rect.size.y = gi_measure_text_box(text, rect.size.x)
+
+			// tail: [2]f32 = { -400, 100 }
+			// head: [2]f32 = { 0, 200 }
+			// head = engine.input_manager.mouse_position
+			// vector := head - tail
+			// angle: f32 = linalg.angle_between([2]f32{ 0, -1 }, vector) * (vector.x >= 0 ? 1 : -1)
+			// dr_line({ tail, head }, text_style.color, integer = false)
+			// arrow := head
+			// // char: u8 = cast(u8)GI_Icon.Save
+			// char: u8 = cast(u8)time
+			// arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
+			// { gi_text_style_scope(engine.gi_manager.icons_text_style); dr_text_symbol_rect(char, arrow_rect, angle = 0 * time) }
+			// dr_rect(gi_rect_margins(rect, Interval(-8)), fill_color = bg_color, radius = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			// dr_text_box(text, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false)
+		}
 		free_all(context.temp_allocator) }
 	return }

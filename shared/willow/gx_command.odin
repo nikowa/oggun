@@ -4,26 +4,26 @@ import "core:mem"
 import "core:slice"
 import "core:math/linalg"
 import gl "vendor:OpenGL"
+import "core:container/intrusive/list"
 
 // Phases of command processing:
 // (1) all commands are stored in a dynamic array
 // (2) pointers to the commands are stored in nodes
 // (3) nodes are grouped
 
-Command_Node :: struct {
-	command: ^Command,
-	tree_parent: [dynamic]^Command_Node,
-	tree_child: ^Command_Node }
+// Execution_Node :: struct {
+// 	commands: list.List }
 
-Command_Tree :: struct {
-	sub_trees: ^Command_Node }
+// Execution_Graph :: struct {
+// 	commands: [dynamic]Command,
+//	dag: DAG()
+// }
 
 // (NOTE): Initially all commands are appended to "commands", then when it's time to submit, they are grouped. //
+// (NOTE): Every node on the command tree will be assigned a command buffer. //
 Command_Buffer :: struct {
 	commands: [dynamic]Command,
-	command_groups: [dynamic]Command_Group,
-	_command_cache: ^Command,
-	_command_group_cache: ^Command_Group }
+	order: list.List }
 
 Command_Group :: [dynamic]^Command
 
@@ -40,13 +40,14 @@ Generic_Command :: struct {
 
 Command :: struct {
 	using config: Command_Config,
+	using node: list.Node,
 	submitted: bool }
 
-command_buffer_search_group :: proc(command_buffer: ^Command_Buffer, search_command: ^Command) -> (group: ^Command_Group) {
-	for &command_group in command_buffer.command_groups {
-		if len(command_group) == 0 do continue
-		if commands_belong_to_same_group({ command_group[0], search_command }) do return &command_group }
-	return nil }
+// command_buffer_search_group :: proc(command_buffer: ^Command_Buffer, search_command: ^Command) -> (group: ^Command_Group) {
+// 	for &command_group in command_buffer.command_groups {
+// 		if len(command_group) == 0 do continue
+// 		if commands_belong_to_same_group({ command_group[0], search_command }) do return &command_group }
+// 	return nil }
 
 generic_command_params :: proc(generic_command: ^Generic_Command) -> (params: []u8) {
 	ptr: [^]u8 = auto_cast (cast(uintptr)generic_command + size_of(Generic_Command))
@@ -59,7 +60,8 @@ generic_command_params :: proc(generic_command: ^Generic_Command) -> (params: []
 
 command_buffer_init :: proc(command_buffer: ^Command_Buffer) {
 	command_buffer.commands = make([dynamic]Command, context.allocator)
-	command_buffer.command_groups = make([dynamic]Command_Group, context.allocator) }
+	// command_buffer.command_groups = make([dynamic]Command_Group, context.allocator)
+}
 
 // last_command
 command_buffer_record :: proc(command_buffer: ^Command_Buffer, config: Command_Config) {
