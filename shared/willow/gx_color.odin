@@ -1,6 +1,7 @@
 package willow
 import "core:math/rand"
 import win32 "core:sys/windows"
+import "core:math"
 
 Color :: u32
 
@@ -66,3 +67,13 @@ gx_color_a :: proc "contextless" (color: Color) -> u8 {
 gx_color_to_win32_color :: proc(color: Color) -> (win32_color: win32.COLORREF) {
 	vec := gx_color_to_4u8(color)
 	return auto_cast gx_color_from_4u8({ 0, vec.b, vec.g, vec.r }) }
+
+gx_color_lightness :: proc(color: Color) -> f32 {
+	c := gx_color_to_4u8(color)
+	return clamp((((0.4126 * (f32(c.r) + f32(c.g) + f32(c.b)) - 0.0033 * f32(c.r) - 0.0179 * f32(c.g) - 0.0215 * f32(c.b) + 0.0518) / 3) - 1) / 100, 0, 1) }
+
+gx_color_is_light :: proc(color: Color) -> bool {
+	return gx_color_lightness(color) >= 0.5 }
+
+gx_color_is_dark :: proc(color: Color) -> bool {
+	return ! gx_color_is_light(color) }

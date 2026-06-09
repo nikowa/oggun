@@ -15,7 +15,7 @@ Game engine for my various solo projects. [Doc](https://nikowa.github.io/willow/
 | Dynamic Loading  | dl           |
 | Input            | ip           |
 | Draw             | dr           |
-| GUI              | gi           |
+| User Interface   | ui           |
 | Meta             | mt           |
 | Dialogue         | dg           |
 | Plot             | pt           |

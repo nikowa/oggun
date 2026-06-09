@@ -21,6 +21,8 @@ main :: proc() {
 entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	using willow
 
+	log.info(gx_color_lightness(WHITE), gx_color_lightness(BLACK))
+
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Graph Example", temp_allocator_cap=1000 * mem.Megabyte),
 		graphics_config={ clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
@@ -43,21 +45,29 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	context.allocator = context.temp_allocator
 
 	plot_graph: Plot_Graph
-	pt_graph_init(&plot_graph, { background_color = gi_get_background_color()[0], text_style = gi_text_style_get(), margins = 4, padding = 4, radius = 0 })
+	pt_graph_init(&plot_graph, default_plot_graph_config(
+		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
+		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
+		text_style=gi_text_style_get(), margins=4, padding=4, radius=8))
 
 	plot_node: Plot_Node = DEFAULT_PLOT_NODE
-	plot_node.background_color = BLUE
-	plot_node.stroke_color = DARK_BLUE
+	// plot_node.background_color = BLUE
+	// plot_node.stroke_color = RED
 	plot_node.label = "A very very long label inside the node"
 	plot_node.xlabel = "External Label"
 	plot_node.size = [2]f32{ 80, 0 }
+	plot_node.position = [2]f32{ 0, 0 }
+// matrix3_translate_f32
+
+	// (TODO): Does dynamic array ever reallocate? //
+	node_ptr := pt_append_node(&plot_graph, plot_node)
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			dr_plot_node(&plot_node, &plot_graph)
-
-
+			node_ptr.position = matrix3_apply(matrix3_scale_f32(1 + math.sin(4 * time)) * matrix3_rotate_f32(time) * matrix3_translate_f32({ -400, 0 }), [2]f32{ 0, 0 })
+			// dr_plot_node(&plot_node, &plot_graph, { 0, 0 }, 2.0 + math.sin(4 * time))
+			dr_plot_graph(&plot_graph, gi_rect_screen())
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = gi_measure_text_box(text, rect.size.x)

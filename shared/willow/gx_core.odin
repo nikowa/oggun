@@ -1285,6 +1285,9 @@ set_clear_color :: proc(color: u32) {
 	color_4f32 := gx_color_to_4f32(color)
 	gl.ClearColor(color_4f32.r, color_4f32.g, color_4f32.b, color_4f32.a) }
 
+gx_rect_cull :: proc(rect: Rect, clip: Clip) -> bool {
+	return rect_is_empty(rect_sect(rect, clip.rect)) }
+
 @(deferred_none=gx_depth_pop)
 gx_depth_scope_dec :: proc(dec: f32) {
 	gx_depth_push_dec(dec) }

@@ -32,6 +32,9 @@ Draw_Rect_Group_Params :: struct {
 
 // (TODO): Change "stroke" to u8
 dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, radius: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+	// (TODO): Test culling. Add culling to other primitives. //
+	clip := gx_clip_get()
+	if gx_rect_cull(rect, clip) do return
 	command: Draw_Rect_Command = {
 		render_buffer = render_buffer,
 		rect = integer ? rect_round(rect) : rect,
@@ -41,7 +44,7 @@ dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRA
 		radius = radius,
 		stroke = stroke,
 		depth = gx_depth_get(),
-		clip = gx_clip_get() }
+		clip = clip }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
 dr_rect_outline :: proc(rect: Rect, color: Color = BLACK, integer: bool = true) {

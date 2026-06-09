@@ -7,6 +7,8 @@ import "core:math"
 import "core:log"
 import "core:strings"
 
+// (TODO): Many elements of this should be moved to GX. //
+
 GI_Manager :: struct {
 	font_group: Font_Group,
 	icons_font_group: Font_Group,
@@ -252,6 +254,7 @@ COLOR_GREEN_BACKGROUND_VARIANT_1_LIGHT :: 0xf1faf1ff
 COLOR_GREEN_BACKGROUND_VARIANT_2_LIGHT :: 0x9fd89fff
 COLOR_GREEN_BACKGROUND_VARIANT_3_LIGHT :: 0x107c10ff
 COLOR_GREEN_BACKGROUND_VARIANT_4_LIGHT :: 0x107c10ff
+COLOR_NEUTRAL_FOREGROUND_1_DARK :: 0xffffffff
 COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK :: 0x292929ff
 COLOR_NEUTRAL_STROKE_1_HOVER_DARK :: 0x757575ff
 
@@ -649,10 +652,10 @@ gi_init :: proc() {
 
 	gi_theme_ms_dark^ = {
 		NEUTRAL_FOREGROUND_1 = {
-			NORMAL   = 0xffffffff,
-			HOVER    = 0xffffffff,
-			PRESSED  = 0xffffffff,
-			SELECTED = 0xffffffff },
+			NORMAL   = COLOR_NEUTRAL_FOREGROUND_1_DARK,
+			HOVER    = COLOR_NEUTRAL_FOREGROUND_1_DARK,
+			PRESSED  = COLOR_NEUTRAL_FOREGROUND_1_DARK,
+			SELECTED = COLOR_NEUTRAL_FOREGROUND_1_DARK },
 		NEUTRAL_FOREGROUND_2 = {
 			NORMAL   = 0xd6d6d6ff,
 			HOVER    = 0xffffffff,

@@ -1,7 +1,7 @@
 package willow
 import "core:time"
 import "base:runtime"
-// Generated at 11:42:41 //
+// Generated at 20:59:57 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -123,11 +123,34 @@ default_input_config :: proc(
 	return {
 		raw_input = raw_input } }
 
+default_plot_graph_config :: proc(
+		default_background_color: Color = DEFAULT_PLOT_GRAPH_CONFIG.default_background_color,
+		default_stroke_color: Color = DEFAULT_PLOT_GRAPH_CONFIG.default_stroke_color,
+		light_foreground_color: Color = DEFAULT_PLOT_GRAPH_CONFIG.light_foreground_color,
+		dark_foreground_color: Color = DEFAULT_PLOT_GRAPH_CONFIG.dark_foreground_color,
+		text_style: Text_Style = DEFAULT_PLOT_GRAPH_CONFIG.text_style,
+		margins: f32 = DEFAULT_PLOT_GRAPH_CONFIG.margins,
+		padding: f32 = DEFAULT_PLOT_GRAPH_CONFIG.padding,
+		radius: f32 = DEFAULT_PLOT_GRAPH_CONFIG.radius,
+		range_x: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_x,
+		range_y: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_y,
+) -> Plot_Graph_Config {
+	return {
+		default_background_color = default_background_color,
+		default_stroke_color = default_stroke_color,
+		light_foreground_color = light_foreground_color,
+		dark_foreground_color = dark_foreground_color,
+		text_style = text_style,
+		margins = margins,
+		padding = padding,
+		radius = radius,
+		range_x = range_x,
+		range_y = range_y } }
+
 default_plot_node :: proc(
 		id: u32 = DEFAULT_PLOT_NODE.id,
 		class: string = DEFAULT_PLOT_NODE.class,
 		background_color: Color = DEFAULT_PLOT_NODE.background_color,
-		foreground_color: Color = DEFAULT_PLOT_NODE.foreground_color,
 		stroke_color: Color = DEFAULT_PLOT_NODE.stroke_color,
 		size: Maybe([2]f32) = DEFAULT_PLOT_NODE.size,
 		label: string = DEFAULT_PLOT_NODE.label,
@@ -141,7 +164,6 @@ default_plot_node :: proc(
 		id = id,
 		class = class,
 		background_color = background_color,
-		foreground_color = foreground_color,
 		stroke_color = stroke_color,
 		size = size,
 		label = label,

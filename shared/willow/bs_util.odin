@@ -9,6 +9,8 @@ import "core:slice"
 import "core:log"
 import "vendor:compress/lz4"
 import "core:fmt"
+import "core:math/linalg"
+import "core:math"
 
 time_max :: proc(a, b: time.Time) -> (time.Time) {
 	return time.diff(b, a) >= 0 ? a : b }
@@ -256,3 +258,29 @@ dynamic_array_get_top :: proc(dynamic_array: ^[dynamic]$T, default: T) -> T {
 dynamic_array_get_from_top :: proc(dynamic_array: ^[dynamic]$T, i: int, default: T) -> T {
 	if len(dynamic_array) <= i do return default
 	return dynamic_array[len(dynamic_array) - 1 - i] }
+
+// (TODO): Test this
+@require_results matrix3_translate_f32 :: proc "contextless" (v: [2]f32) -> matrix[3, 3]f32 #no_bounds_check {
+	m := linalg.MATRIX3F32_IDENTITY
+	m[2][0] = v[0]
+	m[2][1] = v[1]
+	return m }
+
+// (TODO): Test this
+@require_results matrix3_scale_f32 :: proc "contextless" (v: [2]f32) -> (m: matrix[3, 3]f32) #no_bounds_check {
+	m[0][0] = v[0]
+	m[1][1] = v[1]
+	m[2][2] = 1
+	return m }
+
+// (TODO): Test this
+@require_results matrix3_rotate_f32 :: proc "contextless" (angle_radians: f32) -> matrix[3, 3]f32 {
+	c := math.cos(angle_radians)
+	s := math.sin(angle_radians)
+	return {
+		c, -s, 0,
+		s,  c, 0,
+		0,  0, 1 } }
+
+@require_results matrix3_apply :: proc "contextless" (m: matrix[3, 3]f32, v: [2]f32) -> [2]f32 {
+	return (m * [3]f32{ v.x, v.y, 1 }).xy }

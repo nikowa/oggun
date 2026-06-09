@@ -78,3 +78,8 @@ rect_union :: proc(rect_a, rect_b: Rect) -> (rect: Rect) {
 		right  = max(a_right, b_right),
 		bottom = min(a_bottom, b_bottom),
 		top    = max(a_top, b_top)) }
+
+rect_interpolate :: proc(rect: Rect, point: [2]f32) -> [2]f32 {
+	return {
+		math.lerp(rect_left(rect), rect_right(rect), point.x),
+		math.lerp(rect_bottom(rect), rect_top(rect), point.y) } }

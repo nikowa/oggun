@@ -14,6 +14,26 @@ package willow
 // Extended Camera (model camera, effect camera)
 // Camera Controller (model camera, effect camera, camera controller))
 
+Camera_2D_Config :: struct {
+	rect_normalized: Rect,
+	scale: f32,
+	rotation: f32 }
+
+sn_init_camera_2d :: proc(camera: ^Camera_2D, rect: Rect) {
+	camera.scale = rect.size.y
+	camera.rect_normalized = rect
+	camera.rect_normalized.size.x /= rect.size.y
+	camera.rect_normalized.size.y = 1
+	camera.rotation = 0 }
+
+sn_camera_2d_rect :: proc(camera: ^Camera_2D) -> Rect {
+	return { camera.rect_normalized.position, camera.rect_normalized.size * camera.scale } }
+
+Camera_2D :: struct {
+	using config: Camera_2D_Config,
+	view_matrix: matrix[3, 3]f32,
+	rect: Rect }
+
 Camera_Config :: struct {
 	focal_length: f32,
 	sensor_size: [2]f32,
@@ -32,6 +52,13 @@ DEFAULT_CAMERA_CONFIG: Camera_Config : {
 	sensor_size = { 1.777777777777, 1.0 },
 	near_clip = 0.0,
 	far_clip = 128.0 }
+
+sn_camera_2d_tick :: proc(camera: ^Camera_2D) {
+	camera.rect = sn_camera_2d_rect(camera)
+	camera.view_matrix =
+		matrix3_rotate_f32(camera.rotation) *
+		matrix3_scale_f32(camera.rect.size / 2) *
+		matrix3_translate_f32(- camera.rect.position) }
 
 // 	mode:              enum { FREE, FOLLOW },
 // 	control_direction: [3]f32,

@@ -1,4 +1,8 @@
 
+- There should be ways to create 2D and 3D scenes in both retained mode and immediate mode.
+- Scene manager.
+- Camera stacks in the scene manager.
+- 2d camera with controls.
 - Use linked list for commands instead of dynamic array, so they can be more efficiently rearranged.
 - Fix the data graph
 - Figure out the depth on the GUI draw functions.
