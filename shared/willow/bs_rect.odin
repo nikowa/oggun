@@ -83,3 +83,6 @@ rect_interpolate :: proc(rect: Rect, point: [2]f32) -> [2]f32 {
 	return {
 		math.lerp(rect_left(rect), rect_right(rect), point.x),
 		math.lerp(rect_bottom(rect), rect_top(rect), point.y) } }
+
+rect_interpolate_centered :: proc(rect: Rect, point: [2]f32) -> [2]f32 {
+	return rect_interpolate(rect, (point + { 1, 1 }) / 2) }

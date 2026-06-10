@@ -44,6 +44,9 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	backing_allocator := context.allocator
 	context.allocator = context.temp_allocator
 
+	camera: Camera_2D
+	sn_init_camera_2d(&camera, DEFAULT_CAMERA_2D_CONFIG)
+
 	plot_graph: Plot_Graph
 	pt_graph_init(&plot_graph, default_plot_graph_config(
 		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
@@ -61,13 +64,20 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	// (TODO): Does dynamic array ever reallocate? //
 	node_ptr := pt_append_node(&plot_graph, plot_node)
+	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
+	scr_rect := gi_rect_screen()
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			node_ptr.position = matrix3_apply(matrix3_scale_f32(1 + math.sin(4 * time)) * matrix3_rotate_f32(time) * matrix3_translate_f32({ -400, 0 }), [2]f32{ 0, 0 })
+			dest_rect.size.x = 600 + 100 * math.sin(2 * time)
+			dest_rect.size.y = 400 + 100 * math.cos(3 * time)
+			node_ptr.position = [2]f32{ scr_rect.size.x / 2, -scr_rect.size.y / 2 }
+			// node_ptr.position = matrix3_apply(matrix3_scale_f32(1 + math.sin(4 * time)) * matrix3_rotate_f32(time) * matrix3_translate_f32({ -400, 0 }), [2]f32{ 0, 0 })
 			// dr_plot_node(&plot_node, &plot_graph, { 0, 0 }, 2.0 + math.sin(4 * time))
-			dr_plot_graph(&plot_graph, gi_rect_screen())
+			dr_rect_outline(dest_rect, RED)
+			sn_camera_2d_tick(&camera)
+			dr_plot_graph(&plot_graph, &camera, dest_rect)
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = gi_measure_text_box(text, rect.size.x)

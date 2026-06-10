@@ -1,5 +1,6 @@
 #+feature using-stmt
 package willow
+import "core:log"
 
 // (TODO): Create a "Camera_2D" type for mapping points to the screen. //
 
@@ -50,8 +51,10 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	// 	xlabel: string }
 }
 
-dr_plot_graph :: proc(plot_graph: ^Plot_Graph, rect: Rect) {
+dr_plot_graph :: proc(plot_graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+	scale := sn_camera_2d_scale(camera)
+	scale = 1
 	for &plot_node in plot_graph.nodes {
-		dr_plot_node(&plot_node, plot_graph, plot_node.position.([2]f32) or_else { 0, 0 }, 1.0)
-	}
-}
+		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
+		position = sn_camera_2d_map_point(camera, rect, position)
+		dr_plot_node(&plot_node, plot_graph, position, scale.y) } }

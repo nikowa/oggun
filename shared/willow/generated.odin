@@ -1,7 +1,7 @@
 package willow
 import "core:time"
 import "base:runtime"
-// Generated at 20:59:57 //
+// Generated at 08:27:55 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -172,6 +172,14 @@ default_plot_node :: proc(
 		root = root,
 		tooltip = tooltip,
 		xlabel = xlabel } }
+
+default_camera_2d_config :: proc(
+		rect: Rect = DEFAULT_CAMERA_2D_CONFIG.rect,
+		rotation: f32 = DEFAULT_CAMERA_2D_CONFIG.rotation,
+) -> Camera_2D_Config {
+	return {
+		rect = rect,
+		rotation = rotation } }
 
 default_camera_config :: proc(
 		focal_length: f32 = DEFAULT_CAMERA_CONFIG.focal_length,

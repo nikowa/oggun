@@ -1,7 +1,6 @@
 #+feature using-stmt
 package willow
 
-
 // (TODO): Does the camera need all these fields? Perhaps refactor this into a basic camera and an extended camera.
 // Camera_Ext :: struct {
 //     using camera: Camera,
@@ -15,24 +14,28 @@ package willow
 // Camera Controller (model camera, effect camera, camera controller))
 
 Camera_2D_Config :: struct {
-	rect_normalized: Rect,
-	scale: f32,
+	rect: Rect,
 	rotation: f32 }
 
-sn_init_camera_2d :: proc(camera: ^Camera_2D, rect: Rect) {
-	camera.scale = rect.size.y
-	camera.rect_normalized = rect
-	camera.rect_normalized.size.x /= rect.size.y
-	camera.rect_normalized.size.y = 1
-	camera.rotation = 0 }
+DEFAULT_CAMERA_2D_CONFIG: Camera_2D_Config : {
+	rect={ { 0, 0 }, DEFAULT_WINDOW_CONFIG.size },
+	rotation=0 }
+
+sn_init_camera_2d :: proc(camera: ^Camera_2D, config: Camera_2D_Config) {
+	camera.config = config
+	camera.scale = camera.rect.size.y
+	camera.rect_normalized = camera.rect
+	camera.rect_normalized.size.x /= camera.rect.size.y
+	camera.rect_normalized.size.y = 1 }
 
 sn_camera_2d_rect :: proc(camera: ^Camera_2D) -> Rect {
 	return { camera.rect_normalized.position, camera.rect_normalized.size * camera.scale } }
 
 Camera_2D :: struct {
 	using config: Camera_2D_Config,
-	view_matrix: matrix[3, 3]f32,
-	rect: Rect }
+	rect_normalized: Rect,
+	scale: f32,
+	view_matrix: matrix[3, 3]f32 }
 
 Camera_Config :: struct {
 	focal_length: f32,
@@ -57,8 +60,14 @@ sn_camera_2d_tick :: proc(camera: ^Camera_2D) {
 	camera.rect = sn_camera_2d_rect(camera)
 	camera.view_matrix =
 		matrix3_rotate_f32(camera.rotation) *
-		matrix3_scale_f32(camera.rect.size / 2) *
+		matrix3_scale_f32(1.0 / (camera.rect.size / 2)) *
 		matrix3_translate_f32(- camera.rect.position) }
+
+sn_camera_2d_map_point :: proc(camera: ^Camera_2D, dest_rect: Rect, point: [2]f32) -> [2]f32 {
+	return rect_interpolate_centered(dest_rect, matrix3_apply(camera.view_matrix, point)) }
+
+sn_camera_2d_scale :: proc(camera: ^Camera_2D) -> [2]f32 {
+	return { camera.view_matrix[0][0], camera.view_matrix[1][1] } }
 
 // 	mode:              enum { FREE, FOLLOW },
 // 	control_direction: [3]f32,
