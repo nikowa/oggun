@@ -16,6 +16,7 @@ DEFAULT_INPUT_CONFIG: Input_Config : {
 Input_Manager :: struct {
 	using input_config: Input_Config,
 	mouse_position: [2]f32,
+	old_mouse_position: [2]f32,
 	mouse_delta: [2]f32,
 	scroll_delta: f32,
 	focused: bool,
@@ -175,8 +176,11 @@ bits_array_copy :: proc(array_dst, array_src: ^bit_array.Bit_Array) {
 	for index in INDEX_KEY_MIN ..< INDEX_MOUSE_MAX + 1 {
 		bit_array.set(array_dst, index, bit_array.get(array_src, index), engine.backing_allocator) } }
 
+// (TODO): Record a mouse release event when the window loses focus, ie. when the mouse leaves the window. //
+
 input_manager_tick :: proc() {
-	engine.input_manager.mouse_delta = { 0, 0 }
+	engine.input_manager.mouse_delta = engine.input_manager.mouse_position - engine.input_manager.old_mouse_position
+	engine.input_manager.old_mouse_position = engine.input_manager.mouse_position
 	engine.input_manager.scroll_delta = 0
 	bit_array.clear(&engine.input_manager._inputs_switched)
 	bits_array_xor(&engine.input_manager._inputs_switched, &engine.input_manager._inputs_pressed, &engine.input_manager._old_inputs_pressed)

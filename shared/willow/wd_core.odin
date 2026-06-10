@@ -35,6 +35,7 @@ DEFAULT_WINDOW_CONFIG: Window_Config : {
 Cursor :: enum {
 	Arrow,
 	Hand,
+	Move,
 	Disabled }
 
 when WINDOW_VARIANT == .GLFW do Window_Manager :: struct {
@@ -76,6 +77,7 @@ wd_init :: proc(window_config: Window_Config) {
 		engine.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
+		engine.window_manager.cursors[int(Cursor.Move)] = glfw.CreateStandardCursor(glfw.RESIZE_ALL_CURSOR)
 		glfw.SetInputMode(cast(glfw.WindowHandle)engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_NORMAL)
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
 		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
@@ -101,6 +103,7 @@ wd_init :: proc(window_config: Window_Config) {
 		engine.window_manager.cursors[int(Cursor.Arrow)] = win32.LoadCursorA(nil, win32.IDC_ARROW)
 		engine.window_manager.cursors[int(Cursor.Hand)] = win32.LoadCursorA(nil, win32.IDC_HAND)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = win32.LoadCursorA(nil, win32.IDC_NO)
+		engine.window_manager.cursors[int(Cursor.Move)] = win32.LoadCursorA(nil, win32.IDC_SIZEALL)
 		// win32.SetProcessDpiAwarenessContext(win32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 		// win32.SetProcessDpiAwareness(win32.PROCESS_DPI_AWARENESS.PROCESS_PER_MONITOR_DPI_AWARE)
 

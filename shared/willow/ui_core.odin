@@ -15,6 +15,7 @@ UI_Manager :: struct {
 	text_style: Text_Style,
 	icons_text_style: Text_Style,
 	anim_transitions: map[runtime.Source_Code_Location]UI_Anim_Transition,
+	pan_controls: map[runtime.Source_Code_Location]UI_Pan_Control,
 	// caption2_font_group: Font_Group,  // 10px
 	// caption1_font_group: Font_Group,  // 12px
 	// body1_font_group: Font_Group,     // 14px
@@ -1006,7 +1007,8 @@ ui_init :: proc() {
 		bold = default_font_config(name = "icons-bold"))
 	ui_set_theme(ui_theme_ms_dark)
 
-	engine.ui_manager.anim_transitions = make(map[runtime.Source_Code_Location]UI_Anim_Transition) }
+	engine.ui_manager.anim_transitions = make(map[runtime.Source_Code_Location]UI_Anim_Transition)
+	engine.ui_manager.pan_controls = make(map[runtime.Source_Code_Location]UI_Pan_Control) }
 
 ui_set_theme :: proc(theme: ^UI_Theme) {
 	engine.ui_manager.theme = theme
