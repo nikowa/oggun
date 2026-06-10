@@ -121,7 +121,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Sync Example", temp_allocator_cap=1000 * mem.Megabyte))
-	screen_rect = gi_rect_screen()
+	screen_rect = rect_screen()
 
 	init_image(&background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
@@ -140,7 +140,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
 	text_style: willow.Text_Style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
-	gi_text_style_push(text_style)
+	ui_text_style_push(text_style)
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())
 	for _ in 0 ..< 2 do spawn_car(random_position())

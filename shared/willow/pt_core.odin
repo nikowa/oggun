@@ -42,6 +42,8 @@ Plot_Node :: struct {
 	tooltip: string,
 	xlabel: string }
 
+PT_DEFAULT_NODE_SIZE: [2]f32 : { 120, 40 }
+
 DEFAULT_PLOT_NODE: Plot_Node : {
 	id = 1,
 	class = DEFAULT_NAME,

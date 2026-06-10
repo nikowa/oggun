@@ -225,13 +225,13 @@ gn_generator_commit :: proc(generator: ^Generator, willow_path: string) {
 	_ = os.write_entire_file(path, strings.to_string(generator.builder)) }
 
 gn_generate_stacks :: proc(willow_path: string) {
-	generator := gn_get_generator("gi")
-	gn_generate_stack(generator, "disabled", "bool", "false", "gi_manager")
-	gn_generate_stack(generator, "button_shape", "GI_Button_Shape", ".ROUNDED", "gi_manager")
-	gn_generate_stack(generator, "appearance", "GI_Appearance", ".DEFAULT", "gi_manager")
-	gn_generate_stack(generator, "text_style", "Text_Style", "engine.gi_manager.text_style", "gi_manager")
+	generator := gn_get_generator("ui")
+	gn_generate_stack(generator, "disabled", "bool", "false", "ui_manager")
+	gn_generate_stack(generator, "button_shape", "UI_Button_Shape", ".ROUNDED", "ui_manager")
+	gn_generate_stack(generator, "appearance", "UI_Appearance", ".DEFAULT", "ui_manager")
+	gn_generate_stack(generator, "text_style", "Text_Style", "engine.ui_manager.text_style", "ui_manager")
 	gn_generator_commit(generator, willow_path)
 	generator = gn_get_generator("gx")
-	gn_generate_stack(generator, "clip", "Clip", "{ gi_rect_screen(), 0 }", "graphics_manager")
+	gn_generate_stack(generator, "clip", "Clip", "{ rect_screen(), 0 }", "graphics_manager")
 	gn_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
 	gn_generator_commit(generator, willow_path) }

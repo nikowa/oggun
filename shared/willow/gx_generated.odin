@@ -1,9 +1,9 @@
 package willow
-// Generated at 08:27:55 //
+// Generated at 09:47:33 //
 
 
 gx_clip_get :: proc() -> Clip {
-	if len(engine.graphics_manager.clip_stack) == 0 do return { gi_rect_screen(), 0 }
+	if len(engine.graphics_manager.clip_stack) == 0 do return { rect_screen(), 0 }
 	return engine.graphics_manager.clip_stack[len(engine.graphics_manager.clip_stack) - 1] }
 
 @(deferred_none=gx_clip_pop)

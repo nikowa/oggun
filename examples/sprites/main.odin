@@ -78,7 +78,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			gi_rect_screen := gi_rect_screen()
+			rect_screen := rect_screen()
 
 			// Sprites //
 			image_index: int = 0
@@ -101,5 +101,5 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 				if i > splits[image_index] do image_index += 1 }
 
 			// Metrics //
-			{ gx_depth_scope(0.0); gi_metrics_widget() } } }
+			{ gx_depth_scope(0.0); ui_metrics_widget() } } }
 	return }
