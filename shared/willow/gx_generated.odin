@@ -1,5 +1,5 @@
 package willow
-// Generated at 11:11:58 //
+// Generated at 12:07:10 //
 
 
 gx_clip_get :: proc() -> Clip {
