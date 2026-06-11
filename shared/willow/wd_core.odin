@@ -7,11 +7,12 @@ import win32 "core:sys/windows"
 import "core:os"
 import "core:fmt"
 import "core:log"
+import "core:math"
 
 // (TODO): Prefix all procedures in this with "wnd_"
 
-WINDOW_VARIANT: Window_Variant : .Win32
-// WINDOW_VARIANT: Window_Variant : .GLFW
+// WINDOW_VARIANT: Window_Variant : .Win32
+WINDOW_VARIANT: Window_Variant : .GLFW
 
 Window_Config :: struct #all_or_none {
 	position: [2]f32,
@@ -61,31 +62,32 @@ wd_init :: proc(window_config: Window_Config) {
 		glfw.WindowHint(glfw.OPENGL_DEBUG_CONTEXT, 1)
 		glfw.WindowHint(glfw.SAMPLES, 8)
 		glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-		engine.window_manager.handle = cast(rawptr)glfw.CreateWindow(
+		handle: glfw.WindowHandle = glfw.CreateWindow(
 			width   = cast(i32)window_config.size.x,
 			height  = cast(i32)window_config.size.y,
 			title   = strings.clone_to_cstring(engine.game_name),
 			monitor = nil,
 			share   = nil)
-		assert(cast(glfw.WindowHandle)engine.window_manager.handle != nil)
-		glfw.MakeContextCurrent(cast(glfw.WindowHandle)engine.window_manager.handle)
+		assert(handle != nil)
+		engine.window_manager.handle = auto_cast handle
+		glfw.MakeContextCurrent(handle)
 		glfw.SwapInterval(0)
 		gl.load_up_to(4, 6, glfw.gl_set_proc_address)
-		glfw.FocusWindow(cast(glfw.WindowHandle)engine.window_manager.handle)
-		width, height := glfw.GetFramebufferSize(cast(glfw.WindowHandle)engine.window_manager.handle)
+		glfw.FocusWindow(handle)
+		width, height := glfw.GetFramebufferSize(handle)
 		wnd_update_size()
 		engine.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Move)] = glfw.CreateStandardCursor(glfw.RESIZE_ALL_CURSOR)
-		glfw.SetInputMode(cast(glfw.WindowHandle)engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_NORMAL)
+		glfw.SetInputMode(handle, glfw.CURSOR, glfw.CURSOR_NORMAL)
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
-		glfw.SetKeyCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_key_callback)
-		// glfw.SetScrollCallback(draw.window, scroll_callback)
-		glfw.SetCursorPosCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_position_callback)
-		glfw.SetMouseButtonCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_mouse_key_callback)
+		glfw.SetKeyCallback(handle, glfw_key_callback)
+		glfw.SetScrollCallback(handle, glfw_scroll_callback)
+		glfw.SetCursorPosCallback(handle, glfw_mouse_position_callback)
+		glfw.SetMouseButtonCallback(handle, glfw_mouse_key_callback)
 		// glfw.SetWindowRefreshCallback(draw.window, window_refresh_callback)
-		glfw.SetWindowSizeCallback(cast(glfw.WindowHandle)engine.window_manager.handle, glfw_window_size_callback)
+		glfw.SetWindowSizeCallback(handle, glfw_window_size_callback)
 		// glfw.SetDropCallback(draw.window, drop_callback)
 		// glfw.SetInputMode(draw.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		// glfw.SetInputMode(draw.window, glfw.RAW_MOUSE_MOTION, 0)
@@ -431,6 +433,7 @@ when WINDOW_VARIANT == .Win32 {
 
 	win32_window_proc :: proc "stdcall" (handle: win32.HWND, message: u32, w_param: uintptr, l_param: int) -> int {
 		context = runtime.default_context()
+		context.logger = log.create_console_logger()
 		switch message {
 		case win32.WM_CREATE:
 			fmt.println("WM_CREATE")
@@ -454,12 +457,14 @@ when WINDOW_VARIANT == .Win32 {
 		case win32.WM_LBUTTONUP:
 			input_record_key(.Mouse_Left, .Release)
 			return 0
+		case win32.WM_MOUSEWHEEL:
+			delta: f32 = math.sign_f32(cast(f32)win32.GET_WHEEL_DELTA_WPARAM(w_param))
+			input_record_scroll(delta)
+			return 0
 		case win32.WM_MOUSEMOVE:
 			position: [2]f32 = {
 				cast(f32)win32.GET_X_LPARAM(l_param),
 				cast(f32)win32.GET_Y_LPARAM(l_param) }
-		// i32(position.x + display_size.x / 2 - engine.window_manager.size.x / 2),
-		// i32(-position.y + display_size.y / 2 - engine.window_manager.size.y / 2) }
 			engine.input_manager.mouse_position = {
 				- engine.window_manager.size.x / 2 + position.x,
 				engine.window_manager.size.y / 2 - position.y }
@@ -519,13 +524,11 @@ set_cursor_immediate :: proc(cursor: Cursor) {
 	else do win32.SetCursor(engine.window_manager.cursors[int(cursor)])
 }
 
-@(private="file")
 glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
 	context = runtime.default_context()
 	context.logger = log.create_console_logger()
 	input_record_key(cast(Input)key, action == glfw.RELEASE ? .Release : .Press) }
 
-@(private="file")
 glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) {
 	context = runtime.default_context()
 	context.logger = log.create_console_logger()
@@ -537,7 +540,6 @@ glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) 
 	input_record_mouse_position(mouse_position)
 	called = true }
 
-@(private="file")
 glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, glfw_key, glfw_action, mods: i32) {
 	context = runtime.default_context()
 	context.logger = log.create_console_logger()
@@ -550,6 +552,12 @@ glfw_mouse_key_callback :: proc "c" (window: glfw.WindowHandle, glfw_key, glfw_a
 	case glfw.PRESS: action = .Press
 	case glfw.RELEASE: action = .Release }
 	if action != .None do input_record_key(cast(Input)key, action) }
+
+glfw_scroll_callback :: proc "c" (window: glfw.WindowHandle, dx, dy: f64) {
+	context = runtime.default_context()
+	context.logger = log.create_console_logger()
+	delta: f32 = cast(f32)dy
+	input_record_scroll(cast(f32)dy) }
 
 glfw_window_size_callback :: proc "c" (window: glfw.WindowHandle, width, height: i32) {
 	context = runtime.default_context()

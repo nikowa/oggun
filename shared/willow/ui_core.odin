@@ -15,7 +15,8 @@ UI_Manager :: struct {
 	text_style: Text_Style,
 	icons_text_style: Text_Style,
 	anim_transitions: map[runtime.Source_Code_Location]UI_Anim_Transition,
-	pan_controls: map[runtime.Source_Code_Location]UI_Pan_Control,
+	pan_controls: map[ID]UI_Pan_Control,
+	zoom_controls: map[ID]UI_Zoom_Control,
 	// caption2_font_group: Font_Group,  // 10px
 	// caption1_font_group: Font_Group,  // 12px
 	// body1_font_group: Font_Group,     // 14px
@@ -1008,7 +1009,7 @@ ui_init :: proc() {
 	ui_set_theme(ui_theme_ms_dark)
 
 	engine.ui_manager.anim_transitions = make(map[runtime.Source_Code_Location]UI_Anim_Transition)
-	engine.ui_manager.pan_controls = make(map[runtime.Source_Code_Location]UI_Pan_Control) }
+	engine.ui_manager.pan_controls = make(map[ID]UI_Pan_Control) }
 
 ui_set_theme :: proc(theme: ^UI_Theme) {
 	engine.ui_manager.theme = theme
@@ -1037,7 +1038,7 @@ ui_theme_ms_dark: ^UI_Theme
 
 // (TODO): Add "depth" stack in "GX_Manager". Depth should never be set manually.
 ui_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) -> (actions: bit_set[UI_Action]) {
-	actions = ui_control_button(rect)
+	actions = ui_button_control(rect)
 	dr_button(rect, text, icon=icon)
 	return actions }
 
@@ -1053,7 +1054,7 @@ ui_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, l
 	width := dr_text_line(header, position + { UI_ICON_SIZE.x / 2 + UI_SPACING_XS, 0 }, pivot={ .West })
 	icon_rect: Rect = { position, UI_ICON_SIZE }
 	button_rect := rect_extend_variate(icon_rect, east=Interval(width + UI_SPACING_XS))
-	t := ui_anim_transition([2]f32{ 0, 1 }, 1, CHEVRON_ANIM_SPEED, false, .PRESS in ui_control_button(button_rect), location=location)
+	t := ui_anim_transition([2]f32{ 0, 1 }, 1, CHEVRON_ANIM_SPEED, false, .PRESS in ui_button_control(button_rect), location=location)
 	dr_icon(.Chevron, position, angle = t * math.PI / 2)
 	// dr_rect_outline(rect, RED)
 	// dr_rect_outline(button_rect, RED)

@@ -12,6 +12,8 @@ import "core:fmt"
 import "core:math/linalg"
 import "core:math"
 
+ID :: uintptr
+
 time_max :: proc(a, b: time.Time) -> (time.Time) {
 	return time.diff(b, a) >= 0 ? a : b }
 
@@ -284,3 +286,7 @@ dynamic_array_get_from_top :: proc(dynamic_array: ^[dynamic]$T, i: int, default:
 
 @require_results matrix3_apply :: proc "contextless" (m: matrix[3, 3]f32, v: [2]f32) -> [2]f32 {
 	return (m * [3]f32{ v.x, v.y, 1 }).xy }
+
+loc_id :: proc(location := #caller_location) -> ID {
+	location := location
+	return runtime.default_hasher(&location, 1, size_of(location)) }

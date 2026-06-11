@@ -18,6 +18,8 @@ Input_Manager :: struct {
 	mouse_position: [2]f32,
 	old_mouse_position: [2]f32,
 	mouse_delta: [2]f32,
+	scroll: f32,
+	old_scroll: f32,
 	scroll_delta: f32,
 	focused: bool,
 	_inputs_pressed: bit_array.Bit_Array,
@@ -181,7 +183,8 @@ bits_array_copy :: proc(array_dst, array_src: ^bit_array.Bit_Array) {
 input_manager_tick :: proc() {
 	engine.input_manager.mouse_delta = engine.input_manager.mouse_position - engine.input_manager.old_mouse_position
 	engine.input_manager.old_mouse_position = engine.input_manager.mouse_position
-	engine.input_manager.scroll_delta = 0
+	engine.input_manager.scroll_delta = engine.input_manager.scroll - engine.input_manager.old_scroll
+	engine.input_manager.old_scroll = engine.input_manager.scroll
 	bit_array.clear(&engine.input_manager._inputs_switched)
 	bits_array_xor(&engine.input_manager._inputs_switched, &engine.input_manager._inputs_pressed, &engine.input_manager._old_inputs_pressed)
 	bits_array_copy(&engine.input_manager._old_inputs_pressed, &engine.input_manager._inputs_pressed) }
@@ -195,17 +198,15 @@ input_record_key :: proc(input: Input, action: Action) {
 		bit_array.set(&engine.input_manager._inputs_pressed, cast(uint)input, false, engine.backing_allocator) } }
 
 // @(private="file")
-// scroll_callback :: proc "c" (window: glfw.WindowHandle, dx, dy: f64) {
-// 	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
-// 	input_manager.scroll_delta += cast(f32)dy }
-
-// @(private="file")
 // focus_callback :: proc "c" (window: glfw.WindowHandle, focused: i32) {
 // 	input_manager: ^Input_Manager = cast(^Input_Manager)glfw.GetWindowUserPointer(window)
 // 	input_manager.focused = true }
 
 input_record_mouse_position :: proc(position: [2]f32) {
 	engine.input_manager.mouse_position = position }
+
+input_record_scroll :: proc(scroll_delta: f32) {
+	engine.input_manager.scroll += scroll_delta }
 
 // DICK
 // Input.Mouse_Left

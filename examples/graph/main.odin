@@ -53,17 +53,24 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
 		text_style=ui_text_style_get(), margins=4, padding=4, radius=8))
 
+	// (TODO): Does dynamic array ever reallocate? //
+
 	plot_node: Plot_Node = DEFAULT_PLOT_NODE
-	// plot_node.background_color = BLUE
-	// plot_node.stroke_color = RED
-	plot_node.label = "A very very long label inside the node"
-	plot_node.xlabel = "External Label"
+	plot_node.background_color = BLUE
+	plot_node.stroke_color = RED
+	plot_node.label = "Node A"
 	plot_node.size = [2]f32{ 140, 0 }
 	plot_node.position = [2]f32{ 0, 0 }
-// matrix3_translate_f32
+	pt_append_node(&plot_graph, plot_node)
 
-	// (TODO): Does dynamic array ever reallocate? //
-	node_ptr := pt_append_node(&plot_graph, plot_node)
+	plot_node = DEFAULT_PLOT_NODE
+	plot_node.background_color = RED
+	plot_node.stroke_color = BLUE
+	plot_node.label = "Node B"
+	plot_node.size = [2]f32{ 140, 0 }
+	plot_node.position = [2]f32{ 800, 400 }
+	pt_append_node(&plot_graph, plot_node)
+
 	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
 	scr_rect := rect_screen()
 
@@ -72,13 +79,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		if engine_tick() {
 			dest_rect.size.x = 600// + 100 * math.sin(2 * time)
 			dest_rect.size.y = 400// + 100 * math.cos(3 * time)
-			// node_ptr.position = [2]f32{ scr_rect.size.x / 2, -scr_rect.size.y / 2 }
-			// node_ptr.position = matrix3_apply(matrix3_scale_f32(1 + math.sin(4 * time)) * matrix3_rotate_f32(time) * matrix3_translate_f32({ -400, 0 }), [2]f32{ 0, 0 })
-			// dr_plot_node(&plot_node, &plot_graph, { 0, 0 }, 2.0 + math.sin(4 * time))
 			dr_rect_outline(dest_rect, RED)
 			sn_camera_2d_tick(&camera)
 			gx_clip_scope({ rect=dest_rect })
-			camera.rect_normalized.position = ui_pan_control(dest_rect, { 0, 0 }, reset=input_query(.R, .PRESSED))
+			camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
+			camera.scale = scr_rect.size.y * (1 + 2 * ui_zoom_control(loc_id(), scr_rect, speed=2, reset=input_query(.R, .PRESSED)))
+			log.info(ui_zoom_control(loc_id(), scr_rect))
 			// log.info(camera.rect.position)
 			dr_plot_graph(&plot_graph, &camera, dest_rect)
 
