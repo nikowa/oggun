@@ -290,3 +290,12 @@ dynamic_array_get_from_top :: proc(dynamic_array: ^[dynamic]$T, i: int, default:
 loc_id :: proc(location := #caller_location) -> ID {
 	location := location
 	return runtime.default_hasher(&location, 1, size_of(location)) }
+
+// (TODO): Apply this wherever possible. //
+tick_safe :: proc(x: ^$T) -> bool {
+	if x.last_tick == engine.tick_count do return false
+	x.last_tick = engine.tick_count
+	return true }
+
+skip_space :: proc(str: string, idx: ^int) {
+	for str[idx^] == ' ' do idx^ += 1 }

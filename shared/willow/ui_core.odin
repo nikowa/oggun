@@ -6,6 +6,7 @@ import "core:time"
 import "core:math"
 import "core:log"
 import "core:strings"
+import "core:slice"
 
 // (TODO): Many elements of this should be moved to GX. //
 
@@ -1137,33 +1138,65 @@ ui_measure_text_iterate :: proc(text: string, i: ^int, width: ^f32, space_count:
 	symbol_delta: f32 = f32(font.advances[symbol] - font.bearings[symbol]) * scale_factor + tracking
 	if symbol == ' ' do symbol_delta *= spacing
 	width^ += symbol_delta
-	if symbol == ' ' do space_count^ += 1
+	if symbol == ' ' && space_count != nil do space_count^ += 1
 	i^ += 1
 	return true }
 
 ui_text_box_lines :: proc(rect: Rect, text: string, scale_factor: f32) -> []string {
 	using style := ui_text_style_get()
 	lines := make([dynamic]string, context.temp_allocator)
-	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
-	width, width_acc: f32
-	for {
-		ok := ui_measure_text_iterate(text, &curr_i, &width, &space_count, scale_factor)
-		if (width <= rect.size.x) && ok {
-			if text[prev_i] == ' ' && (prev_i == 0 ? true : (text[prev_i - 1] != ' ')) {
-				prev_word_end_i = prev_i
-				width_acc = width - cast(f32)font_group.normal.advances[' '] * scale_factor + tracking }
-			prev_i = curr_i
-		} else {
-			if (line_start_i == prev_word_end_i + 1) || !ok do prev_word_end_i = prev_i
-			append(&lines, text[line_start_i:prev_word_end_i])
-			if !ok do break
-			i: int = 0
-			for strings.is_space(cast(rune)text[prev_word_end_i + i]) do i += 1
-			line_start_i = prev_word_end_i + i
-			curr_i += i
-			width -= width_acc } }
+	s0, s1, l1: int
+	selection: string = text[0:0]
+	line: string = text[0:0]
+	width: f32
+	ok: bool = true
+	for ok {
+		ok = ui_measure_text_iterate(text, &s1, &width, nil, scale_factor) // Step //
+		if ! ok {                                                          // End line //
+			append(&lines, line)
+			break }
+		if width > rect.size.x {
+			if line == "" {
+				l1 = s1 - 2
+				line = fmt.aprintf("%s-", text[s0 : l1]) }
+			append(&lines, line)
+			skip_space(text, &l1)
+			s0 = l1
+			s1 = s0
+			width = 0
+			line = ""
+			selection = ""
+			continue }
+		selection = text[s0 : s1]                                          // Extend selection //
+		if s1 == len(text) || (text[s1] == ' ') && (text[s0] != ' ') {     // Extend line //
+			l1 = s1
+			line = text[s0 : l1] } }
 	shrink(&lines)
 	return lines[:] }
+
+// ui_text_box_lines :: proc(rect: Rect, text: string, scale_factor: f32) -> []string {
+// 	using style := ui_text_style_get()
+// 	lines := make([dynamic]string, context.temp_allocator)
+// 	line_start_i, prev_i, curr_i, prev_word_end_i, space_count: int
+// 	width, width_acc: f32
+// 	for {
+// 		ok := ui_measure_text_iterate(text, &curr_i, &width, &space_count, scale_factor)
+// 		if (width <= rect.size.x) && ok {
+// 			if text[prev_i] == ' ' && (prev_i == 0 ? true : (text[prev_i - 1] != ' ')) {
+// 				prev_word_end_i = prev_i
+// 				width_acc = width - cast(f32)font_group.normal.advances[' '] * scale_factor + tracking }
+// 			prev_i = curr_i
+// 		} else {
+// 			if (line_start_i == prev_word_end_i + 1) || !ok do prev_word_end_i = prev_i
+// 			append(&lines, text[line_start_i:prev_word_end_i])
+// 			if !ok do break
+// 			i: int = 0
+// 			for strings.is_space(cast(rune)text[prev_word_end_i + i]) do i += 1
+// 			line_start_i = prev_word_end_i + i
+// 			curr_i += i
+// 			width -= width_acc } }
+// 	shrink(&lines)
+// 	return lines[:] }
 
 ui_measure_text_box :: proc(text: string, width: f32) -> (total_height: f32) {
 	using style := ui_text_style_get()

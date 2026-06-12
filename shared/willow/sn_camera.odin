@@ -1,5 +1,6 @@
 #+feature using-stmt
 package willow
+import "core:log"
 
 // (TODO): Does the camera need all these fields? Perhaps refactor this into a basic camera and an extended camera.
 // Camera_Ext :: struct {
@@ -35,7 +36,8 @@ Camera_2D :: struct {
 	using config: Camera_2D_Config,
 	rect_normalized: Rect,
 	scale: f32,
-	view_matrix: matrix[3, 3]f32 }
+	view_matrix: matrix[3, 3]f32,
+	last_tick: uint }
 
 Camera_Config :: struct {
 	focal_length: f32,
@@ -57,6 +59,9 @@ DEFAULT_CAMERA_CONFIG: Camera_Config : {
 	far_clip = 128.0 }
 
 sn_camera_2d_tick :: proc(camera: ^Camera_2D) {
+	if ! tick_safe(camera) do return
+	// if camera.last_tick == engine.tick_count do return
+	// camera.last_tick = engine.tick_count
 	camera.rect = sn_camera_2d_rect(camera)
 	camera.view_matrix =
 		matrix3_rotate_f32(camera.rotation) *

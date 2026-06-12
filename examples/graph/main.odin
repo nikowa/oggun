@@ -58,10 +58,12 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	plot_node: Plot_Node = DEFAULT_PLOT_NODE
 	plot_node.background_color = BLUE
 	plot_node.stroke_color = RED
-	plot_node.label = "Node A"
+	plot_node.label = "Node A with very long subtitle"
 	plot_node.size = [2]f32{ 140, 0 }
 	plot_node.position = [2]f32{ 0, 0 }
 	pt_append_node(&plot_graph, plot_node)
+
+	log.info(ui_text_box_lines({ { 0, 0 }, { 32, 0 } }, plot_node.label, 1))
 
 	plot_node = DEFAULT_PLOT_NODE
 	plot_node.background_color = RED
@@ -84,6 +86,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
 			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))
+			sn_camera_2d_tick(&camera)
+			sn_camera_2d_tick(&camera)
+			sn_camera_2d_tick(&camera)
+			sn_camera_2d_tick(&camera)
 			ui_camera_2d_control(&camera, dest_rect, scale_range={ scr_rect.size.y, 4 * scr_rect.size.y })
 
 			gx_clip_scope({ rect=dest_rect })
