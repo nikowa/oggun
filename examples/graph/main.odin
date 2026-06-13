@@ -83,6 +83,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			dest_rect.size.y = 400// + 100 * math.cos(3 * time)
 			dr_rect_outline(dest_rect, RED)
 
+			dr_line({ { 0, 0 }, engine.input_manager.mouse_position }, WHITE)
+
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
 			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))

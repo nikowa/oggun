@@ -610,6 +610,9 @@ use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
 // set_blend :: proc(value: bool) {
 // 	if value { gl.Enable(gl.BLEND) } else { gl.Disable(gl.BLEND) } }
 
+gx_set_line_thickness :: proc(thickness: f32) {
+	gl.LineWidth(thickness) }
+
 set_depth_test :: proc(value: bool) {
 	if value { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) } }
 

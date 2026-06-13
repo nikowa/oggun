@@ -188,6 +188,8 @@ gx_submit_line :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(5, buffers[5], 1, gl.FLOAT, clip_radius)
 
 	// (TODO): Make sure "polygon_mode" before every draw call. //
+	// TEMP
+	gx_set_line_thickness(8)
 	polygon_mode(.Line)
 	render_lines(cast(i32)n) }
 

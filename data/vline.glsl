@@ -10,12 +10,16 @@ flat out vec4 _line_color;
 flat out float _depth;
 flat out vec4 _clip;
 flat out float _clip_radius;
+flat out vec2 _point_a;
+flat out vec2 _point_b;
 
 void main(void) {
 	_line_color = line_color;
 	_depth = depth;
 	_clip = clip;
 	_clip_radius = clip_radius;
+	_point_a = point_a;
+	_point_b = point_b;
 
 	vec2 half_res = res / 2;
 	vec2 a = vec2(

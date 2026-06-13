@@ -1,4 +1,5 @@
 
+- Add MSAA to lines
 - There should be ways to create 2D and 3D scenes in both retained mode and immediate mode.
 - Scene manager.
 - Camera stacks in the scene manager.
@@ -14,7 +15,6 @@
 - Option to disable antialiasing on MSAA renderer, MSAA should be off for icons
 - Implement Badge Neon primitive
 - MS paint demo
-- Add aliasing to lines
 - When "watch = false", I get memory leaks from, I think, OpenGL. Fix this. Look at where textures are loaded, that's probably it
 - Implement win32 window backend (just write a "window_win32" and surround the whole file in "when WINDOW_WIN32")
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
