@@ -23,6 +23,18 @@ rect_bottom :: proc(rect: Rect) -> f32 {
 rect_top :: proc(rect: Rect) -> f32 {
 	return rect.position.y + rect.size.y / 2 }
 
+rect_top_left :: proc(rect: Rect) -> [2]f32 {
+	return { rect_left(rect), rect_top(rect) } }
+
+rect_top_right :: proc(rect: Rect) -> [2]f32 {
+	return { rect_right(rect), rect_top(rect) } }
+
+rect_bottom_left :: proc(rect: Rect) -> [2]f32 {
+	return { rect_left(rect), rect_bottom(rect) } }
+
+rect_bottom_right :: proc(rect: Rect) -> [2]f32 {
+	return { rect_right(rect), rect_bottom(rect) } }
+
 rect_from_sides :: proc(left, right, bottom, top: f32) -> Rect {
 	return {
 		position = { (left + right) / 2, (top + bottom) / 2 },

@@ -84,6 +84,29 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			dr_rect_outline(dest_rect, RED)
 
 			dr_line({ { 0, 0 }, engine.input_manager.mouse_position }, WHITE)
+			rect: Rect = { engine.input_manager.mouse_position, { 180, 120 } }
+			rect.size.x += 40 * math.sin(2 * time)
+			rect.size.y += 40 * math.sin(3 * time)
+			radius: f32 = 16
+			a, b, c, d := rect_top_left(rect), rect_top_right(rect), rect_bottom_right(rect), rect_bottom_left(rect)
+			deg0   := math.to_radians_f32(0)
+			deg90  := math.to_radians_f32(90)
+			deg180 := math.to_radians_f32(180)
+			deg270 := math.to_radians_f32(270)
+			deg360 := math.to_radians_f32(360)
+			dr_rect({ a, { 2, 2 } }, RED)
+			dr_rect({ b, { 2, 2 } }, RED)
+			dr_rect({ d, { 2, 2 } }, RED)
+			dr_rect({ c, { 2, 2 } }, RED)
+			dr_arc(center=a + { radius, -radius }, radius=radius, angle_range={ deg90, deg180 }, color=WHITE, integer=false)
+			dr_arc(center=b + { -radius, -radius }, radius=radius, angle_range={ deg0, deg90 }, color=WHITE, integer=false)
+			dr_arc(center=d + { radius, radius }, radius=radius, angle_range={ deg180, deg270 }, color=WHITE, integer=false)
+			dr_arc(center=c + { -radius, radius }, radius=radius, angle_range={ deg270, deg360 }, color=WHITE, integer=false)
+			dr_line(points={ a + { radius, 0 }, b + { -radius, 0 } }, color=WHITE, integer=false)
+			dr_line(points={ b + { 0, -radius }, c + { 0, radius } }, color=WHITE, integer=false)
+			dr_line(points={ c + { -radius, 0 }, d + { radius, 0 } }, color=WHITE, integer=false)
+			dr_line(points={ d + { 0, radius }, a + { 0, -radius } }, color=WHITE, integer=false)
+			// dr_line(points={ p + { radius, 200 }, p + { radius, 0 } }, color=WHITE, integer=false)
 
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
@@ -96,8 +119,6 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)
-
-			dr_arc(center={ 0, 0 }, radius=32, angle_range={ 0, 2 * math.PI }, color=RED)
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = ui_measure_text_box(text, rect.size.x)

@@ -18,7 +18,7 @@ flat in vec2 _point_b;
 #define clip _clip
 #define clip_radius _clip_radius
 
-const float thickness = 1;
+const float thickness = 0.5;
 
 vec2 point_a = vec2(_point_a.x, -_point_a.y);
 vec2 point_b = vec2(_point_b.x, -_point_b.y);

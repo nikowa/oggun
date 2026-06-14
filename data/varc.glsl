@@ -26,4 +26,4 @@ void main(void) {
 	_radius = radius;
 	_angle_range = angle_range;
 	gl_Position.zw = vec2(0, 1);
-	gl_Position.xy = mh_rect(gl_VertexID % 6, center / res, vec2(2 * radius) / res); }
+	gl_Position.xy = mh_rect(gl_VertexID % 6, center / res, vec2(2 * radius + 4) / res); }
