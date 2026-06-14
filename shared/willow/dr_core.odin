@@ -80,6 +80,31 @@ dr_line :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
 		clip = gx_clip_get() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
+Draw_Arc_Command :: struct {
+	using params: Draw_Arc_Params,
+	using group_params: Draw_Arc_Group_Params }
+
+Draw_Arc_Params :: struct {
+	center: [2]f32,
+	radius: f32,
+	angle_range: [2]f32,
+	color: Color,
+	depth: f32,
+	clip: Clip }
+
+Draw_Arc_Group_Params :: struct {
+	render_buffer: Maybe(^Render_Buffer) }
+
+dr_arc :: proc(center: [2]f32, radius: f32, angle_range: [2]f32, color: Color, integer: bool = true) {
+	command: Draw_Arc_Command = {
+		center = integer ? { math.round_f32(center.x), math.round_f32(center.y) } : center,
+		radius = radius,
+		angle_range = angle_range,
+		color = color,
+		depth = gx_depth_get(),
+		clip = gx_clip_get() }
+	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+
 Draw_Image_Command :: struct {
 	using base: Generic_Command,
 	using params: dr_image_Params,

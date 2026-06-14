@@ -33,7 +33,8 @@ Command_Config :: struct {
 		Draw_Image_Command,
 		Draw_Text_Command,
 		Draw_Rect_Command,
-		Draw_Line_Command } }
+		Draw_Line_Command,
+		Draw_Arc_Command } }
 
 Generic_Command :: struct {
 	group_params_size: u16 }
@@ -76,7 +77,8 @@ command_submit :: proc(command: Command, index: int) {
 	case Draw_Image_Command: gx_submit_image(command, index)
 	case Draw_Text_Command:  gx_submit_text(command, index)
 	case Draw_Rect_Command:  gx_submit_rect(command, index)
-	case Draw_Line_Command:  gx_submit_line(command, index) }
+	case Draw_Line_Command:  gx_submit_line(command, index)
+	case Draw_Arc_Command:   gx_submit_arc(command, index) }
 	engine.graphics_manager.command_buffer.commands[index].submitted = true }
 
 command_buffer_submit :: proc(command_buffer: ^Command_Buffer) {
@@ -192,6 +194,49 @@ gx_submit_line :: proc(_command: Command, index: int) {
 	gx_set_line_thickness(8)
 	polygon_mode(.Line)
 	render_lines(cast(i32)n) }
+
+gx_submit_arc :: proc(_command: Command, index: int) {
+	using Arc_Shader_Uniforms
+
+	command := _command.base.(Draw_Arc_Command)
+
+	use_shader(&engine.graphics_manager.arc_shader)
+	set_shader_param(RES, engine.graphics_manager.active_resolution)
+
+	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Arc_Command, _command_0, _command_1) })
+
+	buffers := make_buffers(7)
+	defer delete_buffers(buffers)
+
+	n: int = QUAD_VERTS_LEN * len(commands)
+	center := make([][2]f32, n)
+	radius := make([]f32, n)
+	angle_range := make([][2]f32, n)
+	color := make([][4]f32, n)
+	depth := make([]f32, n)
+	clip := make([][4]f32, n)
+	clip_radius := make([]f32, n)
+
+	for _command, i in commands do for j in 0 ..< QUAD_VERTS_LEN {
+		command := _command.base.(Draw_Arc_Command)
+		k := QUAD_VERTS_LEN * i + j
+		center[k] = command.center
+		radius[k] = command.radius
+		angle_range[k] = command.angle_range
+		color[k] = gx_color_to_4f32(command.color)
+		depth[k] = command.depth
+		clip[k] = rect_to_4f32(command.clip.rect)
+		clip_radius[k] = command.clip.radius }
+	upload_vertex_buffer_data(0, buffers[0], 2, gl.FLOAT, center)
+	upload_vertex_buffer_data(1, buffers[1], 1, gl.FLOAT, radius)
+	upload_vertex_buffer_data(2, buffers[2], 2, gl.FLOAT, angle_range)
+	upload_vertex_buffer_data(3, buffers[3], 4, gl.FLOAT, color)
+	upload_vertex_buffer_data(4, buffers[4], 1, gl.FLOAT, depth)
+	upload_vertex_buffer_data(5, buffers[5], 4, gl.FLOAT, clip)
+	upload_vertex_buffer_data(6, buffers[6], 1, gl.FLOAT, clip_radius)
+
+	polygon_mode(.Fill)
+	render_triangles(cast(i32)n) }
 
 gx_submit_image :: proc(_command: Command, index: int) {
 	using Image_Shader_Uniforms

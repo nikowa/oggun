@@ -50,6 +50,9 @@ Rect_Shader_Uniforms :: enum {
 Line_Shader_Uniforms :: enum {
 	RES = 0 }
 
+Arc_Shader_Uniforms :: enum {
+	RES = 0 }
+
 Model_Shader_Uniforms :: enum {
 	MODEL_MATRIX             = 0,
 	CAMERA_POSITION_MATRIX   = 1,

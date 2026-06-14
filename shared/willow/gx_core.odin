@@ -73,6 +73,7 @@ Graphics_Manager :: struct {
 // 	font_shader:                     ^Font_Shader,
 	rect_shader: Shader_Asset,
 	line_shader: Shader_Asset,
+	arc_shader: Shader_Asset,
 // 	point_shader:                    ^Point_Shader,
 // 	line_shader:                     ^Line_Shader,
 // 	physics_shader:                  ^Physics_Shader,
@@ -229,6 +230,8 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		engine.graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
 		init_shader_asset(&engine.graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }) or_return
 		init_shader_asset(&engine.graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }) or_return
+		// (TEMP):
+		init_shader_asset(&engine.graphics_manager.arc_shader, { "shader:arc", Shader_Asset }, { "string:varc.glsl", "string:farc.glsl" }) or_return
 		init_shader_asset(&engine.graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }) or_return
 		init_shader_asset(&engine.graphics_manager.text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }) or_return
 		init_shader_asset(&engine.graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }) or_return

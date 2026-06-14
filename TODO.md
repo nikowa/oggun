@@ -1,5 +1,5 @@
 
-- Add MSAA to lines
+- Arc shader.
 - There should be ways to create 2D and 3D scenes in both retained mode and immediate mode.
 - Scene manager.
 - Camera stacks in the scene manager.

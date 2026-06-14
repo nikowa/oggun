@@ -1,4 +1,5 @@
-// precision highp float;
+
+// (TODO): Add a @permeating attribute, which automates the passing of variables to the fragment stage. //
 
 layout(location = 0) in vec4 rect;
 layout(location = 1) in float depth;
@@ -9,6 +10,9 @@ layout(location = 5) in vec4 stroke_color;
 layout(location = 6) in vec4 clip;
 layout(location = 7) in float clip_radius;
 layout(location = 0) uniform vec2 res;
+
+#include <rect>
+#include <mesh>
 
 out vec2 tex_coord;
 flat out vec4 _rect;
@@ -29,28 +33,5 @@ void main(void) {
 	_stroke_color = stroke_color;
 	_clip = clip;
 	_clip_radius = clip_radius;
-	vec2 pos = rect.xy;
-	vec2 size = rect.zw;
-	float x0 = (float(pos.x - size.x / 2) / res.x) * 2;
-	float x1 = (float(pos.x + size.x / 2) / res.x) * 2;
-	float y0 = (float(pos.y - size.y / 2) / res.y) * 2;
-	float y1 = (float(pos.y + size.y / 2) / res.y) * 2;
-	gl_Position = vec4(x0, y0, 0, 1);
-	if(gl_VertexID % 6 == 0) {
-		gl_Position.xy = vec2(x0, y1);
-		tex_coord = vec2(0, 0); }
-	if(gl_VertexID % 6 == 1) {
-		gl_Position.xy = vec2(x0, y0);
-		tex_coord = vec2(0, 1); }
-	if(gl_VertexID % 6 == 2) {
-		gl_Position.xy = vec2(x1, y0);
-		tex_coord = vec2(1, 1); }
-	if(gl_VertexID % 6 == 3) {
-		gl_Position.xy = vec2(x0, y1);
-		tex_coord = vec2(0, 0); }
-	if(gl_VertexID % 6 == 4) {
-		gl_Position.xy = vec2(x1, y0);
-		tex_coord = vec2(1, 1); }
-	if(gl_VertexID % 6 == 5) {
-		gl_Position.xy = vec2(x1, y1);
-		tex_coord = vec2(1, 0); } }
+	gl_Position.zw = vec2(0, 1);
+	gl_Position.xy = mh_rect_uved(gl_VertexID % 6, rect.xy / res, rect.zw / res, tex_coord); }

@@ -97,6 +97,8 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)
 
+			dr_arc(center={ 0, 0 }, radius=32, angle_range={ 0, 2 * math.PI }, color=RED)
+
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = ui_measure_text_box(text, rect.size.x)
 
