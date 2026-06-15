@@ -20,7 +20,7 @@ flat in vec2 _angle_range;
 #define radius _radius
 #define angle_range _angle_range
 
-const float thickness = 0.5;
+const float thickness = 0.4;
 
 vec2 rotate(vec2 vec, float angle) {
 	return vec * mat2(cos(angle), - sin(angle), sin(angle), cos(angle)); }
@@ -45,4 +45,4 @@ void main(void) {
 	gl_FragDepth = depth;
 	if (color.a == 0) gl_FragDepth = 1;
 	color.a *= line_color.a;
-}
+	color = clip_color_rounded(color, gl_FragCoord.xy - res / 2, clip, clip_radius); }

@@ -30,6 +30,7 @@ Plot_Graph :: struct {
 	nodes: [dynamic]Plot_Node }
 
 Plot_Node :: struct {
+	// (TODO): Put these in "Plot_Node_Config". //
 	id: u32,
 	class: string,
 	background_color: Color,
@@ -40,7 +41,9 @@ Plot_Node :: struct {
 	pin: bool,
 	root: bool,
 	tooltip: string,
-	xlabel: string }
+	xlabel: string,
+
+	_rect: Rect }
 
 PT_DEFAULT_NODE_SIZE: [2]f32 : { 120, 40 }
 
@@ -55,7 +58,8 @@ DEFAULT_PLOT_NODE: Plot_Node : {
 	pin = false,
 	root = false,
 	tooltip = DEFAULT_NAME,
-	xlabel = DEFAULT_NAME }
+	xlabel = DEFAULT_NAME,
+	_rect = {} }
 
 pt_graph_init :: proc(plot_graph: ^Plot_Graph, config: Plot_Graph_Config) {
 	plot_graph.config = config

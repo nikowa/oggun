@@ -257,7 +257,7 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 	return width }
 
 // (TODO): Maybe some of these params should be on a stack. //
-dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, integer: bool = true) -> (max_width: f32) {
+dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, integer: bool = true) -> (size: [2]f32) {
 	if rect_is_empty(rect) do return
 	using style := ui_text_style_get()
 	ui_text_style_checkpoint()
@@ -273,6 +273,7 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 	n: int = len(lines)
 	total_height := height * f32(n) + cast(f32)max(0, n - 1) * line_distance
 	desired_width: Maybe(f32)
+	max_width: f32
 	pivot: bit_set[Compass]
 	switch v_align {
 	case .TOP: position.y += rect.size.y / 2 - height
@@ -306,7 +307,7 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		background_rect.position = origin + background_rect.size / 2
 		// (TODO): Add "margins" and "padding" stacks to "ui_manager". //
 		dr_rect(rect_extend(background_rect, Interval(4)), background_color) }
-	return max_width }
+	return { max_width, total_height } }
 
 dr_path :: proc(points: [][2]f32, color: Color, integer: bool = true) {
 	for _, i in 0 ..< len(points) - 1 do dr_line({ points[i], points[i + 1] }, color, integer) }
@@ -340,7 +341,16 @@ path_is_linear :: proc(path: [][2]f32) -> bool {
 rectilinear_length :: proc(vector: [2]f32) -> f32 {
 	return abs((vector.x != 0) ? vector.x : vector.y) }
 
+path_cleanup :: proc(path: [][2]f32) -> [][2]f32 {
+	result := runtime.make_dynamic_array_len([dynamic][2]f32, len(path))
+	copy(result[:], path[:])
+	for i in 0 ..< len(path) - 2 do for j in 0 ..< 2 {
+		if (path[i][j] == path[i + 1][j]) && (path[i + 1][j] == path[i + 2][j]) { ordered_remove(&result, i + 1); break } }
+	shrink(&result)
+	return result[:] }
+
 dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bool = true) {
+	points := path_cleanup(points)
 	lengths: []f32 = make([]f32, len(points) - 1)
 	radiuses: []f32 = make([]f32, len(points) - 2)
 	for i in 0 ..< len(points) - 1 do lengths[i] = rectilinear_length(points[i] - points[i + 1])
@@ -351,7 +361,7 @@ dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bo
 	}
 	for i in 0 ..< len(points) - 1 {
 		line: [2][2]f32 = { points[i], points[i + 1] }
-		if rectilinear_length(line[1] - line[0]) <= 2 * radius do continue
+		if (i > 0) && (i < len(points) - 2) && rectilinear_length(line[1] - line[0]) <= 2 * radius do continue
 		if i > 0 do line = line_trim_head(line, radiuses[i - 1])
 		if i < len(points) - 2 do line = line_trim_tail(line, radiuses[i])
 		dr_line(line, color, integer)

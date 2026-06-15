@@ -1,4 +1,5 @@
 
+- Fix the rect shader dist threshold. The stroke is correct, the fill is not.
 - Point shader.
 - Make another anim primitive, for smooth scrolling, with a pivot and gravity.
 - Arc shader.

@@ -3,6 +3,7 @@ package willow
 import "core:math"
 import "base:runtime"
 import "core:math/linalg"
+import "core:log"
 
 Rect :: struct #packed {
 	position: [2]f32,
@@ -14,25 +15,37 @@ make_rect :: proc(position_x, position_y, size_x, size_y: f32) -> Rect {
 rect_left :: proc(rect: Rect) -> f32 {
 	return rect.position.x - rect.size.x / 2 }
 
+rect_left_point :: proc(rect: Rect) -> [2]f32 {
+	return { rect.position.x - rect.size.x / 2, rect.position.y } }
+
 rect_right :: proc(rect: Rect) -> f32 {
 	return rect.position.x + rect.size.x / 2 }
+
+rect_right_point :: proc(rect: Rect) -> [2]f32 {
+	return { rect.position.x + rect.size.x / 2, rect.position.y } }
 
 rect_bottom :: proc(rect: Rect) -> f32 {
 	return rect.position.y - rect.size.y / 2 }
 
+rect_bottom_point :: proc(rect: Rect) -> [2]f32 {
+	return { rect.position.x, rect.position.y - rect.size.y / 2 } }
+
 rect_top :: proc(rect: Rect) -> f32 {
 	return rect.position.y + rect.size.y / 2 }
 
-rect_top_left :: proc(rect: Rect) -> [2]f32 {
+rect_top_point :: proc(rect: Rect) -> [2]f32 {
+	return { rect.position.x, rect.position.y + rect.size.y / 2 } }
+
+rect_top_left_point :: proc(rect: Rect) -> [2]f32 {
 	return { rect_left(rect), rect_top(rect) } }
 
-rect_top_right :: proc(rect: Rect) -> [2]f32 {
+rect_top_right_point :: proc(rect: Rect) -> [2]f32 {
 	return { rect_right(rect), rect_top(rect) } }
 
-rect_bottom_left :: proc(rect: Rect) -> [2]f32 {
+rect_bottom_left_point :: proc(rect: Rect) -> [2]f32 {
 	return { rect_left(rect), rect_bottom(rect) } }
 
-rect_bottom_right :: proc(rect: Rect) -> [2]f32 {
+rect_bottom_right_point :: proc(rect: Rect) -> [2]f32 {
 	return { rect_right(rect), rect_bottom(rect) } }
 
 rect_from_sides :: proc(left, right, bottom, top: f32) -> Rect {
@@ -436,3 +449,17 @@ rect_right_to :: proc(rect_in: Rect, target: f32) -> (rect_out: Rect) {
 	rect_out = rect_in
 	rect_out.position.x = target - rect_out.size.x / 2
 	return rect_out }
+
+rect_distance :: proc(a: Rect, b: Rect) -> (distance: [2]f32) {
+	return {
+		a.position.x >= b.position.x ? max(0, rect_left(a) - rect_right(b)) : max(0, rect_left(b) - rect_right(a)),
+		a.position.y >= b.position.y ? max(0, rect_bottom(a) - rect_top(b)) : max(0, rect_bottom(b) - rect_top(a)) } }
+
+rect_side :: proc(rect: Rect, side: Compass) -> [2]f32 {
+	switch side {
+	case .East: return rect_right_point(rect)
+	case .West: return rect_left_point(rect)
+	case .North: return rect_top_point(rect)
+	case .South: return rect_bottom_point(rect) }
+	log.error("bad")
+	return rect.position }

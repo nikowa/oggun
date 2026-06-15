@@ -302,3 +302,11 @@ skip_space :: proc(str: string, idx: ^int) {
 
 points_are_rectilinear :: proc(points: [2][2]f32) -> bool {
 	return (points[0].x == points[1].x) || (points[0].y == points[1].y) }
+
+compass_normal :: proc(side: Compass) -> [2]f32 {
+	switch side {
+	case .East:  return { +1, 0 }
+	case .West:  return { -1, 0 }
+	case .North: return { 0, +1 }
+	case .South: return { 0, -1 } }
+	return { 0, 0 } }

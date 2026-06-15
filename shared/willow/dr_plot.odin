@@ -1,10 +1,11 @@
 #+feature using-stmt
 package willow
 import "core:log"
+import "core:math"
 
 // (TODO): Create a "Camera_2D" type for mapping points to the screen. //
 
-dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, scale: f32) {
+dr_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, scale: f32) -> (size: [2]f32) {
 	rect: Rect
 	rect.position = position
 	// rect.position = plot_node.position.([2]f32) or_else { 0, 0 }
@@ -35,13 +36,79 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	xlabel_rect = rect_translate(xlabel_rect, { 0, -graph.margins })
 	dr_text_box(
 		rect=xlabel_rect,
-		text=plot_node.xlabel, integer=true) }
+		text=plot_node.xlabel, integer=true)
+	return rect.size }
 
-dr_plot_graph :: proc(plot_graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+dr_graph :: proc(plot_graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	scale := sn_camera_2d_scale(camera)
 	scale *= rect.size
-	// scale = 1
 	for &plot_node in plot_graph.nodes {
+		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
 		position = sn_camera_2d_map_point(camera, rect, position)
-		dr_plot_node(&plot_node, plot_graph, position, scale.y) } }
+		size := dr_node(&plot_node, plot_graph, position, scale.y)
+		plot_node._rect = { position, size } }
+	gx_depth_scope(0.1)
+	// a := rect_top_point(plot_graph.nodes[0]._rect)
+	// b := rect_bottom_point(plot_graph.nodes[1]._rect)
+	// dr_edge_vertical(b, a, 16, (a.x + b.x) / 2, color=WHITE)
+	// a := rect_right_point(plot_graph.nodes[0]._rect)
+	// b := rect_left_point(plot_graph.nodes[1]._rect)
+	// dr_edge_horizontal(b, a, 16, a.y, color=WHITE)
+	// dr_edge_vertical(b, a, 16, a.x, color=WHITE)
+	// dr_edge_vertical(b, a, 16, b.x, color=WHITE)
+	// dr_node_edge_horizontal(plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect, margin=16)
+
+	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .East }, margin=16, color=WHITE)
+	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .West }, margin=16, color=GREEN)
+	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .North }, margin=16, color=CYAN)
+	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .South }, margin=16, color=BLUE)
+}
+
+rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
+	if (vecs[0].x == vecs[1].x) && (math.sign(vecs[0].y) == -math.sign(vecs[1].y)) do return true
+	if (vecs[0].y == vecs[1].y) && (math.sign(vecs[0].x) == -math.sign(vecs[1].x)) do return true
+	return false }
+
+dr_node_edge :: proc(rects: [2]Rect, sides: [2]Compass, margin: f32, color: Color=WHITE) {
+	a, b := rect_side(rects[0], sides[0]), rect_side(rects[1], sides[1])
+	a1, b1 := a + margin * compass_normal(sides[0]), b + margin * compass_normal(sides[1])
+	c: [2]f32 = { a1.x, b1.y }
+	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
+	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
+	dr_path_rounded({ a, a1, c, b1, b }, radius=8, color=color, integer=true) }
+
+dr_node_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {
+	distance := rect_distance(a, b)
+	if (distance.x < 2 * margin) || (distance.y < 2 * margin) do return
+	positions: [2][2]f32
+	py: f32 = a.size.x >= b.size.x ? a.position.y : b.position.y
+	if a.position.x > b.position.x do positions = { rect_left_point(a), rect_right_point(b) }
+	else do positions = { rect_left_point(b), rect_right_point(a) }
+	dr_edge_horizontal(positions[0], positions[1], margin, py, color) }
+
+dr_edge_vertical :: proc(a: [2]f32, b: [2]f32, margin: f32, px: f32, color: Color) {
+	if a.y > b.y do _dr_edge_vertical(a, b, margin, px, color)
+	else do _dr_edge_vertical(b, a, margin, px, color) }
+
+_dr_edge_vertical :: proc(a: [2]f32, b: [2]f32, margin: f32, px: f32, color: Color) {
+	a1 := a + { 0, -margin }
+	a2 := a1
+	a2.x = px
+	b1 := b + { 0, margin }
+	b2 := b1
+	b2.x = px
+	if px == a.x do dr_path_rounded({ a, b2, b1, b }, radius=8, color=color, integer=true)
+	if px == b.x do dr_path_rounded({ a, a1, a2, b }, radius=8, color=color, integer=true)
+	dr_path_rounded({ a, a1, a2, b2, b1, b }, radius=8, color=color, integer=true) }
+
+dr_edge_horizontal :: proc(a: [2]f32, b: [2]f32, margin: f32, py: f32, color: Color=WHITE) {
+	a1 := a + { -margin, 0 }
+	a2 := a1
+	a2.y = py
+	b1 := b + { margin, 0 }
+	b2 := b1
+	b2.y = py
+	if py == a.y do dr_path_rounded({ a, b2, b1, b }, radius=8, color=color, integer=true)
+	if py == b.y do dr_path_rounded({ a, a1, a2, b }, radius=8, color=color, integer=true)
+	dr_path_rounded({ a, a1, a2, b2, b1, b }, radius=8, color=color, integer=true) }

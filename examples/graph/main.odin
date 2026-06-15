@@ -27,6 +27,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		engine_config=default_engine_config(game_name="Graph Example", temp_allocator_cap=1000 * mem.Megabyte),
 		graphics_config={ clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
 	ui_set_theme(ui_theme_ms_dark)
+	// set_clear_color(BLACK)
 
 	font_group: Font_Group
 	font_group_init(&font_group,
@@ -71,7 +72,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	plot_node.label = "Node B"
 	plot_node.size = [2]f32{ 140, 0 }
 	plot_node.position = [2]f32{ 800, 400 }
-	pt_append_node(&plot_graph, plot_node)
+	b := pt_append_node(&plot_graph, plot_node)
 
 	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
 	scr_rect := rect_screen()
@@ -82,6 +83,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			dest_rect.size.x = 600// + 100 * math.sin(2 * time)
 			dest_rect.size.y = 400// + 100 * math.cos(3 * time)
 			dr_rect_outline(dest_rect, RED)
+
+			b_pos := b.position.([2]f32)
+			b_pos.x = 700 * math.sin(time)
+			b.position = b_pos
 
 			// dr_line({ { 0, 0 }, engine.input_manager.mouse_position }, WHITE)
 			// rect: Rect = { engine.input_manager.mouse_position, { 180, 120 } }
@@ -142,7 +147,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			ui_camera_2d_control(&camera, dest_rect, scale_range={ scr_rect.size.y, 4 * scr_rect.size.y })
 
 			gx_clip_scope({ rect=dest_rect })
-			dr_plot_graph(&plot_graph, &camera, dest_rect)
+			dr_graph(&plot_graph, &camera, dest_rect)
 
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
