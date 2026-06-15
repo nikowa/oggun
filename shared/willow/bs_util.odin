@@ -299,3 +299,6 @@ tick_safe :: proc(x: ^$T) -> bool {
 
 skip_space :: proc(str: string, idx: ^int) {
 	for str[idx^] == ' ' do idx^ += 1 }
+
+points_are_rectilinear :: proc(points: [2][2]f32) -> bool {
+	return (points[0].x == points[1].x) || (points[0].y == points[1].y) }

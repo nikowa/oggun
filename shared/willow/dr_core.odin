@@ -52,10 +52,12 @@ dr_rect_outline :: proc(rect: Rect, color: Color = BLACK, integer: bool = true) 
 	b: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y - rect.size.y / 2 }
 	c: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y + rect.size.y / 2 + 1 }
 	d: [2]f32 = { rect.position.x + rect.size.x / 2 + 1, rect.position.y + rect.size.y / 2 + 1 }
-	dr_line({ a, b }, color, integer)
-	dr_line({ b, d }, color, integer)
-	dr_line({ d, c }, color, integer)
-	dr_line({ c, a }, color, integer) }
+	dr_path({ a, b, d, c, a }, color, integer)
+	// dr_line({ a, b }, color, integer)
+	// dr_line({ b, d }, color, integer)
+	// dr_line({ d, c }, color, integer)
+	// dr_line({ c, a }, color, integer)
+}
 
 Draw_Line_Command :: struct {
 	using params: Draw_Line_Params,
@@ -305,3 +307,73 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		// (TODO): Add "margins" and "padding" stacks to "ui_manager". //
 		dr_rect(rect_extend(background_rect, Interval(4)), background_color) }
 	return max_width }
+
+dr_path :: proc(points: [][2]f32, color: Color, integer: bool = true) {
+	for _, i in 0 ..< len(points) - 1 do dr_line({ points[i], points[i + 1] }, color, integer) }
+
+dr_path_corner :: proc(points: [3][2]f32, radius: f32, color: Color, integer: bool=true) {
+	diagonal: [2]f32 = (points[2] - points[1]) + (points[0] - points[1])
+	if (diagonal.x == 0) || (diagonal.y == 0) do return
+	signs: [2]f32 = { math.sign(diagonal.x), math.sign(diagonal.y) }
+	switch signs {
+	case { +1, +1 }:
+		dr_arc(center=points[1] + { radius, radius }, radius=radius, angle_range={
+			math.to_radians_f32(180), math.to_radians_f32(270) }, color=color, integer=integer)
+	case { +1, -1 }:
+		dr_arc(center=points[1] + { radius, -radius }, radius=radius, angle_range={
+			math.to_radians_f32(90), math.to_radians_f32(180) }, color=color, integer=integer)
+	case { -1, +1 }:
+		dr_arc(center=points[1] + { -radius, radius }, radius=radius, angle_range={
+			math.to_radians_f32(270), math.to_radians_f32(360) }, color=color, integer=integer)
+	case { -1, -1 }:
+		dr_arc(center=points[1] + { -radius, -radius }, radius=radius, angle_range={
+			math.to_radians_f32(0), math.to_radians_f32(90) }, color=color, integer=integer) } }
+
+dr_point_labeled :: proc(point: [2]f32, label: string, label_offset: [2]f32, color: Color) {
+	dr_rect({ point, { 3, 3 } }, fill_color=color)
+	dr_text_line(label, point + label_offset, pivot={ .South }, desired_width=nil, integer=true) }
+
+path_is_linear :: proc(path: [][2]f32) -> bool {
+	for _, i in 0 ..< len(path) - 1 do if ! points_are_rectilinear({ path[i], path[i + 1] }) do return false
+	return true }
+
+rectilinear_length :: proc(vector: [2]f32) -> f32 {
+	return abs((vector.x != 0) ? vector.x : vector.y) }
+
+dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bool = true) {
+	lengths: []f32 = make([]f32, len(points) - 1)
+	radiuses: []f32 = make([]f32, len(points) - 2)
+	for i in 0 ..< len(points) - 1 do lengths[i] = rectilinear_length(points[i] - points[i + 1])
+	for i in 1 ..< len(points) - 1 {
+		radiuses[i - 1] = min(radius, lengths[i - 1] / 2, lengths[i] / 2)
+		// dr_point_labeled(points[i], fmt.aprint(radiuses[i - 1]), { 6, 6 }, CYAN)
+		dr_path_corner({ points[i - 1], points[i], points[i + 1] }, radiuses[i - 1], color, integer)
+	}
+	for i in 0 ..< len(points) - 1 {
+		line: [2][2]f32 = { points[i], points[i + 1] }
+		if rectilinear_length(line[1] - line[0]) <= 2 * radius do continue
+		if i > 0 do line = line_trim_head(line, radiuses[i - 1])
+		if i < len(points) - 2 do line = line_trim_tail(line, radiuses[i])
+		dr_line(line, color, integer)
+		// dr_point_labeled((points[i] + points[i + 1]) / 2, fmt.aprint(lengths[i]), { 6, 6 }, WHITE)
+	}
+}
+
+line_tangent :: proc(line: [2][2]f32) -> [2]f32 {
+	return linalg.normalize(line[1] - line[0]) }
+
+line_extend_head :: proc(line: [2][2]f32, delta: f32) -> [2][2]f32 {
+	line := line
+	line[0] -= line_tangent(line) * delta
+	return line }
+
+line_extend_tail :: proc(line: [2][2]f32, delta: f32) -> [2][2]f32 {
+	line := line
+	line[1] += line_tangent(line) * delta
+	return line }
+
+line_trim_head :: proc(line: [2][2]f32, delta: f32) -> [2][2]f32 {
+	return line_extend_head(line, -delta) }
+
+line_trim_tail :: proc(line: [2][2]f32, delta: f32) -> [2][2]f32 {
+	return line_extend_tail(line, -delta) }

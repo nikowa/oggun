@@ -16,6 +16,8 @@ DARK_BLUE:   Color : 0x000080ff
 GRAY:        Color : 0x808080ff
 LIGHT_GRAY:  Color : 0xc0c0c0ff
 DARK_GRAY:   Color : 0x404040ff
+CYAN:        Color : 0x00ffffff
+DARK_CYAN:   Color : 0x008080ff
 
 gx_color_to_4f32 :: proc "contextless" (color: Color) -> [4]f32 {
 	return {
