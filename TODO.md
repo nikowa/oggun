@@ -1,6 +1,6 @@
 
-- Fix the rect shader dist threshold. The stroke is correct, the fill is not.
 - Point shader.
+- Fix the rect shader dist threshold. The stroke is correct, the fill is not.
 - Make another anim primitive, for smooth scrolling, with a pivot and gravity.
 - Arc shader.
 - There should be ways to create 2D and 3D scenes in both retained mode and immediate mode.

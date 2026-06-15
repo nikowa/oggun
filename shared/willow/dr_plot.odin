@@ -39,30 +39,30 @@ dr_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, sca
 		text=plot_node.xlabel, integer=true)
 	return rect.size }
 
-dr_graph :: proc(plot_graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+dr_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	scale := sn_camera_2d_scale(camera)
 	scale *= rect.size
-	for &plot_node in plot_graph.nodes {
+	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
 		position = sn_camera_2d_map_point(camera, rect, position)
-		size := dr_node(&plot_node, plot_graph, position, scale.y)
+		size := dr_node(&plot_node, graph, position, scale.y)
 		plot_node._rect = { position, size } }
 	gx_depth_scope(0.1)
-	// a := rect_top_point(plot_graph.nodes[0]._rect)
-	// b := rect_bottom_point(plot_graph.nodes[1]._rect)
+	// a := rect_top_point(graph.nodes[0]._rect)
+	// b := rect_bottom_point(graph.nodes[1]._rect)
 	// dr_edge_vertical(b, a, 16, (a.x + b.x) / 2, color=WHITE)
-	// a := rect_right_point(plot_graph.nodes[0]._rect)
-	// b := rect_left_point(plot_graph.nodes[1]._rect)
+	// a := rect_right_point(graph.nodes[0]._rect)
+	// b := rect_left_point(graph.nodes[1]._rect)
 	// dr_edge_horizontal(b, a, 16, a.y, color=WHITE)
 	// dr_edge_vertical(b, a, 16, a.x, color=WHITE)
 	// dr_edge_vertical(b, a, 16, b.x, color=WHITE)
-	// dr_node_edge_horizontal(plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect, margin=16)
+	// dr_node_edge_horizontal(graph.nodes[0]._rect, graph.nodes[1]._rect, margin=16)
 
-	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .East }, margin=16, color=WHITE)
-	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .West }, margin=16, color=GREEN)
-	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .North }, margin=16, color=CYAN)
-	dr_node_edge({ plot_graph.nodes[0]._rect, plot_graph.nodes[1]._rect }, sides={ .North, .South }, margin=16, color=BLUE)
+	dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .East }, graph.margins, graph.radius, WHITE)
+	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .West }, graph.margins, graph.radius, WHITE)
+	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .North }, graph.margins, graph.radius, WHITE)
+	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .South }, graph.margins, graph.radius, WHITE)
 }
 
 rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
@@ -70,13 +70,13 @@ rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
 	if (vecs[0].y == vecs[1].y) && (math.sign(vecs[0].x) == -math.sign(vecs[1].x)) do return true
 	return false }
 
-dr_node_edge :: proc(rects: [2]Rect, sides: [2]Compass, margin: f32, color: Color=WHITE) {
+dr_node_edge :: proc(rects: [2]Rect, sides: [2]Compass, margin: f32, radius: f32, color: Color=WHITE) {
 	a, b := rect_side(rects[0], sides[0]), rect_side(rects[1], sides[1])
 	a1, b1 := a + margin * compass_normal(sides[0]), b + margin * compass_normal(sides[1])
 	c: [2]f32 = { a1.x, b1.y }
 	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
 	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
-	dr_path_rounded({ a, a1, c, b1, b }, radius=8, color=color, integer=true) }
+	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true) }
 
 dr_node_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {
 	distance := rect_distance(a, b)

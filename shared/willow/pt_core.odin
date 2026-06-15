@@ -45,14 +45,14 @@ Plot_Node :: struct {
 
 	_rect: Rect }
 
-PT_DEFAULT_NODE_SIZE: [2]f32 : { 120, 40 }
+PT_DEFAULT_NODE_SIZE: [2]f32 : { 120, 0 }
 
 DEFAULT_PLOT_NODE: Plot_Node : {
 	id = 1,
 	class = DEFAULT_NAME,
 	background_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT,
 	stroke_color = COLOR_NEUTRAL_STROKE_1_NORMAL_LIGHT,
-	size = {},
+	size = PT_DEFAULT_NODE_SIZE,
 	label = DEFAULT_NAME,
 	position = {},
 	pin = false,

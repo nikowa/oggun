@@ -12,6 +12,7 @@ import "core:log"
 import "core:fmt"
 import "core:math"
 import "core:mem"
+import "core:slice"
 
 Draw_Rect_Command :: struct {
 	using base: Generic_Command,
@@ -342,10 +343,10 @@ rectilinear_length :: proc(vector: [2]f32) -> f32 {
 	return abs((vector.x != 0) ? vector.x : vector.y) }
 
 path_cleanup :: proc(path: [][2]f32) -> [][2]f32 {
-	result := runtime.make_dynamic_array_len([dynamic][2]f32, len(path))
-	copy(result[:], path[:])
-	for i in 0 ..< len(path) - 2 do for j in 0 ..< 2 {
-		if (path[i][j] == path[i + 1][j]) && (path[i + 1][j] == path[i + 2][j]) { ordered_remove(&result, i + 1); break } }
+	result := make([dynamic][2]f32, 0, len(path))
+	to_remove := runtime.make_dynamic_array_len_cap([dynamic]int, 0, len(path))
+	for i in 0 ..< len(path) - 2 do for j in 0 ..< 2 do if (path[i][j] == path[i + 1][j]) && (path[i + 1][j] == path[i + 2][j]) do append(&to_remove, i + 1)
+	for point, i in path do if ! slice.contains(to_remove[:], i) do append(&result, point)
 	shrink(&result)
 	return result[:] }
 
@@ -364,6 +365,8 @@ dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bo
 		if (i > 0) && (i < len(points) - 2) && rectilinear_length(line[1] - line[0]) <= 2 * radius do continue
 		if i > 0 do line = line_trim_head(line, radiuses[i - 1])
 		if i < len(points) - 2 do line = line_trim_tail(line, radiuses[i])
+		// dr_rect({ line[0], { 2, 2 } }, RED)
+		// dr_rect({ line[1], { 2, 2 } }, RED)
 		dr_line(line, color, integer)
 		// dr_point_labeled((points[i] + points[i + 1]) / 2, fmt.aprint(lengths[i]), { 6, 6 }, WHITE)
 	}

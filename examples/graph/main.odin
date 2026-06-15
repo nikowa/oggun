@@ -52,25 +52,25 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	pt_graph_init(&plot_graph, default_plot_graph_config(
 		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
 		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
-		text_style=ui_text_style_get(), margins=4, padding=4, radius=8))
+		text_style=ui_text_style_get(), margins=32, padding=4, radius=4))
 
 	// (TODO): Does dynamic array ever reallocate? //
 
 	plot_node: Plot_Node = DEFAULT_PLOT_NODE
-	plot_node.background_color = BLUE
-	plot_node.stroke_color = RED
+	// plot_node.background_color = BLUE
+	// plot_node.stroke_color = RED
+	// plot_node.size = [2]f32{ 140, 0 }
 	plot_node.label = "Node A with very long subtitle"
-	plot_node.size = [2]f32{ 140, 0 }
 	plot_node.position = [2]f32{ 0, 0 }
 	pt_append_node(&plot_graph, plot_node)
 
 	log.info(ui_text_box_lines({ { 0, 0 }, { 32, 0 } }, plot_node.label, 1))
 
 	plot_node = DEFAULT_PLOT_NODE
-	plot_node.background_color = RED
-	plot_node.stroke_color = BLUE
+	// plot_node.background_color = RED
+	// plot_node.stroke_color = BLUE
+	// plot_node.size = [2]f32{ 140, 0 }
 	plot_node.label = "Node B"
-	plot_node.size = [2]f32{ 140, 0 }
 	plot_node.position = [2]f32{ 800, 400 }
 	b := pt_append_node(&plot_graph, plot_node)
 
@@ -135,7 +135,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// dr_point_labeled(g, "G", { 6, 6 }, GREEN)
 			path: [][2]f32 = { a, b, c, d, e, f, g }
 			assert(path_is_linear(path))
-			dr_path_rounded(path, 16, WHITE)
+			// dr_path_rounded(path, 16, WHITE)
 
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
