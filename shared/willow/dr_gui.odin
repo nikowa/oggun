@@ -84,7 +84,7 @@ dr_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) {
 
 dr_icon :: proc { dr_icon_basic, dr_icon_extended }
 
-dr_icon_basic :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, size: UI_Size) {
+dr_icon_basic :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, color: Color, size: UI_Size) {
 	bold, bolder: bool
 	scale: f32
 	switch size {
@@ -96,12 +96,12 @@ dr_icon_basic :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, size: UI_
 	case .XXS, .XS, .S:
 		bolder = true
 		scale = 0.333333 }
-	dr_icon_extended(icon, position, angle, bold, bolder, scale) }
+	dr_icon_extended(icon, position, angle, color, bold, bolder, scale) }
 
-dr_icon_extended :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, bold: bool=false, bolder: bool=false, scale: f32=1.0) {
+dr_icon_extended :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, color: Color=WHITE, bold: bool=false, bolder: bool=false, scale: f32=1.0) {
 	// dr_rect_outline({ position, UI_ICON_SIZE }, RED)
 	icons_text_style := engine.ui_manager.icons_text_style
-	icons_text_style.color = ui_text_style_get().color
+	icons_text_style.color = color
 	icons_text_style.bold = bold
 	icons_text_style.italic = bolder
 	icons_text_style.font_size = Font_Size(scale * cast(f32)icons_text_style.font_size)
@@ -193,7 +193,10 @@ dr_badge :: proc(position: [2]f32, size: UI_Size=.S, color: UI_Theme_Key, text: 
 	// dr_rect({ position, { 2, 2 } }, RED, integer=false)
 }
 
-dr_arrow_rectilinear :: proc(position: [2]f32, direction: Compass, size: UI_Size=.M) {
+// (TODO): Add "dr_arrow" proc with arbitrary angle.
+// (TODO): Add arrow procs for .Play icon, and .Send icon.
+
+dr_arrow_rectilinear :: proc(position: [2]f32, direction: Compass, color: Color, size: UI_Size=.M) {
 	// dr_rect({ position, { 1, 1 } }, RED)
 	offset: f32
 	switch size {
@@ -203,4 +206,4 @@ dr_arrow_rectilinear :: proc(position: [2]f32, direction: Compass, size: UI_Size
 		offset = 2
 	case .L, .XL, .XXL, .XXXL:
 		offset = 4 }
-	dr_icon_basic(.Chevron, position - offset * compass_normal(direction), math.to_radians_f32(90) + compass_angle(direction), size) }
+	dr_icon_basic(.Chevron, position - offset * compass_normal(direction), math.to_radians_f32(90) + compass_angle(direction), color, size) }

@@ -1,7 +1,7 @@
 package willow
 import "core:time"
 import "base:runtime"
-// Generated at 09:44:15 //
+// Generated at 11:15:33 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -134,6 +134,9 @@ default_plot_graph_config :: proc(
 		radius: f32 = DEFAULT_PLOT_GRAPH_CONFIG.radius,
 		range_x: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_x,
 		range_y: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_y,
+		arrowhead_size: UI_Size = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead_size,
+		orientation: Orientation = DEFAULT_PLOT_GRAPH_CONFIG.orientation,
+		arrowhead: bool = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead,
 ) -> Plot_Graph_Config {
 	return {
 		default_background_color = default_background_color,
@@ -145,10 +148,13 @@ default_plot_graph_config :: proc(
 		padding = padding,
 		radius = radius,
 		range_x = range_x,
-		range_y = range_y } }
+		range_y = range_y,
+		arrowhead_size = arrowhead_size,
+		orientation = orientation,
+		arrowhead = arrowhead } }
 
 default_plot_node :: proc(
-		id: u32 = DEFAULT_PLOT_NODE.id,
+		id: ID = DEFAULT_PLOT_NODE.id,
 		class: string = DEFAULT_PLOT_NODE.class,
 		background_color: Color = DEFAULT_PLOT_NODE.background_color,
 		stroke_color: Color = DEFAULT_PLOT_NODE.stroke_color,
@@ -174,6 +180,16 @@ default_plot_node :: proc(
 		tooltip = tooltip,
 		xlabel = xlabel,
 		_rect = _rect } }
+
+default_plot_edge :: proc(
+		ids: [2]ID = DEFAULT_PLOT_EDGE.ids,
+		stroke_color: Color = DEFAULT_PLOT_EDGE.stroke_color,
+		xlabel: string = DEFAULT_PLOT_EDGE.xlabel,
+) -> Plot_Edge {
+	return {
+		ids = ids,
+		stroke_color = stroke_color,
+		xlabel = xlabel } }
 
 default_camera_2d_config :: proc(
 		rect: Rect = DEFAULT_CAMERA_2D_CONFIG.rect,

@@ -14,6 +14,11 @@ import "core:math"
 
 ID :: uintptr
 
+Orientation :: enum {
+	None,
+	Horizontal,
+	Vertical }
+
 time_max :: proc(a, b: time.Time) -> (time.Time) {
 	return time.diff(b, a) >= 0 ? a : b }
 

@@ -5,7 +5,7 @@ import "core:math"
 
 // (TODO): Create a "Camera_2D" type for mapping points to the screen. //
 
-dr_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, scale: f32) -> (size: [2]f32) {
+dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, scale: f32) -> (size: [2]f32) {
 	rect: Rect
 	rect.position = position
 	// rect.position = plot_node.position.([2]f32) or_else { 0, 0 }
@@ -39,47 +39,46 @@ dr_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, sca
 		text=plot_node.xlabel, integer=true)
 	return rect.size }
 
-dr_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	scale := sn_camera_2d_scale(camera)
 	scale *= rect.size
 	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
 		position = sn_camera_2d_map_point(camera, rect, position)
-		size := dr_node(&plot_node, graph, position, scale.y)
+		size := dr_plot_node(&plot_node, graph, position, scale.y)
 		plot_node._rect = { position, size } }
 	gx_depth_scope(0.1)
-	// a := rect_top_point(graph.nodes[0]._rect)
-	// b := rect_bottom_point(graph.nodes[1]._rect)
-	// dr_edge_vertical(b, a, 16, (a.x + b.x) / 2, color=WHITE)
-	// a := rect_right_point(graph.nodes[0]._rect)
-	// b := rect_left_point(graph.nodes[1]._rect)
-	// dr_edge_horizontal(b, a, 16, a.y, color=WHITE)
-	// dr_edge_vertical(b, a, 16, a.x, color=WHITE)
-	// dr_edge_vertical(b, a, 16, b.x, color=WHITE)
-	// dr_node_edge_horizontal(graph.nodes[0]._rect, graph.nodes[1]._rect, margin=16)
-	dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .East }, graph.margins, graph.radius, WHITE)
-	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .West }, graph.margins, graph.radius, WHITE)
-	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .North }, graph.margins, graph.radius, WHITE)
-	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .South }, graph.margins, graph.radius, WHITE)
-}
+	for edge in graph.edges do dr_plot_edge(graph, edge, graph.margins, graph.radius, edge.stroke_color) }
 
 rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
 	if (vecs[0].x == vecs[1].x) && (math.sign(vecs[0].y) == -math.sign(vecs[1].y)) do return true
 	if (vecs[0].y == vecs[1].y) && (math.sign(vecs[0].x) == -math.sign(vecs[1].x)) do return true
 	return false }
 
-dr_node_edge :: proc(rects: [2]Rect, sides: [2]Compass, margin: f32, radius: f32, color: Color=WHITE) {
+dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f32, color: Color=WHITE) {
+	// (TODO): Implement "edge.xlabel" //
+	nodes: [2]^Plot_Node
+	nodes[0], _ = graph.nodes_map[edge.ids[0]]
+	nodes[1], _ = graph.nodes_map[edge.ids[1]]
+	sides: [2]Compass
+	switch graph.orientation {
+	case .Horizontal:
+		if nodes[0]._rect.position.x < nodes[1]._rect.position.x do sides = { .East, .West }
+		else do sides = { .West, .East }
+	case .Vertical, .None:
+		if nodes[0]._rect.position.y < nodes[1]._rect.position.y do sides = { .North, .South }
+		else do sides = { .South, .North } }
+	rects: [2]Rect = { nodes[0]._rect, nodes[1]._rect }
 	a, b := rect_side(rects[0], sides[0]), rect_side(rects[1], sides[1])
 	a1, b1 := a + margin * compass_normal(sides[0]), b + margin * compass_normal(sides[1])
 	c: [2]f32 = { a1.x, b1.y }
 	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
 	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
 	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
-	dr_arrow_rectilinear(b, compass_invert(sides[1]), .M)
-}
+	if graph.arrowhead do dr_arrow_rectilinear(b, compass_invert(sides[1]), color, graph.arrowhead_size) }
 
-dr_node_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {
+dr_plot_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {
 	distance := rect_distance(a, b)
 	if (distance.x < 2 * margin) || (distance.y < 2 * margin) do return
 	positions: [2][2]f32

@@ -52,27 +52,13 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	pt_graph_init(&plot_graph, default_plot_graph_config(
 		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
 		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
-		text_style=ui_text_style_get(), margins=32, padding=4, radius=4))
+		text_style=ui_text_style_get(), margins=12, padding=4, radius=4, orientation=.Vertical))
 
 	// (TODO): Does dynamic array ever reallocate? //
 
-	plot_node: Plot_Node = DEFAULT_PLOT_NODE
-	// plot_node.background_color = BLUE
-	// plot_node.stroke_color = RED
-	// plot_node.size = [2]f32{ 140, 0 }
-	plot_node.label = "Node A with very long subtitle"
-	plot_node.position = [2]f32{ 0, 0 }
-	pt_append_node(&plot_graph, plot_node)
-
-	log.info(ui_text_box_lines({ { 0, 0 }, { 32, 0 } }, plot_node.label, 1))
-
-	plot_node = DEFAULT_PLOT_NODE
-	// plot_node.background_color = RED
-	// plot_node.stroke_color = BLUE
-	// plot_node.size = [2]f32{ 140, 0 }
-	plot_node.label = "Node B"
-	plot_node.position = [2]f32{ 800, 400 }
-	b := pt_append_node(&plot_graph, plot_node)
+	pt_append_node(&plot_graph, default_plot_node(id=1, label="Node A with very long subtitle", position=[2]f32{ 0, 0 }))
+	b := pt_append_node(&plot_graph, default_plot_node(id=2, label="Node B", position=[2]f32{ 800, 400 }))
+	pt_append_edge(&plot_graph, default_plot_edge(ids={ 2, 1 }, xlabel="Connector", stroke_color=WHITE))
 
 	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
 	scr_rect := rect_screen()
@@ -157,15 +143,10 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
 			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))
-			sn_camera_2d_tick(&camera)
-			sn_camera_2d_tick(&camera)
-			sn_camera_2d_tick(&camera)
-			sn_camera_2d_tick(&camera)
 			ui_camera_2d_control(&camera, dest_rect, scale_range={ scr_rect.size.y, 4 * scr_rect.size.y })
 
 			gx_clip_scope({ rect=dest_rect })
-			dr_graph(&plot_graph, &camera, dest_rect)
-
+			dr_plot_graph(&plot_graph, &camera, dest_rect)
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = ui_measure_text_box(text, rect.size.x)
