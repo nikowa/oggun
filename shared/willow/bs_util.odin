@@ -310,3 +310,19 @@ compass_normal :: proc(side: Compass) -> [2]f32 {
 	case .North: return { 0, +1 }
 	case .South: return { 0, -1 } }
 	return { 0, 0 } }
+
+compass_angle :: proc(compass: Compass) -> f32 {
+	switch compass {
+	case .East:  return math.to_radians_f32(0)
+	case .West:  return math.to_radians_f32(180)
+	case .North: return math.to_radians_f32(90)
+	case .South: return math.to_radians_f32(270) }
+	return 0 }
+
+compass_invert :: proc(compass: Compass) -> Compass {
+	switch compass {
+	case .East:  return .West
+	case .West:  return .East
+	case .North: return .South
+	case .South: return .North }
+	return {} }

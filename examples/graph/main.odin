@@ -137,6 +137,23 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			assert(path_is_linear(path))
 			// dr_path_rounded(path, 16, WHITE)
 
+			// tail: [2]f32 = { -400, 100 }
+			// head: [2]f32 = { 0, 200 }
+			// head = engine.input_manager.mouse_position
+			// vector := head - tail
+			// angle: f32 = linalg.angle_between([2]f32{ 0, -1 }, vector) * (vector.x >= 0 ? 1 : -1)
+			// dr_line({ tail, head }, text_style.color, integer = false)
+			// arrow := head
+			// // char: u8 = cast(u8)UI_Icon.Save
+			// char: u8 = cast(u8)time
+			// arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
+			// { ui_text_style_scope(engine.ui_manager.icons_text_style); dr_text_symbol_rect(cast(u8)UI_Icon.Chevron, arrow_rect, angle = 1 * time) }
+			// dr_icon_basic(.Chevron, { 0, 0 }, time, .M)
+			// dr_arrow_rectilinear({ 0, 0 }, .East, .L)
+			// dr_arrow_rectilinear({ 0, 50 }, .West, .L)
+			// dr_arrow_rectilinear({ 0, 100 }, .North, .L)
+			// dr_arrow_rectilinear({ 0, 150 }, .South, .L)
+
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
 			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))
@@ -153,17 +170,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = ui_measure_text_box(text, rect.size.x)
 
-			// tail: [2]f32 = { -400, 100 }
-			// head: [2]f32 = { 0, 200 }
-			// head = engine.input_manager.mouse_position
-			// vector := head - tail
-			// angle: f32 = linalg.angle_between([2]f32{ 0, -1 }, vector) * (vector.x >= 0 ? 1 : -1)
-			// dr_line({ tail, head }, text_style.color, integer = false)
-			// arrow := head
-			// // char: u8 = cast(u8)UI_Icon.Save
-			// char: u8 = cast(u8)time
-			// arrow_rect: Rect = { { 0, 200 }, { 24, 24 } }
-			// { ui_text_style_scope(engine.ui_manager.icons_text_style); dr_text_symbol_rect(char, arrow_rect, angle = 0 * time) }
+
 			// dr_rect(rect_margins(rect, Interval(-8)), fill_color = bg_color, radius = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
 			// dr_text_box(text, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false)
 		}

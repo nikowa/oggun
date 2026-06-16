@@ -4,6 +4,7 @@ import "base:runtime"
 import "core:math/linalg"
 import "core:fmt"
 import "core:strings"
+import "core:math"
 
 // (TODO): Add TGUI versions of all of these, using the default TGUI styles.
 
@@ -81,11 +82,28 @@ dr_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) {
 	// dr_rect_outline(rect, RED)
 }
 
-dr_icon :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, bold: bool=false, scale: f32=1.0) {
+dr_icon :: proc { dr_icon_basic, dr_icon_extended }
+
+dr_icon_basic :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, size: UI_Size) {
+	bold, bolder: bool
+	scale: f32
+	switch size {
+	case .L, .XL, .XXL, .XXXL:
+		scale = 1
+	case .M:
+		bold = true
+		scale = 0.5
+	case .XXS, .XS, .S:
+		bolder = true
+		scale = 0.333333 }
+	dr_icon_extended(icon, position, angle, bold, bolder, scale) }
+
+dr_icon_extended :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, bold: bool=false, bolder: bool=false, scale: f32=1.0) {
 	// dr_rect_outline({ position, UI_ICON_SIZE }, RED)
 	icons_text_style := engine.ui_manager.icons_text_style
 	icons_text_style.color = ui_text_style_get().color
 	icons_text_style.bold = bold
+	icons_text_style.italic = bolder
 	icons_text_style.font_size = Font_Size(scale * cast(f32)icons_text_style.font_size)
 	ui_text_style_scope(icons_text_style)
 	dr_text_symbol_rect(cast(u8)icon, { position, UI_ICON_SIZE }, angle = angle) }
@@ -174,3 +192,15 @@ dr_badge :: proc(position: [2]f32, size: UI_Size=.S, color: UI_Theme_Key, text: 
 	// gx_depth_scope_dec(0.01)
 	// dr_rect({ position, { 2, 2 } }, RED, integer=false)
 }
+
+dr_arrow_rectilinear :: proc(position: [2]f32, direction: Compass, size: UI_Size=.M) {
+	// dr_rect({ position, { 1, 1 } }, RED)
+	offset: f32
+	switch size {
+	case .XXS, .XS, .S:
+		offset = 1
+	case .M:
+		offset = 2
+	case .L, .XL, .XXL, .XXXL:
+		offset = 4 }
+	dr_icon_basic(.Chevron, position - offset * compass_normal(direction), math.to_radians_f32(90) + compass_angle(direction), size) }

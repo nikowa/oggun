@@ -1006,7 +1006,8 @@ ui_init :: proc() {
 		italic = default_font_config(name = "terminus-italic"))
 	font_group_init(&engine.ui_manager.icons_font_group,
 		normal = default_font_config(name = "icons"),
-		bold = default_font_config(name = "icons-bold"))
+		bold = default_font_config(name = "icons-bold"),
+		italic = default_font_config(name = "icons-bolder"))
 	ui_set_theme(ui_theme_ms_dark)
 
 	engine.ui_manager.anim_transitions = make(map[runtime.Source_Code_Location]UI_Anim_Transition)

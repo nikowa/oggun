@@ -58,7 +58,6 @@ dr_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	// dr_edge_vertical(b, a, 16, a.x, color=WHITE)
 	// dr_edge_vertical(b, a, 16, b.x, color=WHITE)
 	// dr_node_edge_horizontal(graph.nodes[0]._rect, graph.nodes[1]._rect, margin=16)
-
 	dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .East }, graph.margins, graph.radius, WHITE)
 	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .West }, graph.margins, graph.radius, WHITE)
 	// dr_node_edge({ graph.nodes[0]._rect, graph.nodes[1]._rect }, { .North, .North }, graph.margins, graph.radius, WHITE)
@@ -76,7 +75,9 @@ dr_node_edge :: proc(rects: [2]Rect, sides: [2]Compass, margin: f32, radius: f32
 	c: [2]f32 = { a1.x, b1.y }
 	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
 	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
-	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true) }
+	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
+	dr_arrow_rectilinear(b, compass_invert(sides[1]), .M)
+}
 
 dr_node_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {
 	distance := rect_distance(a, b)
