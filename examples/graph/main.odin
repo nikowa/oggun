@@ -52,27 +52,33 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	pt_graph_init(&plot_graph, default_plot_graph_config(
 		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
 		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
-		text_style=ui_text_style_get(), margins=12, padding=4, radius=4, orientation=.Vertical))
+		text_style=ui_text_style_get(), margins=12, padding=4, radius=4, orientation=.Horizontal))
 
 	// (TODO): Does dynamic array ever reallocate? //
 
-	pt_append_node(&plot_graph, default_plot_node(id=1, label="Node A with very long subtitle", position=[2]f32{ 0, 0 }))
-	b := pt_append_node(&plot_graph, default_plot_node(id=2, label="Node B", position=[2]f32{ 800, 400 }))
-	pt_append_edge(&plot_graph, default_plot_edge(ids={ 2, 1 }, xlabel="Connector", stroke_color=WHITE))
+	pt_append_node(&plot_graph, default_plot_node(id=1, label="Node A with very long subtitle", position=[2]f32{ -0.8, 0 }))
+	b := pt_append_node(&plot_graph, default_plot_node(id=2, label="Node B", position=[2]f32{ 0.8, 0 }))
+	pt_append_edge(&plot_graph, default_plot_edge(ids={ 1, 2 }, xlabel="Connector", stroke_color=WHITE))
+
+	// layout_builder := pt_nudge_layout_builder(&plot_graph)
+	// pt_layout_initialize(&layout_builder)
+	// pt_layout_process(&layout_builder)
+	// pt_layout_post_process(&layout_builder)
 
 	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
 	scr_rect := rect_screen()
+	// dest_rect = scr_rect
 
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
-			dest_rect.size.x = 600// + 100 * math.sin(2 * time)
-			dest_rect.size.y = 400// + 100 * math.cos(3 * time)
+			// dest_rect.size.x = 600// + 100 * math.sin(2 * time)
+			// dest_rect.size.y = 400// + 100 * math.cos(3 * time)
 			dr_rect_outline(dest_rect, RED)
 
-			b_pos := b.position.([2]f32)
-			b_pos.x = 700 * math.sin(time)
-			b.position = b_pos
+			// b_pos := b.position.([2]f32)
+			// b_pos.x = 700 * math.sin(time)
+			// b.position = b_pos
 
 			// dr_line({ { 0, 0 }, engine.input_manager.mouse_position }, WHITE)
 			// rect: Rect = { engine.input_manager.mouse_position, { 180, 120 } }

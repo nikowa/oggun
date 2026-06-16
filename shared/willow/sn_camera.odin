@@ -27,13 +27,15 @@ sn_init_camera_2d :: proc(camera: ^Camera_2D, config: Camera_2D_Config) {
 	camera.scale = camera.rect.size.y
 	camera.rect_normalized = camera.rect
 	camera.rect_normalized.size.x /= camera.rect.size.y
-	camera.rect_normalized.size.y = 1 }
+	camera.rect_normalized.size.y = 1
+	camera.initial_rect = camera.rect }
 
 sn_camera_2d_rect :: proc(camera: ^Camera_2D) -> Rect {
 	return { camera.rect_normalized.position, camera.rect_normalized.size * camera.scale } }
 
 Camera_2D :: struct {
 	using config: Camera_2D_Config,
+	initial_rect: Rect,
 	rect_normalized: Rect,
 	scale: f32,
 	view_matrix: matrix[3, 3]f32,

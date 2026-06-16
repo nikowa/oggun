@@ -41,10 +41,20 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 
 dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	scale := sn_camera_2d_scale(camera)
+	// range_x
 	scale *= rect.size
 	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
+		// (TODO): The following two lines break the camera panning. Why? //
+		position.x = math.lerp(
+			rect_left(camera.initial_rect),
+			rect_right(camera.initial_rect),
+			math.unlerp(graph.range_x[0], graph.range_x[1], position.x))
+		position.y = math.lerp(
+			rect_bottom(camera.initial_rect),
+			rect_top(camera.initial_rect),
+			math.unlerp(graph.range_y[0], graph.range_y[1], position.y))
 		position = sn_camera_2d_map_point(camera, rect, position)
 		size := dr_plot_node(&plot_node, graph, position, scale.y)
 		plot_node._rect = { position, size } }
@@ -69,7 +79,8 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 	case .Vertical, .None:
 		if nodes[0]._rect.position.y < nodes[1]._rect.position.y do sides = { .North, .South }
 		else do sides = { .South, .North } }
-	rects: [2]Rect = { nodes[0]._rect, nodes[1]._rect }
+	// DICK
+	rects: [2]Rect = { rect_extend(nodes[0]._rect, Interval(graph.edge_margins)), rect_extend(nodes[1]._rect, Interval(graph.edge_margins)) }
 	a, b := rect_side(rects[0], sides[0]), rect_side(rects[1], sides[1])
 	a1, b1 := a + margin * compass_normal(sides[0]), b + margin * compass_normal(sides[1])
 	c: [2]f32 = { a1.x, b1.y }
