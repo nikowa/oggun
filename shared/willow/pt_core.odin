@@ -1,6 +1,7 @@
 #+feature using-stmt
 package willow
 import "core:math/rand"
+import "core:log"
 
 Plot_Graph_Config :: struct {
 	default_background_color: Color,
@@ -146,16 +147,20 @@ pt_fdp_layout_builder :: proc() -> PT_Layout_Builder {
 		process=pt_fdp_layout_process,
 		post_process=pt_fdp_layout_post_process } }
 
-PT_NUDGE_Layout_Builder :: struct {
-	// Config: //
+PT_NUDGE_Layout_Builder_Config :: struct {
 	max_steps: int,
+	radius: f32 }
+
+PT_NUDGE_Layout_Builder :: struct {
+	using config: PT_NUDGE_Layout_Builder_Config,
 	steps: int,
 	_: u8 }
 
 pt_nudge_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
+	log.info("initializing")
 	builder: ^PT_NUDGE_Layout_Builder = auto_cast data
 	for &node in graph.nodes {
-		node._rect.position = {
+		node.position = [2]f32{
 			rand.float32_range(graph.range_x[0], graph.range_x[1]),
 			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
 
@@ -165,10 +170,12 @@ pt_nudge_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 pt_nudge_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_NUDGE_Layout_Builder = auto_cast data }
 
-pt_nudge_layout_builder :: proc(graph: ^Plot_Graph) -> PT_Layout_Builder {
+pt_nudge_layout_builder :: proc(graph: ^Plot_Graph, config: PT_NUDGE_Layout_Builder_Config) -> PT_Layout_Builder {
+	builder := new(PT_NUDGE_Layout_Builder)
+	builder.config = config
 	return {
 		variant=.NUDGE,
-		data=cast(rawptr)new(PT_NUDGE_Layout_Builder),
+		data=cast(rawptr)builder,
 		graph=graph,
 		initialize=pt_nudge_layout_initialize,
 		process=pt_nudge_layout_process,

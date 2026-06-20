@@ -10,7 +10,7 @@ import "core:strings"
 ui_camera_2d_control :: proc(camera: ^Camera_2D, dest_rect: Rect, scale_range: [2]f32={ 0, 1 }, zoom_speed: f32=1.0, location := #caller_location) {
 	sn_camera_2d_tick(camera)
 	camera.rect_normalized.position = ui_pan_control(loc_id(location), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
-	camera.scale = math.lerp(scale_range[0], scale_range[1], ui_zoom_control(loc_id(location), dest_rect, initial_value=0, speed=1, reset=input_query(.R, .PRESSED))) }
+	camera.scale = math.lerp(scale_range[0], scale_range[1], ui_zoom_control(loc_id(location), dest_rect, initial_value=1, speed=1, reset=input_query(.R, .PRESSED))) }
 
 UI_Pan_Control :: struct {
 	position: [2]f32,

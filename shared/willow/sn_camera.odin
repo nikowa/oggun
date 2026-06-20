@@ -73,6 +73,11 @@ sn_camera_2d_tick :: proc(camera: ^Camera_2D) {
 sn_camera_2d_map_point :: proc(camera: ^Camera_2D, dest_rect: Rect, point: [2]f32) -> [2]f32 {
 	return rect_interpolate_centered(dest_rect, matrix3_apply(camera.view_matrix, point)) }
 
+sn_camera_2d_map_rect :: proc(camera: ^Camera_2D, dest_rect: Rect, rect: Rect) -> Rect {
+	range := rect_range(rect)
+	for i in 0 ..< 2 do range[i] = sn_camera_2d_map_point(camera, dest_rect, range[i])
+	return rect_from_range(range) }
+
 sn_camera_2d_scale :: proc(camera: ^Camera_2D) -> [2]f32 {
 	return { camera.view_matrix[0][0], camera.view_matrix[1][1] } }
 

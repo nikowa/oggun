@@ -56,14 +56,17 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 
 	// (TODO): Does dynamic array ever reallocate? //
 
-	pt_append_node(&plot_graph, default_plot_node(id=1, label="Node A with very long subtitle", position=[2]f32{ -0.8, 0 }))
-	b := pt_append_node(&plot_graph, default_plot_node(id=2, label="Node B", position=[2]f32{ 0.8, 0 }))
-	pt_append_edge(&plot_graph, default_plot_edge(ids={ 1, 2 }, xlabel="Connector", stroke_color=WHITE))
+	// pt_append_node(&plot_graph, default_plot_node(id=1, label="Node A with very long subtitle", position=[2]f32{ -0.8, 0 }))
+	// b := pt_append_node(&plot_graph, default_plot_node(id=2, label="Node B", position=[2]f32{ 0.8, 0 }))
+	// pt_append_edge(&plot_graph, default_plot_edge(ids={ 1, 2 }, xlabel="Connector", stroke_color=WHITE))
+	for i in 0 ..< 16 {
+		pt_append_node(&plot_graph, default_plot_node(id=1, label=fmt.aprintf("Node %d", i), size=[2]f32{ 50, 0 }))
+	}
 
-	// layout_builder := pt_nudge_layout_builder(&plot_graph)
-	// pt_layout_initialize(&layout_builder)
-	// pt_layout_process(&layout_builder)
-	// pt_layout_post_process(&layout_builder)
+	layout_builder := pt_nudge_layout_builder(&plot_graph, { max_steps=100, radius=0.1 })
+	pt_layout_initialize(&layout_builder)
+	pt_layout_process(&layout_builder)
+	pt_layout_post_process(&layout_builder)
 
 	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
 	scr_rect := rect_screen()
@@ -149,7 +152,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 			// sn_camera_2d_tick(&camera)
 			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
 			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))
-			ui_camera_2d_control(&camera, dest_rect, scale_range={ scr_rect.size.y, 4 * scr_rect.size.y })
+			ui_camera_2d_control(&camera, dest_rect, scale_range={ 0.1 * scr_rect.size.y, scr_rect.size.y })
 
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)

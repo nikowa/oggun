@@ -9,6 +9,16 @@ Rect :: struct #packed {
 	position: [2]f32,
 	size:     [2]f32 }
 
+Rect_Range :: [2][2]f32
+
+rect_range :: proc(rect: Rect) -> Rect_Range {
+	return { rect_bottom_left_point(rect), rect_top_right_point(rect) } }
+
+rect_from_range :: proc(range: Rect_Range) -> Rect {
+	bottom_left := range[0]
+	top_right := range[1]
+	return rect_from_sides(bottom_left[0], top_right[0], bottom_left[1], top_right[1]) }
+
 make_rect :: proc(position_x, position_y, size_x, size_y: f32) -> Rect {
 	return Rect{ { position_x, position_y }, { size_x, size_y } } }
 

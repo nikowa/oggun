@@ -43,6 +43,7 @@ dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	scale := sn_camera_2d_scale(camera)
 	// range_x
 	scale *= rect.size
+	dr_rect_outline(sn_camera_2d_map_rect(camera, rect, camera.initial_rect), WHITE)
 	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
