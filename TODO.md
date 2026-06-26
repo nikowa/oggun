@@ -1,4 +1,7 @@
 
+- Document the API, update the parts of it that feel bad
+- Vertex selector UI.
+- 3D example.
 - Point shader.
 - Fix the rect shader dist threshold. The stroke is correct, the fill is not.
 - Make another anim primitive, for smooth scrolling, with a pivot and gravity.
@@ -22,6 +25,7 @@
 - Implement win32 window backend (just write a "window_win32" and surround the whole file in "when WINDOW_WIN32")
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
 - Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"
+- ural
 
 - Test the font renderer with a multicolored font
 - Add a procedure in the checker to make sure all structs with "singleton" tag are instantited only once

@@ -1,10 +1,10 @@
-# Overview
+# OGGUN
 
-![willow-tree](willow-tree.jpg)
+![oggun](oggun.png)
 
-_Willow_ is a game engine, made for my games _Bogwalker_ and _The Blue Break_ (and other games I might make in the future). It is very unstable and has many missing features.
+_Oggun_ is a game engine, made for my games _Montster Sweeper_, _The Blue Break_, and _Blade & Eye_. This is a prototype, so the feature-set is undetermined and many features are not yet implemented. The current capabilities are demonstrated by the [examples](examples.md).
 
-At the start you give a fixed *memory cap* number to `base.init` and this is the maximum amount of memory that your threads will be able to allocate.
+<!---At the start you give a fixed *memory cap* number to `base.init` and this is the maximum amount of memory that your threads will be able to allocate.
 
 You also give it a fixed *readonly memory cap* which is used to allocate a range of read-only memory, which will be accessible by all threads without the need for synchronization. The readonly memory must be initialized before you call `base.start`, and then `base.start` will hash it and in debug mode this hash will be used to verify the integrity of this read-only memory.
 
@@ -35,7 +35,7 @@ Every thread is able to own at most 2 locks at a time. This is the bare minimum 
 
 ## Multi-Threading
 
-For Willow's thread synchronization to work without errors, your package needs to follow a set of rules. To check if it does, you can run the willow checker on your package, like this:
+For Oggun's thread synchronization to work without errors, your package needs to follow a set of rules. To check if it does, you can run the willow checker on your package, like this:
 
 ```
 willow check <package_dir>
@@ -43,8 +43,8 @@ willow check <package_dir>
 
 Informally, the rules are:
 
-- Every *sync-safe* function must declare which locks it's going to own immediately at its beginning, by calling one of Willow's lock methods. A *sync-safe* function is a function with the `@(tag="sync_safe")` tag.
-- Willow's lock methods should not be used anywhere else except at the immediate beginning of a *sync-safe* function.
+- Every *sync-safe* function must declare which locks it's going to own immediately at its beginning, by calling one of Oggun's lock methods. A *sync-safe* function is a function with the `@(tag="sync_safe")` tag.
+- Oggun's lock methods should not be used anywhere else except at the immediate beginning of a *sync-safe* function.
 - A *sync-safe* function must return immediately if the lock method in it returned false.
 - A *sync-safe* function must not access any global variables.
 - A *sync-safe* function must not have any arguments of pointer type or arguments of types that contain pointers.
@@ -60,3 +60,4 @@ Informally, the rules are:
 - Function is not allowed to take as inputs pointers from memory intervals outside of the intervals of the two mutexes they've acquired
 
 ## Start
+--->

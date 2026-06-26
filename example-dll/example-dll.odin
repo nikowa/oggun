@@ -4,8 +4,8 @@ import fmt "core:fmt"
 import log "core:log"
 import m "core:math"
 import la "core:math/linalg"
-import scn "../shared/willow/scene"
-import bs "../shared/willow/base"
+import scn "../shared/oggun/scene"
+import bs "../shared/oggun/base"
 // (NOTE): It is recommended that the game's types are put in a separate package, so you can include them here, without including
 // everything else.
 

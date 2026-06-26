@@ -1,6 +1,6 @@
 #+feature using-stmt
 package example_input
-import "shared:willow"
+import "shared:oggun"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -13,14 +13,14 @@ import "core:container/intrusive/list"
 import "core:mem"
 
 stopwatch: time.Stopwatch
-screen_rect: willow.Rect
-images: [dynamic]^willow.Image_Asset
-background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: willow.Image_Asset
-font_group: willow.Font_Group
+screen_rect: oggun.Rect
+images: [dynamic]^oggun.Image_Asset
+background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: oggun.Image_Asset
+font_group: oggun.Font_Group
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	willow.start(entry_point, n_workers_override = 1) }
+	oggun.start(entry_point, n_workers_override = 1) }
 
 Sprite :: struct {
 	position: [2]f32,
@@ -95,7 +95,7 @@ swing :: proc() -> f32 {
 	return rand.float32_range(-0.05, 0.05) }
 
 dr_entity :: proc(entity: ^Entity) {
-	using willow
+	using oggun
 
 	screen_position: [2]f32
 	screen_position = entity.position * screen_rect.size / 2
@@ -115,8 +115,8 @@ dr_entity :: proc(entity: ^Entity) {
 	dr_text_line(label, screen_position + { 0, image_size.y / 2 }) }
 
 @(export)
-entry_point :: proc(thread_data: ^willow.Thread_Data) {
-	using willow
+entry_point :: proc(thread_data: ^oggun.Thread_Data) {
+	using oggun
 	sync_context: Context = make_context()
 
 	context = engine_begin_init(
@@ -139,7 +139,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 	for &image in images do assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 
 	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
-	text_style: willow.Text_Style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
+	text_style: oggun.Text_Style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
 	ui_text_style_push(text_style)
 
 	for _ in 0 ..< 10 do spawn_tree(random_position())

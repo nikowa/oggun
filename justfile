@@ -16,7 +16,7 @@ release:
 
 check: lib
 	cls
-	odin check shared/willow {{check_flags}}
+	odin check shared/oggun {{check_flags}}
 	odin check examples/input {{check_flags}}
 	odin check examples/gui {{check_flags}}
 	odin check examples/neon {{check_flags}}
@@ -33,8 +33,8 @@ doc:
 
 lib:
 	cls
-	odin build shared/willow -out:willow.exe {{flags}} -ignore-unknown-attributes -ignore-warnings
-	./willow.exe install
+	odin build shared/oggun -out:oggun.exe {{flags}} -ignore-unknown-attributes -ignore-warnings
+	./oggun.exe install
 
 example_input: lib
 	odin build examples/input -out:examples/input.exe {{flags}}

@@ -1,6 +1,6 @@
 #+feature using-stmt
 package example_input
-import "shared:willow"
+import "shared:oggun"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -8,18 +8,18 @@ import "core:mem"
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	willow.start(entry_point, n_workers_override = 1) }
+	oggun.start(entry_point, n_workers_override = 1) }
 
 query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
 	return { scalar = 1 } }
 
-key_margins :: proc(rect_in: willow.Rect) -> (rect_out: willow.Rect) {
-	using willow
+key_margins :: proc(rect_in: oggun.Rect) -> (rect_out: oggun.Rect) {
+	using oggun
 	return rect_extend_variate(rect_in, Interval(-7), Interval(-7), Interval(-7), Interval(-2)) }
 
 @(export)
-make_rects :: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> []willow.Rect {
-	using willow
+make_rects :: proc(keyboard_rect: oggun.Rect, allocator: runtime.Allocator) -> []oggun.Rect {
+	using oggun
 
 	rects := make_dynamic_array([dynamic]Rect, allocator = context.temp_allocator)
 
@@ -141,8 +141,8 @@ make_rects :: proc(keyboard_rect: willow.Rect, allocator: runtime.Allocator) -> 
 	return rects[:] }
 
 @(export)
-entry_point :: proc(thread_data: ^willow.Thread_Data) {
-	using willow
+entry_point :: proc(thread_data: ^oggun.Thread_Data) {
+	using oggun
 
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Input Example", temp_allocator_cap=1000 * mem.Megabyte),

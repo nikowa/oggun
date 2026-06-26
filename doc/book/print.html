@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Willow</title>
+        <title>OGGUN</title>
         <meta name="robots" content="noindex">
 
 
@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-226f4f02.js";
+            window.path_to_searchindex_js = "searchindex-00bc704c.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-96a63566.js"></script>
+        <script src="toc-0358ef58.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -138,7 +138,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Willow</h1>
+                    <h1 class="menu-title">OGGUN</h1>
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -175,13 +175,17 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
-<p><img src="willow-tree.jpg" alt="willow-tree"></p>
-<p><em>Willow</em> is a game engine, made for my games <em>Bogwalker</em> and <em>The Blue Break</em> (and other games I might make in the future). It is very unstable and has many missing features.</p>
-<p>At the start you give a fixed <em>memory cap</em> number to <code>base.init</code> and this is the maximum amount of memory that your threads will be able to allocate.</p>
-<p>You also give it a fixed <em>readonly memory cap</em> which is used to allocate a range of read-only memory, which will be accessible by all threads without the need for synchronization. The readonly memory must be initialized before you call <code>base.start</code>, and then <code>base.start</code> will hash it and in debug mode this hash will be used to verify the integrity of this read-only memory.</p>
-<p><code>base.start</code> will determine the optimal number of threads and create that many threads and call <code>entry_point</code> on all those threads including the main thread. Do not touch <code>context.user_ptr</code>, that’s where <code>thread_data</code> is stored, and it’s needed.</p>
-<pre><code class="language-c">main :: proc() {
+                        <h1 id="oggun"><a class="header" href="#oggun">OGGUN</a></h1>
+<p><img src="oggun.png" alt="oggun"></p>
+<p><em>Oggun</em> is a game engine, made for my games <em>Montster Sweeper</em>, <em>The Blue Break</em>, and <em>Blade &amp; Eye</em>. This is a prototype, so the feature-set is undetermined and many features are not yet implemented. The current capabilities are demonstrated by the <a href="#examples">examples</a>.</p>
+<!---At the start you give a fixed *memory cap* number to `base.init` and this is the maximum amount of memory that your threads will be able to allocate.
+
+You also give it a fixed *readonly memory cap* which is used to allocate a range of read-only memory, which will be accessible by all threads without the need for synchronization. The readonly memory must be initialized before you call `base.start`, and then `base.start` will hash it and in debug mode this hash will be used to verify the integrity of this read-only memory.
+
+`base.start` will determine the optimal number of threads and create that many threads and call `entry_point` on all those threads including the main thread. Do not touch `context.user_ptr`, that's where `thread_data` is stored, and it's needed.
+
+```c
+main :: proc() {
 	MEMORY_CAP :: 100000
 	READONLY_MEMORY_CAP :: 1000
 	base.init(MEMORY_CAP, READONLY_MEMORY_CAP)
@@ -191,50 +195,142 @@
 entry_point :: proc(thread_data: ^base.Thread_Data) {
 	// ...
 	return }
-</code></pre>
-<p>The basic premise of the multi-threading architecture is that the memory is split into <em>cages</em>, where each cage is an interval with a lock. Each thread has a <em>keeper</em> and a keeper can own no more than 2 cages at a time. To acquire a cage call <code>base.acquire_cage</code> and give it some point from the interval of that cage. If you attempt to acquire more than 2 cages, it will return <code>false</code> and an error will be printed. You can release a cage by <code>base.acquire_cage</code> with a pointer from the interval of that cage. The helper function <code>keeper_swap_by_lock</code> can be used to release one cage and acquire another in one sweeping motion.</p>
-<p><img src="cages-and-keepers.png" alt="cage"></p>
-<h2 id="the-lock-system"><a class="header" href="#the-lock-system">The Lock System</a></h2>
-<p><img src="lock-system.png" alt="cage"></p>
-<p>Every thread is able to own at most 2 locks at a time. This is the bare minimum number of locks necessary for any algorithm. The containers for these two locks are called the <em>lock registers</em>. In addition, every thread has a <em>lock stack</em>. This allows for lock pairs to be managed in larger, nested scopes, as opposed to small disjoint scopes. If a procedure that has acquired lock A and B wants to call a procedure that depends on locks B and C, normally it would call a sync function to acquire lock C at the start and then call a sync function to release it at the end, but in my system, it can call a sync function at the start to acquire lock C and hint that lock A is no longer needed, and then call a sync function to release it at the end. And what happens in the background is, A is released and push into the lock stack, then B and C are acquired in order, and at the end C is released and A is popped from the stack and A and B are acquired in order. The stack is necessary so that the callee can remember what locks were owned by the caller and restore them.</p>
-<h2 id="multi-threading"><a class="header" href="#multi-threading">Multi-Threading</a></h2>
-<p>For Willow’s thread synchronization to work without errors, your package needs to follow a set of rules. To check if it does, you can run the willow checker on your package, like this:</p>
-<pre><code>willow check &lt;package_dir&gt;
-</code></pre>
-<p>Informally, the rules are:</p>
+```
+
+The basic premise of the multi-threading architecture is that the memory is split into *cages*, where each cage is an interval with a lock. Each thread has a *keeper* and a keeper can own no more than 2 cages at a time. To acquire a cage call `base.acquire_cage` and give it some point from the interval of that cage. If you attempt to acquire more than 2 cages, it will return `false` and an error will be printed. You can release a cage by `base.acquire_cage` with a pointer from the interval of that cage. The helper function `keeper_swap_by_lock` can be used to release one cage and acquire another in one sweeping motion.
+
+![cage](cages-and-keepers.png)
+
+## The Lock System
+
+![cage](lock-system.png)
+
+Every thread is able to own at most 2 locks at a time. This is the bare minimum number of locks necessary for any algorithm. The containers for these two locks are called the *lock registers*. In addition, every thread has a *lock stack*. This allows for lock pairs to be managed in larger, nested scopes, as opposed to small disjoint scopes. If a procedure that has acquired lock A and B wants to call a procedure that depends on locks B and C, normally it would call a sync function to acquire lock C at the start and then call a sync function to release it at the end, but in my system, it can call a sync function at the start to acquire lock C and hint that lock A is no longer needed, and then call a sync function to release it at the end. And what happens in the background is, A is released and push into the lock stack, then B and C are acquired in order, and at the end C is released and A is popped from the stack and A and B are acquired in order. The stack is necessary so that the callee can remember what locks were owned by the caller and restore them.
+
+## Multi-Threading
+
+For Oggun's thread synchronization to work without errors, your package needs to follow a set of rules. To check if it does, you can run the willow checker on your package, like this:
+
+```
+willow check <package_dir>
+```
+
+Informally, the rules are:
+
+- Every *sync-safe* function must declare which locks it's going to own immediately at its beginning, by calling one of Oggun's lock methods. A *sync-safe* function is a function with the `@(tag="sync_safe")` tag.
+- Oggun's lock methods should not be used anywhere else except at the immediate beginning of a *sync-safe* function.
+- A *sync-safe* function must return immediately if the lock method in it returned false.
+- A *sync-safe* function must not access any global variables.
+- A *sync-safe* function must not have any arguments of pointer type or arguments of types that contain pointers.
+
+```c
+
+```
+
+## Allocators and Mutexes
+
+- No global state allowed
+- Every mutex is associated with a memory interval
+- Function is not allowed to take as inputs pointers from memory intervals outside of the intervals of the two mutexes they've acquired
+
+## Start
+---><div style="break-before: page; page-break-before: always;"></div>
+<h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
+<h2 id="top-level"><a class="header" href="#top-level">Top-Level</a></h2>
+<p>There are 4 primary layers: <strong>base</strong>, <strong>core</strong>, <strong>app</strong>, and <strong>ext</strong>. Each layer is dependent on the layers below it and independent from the layers above it. The layer <strong>app</strong> is split into <strong>game</strong> and <strong>tool</strong>. You’ll most likely use <strong>base</strong> + <strong>core</strong> or <strong>base</strong> + <strong>core</strong> + <strong>app</strong>. The layer <strong>etx</strong> is for optional extensions to any of the components of the layers below it.</p>
 <ul>
-<li>Every <em>sync-safe</em> function must declare which locks it’s going to own immediately at its beginning, by calling one of Willow’s lock methods. A <em>sync-safe</em> function is a function with the <code>@(tag="sync_safe")</code> tag.</li>
-<li>Willow’s lock methods should not be used anywhere else except at the immediate beginning of a <em>sync-safe</em> function.</li>
-<li>A <em>sync-safe</em> function must return immediately if the lock method in it returned false.</li>
-<li>A <em>sync-safe</em> function must not access any global variables.</li>
-<li>A <em>sync-safe</em> function must not have any arguments of pointer type or arguments of types that contain pointers.</li>
-</ul>
-<pre><code class="language-c">
-</code></pre>
-<h2 id="allocators-and-mutexes"><a class="header" href="#allocators-and-mutexes">Allocators and Mutexes</a></h2>
+<li><strong>1. base</strong> — general procedures and data structured
 <ul>
-<li>No global state allowed</li>
-<li>Every mutex is associated with a memory interval</li>
-<li>Function is not allowed to take as inputs pointers from memory intervals outside of the intervals of the two mutexes they’ve acquired</li>
+<li>1.1. <em>bs</em></li>
 </ul>
-<h2 id="start"><a class="header" href="#start">Start</a></h2>
+</li>
+<li><strong>2. core</strong> — essential engine components
+<ul>
+<li><em>wd</em> — window</li>
+<li><em>gx</em> — graphics</li>
+<li><em>au</em> — audio</li>
+<li><em>am</em> — asset management</li>
+<li><em>dl</em> — dynamic loading</li>
+<li><em>ip</em> — input</li>
+<li><em>dr</em> — draw</li>
+<li><em>ui</em> — user interface</li>
+<li><em>mt</em> — meta</li>
+<li><em>ms</em> — mesh</li>
+<li><em>px</em> — physics</li>
+</ul>
+</li>
+<li><strong>3. app/game</strong> — auxiliary components for game development
+<ul>
+<li><em>sn</em> — scene</li>
+<li><em>dg</em> — dialogue</li>
+<li><em>ec</em> — entity component system</li>
+<li><em>fx</em> — graphical effects</li>
+<li><em>sm</em> — state machine</li>
+<li><em>ai</em> — ai</li>
+</ul>
+</li>
+<li><strong>3. app/tool</strong> — auxiliary components for application &amp; tool development
+<ul>
+<li><em>pt</em> — plot</li>
+<li><em>ti</em> — tools interface</li>
+</ul>
+</li>
+<li><strong>4. ext</strong> — extensions to components from the layers bellow</li>
+</ul>
+<h2 id="state-modes"><a class="header" href="#state-modes">State Modes</a></h2>
+<p>Families of functions that construct something that is structurally equivalent to an array, a tree, or a graph, can be used in one of three different modes: <em>immediate mode</em>, <em>stack-retained mode</em>, or <em>graph-retained mode</em>.</p>
+<ul>
+<li><strong>immediate mode</strong> — params are not stored</li>
+<li><strong>stack-retained mode</strong> — params are stored in stacks</li>
+<li><strong>graph-retained mode</strong> — params are stored in nodes</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-c">dr_model :: proc { dr_model_im, dr_model_srm, dr_model_grm }
+
+// Immediate Mode //
+dr_model_im(env, cam, model_1)
+dr_model_im(env, cam, model_2)
+dr_model_im(env, cam, model_3)
+
+// Stack-Retained Mode //
+push_env(env)
+push_cam(cam)
+dr_model_srm(model_1)
+dr_model_srm(model_2)
+dr_model_srm(model_3)
+
+// Graph-Retained Mode //
+dr_model_grm(node, model_1)
+dr_model_grm(node, model_2)
+dr_model_grm(node, model_3)
+// (Goes up the graph until it finds a camera node or an env node.)
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="examples"><a class="header" href="#examples">Examples</a></h1>
+<h2 id="sprites"><a class="header" href="#sprites">Sprites</a></h2>
+<p><img src="example-sprites.png" alt="example-sprites"></p>
+<p>Draws a bunch of moving sprites. Intended to test command batching.</p>
 <h2 id="input"><a class="header" href="#input">Input</a></h2>
 <p><img src="example-input.png" alt="example-input"></p>
-<p>The input example demonstrates how to handle inputs using the <code>input</code> module, and how to use the <code>graphics/gui</code> module to draw a keyboard that responds to your inputs.</p>
+<p>Draws a keyboard inputs visualizater. Intended to test input handling.</p>
+<h2 id="neon"><a class="header" href="#neon">Neon</a></h2>
+<p><img src="example-neon.png" alt="example-neon"></p>
+<p>Draws a gallery of Windows-11-style widgets. Intended to test UI control and hierarchical 2D rendering.</p>
+<h2 id="graph"><a class="header" href="#graph">Graph</a></h2>
+<p><img src="example-plot.png" alt="example-graph"></p>
+<p>Draws a directed graph of nodes. Intended to test plotting.</p>
 <h2 id="sync"><a class="header" href="#sync">Sync</a></h2>
 <p><img src="example-sync.png" alt="example-sync"></p>
-<p>The sync example demonstrates the <code>willow/multi</code> module. It is a multi-threaded agent-based simulation, where numerous entities are simulated in parallel, exhibiting complex behavior and exchanging state at arbitrary moments of interaction.</p>
+<p>Intended to test thread synchronization.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="cli"><a class="header" href="#cli">CLI</a></h1>
-<p><code>~/Willow/willow.exe</code> is a command-line utility which provides some commands that should make it easier to install and use Willow. It is entirely optional.</p>
+<p><code>~/Oggun/willow.exe</code> is a command-line utility which provides some commands that should make it easier to install and use Oggun. It is entirely optional.</p>
 <h3 id="install"><a class="header" href="#install">Install</a></h3>
-<p>The <code>install</code> command copies the Willow library from Willow’s installation directory to the <code>shared/</code> folder in the Odin installation directory on your machine. You need to do this once, before using Willow in your Odin package. Alternatively, you can manually copy <code>~/Willow/shared/willow</code> to <code>~/Odin/shared/willow</code>.</p>
+<p>The <code>install</code> command copies the Oggun library from Oggun’s installation directory to the <code>shared/</code> folder in the Odin installation directory on your machine. You need to do this once, before using Oggun in your Odin package. Alternatively, you can manually copy <code>~/Oggun/shared/willow</code> to <code>~/Odin/shared/willow</code>.</p>
 <pre><code>willow install
 </code></pre>
 <h3 id="init"><a class="header" href="#init">Init</a></h3>
-<p>The <code>init</code> command initializes a starter project directory using the Willow engine. It creates a new directory, copies to it the contents of <code>~/Willow/starter</code>, and initializes a Git repo in it.</p>
+<p>The <code>init</code> command initializes a starter project directory using the Oggun engine. It creates a new directory, copies to it the contents of <code>~/Oggun/starter</code>, and initializes a Git repo in it.</p>
 <pre><code>willow init &lt;directory-name&gt;
 </code></pre>
 <p>Invoking <code>willow init game</code> will create the following directory structure:</p>
@@ -246,14 +342,14 @@ entry_point :: proc(thread_data: ^base.Thread_Data) {
 ├─ README.md
 </code></pre>
 <h3 id="check"><a class="header" href="#check">Check</a></h3>
-<p>The <code>check</code> command runs the Willow preprocessor on a given Odin package, to check whether or not Willow’s thread synchronization rules are followed.</p>
+<p>The <code>check</code> command runs the Oggun preprocessor on a given Odin package, to check whether or not Oggun’s thread synchronization rules are followed.</p>
 <pre><code>willow check &lt;directory-name&gt; [-r]
 </code></pre>
-<p>If the <code>-r</code> option is enabled, Willow will also preprocess all imported packages recursively, excluding the ones from the Odin standard library.</p>
+<p>If the <code>-r</code> option is enabled, Oggun will also preprocess all imported packages recursively, excluding the ones from the Odin standard library.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="api"><a class="header" href="#api">API</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="base"><a class="header" href="#base">Base</a></h1>
+<h1 id="bs"><a class="header" href="#bs">bs</a></h1>
 <p>This is the base layer, responsible mainly for initialization, synchronization, and configuration.</p>
 <h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
 <h4 id="willow_version"><a class="header" href="#willow_version"><code>WILLOW_VERSION</code></a></h4>
@@ -366,7 +462,7 @@ Write the contents of an arbitrary struct to the settings. The settings will be 
 <pre><code class="language-c">settings_manager_import :: proc(
 	settings: ^Settings_Manager)
 </code></pre>
-<h4 id="start-1"><a class="header" href="#start-1"><code>start</code></a></h4>
+<h4 id="start"><a class="header" href="#start"><code>start</code></a></h4>
 <pre><code class="language-c">start :: proc(
 	entry_point: Entry_Point,
 	n_workers_override: Maybe(u32) = nil)
@@ -411,7 +507,7 @@ Create and start a number of threads with the same entry procedure. The number o
 
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="asset"><a class="header" href="#asset">Asset</a></h1>
-<h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
+<h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
 <p><img src="dataflow.png" alt="dataflow-image"></p>
 <p>Database is an abstraction layer between the in-memory and on-disk representations of assets. It’s purpose is to make it so you don’t have to think about where the assets are coming from and to automate updating and reloading them.</p>
 <p>Assets are identified by a string URL. The URL has the form <code>&lt;kind&gt;:&lt;name&gt;</code>. The intended way of managing assets is by registering their kinds at initialization time, then loading them and then saving them at deinitialization time; The database will automatically do the importing, reading, and writing for you. However, if you want, you can also import, read, or write manually.</p>
@@ -441,8 +537,7 @@ Create and start a number of threads with the same entry procedure. The number o
 <ol>
 <li>Define a struct type that derives from <code>Asset</code>.</li>
 </ol>
-<pre><code class="language-c">My_Asset :: struct {
-	using asset: Asset,
+<pre><code class="language-c">My_Asset :: ---
 	... }
 </code></pre>
 <ol start="2">
@@ -955,7 +1050,7 @@ for {
 </pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="container"><a class="header" href="#container">Container</a></h1>
-<p>Various containers used throughout Willow.</p>
+<p>Various containers used throughout Oggun.</p>
 <h3 id="types-2"><a class="header" href="#types-2">Types</a></h3>
 <h4 id="bary"><a class="header" href="#bary"><code>Bary</code></a></h4>
 <pre><code class="language-c">Bary :: [3]f32
@@ -1059,7 +1154,7 @@ Check if the given Euclidean point is inside the given triangle.
 
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="bary-1"><a class="header" href="#bary-1">Bary</a></h1>
-<p>Various containers used throughout Willow.</p>
+<p>Various containers used throughout Oggun.</p>
 <h3 id="types-3"><a class="header" href="#types-3">Types</a></h3>
 <h4 id="bary-1-1"><a class="header" href="#bary-1-1"><code>Bary</code></a></h4>
 <pre><code class="language-c">Bary :: [3]f32
@@ -1498,7 +1593,7 @@ Add margins to rectangle on all sides.
 <h1 id="input-1"><a class="header" href="#input-1">Input</a></h1>
 <pre><code class="language-c">package input_sys
 </code></pre>
-<h3 id="overview-2"><a class="header" href="#overview-2">Overview</a></h3>
+<h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
 <p>The <code>willow/input_sys</code> module is for storing and processing inputs. There are two kinds of inputs: <em>scalar</em> inputs (ie, mouse position, mouse position delta, mouse scroll delta, etc.), and <em>boolean</em> inputs (ie, keyboard buttons, mouse buttons, etc.). The former are stored transparently, while the latter are stored opaquely.</p>
 <p>The input system needs inputs to process. You do this by triggering events. You have three options:</p>
 <ul>
@@ -2103,6 +2198,22 @@ Check if the source of a given DLL has been modified, and if it has, reload it a
         <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
         <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
         <script>

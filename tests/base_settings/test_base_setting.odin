@@ -1,15 +1,15 @@
 #+feature using-stmt
 package test_asset
-import "shared:willow"
+import "shared:oggun"
 import "base:runtime"
 import "core:testing"
 import "core:log"
 
 @(test)
 settings_test :: proc(t_context: ^testing.T) {
-	using willow
+	using oggun
 
-	APPLICATION_NAME :: "Willow Test"
+	APPLICATION_NAME :: "Oggun Test"
 	SETTINGS_NAME :: "Settings"
 
 	settings_manager: Settings_Manager

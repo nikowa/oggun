@@ -1,6 +1,6 @@
 #+feature using-stmt
 package example_gui
-import "shared:willow"
+import "shared:oggun"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -15,11 +15,11 @@ stopwatch: time.Stopwatch
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	willow.start(entry_point, n_workers_override = 1) }
+	oggun.start(entry_point, n_workers_override = 1) }
 
 @(export)
-entry_point :: proc(thread_data: ^willow.Thread_Data) {
-	using willow
+entry_point :: proc(thread_data: ^oggun.Thread_Data) {
+	using oggun
 
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="GUI Example", temp_allocator_cap=1000 * mem.Megabyte),

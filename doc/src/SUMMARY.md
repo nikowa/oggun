@@ -1,10 +1,12 @@
+
 # Summary
 
 - [Overview](./overview.md)
+- [Architecture](./architecture.md)
 - [Examples](./examples.md)
 - [CLI](./CLI.md)
 - [API](./API.md)
-  - [Base](./API/base.md)
+  - [bs](./API/base.md)
   - [Asset](./API/asset.md)
   - [Container](./API/container.md)
     - [Bary](./API/bary.md)

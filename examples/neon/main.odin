@@ -1,6 +1,6 @@
 #+feature using-stmt
 package example_neon
-import "shared:willow"
+import "shared:oggun"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -16,11 +16,11 @@ stopwatch: time.Stopwatch
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	willow.start(entry_point, n_workers_override = 1) }
+	oggun.start(entry_point, n_workers_override = 1) }
 
 @(export)
-entry_point :: proc(thread_data: ^willow.Thread_Data) {
-	using willow
+entry_point :: proc(thread_data: ^oggun.Thread_Data) {
+	using oggun
 
 	context = engine_begin_init(
 		engine_config=default_engine_config(
@@ -35,7 +35,7 @@ entry_point :: proc(thread_data: ^willow.Thread_Data) {
 		input_config=default_input_config(raw_input=false))
 	ui_set_theme(ui_theme_ms_light)
 
-	// BORDER_COLOR :: willow.COLOR_BRAND_STROKE_1_NORMAL_LIGHT
+	// BORDER_COLOR :: oggun.COLOR_BRAND_STROKE_1_NORMAL_LIGHT
 
 	// // DICK
 	// wnd_customize(BORDER_COLOR, BORDER_COLOR)

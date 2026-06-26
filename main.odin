@@ -1,5 +1,5 @@
 package game
-import bs "shared/willow/base"
+import bs "shared/oggun/base"
 import rt "base:runtime"
 import os "core:os"
 import fmt "core:fmt"
@@ -9,13 +9,13 @@ import m "core:math"
 import la "core:math/linalg"
 import dl "core:dynlib"
 import tm "core:time"
-import as "shared/willow/asset_manager"
-import gx "shared/willow/graphics"
-import "shared/willow/input"
-import r "shared/willow/container/rect"
-import scn "shared/willow/scene"
-import dll "shared/willow/dll"
-import msh "shared/willow/mesh"
+import as "shared/oggun/asset_manager"
+import gx "shared/oggun/graphics"
+import "shared/oggun/input"
+import r "shared/oggun/container/rect"
+import scn "shared/oggun/scene"
+import dll "shared/oggun/dll"
+import msh "shared/oggun/mesh"
 import hsh "core:crypto/hash"
 
 
@@ -70,8 +70,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		source_directory_relpath = "data",
 		autosave_interval = as.DEFAULT_AUTOSAVE_INTERVAL,
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
-	gx.graphics_init(&graphics_manager, &asset_manager, gx.DEFAULT_GRAPHICS_CONFIG, "Willow")
-	// gx.graphics_init(&graphics_manager, &asset_manager, { window_size = { 1920, 1080 } }, "Willow")
+	gx.graphics_init(&graphics_manager, &asset_manager, gx.DEFAULT_GRAPHICS_CONFIG, "Oggun")
+	// gx.graphics_init(&graphics_manager, &asset_manager, { window_size = { 1920, 1080 } }, "Oggun")
 	gx.init_image(&asset_manager, &image, { url = "image:kitten.png" })
 	assert(as.asset_commands(&asset_manager, gx.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)

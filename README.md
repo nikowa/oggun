@@ -1,7 +1,7 @@
 
 ![demo](demo.gif)
 
-Game engine for my various solo projects. [Doc](https://nikowa.github.io/willow/).
+Game engine for my various solo projects. [Doc](https://nikowa.github.io/oggun/).
 
 ## Components
 
