@@ -18,7 +18,7 @@ dr_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) {
 	case .ROUNDED: radius = UI_RADIUS_MEDIUM
 	case .CIRCULAR: radius = rect.size.y / 2
 	case .SQUARE: radius = 0.0 }
-	hover: bool = rect_hovered(rect)
+	hover: bool = ui_rect_hovered(rect)
 	press: bool = hover && input_query(.Mouse_Left, .DOWN)
 
 	theme := engine.ui_manager.theme
@@ -76,7 +76,7 @@ dr_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) {
 		dr_icon(icon, icon_position)
 		// dr_rect_outline(rect, RED)
 		// DICK
-		rect = rect_margins_variate(rect, west=Interval(UI_ICON_SIZE.y))
+		rect = ui_rect_margins_variate(rect, west=Interval(UI_ICON_SIZE.y))
 	}
 	{ ui_text_style_scope(text_style); dr_text_box(text, rect, h_align = .CENTER, v_align = .CENTER) }
 	// dr_rect_outline(rect, RED)

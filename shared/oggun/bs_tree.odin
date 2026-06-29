@@ -1,19 +1,30 @@
 package oggun
+import "core:relative"
 
-// (TODO): Add an url.
-// (TODO): Add serialize, deserialize, import, and save.
-// Tree :: struct {
-// 	root: ^Node }
+Tree :: struct($V: typeid, $B: typeid) {
+	root: Tree_Node(V, B) }
 
-// Node :: struct {
-// 	using config: Node_Config,
-// 	parent: ^Node,
-// 	first_child: ^Node,
-// 	last_child: ^Node,
-// 	first_sibling: ^Node,
-// 	next_sibling: ^Node,
-// 	prev_sibling: ^Node,
-// 	transform: Node_Transform }
+Tree_Node :: struct($V: typeid, $B: typeid) {
+	value: V,
+	parent, first_child, last_child, first_sibling, next_sibling, prev_sibling: relative.Pointer(rawptr, B) }
+
+tree_node_parent :: proc(node: ^Tree_Node($V, $B)) -> ^Tree_Node(V, B) {
+	return relative.pointer_get(&node.parent) }
+
+tree_node_first_child :: proc(node: ^Tree_Node($V, $B)) -> ^Tree_Node(V, B) {
+	return relative.pointer_get(&node.first_child) }
+
+tree_node_last_child :: proc(node: ^Tree_Node($V, $B)) -> ^Tree_Node(V, B) {
+	return relative.pointer_get(&node.last_child) }
+
+tree_node_first_sibling :: proc(node: ^Tree_Node($V, $B)) -> ^Tree_Node(V, B) {
+	return relative.pointer_get(&node.first_sibling) }
+
+tree_node_next_sibling :: proc(node: ^Tree_Node($V, $B)) -> ^Tree_Node(V, B) {
+	return relative.pointer_get(&node.next_sibling) }
+
+tree_node_prev_sibling :: proc(node: ^Tree_Node($V, $B)) -> ^Tree_Node(V, B) {
+	return relative.pointer_get(&node.prev_sibling) }
 
 // tree_attach_root :: proc(tree: ^Tree, node: ^Node) {
 // 	tree.root = node }

@@ -307,7 +307,7 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		background_rect.size = { max_width, total_height }
 		background_rect.position = origin + background_rect.size / 2
 		// (TODO): Add "margins" and "padding" stacks to "ui_manager". //
-		dr_rect(rect_extend(background_rect, Interval(4)), background_color) }
+		dr_rect(ui_rect_extend(background_rect, Interval(4)), background_color) }
 	return { max_width, total_height } }
 
 dr_path :: proc(points: [][2]f32, color: Color, integer: bool = true) {

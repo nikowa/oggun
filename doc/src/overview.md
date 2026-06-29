@@ -2,7 +2,7 @@
 
 ![oggun](oggun.png)
 
-_Oggun_ is a game engine, made for my games _Montster Sweeper_, _The Blue Break_, and _Blade & Eye_. This is a prototype, so the feature-set is undetermined and many features are not yet implemented. The current capabilities are demonstrated by the [examples](examples.md).
+_Oggun_ is a game engine, made for my games _Monster Sweeper_, _The Blue Break_, and _Blade & Eye_. It is intended for small-scale stylized games. This is a prototype, so the feature-set is undetermined and many features are not yet implemented. The current capabilities are demonstrated by the [examples](examples.md).
 
 <!---At the start you give a fixed *memory cap* number to `base.init` and this is the maximum amount of memory that your threads will be able to allocate.
 

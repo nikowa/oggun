@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-00bc704c.js";
+            window.path_to_searchindex_js = "searchindex-50a9ab5b.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-0358ef58.js"></script>
+        <script src="toc-9163bbfe.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -176,7 +176,8 @@
                     <main>
                         <h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="top-level"><a class="header" href="#top-level">Top-Level</a></h2>
-<p>There are 4 primary layers: <strong>base</strong>, <strong>core</strong>, <strong>app</strong>, and <strong>ext</strong>. Each layer is dependent on the layers below it and independent from the layers above it. The layer <strong>app</strong> is split into <strong>game</strong> and <strong>tool</strong>. You’ll most likely use <strong>base</strong> + <strong>core</strong> or <strong>base</strong> + <strong>core</strong> + <strong>app</strong>. The layer <strong>etx</strong> is for optional extensions to any of the components of the layers below it.</p>
+<p>There are 4 primary layers: <em>base</em>, <em>core</em>, <em>app</em>, and <em>ext</em>. Each layer is dependent on the layers below it and independent from the layers above it. The layer <em>app</em> is split into <em>game</em> and <em>tool</em>. You’ll most likely use <em>base</em> + <em>core</em> or <em>base</em> + <em>core</em> + <em>app</em>. The layer <em>ext</em> is for optional extensions to any of the components of the layers below it.</p>
+<p><img src="top-level.svg" alt="top-level"></p>
 <ul>
 <li><strong>1. base</strong> — general procedures and data structured
 <ul>
@@ -216,15 +217,17 @@
 </li>
 <li><strong>4. ext</strong> — extensions to components from the layers bellow</li>
 </ul>
-<h2 id="state-modes"><a class="header" href="#state-modes">State Modes</a></h2>
-<p>Families of functions that construct something that is structurally equivalent to an array, a tree, or a graph, can be used in one of three different modes: <em>immediate mode</em>, <em>stack-retained mode</em>, or <em>graph-retained mode</em>.</p>
-<ul>
-<li><strong>immediate mode</strong> — params are not stored</li>
-<li><strong>stack-retained mode</strong> — params are stored in stacks</li>
-<li><strong>graph-retained mode</strong> — params are stored in nodes</li>
-</ul>
-<p>Example:</p>
-<pre><code class="language-c">dr_model :: proc { dr_model_im, dr_model_srm, dr_model_grm }
+<h2 id="context-trees"><a class="header" href="#context-trees">Context Trees</a></h2>
+<p>Certain families of objects—eg. entities in a scene, widgets in a GUI, commands in a render graph—naturally form a tree-like structure, where adjacent nodes have a <em>child</em>-<em>parent</em> relationship, and generally the parent provides some kind of context to the child, such that any procedure that constructs/processes the child requires to know who it’s parent is (and who the parent of it’s parent is and so on).</p>
+<p><img src="element-hierarchy.svg" alt="element-hierarchy"></p>
+<p>Procedures that operate on these object have three variants, each having a distinct way of gathering the needed parameters.</p>
+<ol>
+<li><strong>immediate mode (IM)</strong> — All the parameters are given directly to the procedure, such that you don’t have to construct a tree or manage any auxiliary state.</li>
+<li><strong>stack-retained mode (SRM)</strong> — Some of the parameters are gathered from parameter stacks, which represent the chain of nodes from the current object to the root node.</li>
+<li><strong>tree-retained mode (TRM)</strong> — The procedure is given a pointer to a node in an actual tree and it gathers the parameters by walking the tree.</li>
+</ol>
+<p>Here’s an example with <code>dr_model</code>:</p>
+<pre><code class="language-c">dr_model :: proc { dr_model_im, dr_model_srm, dr_model_trm }
 
 // Immediate Mode //
 dr_model_im(env, cam, model_1)
@@ -238,10 +241,10 @@ dr_model_srm(model_1)
 dr_model_srm(model_2)
 dr_model_srm(model_3)
 
-// Graph-Retained Mode //
-dr_model_grm(node, model_1)
-dr_model_grm(node, model_2)
-dr_model_grm(node, model_3)
+// Tree-Retained Mode //
+dr_model_trm(node, model_1)
+dr_model_trm(node, model_2)
+dr_model_trm(node, model_3)
 // (Goes up the graph until it finds a camera node or an env node.)
 </code></pre>
 
@@ -249,7 +252,7 @@ dr_model_grm(node, model_3)
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="overview.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="roadmap.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
@@ -263,7 +266,7 @@ dr_model_grm(node, model_3)
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="overview.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="roadmap.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 

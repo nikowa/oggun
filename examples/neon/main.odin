@@ -69,9 +69,9 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 			// Background //
 			screen_rect := rect_screen()
-			// dr_rect(rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
+			// dr_rect(ui_rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
 			// gx_depth_scope_dec(0.01)
-			// dr_rect(rect_margins(screen_rect, Interval(UI_SPACING_XS)), ui_get_background_color()[0], radius=UI_RADIUS_LARGE)
+			// dr_rect(ui_rect_margins(screen_rect, Interval(UI_SPACING_XS)), ui_get_background_color()[0], radius=UI_RADIUS_LARGE)
 			// gx_depth_scope_dec(0.01)
 
 			// clip_rect: Rect = { engine.input_manager.mouse_position, { 400, 400 } }
@@ -187,7 +187,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 			// Metrics //
 			ui_metrics_widget()
-			// metrics_rect := rect_embed(rect_margins(rect_screen(), Interval(8)), { 160, 12 }, { .East, .North })
+			// metrics_rect := ui_rect_embed(ui_rect_margins(rect_screen(), Interval(8)), { 160, 12 }, { .East, .North })
 			// dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(engine.tracking_allocator.current_memory_allocated)), metrics_rect, h_align=.LEFT, v_align=.TOP)
 			// dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), rect_translate(metrics_rect, { 0, -14 }), h_align=.RIGHT, v_align=.TOP)
 

@@ -18,7 +18,7 @@ UI_Pan_Control :: struct {
 
 ui_pan_control :: proc(id: ID, dest_rect: Rect, src_rect: Rect, initial_position: [2]f32={ 0, 0 }, reset: bool=false) -> [2]f32 {
 	state, ok := engine.ui_manager.pan_controls[id]
-	hovered := rect_hovered(dest_rect)
+	hovered := ui_rect_hovered(dest_rect)
 	if hovered && input_query(.Mouse_Left, .PRESSED) do state.panning = true
 	if input_query(.Mouse_Left, .RELEASED) do state.panning = false
 	if state.panning {
@@ -35,7 +35,7 @@ UI_DEFAULT_ZOOM_CONTROL: UI_Zoom_Control : math.F32_MAX
 
 ui_zoom_control :: proc(id: ID, rect: Rect, initial_value: f32=1, range: [2]f32={ 0, 1 }, speed: f32=1.0, reset: bool=false) -> f32 {
 	state, ok := engine.ui_manager.zoom_controls[id]
-	hovered := rect_hovered(rect)
+	hovered := ui_rect_hovered(rect)
 	if hovered do state -= speed * 0.05 * engine.input_manager.scroll_delta
 	state = clamp(state, range[0], range[1])
 	if !ok || reset do state = initial_value
@@ -45,7 +45,7 @@ ui_zoom_control :: proc(id: ID, rect: Rect, initial_value: f32=1, range: [2]f32=
 ui_button_control :: proc { ui_basic_button_control, ui_extended_button_control }
 
 ui_extended_button_control :: proc(id: ID, rect: Rect) -> (actions: bit_set[UI_Action]) {
-	hovered := rect_hovered(rect)
+	hovered := ui_rect_hovered(rect)
 	pressed := hovered && input_query(.Mouse_Left, .PRESSED)
 	disabled := ui_disabled_get()
 	if hovered do actions += { .HOVER }
@@ -56,7 +56,7 @@ ui_extended_button_control :: proc(id: ID, rect: Rect) -> (actions: bit_set[UI_A
 	return actions }
 
 ui_basic_button_control :: proc(rect: Rect) -> (actions: bit_set[UI_Action]) {
-	hovered := rect_hovered(rect)
+	hovered := ui_rect_hovered(rect)
 	pressed := hovered && input_query(.Mouse_Left, .PRESSED)
 	disabled := ui_disabled_get()
 	if hovered do actions += { .HOVER }

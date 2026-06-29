@@ -1,4 +1,9 @@
 
+- Effect demo.
+- Flipbook GLSL library.
+- Flipbook effect.
+- Mesh creator GLSL library.
+- Render *some* model, then render the cool Porsche.
 - Document the API, update the parts of it that feel bad
 - Vertex selector UI.
 - 3D example.

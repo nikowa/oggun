@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-00bc704c.js";
+            window.path_to_searchindex_js = "searchindex-50a9ab5b.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-0358ef58.js"></script>
+        <script src="toc-9163bbfe.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -177,7 +177,7 @@
                     <main>
                         <h1 id="oggun"><a class="header" href="#oggun">OGGUN</a></h1>
 <p><img src="oggun.png" alt="oggun"></p>
-<p><em>Oggun</em> is a game engine, made for my games <em>Montster Sweeper</em>, <em>The Blue Break</em>, and <em>Blade &amp; Eye</em>. This is a prototype, so the feature-set is undetermined and many features are not yet implemented. The current capabilities are demonstrated by the <a href="#examples">examples</a>.</p>
+<p><em>Oggun</em> is a game engine, made for my games <em>Monster Sweeper</em>, <em>The Blue Break</em>, and <em>Blade &amp; Eye</em>. It is intended for small-scale stylized games. This is a prototype, so the feature-set is undetermined and many features are not yet implemented. The current capabilities are demonstrated by the <a href="#examples">examples</a>.</p>
 <!---At the start you give a fixed *memory cap* number to `base.init` and this is the maximum amount of memory that your threads will be able to allocate.
 
 You also give it a fixed *readonly memory cap* which is used to allocate a range of read-only memory, which will be accessible by all threads without the need for synchronization. The readonly memory must be initialized before you call `base.start`, and then `base.start` will hash it and in debug mode this hash will be used to verify the integrity of this read-only memory.
@@ -235,9 +235,33 @@ Informally, the rules are:
 
 ## Start
 ---><div style="break-before: page; page-break-before: always;"></div>
+<h1 id="roadmap"><a class="header" href="#roadmap">Roadmap</a></h1>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> OpenGL rendering backend</li>
+<li><input disabled="" type="checkbox" checked=""> Asset manager</li>
+<li><input disabled="" type="checkbox" checked=""> Effects system</li>
+<li><input disabled="" type="checkbox" checked=""> Scene tree</li>
+<li><input disabled="" type="checkbox" checked=""> Batched renderer</li>
+<li><input disabled="" type="checkbox" checked=""> Sprites demo</li>
+<li><input disabled="" type="checkbox" checked=""> Input demo</li>
+<li><input disabled="" type="checkbox" checked=""> GUI demo</li>
+<li><input disabled="" type="checkbox"> Props demo</li>
+<li><input disabled="" type="checkbox"> Effects demo</li>
+<li><input disabled="" type="checkbox"> Graph demo</li>
+<li><input disabled="" type="checkbox"> Sync demo</li>
+<li><input disabled="" type="checkbox"> Physics system</li>
+<li><input disabled="" type="checkbox"> Node-based effect editor demo</li>
+<li><input disabled="" type="checkbox"> Multi-threaded physics demo</li>
+<li><input disabled="" type="checkbox"> Fixed-camera platformer demo</li>
+<li><input disabled="" type="checkbox"> Vulkan rendering backend</li>
+<li><input disabled="" type="checkbox"> WGPU rendering backend</li>
+<li><input disabled="" type="checkbox"> DirectX rendering backend</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="top-level"><a class="header" href="#top-level">Top-Level</a></h2>
-<p>There are 4 primary layers: <strong>base</strong>, <strong>core</strong>, <strong>app</strong>, and <strong>ext</strong>. Each layer is dependent on the layers below it and independent from the layers above it. The layer <strong>app</strong> is split into <strong>game</strong> and <strong>tool</strong>. You’ll most likely use <strong>base</strong> + <strong>core</strong> or <strong>base</strong> + <strong>core</strong> + <strong>app</strong>. The layer <strong>etx</strong> is for optional extensions to any of the components of the layers below it.</p>
+<p>There are 4 primary layers: <em>base</em>, <em>core</em>, <em>app</em>, and <em>ext</em>. Each layer is dependent on the layers below it and independent from the layers above it. The layer <em>app</em> is split into <em>game</em> and <em>tool</em>. You’ll most likely use <em>base</em> + <em>core</em> or <em>base</em> + <em>core</em> + <em>app</em>. The layer <em>ext</em> is for optional extensions to any of the components of the layers below it.</p>
+<p><img src="top-level.svg" alt="top-level"></p>
 <ul>
 <li><strong>1. base</strong> — general procedures and data structured
 <ul>
@@ -277,15 +301,17 @@ Informally, the rules are:
 </li>
 <li><strong>4. ext</strong> — extensions to components from the layers bellow</li>
 </ul>
-<h2 id="state-modes"><a class="header" href="#state-modes">State Modes</a></h2>
-<p>Families of functions that construct something that is structurally equivalent to an array, a tree, or a graph, can be used in one of three different modes: <em>immediate mode</em>, <em>stack-retained mode</em>, or <em>graph-retained mode</em>.</p>
-<ul>
-<li><strong>immediate mode</strong> — params are not stored</li>
-<li><strong>stack-retained mode</strong> — params are stored in stacks</li>
-<li><strong>graph-retained mode</strong> — params are stored in nodes</li>
-</ul>
-<p>Example:</p>
-<pre><code class="language-c">dr_model :: proc { dr_model_im, dr_model_srm, dr_model_grm }
+<h2 id="context-trees"><a class="header" href="#context-trees">Context Trees</a></h2>
+<p>Certain families of objects—eg. entities in a scene, widgets in a GUI, commands in a render graph—naturally form a tree-like structure, where adjacent nodes have a <em>child</em>-<em>parent</em> relationship, and generally the parent provides some kind of context to the child, such that any procedure that constructs/processes the child requires to know who it’s parent is (and who the parent of it’s parent is and so on).</p>
+<p><img src="element-hierarchy.svg" alt="element-hierarchy"></p>
+<p>Procedures that operate on these object have three variants, each having a distinct way of gathering the needed parameters.</p>
+<ol>
+<li><strong>immediate mode (IM)</strong> — All the parameters are given directly to the procedure, such that you don’t have to construct a tree or manage any auxiliary state.</li>
+<li><strong>stack-retained mode (SRM)</strong> — Some of the parameters are gathered from parameter stacks, which represent the chain of nodes from the current object to the root node.</li>
+<li><strong>tree-retained mode (TRM)</strong> — The procedure is given a pointer to a node in an actual tree and it gathers the parameters by walking the tree.</li>
+</ol>
+<p>Here’s an example with <code>dr_model</code>:</p>
+<pre><code class="language-c">dr_model :: proc { dr_model_im, dr_model_srm, dr_model_trm }
 
 // Immediate Mode //
 dr_model_im(env, cam, model_1)
@@ -299,10 +325,10 @@ dr_model_srm(model_1)
 dr_model_srm(model_2)
 dr_model_srm(model_3)
 
-// Graph-Retained Mode //
-dr_model_grm(node, model_1)
-dr_model_grm(node, model_2)
-dr_model_grm(node, model_3)
+// Tree-Retained Mode //
+dr_model_trm(node, model_1)
+dr_model_trm(node, model_2)
+dr_model_trm(node, model_3)
 // (Goes up the graph until it finds a camera node or an env node.)
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -347,7 +373,7 @@ dr_model_grm(node, model_3)
 </code></pre>
 <p>If the <code>-r</code> option is enabled, Oggun will also preprocess all imported packages recursively, excluding the ones from the Odin standard library.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="api"><a class="header" href="#api">API</a></h1>
+<h1 id="odin-api"><a class="header" href="#odin-api">Odin API</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="bs"><a class="header" href="#bs">bs</a></h1>
 <p>This is the base layer, responsible mainly for initialization, synchronization, and configuration.</p>
@@ -1579,16 +1605,129 @@ Release the GPU memory associated with the image.
 Check if the image has been uploaded to the GPU.
 </details>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="gui"><a class="header" href="#gui">GUI</a></h1>
-<h2 id="procedures-7"><a class="header" href="#procedures-7">Procedures</a></h2>
-<h4 id="rect_margins"><a class="header" href="#rect_margins"><code>rect_margins</code></a></h4>
-<pre><code class="language-c">rect_margins :: proc(
-	rect_in: rect.Rect,
-	margins: f32) -&gt; (rect_out: rect.Rect)
+<h1 id="ui"><a class="header" href="#ui">ui</a></h1>
+<h2 id="rect-2"><a class="header" href="#rect-2">rect</a></h2>
+<p>Various layout construction procedures that operate on rectangles.</p>
+<h4 id="ui_rect_hovered"><a class="header" href="#ui_rect_hovered"><code>ui_rect_hovered</code></a></h4>
+<pre><code class="language-c">ui_rect_hovered :: proc(r: Rect) -&gt; bool
 </code></pre>
-<details><summary>Description</summary>
-Add margins to rectangle on all sides.
-</details>
+<h4 id="ui_rect_sect"><a class="header" href="#ui_rect_sect"><code>ui_rect_sect</code></a></h4>
+<pre><code class="language-c">ui_rect_sect :: proc(a, b: Rect) -&gt; (c: Rect)
+</code></pre>
+<p><img src="rect-sect.svg" alt="rect-sect"></p>
+<h4 id="ui_rect_union"><a class="header" href="#ui_rect_union"><code>ui_rect_union</code></a></h4>
+<pre><code class="language-c">ui_rect_union :: proc(a, b: Rect) -&gt; (c: Rect)
+</code></pre>
+<p><img src="rect-union.svg" alt="rect-union"></p>
+<h4 id="ui_rect_interpolate"><a class="header" href="#ui_rect_interpolate"><code>ui_rect_interpolate</code></a></h4>
+<pre><code class="language-c">ui_rect_interpolate :: proc(r: Rect, t: [2]f32) -&gt; (p: [2]f32)
+</code></pre>
+<p><img src="rect-interpolate.svg" alt="rect-interpolate"></p>
+<h4 id="ui_rect_interpolate_centered"><a class="header" href="#ui_rect_interpolate_centered"><code>ui_rect_interpolate_centered</code></a></h4>
+<pre><code class="language-c">ui_rect_interpolate_centered :: proc(r: Rect, t: [2]f32) -&gt; (p: [2]f32)
+</code></pre>
+<p><img src="rect-interpolate-centered.svg" alt="rect-interpolate-centered"></p>
+<h4 id="ui_rect_fit"><a class="header" href="#ui_rect_fit"><code>ui_rect_fit</code></a></h4>
+<pre><code class="language-c">ui_rect_fit :: proc(
+	rect, container: Rect,
+	fit: UI_Fit) -&gt; (result: Rect)
+
+UI_Fit :: enum {
+	NONE,
+	FILL,
+	COVER,
+	CONTAIN,
+	SCALE_DOWN }
+</code></pre>
+<p><img src="rect-fit-none.svg" alt="rect-fit-none"></p>
+<p><img src="rect-fit-fill.svg" alt="rect-fit-fill"></p>
+<p><img src="rect-fit-cover.svg" alt="rect-fit-cover"></p>
+<p><img src="rect-fit-contain.svg" alt="rect-fit-contain"></p>
+<h4 id="ui_rect_embed"><a class="header" href="#ui_rect_embed"><code>ui_rect_embed</code></a></h4>
+<pre><code class="language-c">ui_rect_embed :: proc(
+	rect: Rect,
+	size: [2]f32,
+	pivot: bit_set[Compass] = {}) -&gt; (result: Rect)
+</code></pre>
+<p><img src="rect-embed.svg" alt="rect-embed"></p>
+<h4 id="ui_rect_margins"><a class="header" href="#ui_rect_margins"><code>ui_rect_margins</code></a></h4>
+<pre><code class="language-c">ui_rect_margins :: proc {
+	ui_rect_margins_i,
+	ui_rect_margins_r }
+</code></pre>
+<pre><code class="language-c">ui_rect_margins_i :: proc(
+	rect: Rect,
+	margin: Interval) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_margins_r :: proc(
+	rect: Rect,
+	margin: Ratio) -&gt; (result: Rect)
+</code></pre>
+<p><img src="rect-margins.svg" alt="rect-margins"></p>
+<h4 id="ui_rect_margins_variate"><a class="header" href="#ui_rect_margins_variate"><code>ui_rect_margins_variate</code></a></h4>
+<pre><code class="language-c">ui_rect_margins_variate :: proc {
+	ui_rect_margins_variate_r,
+	ui_rect_margins_variate_i }
+</code></pre>
+<pre><code class="language-c">ui_rect_margins_variate_r :: proc(
+	rect: Rect,
+	west: Ratio = 0,
+	east: Ratio = 0,
+	south: Ratio = 0,
+	north: Ratio = 0) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_margins_variate_i :: proc(
+	rect: Rect,
+	west: Interval = 0,
+	east: Interval = 0,
+	south: Interval = 0,
+	north: Interval = 0) -&gt; (result: Rect)
+</code></pre>
+<p><img src="rect-margins-variate.svg" alt="rect-margins-variate"></p>
+<h4 id="ui_rect_extend"><a class="header" href="#ui_rect_extend"><code>ui_rect_extend</code></a></h4>
+<pre><code class="language-c">ui_rect_extend :: proc {
+	ui_rect_extend_i,
+	ui_rect_extend_r }
+</code></pre>
+<pre><code class="language-c">ui_rect_extend_i :: proc(
+	rect: Rect,
+	extent: Interval) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_extend_r :: proc(
+	rect: Rect,
+	extent: Ratio) -&gt; (result: Rect)
+</code></pre>
+<p><img src="rect-extend.svg" alt="rect-extend"></p>
+<h4 id="ui_rect_extend_variate"><a class="header" href="#ui_rect_extend_variate"><code>ui_rect_extend_variate</code></a></h4>
+<pre><code class="language-c">ui_rect_extend_variate :: proc {
+	ui_rect_extend_variate_r,
+	ui_rect_extend_variate_i }
+</code></pre>
+<pre><code class="language-c">ui_rect_extend_variate_r :: proc(
+	rect: Rect,
+	west: Ratio = 0,
+	east: Ratio = 0,
+	south: Ratio = 0,
+	north: Ratio = 0) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_extend_variate_i :: proc(
+	rect: Rect,
+	west: Interval = 0,
+	east: Interval = 0,
+	south: Interval = 0,
+	north: Interval = 0) -&gt; (result: Rect)
+</code></pre>
+<p><img src="rect-extend-variate.svg" alt="rect-extend-variate"></p>
+<h4 id="rect_split_h"><a class="header" href="#rect_split_h"><code>rect_split_h</code></a></h4>
+<pre><code class="language-c">rect_split_h :: proc(a: Rect, s, m: Ratio) -&gt; (b, c: Rect)
+</code></pre>
+<pre><code class="language-c">rect_split_h :: proc(a: Rect, s, m: Interval) -&gt; (b, c: Rect)
+</code></pre>
+<pre><code class="language-c">rect_split_h :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b, c: Rect)
+</code></pre>
+<pre><code class="language-c">rect_split_h :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b, c: Rect)
+</code></pre>
+<p><img src="rect-split-h.svg" alt="rect-split-h"></p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="input-1"><a class="header" href="#input-1">Input</a></h1>
 <pre><code class="language-c">package input_sys
@@ -1766,7 +1905,7 @@ input_sys.process(&amp;in_mngr)
 	Pressed,
 	Released }
 </code></pre>
-<h3 id="procedures-8"><a class="header" href="#procedures-8">Procedures</a></h3>
+<h3 id="procedures-7"><a class="header" href="#procedures-7">Procedures</a></h3>
 <h4 id="process"><a class="header" href="#process"><code>process</code></a></h4>
 <pre><code class="language-c">process :: proc(
 	im: ^Input_Manager)
@@ -1961,7 +2100,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	node: Node,
 	using model: ^gx.Model }
 </code></pre>
-<h3 id="procedures-9"><a class="header" href="#procedures-9">Procedures</a></h3>
+<h3 id="procedures-8"><a class="header" href="#procedures-8">Procedures</a></h3>
 <h4 id="make_scene"><a class="header" href="#make_scene"><code>make_scene</code></a></h4>
 <p>The intended way to construct a <code>Scene</code>.</p>
 <pre><code class="language-c">make_scene :: proc(
@@ -2136,7 +2275,7 @@ example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	dll_relpath: string,
 	modification_time: tm.Time }
 </code></pre>
-<h3 id="procedures-10"><a class="header" href="#procedures-10">Procedures</a></h3>
+<h3 id="procedures-9"><a class="header" href="#procedures-9">Procedures</a></h3>
 <h4 id="make_dll"><a class="header" href="#make_dll"><code>make_dll</code></a></h4>
 <pre><code class="language-c">make_dll :: proc(
 	$T: typeid,
@@ -2174,6 +2313,52 @@ Reload a given DLL.
 <details><summary>Description</summary>
 Check if the source of a given DLL has been modified, and if it has, reload it and return true.
 </details>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="glsl-api"><a class="header" href="#glsl-api">GLSL API</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="clip"><a class="header" href="#clip">clip</a></h1>
+<h4 id="clip_point"><a class="header" href="#clip_point"><code>clip_point</code></a></h4>
+<pre><code class="language-c">bool clip_point(vec2 v, vec4 c)
+</code></pre>
+<h4 id="clip_point_rounded"><a class="header" href="#clip_point_rounded"><code>clip_point_rounded</code></a></h4>
+<pre><code class="language-c">bool clip_point_rounded(vec2 v, vec4 c, float r)
+</code></pre>
+<h4 id="clip_color"><a class="header" href="#clip_color"><code>clip_color</code></a></h4>
+<pre><code class="language-c">vec4 clip_color(vec4 v, vec2 p, vec4 c)
+</code></pre>
+<h4 id="clip_color_rounded"><a class="header" href="#clip_color_rounded"><code>clip_color_rounded</code></a></h4>
+<pre><code class="language-c">vec4 clip_color_rounded(vec4 v, vec2 p, vec4 c, float r)
+</code></pre>
+<h4 id="clip_value_rounded"><a class="header" href="#clip_value_rounded"><code>clip_value_rounded</code></a></h4>
+<pre><code class="language-c">float clip_value_rounded(float v, vec2 p, vec4 c, float r)
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="msaa"><a class="header" href="#msaa">msaa</a></h1>
+<h4 id="msaa2_scope"><a class="header" href="#msaa2_scope"><code>msaa2_scope</code></a></h4>
+<pre><code class="language-c">#define msaa2_scope_begin(msaa2_acc, msaa2_res)
+</code></pre>
+<pre><code class="language-c">#define msaa2_scope_end(msaa2_acc)
+</code></pre>
+<h4 id="msaa4_scope"><a class="header" href="#msaa4_scope"><code>msaa4_scope</code></a></h4>
+<pre><code class="language-c">#define msaa4_scope_begin(msaa4_acc, msaa4_res)
+</code></pre>
+<pre><code class="language-c">#define msaa4_scope_end(msaa4_acc)
+</code></pre>
+<h4 id="msaa8_scope"><a class="header" href="#msaa8_scope"><code>msaa8_scope</code></a></h4>
+<pre><code class="language-c">#define msaa8_scope_begin(msaa8_acc, msaa8_res)
+</code></pre>
+<pre><code class="language-c">#define msaa8_scope_end(msaa8_acc)
+</code></pre>
+<h4 id="msaa16_scope"><a class="header" href="#msaa16_scope"><code>msaa16_scope</code></a></h4>
+<pre><code class="language-c">#define msaa16_scope_begin(msaa16_acc, msaa16_res)
+</code></pre>
+<pre><code class="language-c">#define msaa16_scope_end(msaa16_acc)
+</code></pre>
+<h4 id="msaaoff_scope"><a class="header" href="#msaaoff_scope"><code>msaaoff_scope</code></a></h4>
+<pre><code class="language-c">#define msaaoff_scope_begin(msaaoff_acc, msaaoff_res)
+</code></pre>
+<pre><code class="language-c">#define msaaoff_scope_end(msaaoff_acc)
+</code></pre>
 
                     </main>
 

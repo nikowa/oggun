@@ -2,7 +2,9 @@
 
 ## Top-Level
 
-There are 4 primary layers: **base**, **core**, **app**, and **ext**. Each layer is dependent on the layers below it and independent from the layers above it. The layer **app** is split into **game** and **tool**. You'll most likely use **base** + **core** or **base** + **core** + **app**. The layer **etx** is for optional extensions to any of the components of the layers below it.
+There are 4 primary layers: *base*, *core*, *app*, and *ext*. Each layer is dependent on the layers below it and independent from the layers above it. The layer *app* is split into *game* and *tool*. You'll most likely use *base* + *core* or *base* + *core* + *app*. The layer *ext* is for optional extensions to any of the components of the layers below it.
+
+![top-level](top-level.svg)
 
 - **1. base** --- general procedures and data structured
 	- 1.1. *bs*
@@ -30,18 +32,22 @@ There are 4 primary layers: **base**, **core**, **app**, and **ext**. Each layer
 	- *ti* --- tools interface
 - **4. ext** --- extensions to components from the layers bellow
 
-## State Modes
+## Context Trees
 
-Families of functions that construct something that is structurally equivalent to an array, a tree, or a graph, can be used in one of three different modes: _immediate mode_, _stack-retained mode_, or _graph-retained mode_.
+Certain families of objects—eg. entities in a scene, widgets in a GUI, commands in a render graph—naturally form a tree-like structure, where adjacent nodes have a *child*-*parent* relationship, and generally the parent provides some kind of context to the child, such that any procedure that constructs/processes the child requires to know who it's parent is (and who the parent of it's parent is and so on).
 
-- **immediate mode** --- params are not stored
-- **stack-retained mode** --- params are stored in stacks
-- **graph-retained mode** --- params are stored in nodes
+![element-hierarchy](element-hierarchy.svg)
 
-Example:
+Procedures that operate on these object have three variants, each having a distinct way of gathering the needed parameters.
+
+1. **immediate mode (IM)** --- All the parameters are given directly to the procedure, such that you don't have to construct a tree or manage any auxiliary state.
+2. **stack-retained mode (SRM)** --- Some of the parameters are gathered from parameter stacks, which represent the chain of nodes from the current object to the root node.
+3. **tree-retained mode (TRM)** --- The procedure is given a pointer to a node in an actual tree and it gathers the parameters by walking the tree.
+
+Here's an example with `dr_model`:
 
 ```c
-dr_model :: proc { dr_model_im, dr_model_srm, dr_model_grm }
+dr_model :: proc { dr_model_im, dr_model_srm, dr_model_trm }
 
 // Immediate Mode //
 dr_model_im(env, cam, model_1)
@@ -55,9 +61,9 @@ dr_model_srm(model_1)
 dr_model_srm(model_2)
 dr_model_srm(model_3)
 
-// Graph-Retained Mode //
-dr_model_grm(node, model_1)
-dr_model_grm(node, model_2)
-dr_model_grm(node, model_3)
+// Tree-Retained Mode //
+dr_model_trm(node, model_1)
+dr_model_trm(node, model_2)
+dr_model_trm(node, model_3)
 // (Goes up the graph until it finds a camera node or an env node.)
 ```

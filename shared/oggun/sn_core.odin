@@ -26,6 +26,7 @@ scene_attach :: proc(scene: ^Scene, child: ^Node) {
 
 // (TODO): Add an url.
 // (TODO): Add serialize, deserialize, import, and save.
+// (TODO): Rename to "Scene_Tree"
 Tree :: struct {
 	root: ^Node }
 
@@ -72,6 +73,7 @@ Node :: struct {
 	// transform: matrix[4, 4]f32
 
 // (TODO): Implement this, so I can nest nodes and tarnsforms are applied recursively.
+// (TODO): Rename to "Transform". //
 Node_Transform :: struct {
 	translate: matrix[4, 4]f32,
 	rotate: matrix[4, 4]f32,

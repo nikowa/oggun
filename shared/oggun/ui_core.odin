@@ -1055,15 +1055,15 @@ ui_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, l
 	ui_text_style_scope(engine.ui_manager.text_style)
 	width := dr_text_line(header, position + { UI_ICON_SIZE.x / 2 + UI_SPACING_XS, 0 }, pivot={ .West })
 	icon_rect: Rect = { position, UI_ICON_SIZE }
-	button_rect := rect_extend_variate(icon_rect, east=Interval(width + UI_SPACING_XS))
+	button_rect := ui_rect_extend_variate(icon_rect, east=Interval(width + UI_SPACING_XS))
 	t := ui_anim_transition([2]f32{ 0, 1 }, 1, CHEVRON_ANIM_SPEED, false, .PRESS in ui_button_control(button_rect), location=location)
 	dr_icon(.Chevron, position, angle = t * math.PI / 2)
 	// dr_rect_outline(rect, RED)
 	// dr_rect_outline(button_rect, RED)
 	panel = { position + { - UI_ICON_SIZE.x / 2, - UI_ICON_SIZE.y / 2 } + { panel_size.x / 2, -panel_size.y / 2 }, panel_size }
-	panel = rect_margins_variate_r(panel, south=Ratio(t))
+	panel = ui_rect_margins_variate_r(panel, south=Ratio(t))
 	// dr_rect_outline(panel, RED)
-	clip: Clip = { rect = rect_sect(panel, gx_clip_get().rect) }
+	clip: Clip = { rect = ui_rect_sect(panel, gx_clip_get().rect) }
 	gx_clip_push(clip)
 	return panel }
 

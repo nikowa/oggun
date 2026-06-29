@@ -8,7 +8,7 @@ import "core:log"
 import "core:strings"
 
 ui_metrics_widget :: proc() {
-	metrics_rect := rect_embed(rect_margins(rect_screen(), Interval(8)), { 320, 24 }, { .West, .South })
+	metrics_rect := ui_rect_embed(ui_rect_margins(rect_screen(), Interval(8)), { 320, 24 }, { .West, .South })
 
 	bg_color := ui_get_background_color()[0]
 

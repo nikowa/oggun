@@ -3,8 +3,8 @@ set shell := ["powershell.exe", "-c"]
 
 default: current
 
-current: example_graph
-	examples/graph.exe
+current: example_modes
+	examples/modes.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
 
@@ -53,5 +53,11 @@ example_sync: lib
 
 example_graph: lib
 	odin build examples/graph -out:examples/graph.exe {{flags}}
+
+example_prop: lib
+	odin build examples/prop -out:examples/prop.exe {{flags}}
+
+example_modes: lib
+	odin build examples/modes -out:examples/modes.exe {{flags}}
 
 examples: example_input example_gui example_neon example_sprites example_sync example_graph

@@ -161,7 +161,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			// rect.size.y = ui_measure_text_box(text, rect.size.x)
 
 
-			// dr_rect(rect_margins(rect, Interval(-8)), fill_color = bg_color, radius = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
+			// dr_rect(ui_rect_margins(rect, Interval(-8)), fill_color = bg_color, radius = 4, stroke_color = stroke_color/*BLACK*/, stroke = 1)
 			// dr_text_box(text, rect, h_align = .JUSTIFY, v_align = .CENTER, integer = false)
 		}
 		free_all(context.temp_allocator) }

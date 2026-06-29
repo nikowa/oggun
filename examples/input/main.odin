@@ -15,7 +15,7 @@ query :: proc() -> struct #raw_union { scalar: f32, boolean: b32 } {
 
 key_margins :: proc(rect_in: oggun.Rect) -> (rect_out: oggun.Rect) {
 	using oggun
-	return rect_extend_variate(rect_in, Interval(-7), Interval(-7), Interval(-7), Interval(-2)) }
+	return ui_rect_extend_variate(rect_in, Interval(-7), Interval(-7), Interval(-7), Interval(-2)) }
 
 @(export)
 make_rects :: proc(keyboard_rect: oggun.Rect, allocator: runtime.Allocator) -> []oggun.Rect {

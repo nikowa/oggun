@@ -17,7 +17,7 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 		rect = rect_scale(rect, { scale, scale })
 		if rect.size.y == 0 do rect.size.y = ui_measure_text_box(plot_node.label, rect.size.x) }
 	text_rect := rect
-	rect = rect_extend(rect, Interval(graph.padding))
+	rect = ui_rect_extend(rect, Interval(graph.padding))
 	background_color: Color = plot_node.background_color if plot_node.background_color != 0 else graph.default_background_color
 	stroke_color: Color = plot_node.stroke_color if plot_node.stroke_color != 0 else graph.default_stroke_color
 	dr_rect(
@@ -81,7 +81,7 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 		if nodes[0]._rect.position.y < nodes[1]._rect.position.y do sides = { .North, .South }
 		else do sides = { .South, .North } }
 	// DICK
-	rects: [2]Rect = { rect_extend(nodes[0]._rect, Interval(graph.edge_margins)), rect_extend(nodes[1]._rect, Interval(graph.edge_margins)) }
+	rects: [2]Rect = { ui_rect_extend(nodes[0]._rect, Interval(graph.edge_margins)), ui_rect_extend(nodes[1]._rect, Interval(graph.edge_margins)) }
 	a, b := rect_side(rects[0], sides[0]), rect_side(rects[1], sides[1])
 	a1, b1 := a + margin * compass_normal(sides[0]), b + margin * compass_normal(sides[1])
 	c: [2]f32 = { a1.x, b1.y }

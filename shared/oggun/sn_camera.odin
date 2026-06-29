@@ -71,7 +71,7 @@ sn_camera_2d_tick :: proc(camera: ^Camera_2D) {
 		matrix3_translate_f32(- camera.rect.position) }
 
 sn_camera_2d_map_point :: proc(camera: ^Camera_2D, dest_rect: Rect, point: [2]f32) -> [2]f32 {
-	return rect_interpolate_centered(dest_rect, matrix3_apply(camera.view_matrix, point)) }
+	return ui_ui_rect_interpolate_centered(dest_rect, matrix3_apply(camera.view_matrix, point)) }
 
 sn_camera_2d_map_rect :: proc(camera: ^Camera_2D, dest_rect: Rect, rect: Rect) -> Rect {
 	range := rect_range(rect)
