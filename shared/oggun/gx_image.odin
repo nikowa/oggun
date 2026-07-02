@@ -18,6 +18,11 @@ Image_Asset :: struct {
 	gpu_modification_time: time.Time,
 	handle: u32 }
 
+init_image :: proc(image: ^Image_Asset, config: Asset_Config) {
+	config := config
+	config.derived_type = Image_Asset
+	am_init_asset(Image_Asset, &image.asset, config) }
+
 image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 	return (a.url == b.url) &&
 		(a.width == b.width) &&
@@ -26,11 +31,6 @@ image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 		(a.background == b.background) &&
 		(a.metadata == b.metadata) &&
 		(a.which == b.which) }
-
-init_image :: proc(image: ^Image_Asset, config: Asset_Config) {
-	config := config
-	config.derived_type = Image_Asset
-	am_init_asset(Image_Asset, &image.asset, config) }
 
 image_modification_time :: proc(image: ^Image_Asset, location: Asset_Location_Field) -> (modification_time: time.Time) {
 	switch location {

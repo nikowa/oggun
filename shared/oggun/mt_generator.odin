@@ -45,20 +45,6 @@ gn_generate_defaults :: proc(oggun_path: string) {
 	fmt.sbprintln(&builder, `import "base:runtime"`)
 	gn_timestamp(&builder)
 
-	parse_file :: proc(source_path: string, source: string) -> (node: ast.Node) {
-		NO_POS :: tokenizer.Pos{}
-		pkg := ast.new_from_positions(ast.Package, NO_POS, NO_POS)
-		pkg.fullpath = source_path
-		file := ast.new(ast.File, NO_POS, NO_POS)
-		file.pkg = pkg
-		file.src = source
-		file.fullpath = source_path
-		pkg.files[file.fullpath] = file
-		par := parser.default_parser()
-		par.err, par.warn = stub_error_handler, stub_error_handler
-		ok := parser.parse_file(&par, file)
-		return file.node }
-
 	node_to_string :: proc(source: string, node: ast.Node) -> string {
 		return source[node.pos.offset : max(node.end.offset, node.pos.offset)] }
 
@@ -107,7 +93,7 @@ gn_generate_defaults :: proc(oggun_path: string) {
 		if os.ext(source_path) != ".odin" do continue
 		source_bytes, _ := os.read_entire_file_from_path(source_path, context.allocator)
 		source: string = string(source_bytes)
-		file_node := parse_file(source_path, source)
+		file_node := mt_parse_file(source_path, source)
 		config_types_data: Config_Types_Data = {
 			source = source,
 			config_type_infos = &config_type_infos }
@@ -148,7 +134,7 @@ gn_generate_defaults :: proc(oggun_path: string) {
 		if os.ext(source_path) != ".odin" do continue
 		source_bytes, _ := os.read_entire_file_from_path(source_path, context.allocator)
 		source: string = string(source_bytes)
-		file_node := parse_file(source_path, source)
+		file_node := mt_parse_file(source_path, source)
 		config_instances_data: Config_Instances_Data = {
 			source = source,
 			config_type_infos = &config_type_infos }
@@ -232,6 +218,6 @@ gn_generate_stacks :: proc(oggun_path: string) {
 	gn_generate_stack(generator, "text_style", "Text_Style", "engine.ui_manager.text_style", "ui_manager")
 	gn_generator_commit(generator, oggun_path)
 	generator = gn_get_generator("gx")
-	gn_generate_stack(generator, "clip", "Clip", "{ rect_screen(), 0 }", "graphics_manager")
+	gn_generate_stack(generator, "clip", "Clip", "{ ui_rect_screen(), 0 }", "graphics_manager")
 	gn_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
 	gn_generator_commit(generator, oggun_path) }

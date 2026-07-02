@@ -59,20 +59,10 @@ Engine :: struct {
 	tracking_allocator: mem.Tracking_Allocator,
 	tracking_temp_allocator: mem.Tracking_Allocator }
 
-get_frame_rate :: proc() -> f32 {
-	return engine.tick_manager.frame_rate }
-
-engine_end_init :: proc() -> runtime.Context {
-	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
-	// explicitly use "engine.backing_allocator".
-	engine.backing_allocator = context.allocator
-	context.allocator = context.temp_allocator
-	return context }
-
 engine: ^Engine
 
-@(private="file")
 MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
+
 Thread_Data :: struct {
 	index: u32,
 	_magic_number: u32,
@@ -102,8 +92,7 @@ ptr_is_temp :: proc(ptr: rawptr) -> bool {
 	return (cast(uintptr)ptr >= cast(uintptr)slice.first_ptr(engine.temp_arena.data)) &&
 	       (cast(uintptr)ptr <= cast(uintptr)slice.last_ptr(engine.temp_arena.data)) }
 
-@require_results
-engine_begin_init :: proc(
+@require_results engine_begin_init :: proc(
 		engine_config: Engine_Config = DEFAULT_ENGINE_CONFIG,
 		asset_config: Asset_Manager_Config = DEFAULT_ASSET_MANAGER_CONFIG,
 		window_config: Window_Config = DEFAULT_WINDOW_CONFIG,
@@ -141,6 +130,13 @@ engine_begin_init :: proc(
 	settings_manager_init(&engine.settings_manager, settings_config)
 	tick_manager_init(&engine.tick_manager, tick_config)
 	zero_stopwatch(&engine.stopwatch)
+	return context }
+
+engine_end_init :: proc() -> runtime.Context {
+	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
+	// explicitly use "engine.backing_allocator".
+	engine.backing_allocator = context.allocator
+	context.allocator = context.temp_allocator
 	return context }
 
 engine_running :: proc() -> bool {
@@ -194,3 +190,6 @@ start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 		thread_context.user_ptr = data
 		if i > 0 do thread.create_and_start_with_data(data, worker_proc, thread_context, .Normal)
 		else do worker_proc(data) } }
+
+get_frame_rate :: proc() -> f32 {
+	return engine.tick_manager.frame_rate }

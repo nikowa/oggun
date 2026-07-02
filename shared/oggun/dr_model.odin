@@ -23,7 +23,7 @@ Scene_Element :: struct {
 	transform: Transform,
 	visible: bool }
 
-DEFAULT_SCENE_ELEMENT: Scene_Element : { } // (TODO)
+// DEFAULT_SCENE_ELEMENT: Scene_Element : { } // (TODO)
 
 Scene_Element_Param :: struct {
 	id: enum {
@@ -41,14 +41,15 @@ Scene_Element_Param :: struct {
 
 // (TODO): This will cache the last node, to save itseslf some work.
 scene_element_from_node :: proc(node: ^Tree_Node(Scene_Element_Param, u16)) -> (scene_element: Scene_Element) {
-	scene_element = DEFAULT_SCENE_ELEMENT
-	curr := node
-	for {
-		// curr = tree_node_parent(node) or_break
-		// camera := curr.(camera) or_continue
-		// scene_element.camera = camera
-	}
-	curr = node
+	// scene_element = DEFAULT_SCENE_ELEMENT
+	// curr := node
+	// for {
+	// 	// curr = tree_node_parent(node) or_break
+	// 	// camera := curr.(camera) or_continue
+	// 	// scene_element.camera = camera
+	// }
+	// curr = node
+	return {}
 }
 
 dr_model_trm :: proc(node: ^Tree_Node(Scene_Element_Param, u16), model: ^Model) {
@@ -60,6 +61,7 @@ dr_model_im :: proc(element: Scene_Element, model: ^Model) {
 
 _dr_model_im :: proc(element: Scene_Element, model: ^Model) {
 	using Model_Shader_Uniforms
+	element := element
 	use_shader(&engine.graphics_manager.model_shader)
 	set_shader_param(MODEL_MATRIX, &element.transformer.total)
 	set_shader_param(CAMERA_POSITION_MATRIX, &element.camera.view_matrix)

@@ -1,9 +1,9 @@
 package oggun
-// Generated at 16:09:20 //
+// Generated at 17:28:06 //
 
 
 gx_clip_get :: proc() -> Clip {
-	if len(engine.graphics_manager.clip_stack) == 0 do return { rect_screen(), 0 }
+	if len(engine.graphics_manager.clip_stack) == 0 do return { ui_rect_screen(), 0 }
 	return engine.graphics_manager.clip_stack[len(engine.graphics_manager.clip_stack) - 1] }
 
 @(deferred_none=gx_clip_pop)

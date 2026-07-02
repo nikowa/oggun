@@ -19,3 +19,11 @@
 - [ ] Vulkan rendering backend
 - [ ] WGPU rendering backend
 - [ ] DirectX rendering backend
+
+# API Status
+
+I have marked some types & procedures with red, yellow, or green, to indicate their development status.
+
+- 🟩 decidedly final for the foreseeable future
+- 🟨 might need a rework
+- 🟥 decidedly needs a rework

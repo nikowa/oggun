@@ -14,7 +14,7 @@ DEFAULT_SCENE_CONFIG: Scene_Config : {
 
 Scene :: struct {
 	using config: Scene_Config,
-	tree: Tree }
+	tree: Scene_Tree }
 
 make_scene :: proc(url: URL) -> (scene: Scene) {
 	scene.url = url
@@ -26,8 +26,8 @@ scene_attach :: proc(scene: ^Scene, child: ^Node) {
 
 // (TODO): Add an url.
 // (TODO): Add serialize, deserialize, import, and save.
-// (TODO): Rename to "Scene_Tree"
-Tree :: struct {
+// (TODO): Rename to "Scene_Scene_Tree"
+Scene_Tree :: struct {
 	root: ^Node }
 
 Node_Render_Proc :: #type proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
@@ -97,7 +97,7 @@ render_scene :: proc(scene: ^Scene, camera_node: ^Camera_Node) {
 	render_node(scene, nil, &camera_node.node) }
 
 tick_scene :: proc(scene: ^Scene) {
-	tree_iterator: Tree_Iterator
+	tree_iterator: Scene_Tree_Iterator
 
 	assert(scene != nil)
 	tree_iterator = tree_iterator_root(&scene.tree)
@@ -120,7 +120,7 @@ make_derived_node :: proc($Derived_Node_Type: typeid, node_config: Node_Config, 
 	init_node(&derived_node.node, node_config)
 	return derived_node }
 
-tree_attach_root :: proc(tree: ^Tree, node: ^Node) {
+tree_attach_root :: proc(tree: ^Scene_Tree, node: ^Node) {
 	tree.root = node }
 
 node_attach_sibling :: proc(node: ^Node, sibling: ^Node) {
@@ -146,57 +146,57 @@ node_detach :: proc(node: ^Node) {
 	node.first_sibling = nil
 	node.next_sibling = nil }
 
-Tree_Iterator :: struct {
+Scene_Tree_Iterator :: struct {
 	curr: ^Node }
 
 node_object :: proc(node: ^Node, $T: typeid, $field_name: string) -> (^T) {
 	offset: uintptr = offset_of_by_string(T, field_name)
 	return cast(^T)(uintptr(node) - offset) }
 
-tree_iterator_root :: proc(tree: ^Tree) -> Tree_Iterator {
+tree_iterator_root :: proc(tree: ^Scene_Tree) -> Scene_Tree_Iterator {
 	return { curr = tree.root } }
 
-tree_iterator_node :: proc(node: ^Node) -> Tree_Iterator {
+tree_iterator_node :: proc(node: ^Node) -> Scene_Tree_Iterator {
 	return { curr = node } }
 
-tree_iterate_next :: proc "contextless" (iterator: ^Tree_Iterator) -> (node: ^Node, ok: bool) {
+tree_iterate_next :: proc "contextless" (iterator: ^Scene_Tree_Iterator) -> (node: ^Node, ok: bool) {
 	node = iterator.curr
 	if node == nil do return nil, false
 	if node.next_sibling != nil do iterator.curr = node.next_sibling
 	else do iterator.curr = (node.parent != nil) ? node.parent.first_child.first_child : node.first_child
 	return node, true }
 
-tree_iterate_prev :: proc "contextless" (iterator: ^Tree_Iterator) -> (node: ^Node, ok: bool) {
+tree_iterate_prev :: proc "contextless" (iterator: ^Scene_Tree_Iterator) -> (node: ^Node, ok: bool) {
 	node = iterator.curr
 	if node == nil do return nil, false
 	if node.prev_sibling != nil do iterator.curr = node.prev_sibling
 	else do iterator.curr = node.parent
 	return node, true }
 
-tree_iterate_next_sibling :: proc "contextless" (iterator: ^Tree_Iterator) -> (node: ^Node, ok: bool) {
+tree_iterate_next_sibling :: proc "contextless" (iterator: ^Scene_Tree_Iterator) -> (node: ^Node, ok: bool) {
 	node = iterator.curr
 	if node == nil do return nil, false
 	if node.next_sibling != nil do iterator.curr = node.next_sibling
 	else do iterator.curr = nil
 	return node, true }
 
-tree_iterate_prev_sibling :: proc "contextless" (iterator: ^Tree_Iterator) -> (node: ^Node, ok: bool) {
+tree_iterate_prev_sibling :: proc "contextless" (iterator: ^Scene_Tree_Iterator) -> (node: ^Node, ok: bool) {
 	node = iterator.curr
 	if node == nil do return nil, false
 	if node.prev_sibling != nil do iterator.curr = node.prev_sibling
 	else do iterator.curr = nil
 	return node, true }
 
-tree_search_by_name :: proc(tree: ^Tree, name: string) -> (result: ^Node) {
-	iterator: Tree_Iterator
+tree_search_by_name :: proc(tree: ^Scene_Tree, name: string) -> (result: ^Node) {
+	iterator: Scene_Tree_Iterator
 
 	iterator = tree_iterator_root(tree)
 	for node in tree_iterate_next(&iterator) {
 		if node.name == name do return node }
 	return nil }
 
-tree_search_by_proc :: proc(tree: ^Tree, condition_proc: proc(node: ^Node, user_data: $T) -> bool, user_data: T) -> (result: ^Node) {
-	iterator: Tree_Iterator
+tree_search_by_proc :: proc(tree: ^Scene_Tree, condition_proc: proc(node: ^Node, user_data: $T) -> bool, user_data: T) -> (result: ^Node) {
+	iterator: Scene_Tree_Iterator
 
 	iterator = tree_iterator_root(tree)
 	for node in tree_iterate_next(&iterator) {

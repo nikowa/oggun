@@ -1,5 +1,10 @@
 #+feature using-stmt
 package oggun
+import "core:math"
+import "core:math/linalg"
+
+ui_rect_screen :: proc() -> Rect {
+	return make_rect(0.0, 0.0, engine.graphics_manager.active_resolution.x, engine.graphics_manager.active_resolution.y) }
 
 ui_rect_hovered :: proc(r: Rect) -> bool {
 	return rect_contains_point(r, engine.input_manager.mouse_position) }
@@ -119,3 +124,246 @@ ui_rect_extend_variate_r :: proc(rect: Rect, west: Ratio = 0, east: Ratio = 0, s
 
 ui_rect_extend_variate_i :: proc(rect: Rect, west: Interval = 0, east: Interval = 0, south: Interval = 0, north: Interval = 0) -> (result: Rect) {
 	return ui_rect_margins_variate_i(rect, -west, -east, -south, -north) }
+
+ui_rect_split_h :: proc { ui_rect_split_h_rr, ui_rect_split_h_ri, ui_rect_split_h_ir, ui_rect_split_h_ii }
+
+ui_rect_split_h_rr :: proc(a: Rect, s: Ratio, m: Ratio) -> (b: Rect, c: Rect) {
+	return ui_rect_split_h_ii(a, Interval(f32(s) * a.size.x), Interval(f32(m) * a.size.x)) }
+
+ui_rect_split_h_ri :: proc(a: Rect, s: Ratio, m: Interval) -> (b: Rect, c: Rect) {
+	return ui_rect_split_h_ii(a, Interval(f32(s) * a.size.x), m) }
+
+ui_rect_split_h_ir :: proc(a: Rect, s: Interval, m: Ratio) -> (b: Rect, c: Rect) {
+	return ui_rect_split_h_ii(a, s, Interval(f32(m) * a.size.x)) }
+
+ui_rect_split_h_ii :: proc(a: Rect, s: Interval, m: Interval) -> (b: Rect, c: Rect) {
+	b  = a
+	c = a
+
+	b.size.x  = f32(s) - f32(m) / 2
+	c.size.x = (a.size.x - f32(s)) - f32(m) / 2
+
+	b.position.x  += - a.size.x / 2 + b.size.x  / 2
+	c.position.x +=   a.size.x / 2 - c.size.x / 2
+
+	return b, c }
+
+ui_rect_split_v :: proc { ui_rect_split_v_rr, ui_rect_split_v_ri, ui_rect_split_v_ir, ui_rect_split_v_ii }
+
+ui_rect_split_v_rr :: proc(a: Rect, s: Ratio, m: Ratio) -> (b: Rect, c: Rect) {
+	return ui_rect_split_v_ii(a, Interval(f32(s) * a.size.y), Interval(f32(m) * a.size.y)) }
+
+ui_rect_split_v_ri :: proc(a: Rect, s: Ratio, m: Interval) -> (b: Rect, c: Rect) {
+	return ui_rect_split_v_ii(a, Interval(f32(s) * a.size.y), m) }
+
+ui_rect_split_v_ir :: proc(a: Rect, s: Interval, m: Ratio) -> (b: Rect, c: Rect) {
+	return ui_rect_split_v_ii(a, s, Interval(f32(m) * a.size.y)) }
+
+ui_rect_split_v_ii :: proc(a: Rect, s: Interval, m: Interval) -> (b: Rect, c: Rect) {
+	b = a
+	c = a
+
+	b.size.y    = f32(s) -       f32(m) / 2
+	c.size.y = (a.size.y - f32(s)) - f32(m) / 2
+
+	c.position.y += - a.size.y / 2 + c.size.y / 2
+	b.position.y    +=   a.size.y / 2 - b.size.y    / 2
+
+	return b, c }
+
+ui_rect_slice_h :: proc { ui_rect_slice_h_append_i, ui_rect_slice_h_make_i, ui_rect_slice_h_append_r, ui_rect_slice_h_make_r }
+
+Slice_H_Iterator :: struct {
+	i: int,
+	next: proc(iterator: ^Slice_H_Iterator) -> Rect }
+
+// (TODO): Add iterator.
+ui_rect_slice_h_append_i :: proc(a: Rect, s: Interval, n_max: int, rects: ^[dynamic]Rect, inverse: bool = false) {
+	slice_rects := ui_rect_slice_h_make_i(a, s, n_max, context.temp_allocator, inverse)
+	for slice_rect in slice_rects do append(rects, slice_rect) }
+
+ui_rect_slice_h_make_i :: proc(a: Rect, size: Interval, n_max: int, allocator := context.allocator, inverse: bool = false) -> (rects_out: []Rect) {
+	if n_max == 0 do return {}
+	n: int = cast(int)linalg.ceil(a.size.x / f32(size))
+	if n_max != -1 do n = min(n, n_max)
+	rem: f32 = a.size.x - f32(n - 1) * f32(size)
+	rects_out = make([]Rect, n, allocator)
+	if n != 1 do for i in 0 ..< n - 1 {
+		rect := a
+		rect.size.x = f32(size)
+		rect.position.x = a.position.x + (inverse ? -1 : 1) * (- a.size.x / 2 + (0.5 + cast(f32)i) * f32(size))
+		rects_out[i] = rect }
+	rect := a
+	rect.size.x = rem
+	rect.position.x = a.position.x + (inverse ? -1 : 1) * (a.size.x / 2 - rem / 2)
+	rects_out[n - 1] = rect
+	return rects_out }
+
+ui_rect_slice_h_append_r :: proc(a: Rect, s: Ratio, n_max: int, rects: ^[dynamic]Rect, inverse: bool = false) {
+	ui_rect_slice_h_append_i(a, Interval(f32(s) * a.size.x), n_max, rects, inverse) }
+
+ui_rect_slice_h_make_r :: proc(a: Rect, s: Ratio, n_max: int, allocator := context.allocator, inverse: bool = false) -> (rects_out: []Rect) {
+	return ui_rect_slice_h_make_i(a, Interval(f32(s) * a.size.x), n_max, allocator, inverse) }
+
+ui_rect_slice_v :: proc { ui_rect_slice_v_append_i, ui_rect_slice_v_make_i, ui_rect_slice_v_append_r, ui_rect_slice_v_make_r }
+
+ui_rect_slice_v_append_i :: proc(rect_in: Rect, size: Interval, n_max: int, rects: ^[dynamic]Rect, inverse: bool = false) {
+	slice_rects := ui_rect_slice_v_make_i(rect_in, size, n_max, context.temp_allocator, inverse)
+	for slice_rect in slice_rects do append(rects, slice_rect) }
+
+ui_rect_slice_v_make_i :: proc(rect_in: Rect, size: Interval, n_max: int, allocator := context.allocator, inverse: bool = false) -> (rects_out: []Rect) {
+	if n_max == 0 do return {}
+	n: int = cast(int)linalg.ceil(rect_in.size.y / f32(size))
+	if n_max != -1 do n = min(n, n_max)
+	rem: f32 = rect_in.size.y - f32(n - 1) * f32(size)
+	rects_out = make([]Rect, n, allocator)
+	if n != 1 do for i in 0 ..< n - 1 {
+		rect := rect_in
+		rect.size.y = f32(size)
+		rect.position.y = rect_in.position.y + (inverse ? 1 : -1) * (- rect_in.size.y / 2 + (0.5 + cast(f32)i) * f32(size))
+		rects_out[i] = rect }
+	rect := rect_in
+	rect.size.y = rem
+	rect.position.y = rect_in.position.y + (inverse ? 1 : -1) * (rect_in.size.y / 2 - rem / 2)
+	rects_out[n - 1] = rect
+	return rects_out }
+
+ui_rect_slice_v_append_r :: proc(rect_in: Rect, size: Ratio, n_max: int, rects: ^[dynamic]Rect, inverse: bool = false) {
+	ui_rect_slice_v_append_i(rect_in, Interval(f32(size) * rect_in.size.y), n_max, rects, inverse) }
+
+ui_rect_slice_v_make_r :: proc(rect_in: Rect, size: Ratio, n_max: int, allocator := context.allocator, inverse: bool = false) -> (rects_out: []Rect) {
+	return ui_rect_slice_v_make_i(rect_in, Interval(f32(size) * rect_in.size.y), n_max, allocator, inverse) }
+
+ui_rect_grid :: proc { ui_rect_grid_append, ui_rect_grid_make }
+
+ui_rect_grid_append :: proc(rect_in: Rect, size: [2]int, rects: ^[dynamic]Rect) {
+	grid_rects := ui_rect_grid_make(rect_in, size, context.temp_allocator)
+	for grid_rect in grid_rects do append(rects, grid_rect) }
+
+ui_rect_grid_make :: proc(rect_in: Rect, size: [2]int, allocator := context.allocator) -> (rects_out: []Rect) {
+	rects_out = make([]Rect, size.x * size.y, allocator)
+	rect_width:  f32 = rect_in.size.x / cast(f32)size.x
+	rect_height: f32 = rect_in.size.y / cast(f32)size.y
+	for _, i in 0 ..< size.x do for _, j in 0 ..< size.y {
+		rect := &rects_out[j * size.x + i]
+		rect^ = rect_in
+		rect.position.x += - rect_in.size.x / 2 + rect_width  * (cast(f32)i + 0.5)
+		rect.position.y += - rect_in.size.y / 2 + rect_height * (cast(f32)j + 0.5)
+		rect.size.x = rect_width
+		rect.size.y = rect_height }
+	return rects_out }
+
+ui_rect_grid_index :: proc(size: [2]int, i, j: int) -> int {
+	return j * size.x + i }
+
+ui_rect_mirror_x :: proc { ui_rect_mirror_x_centered, ui_rect_mirror_x_offset/*, rects_mirror_x_offset_make, rects_mirror_x_centered_make, rects_mirror_x_offset_edit, rects_mirror_x_centered_edit*/ }
+
+ui_rect_mirror_x_centered :: proc(rect_in: Rect) -> (result: Rect) {
+	return ui_rect_mirror_x_offset(rect_in, 0) }
+
+ui_rect_mirror_x_offset :: proc(rect_in: Rect, offset: f32) -> (result: Rect) {
+	result = rect_in
+	delta: f32 = rect_in.position.x - offset
+	result.position.x -= 2 * delta
+	return result }
+
+ui_rect_mirror_y :: proc { ui_rect_mirror_y_centered, ui_rect_mirror_y_offset/*, rects_mirror_y_offset_make, rects_mirror_y_centered_make, rects_mirror_y_offset_edit, rects_mirror_y_centered_edit*/ }
+
+ui_rect_mirror_y_centered :: proc(rect_in: Rect) -> (result: Rect) {
+	return ui_rect_mirror_y_offset(rect_in, 0) }
+
+ui_rect_mirror_y_offset :: proc(rect_in: Rect, offset: f32) -> (result: Rect) {
+	result = rect_in
+	delta: f32 = rect_in.position.y - offset
+	result.position.y -= 2 * delta
+	return result }
+
+// rects_mirror_x :: proc { rects_mirror_x_offset_make, rects_mirror_x_centered_make, rects_mirror_x_offset_edit, rects_mirror_x_centered_edit }
+
+// rects_mirror_x_offset_make :: proc(rects_in: []Rect, offset: f32, allocator: runtime.Allocator) -> (rects_out: []Rect) {
+// 	rects_out = make([]Rect, len(rects_in))
+// 	for rect, i in rects_in do rects_out[i] = ui_rect_mirror_x(rect, offset)
+// 	return rects_out }
+
+// rects_mirror_x_centered_make :: proc(rects_in: []Rect, allocator: runtime.Allocator) -> (rects_out: []Rect) {
+// 	return rects_mirror_x_offset_make(rects_in, 0, allocator) }
+
+// rects_mirror_x_offset_edit :: proc(rects: []Rect, offset: f32) {
+// 	for &rect, i in rects do rect = ui_rect_mirror_x(rect, offset) }
+
+// rects_mirror_x_centered_edit :: proc(rects: []Rect) {
+// 	rects_mirror_x_offset_edit(rects, 0) }
+
+// rects_mirror_y :: proc { rects_mirror_y_offset_make, rects_mirror_y_centered_make, rects_mirror_y_offset_edit, rects_mirror_y_centered_edit }
+
+// rects_mirror_y_offset_make :: proc(rects_in: []Rect, offset: f32, allocator: runtime.Allocator) -> (rects_out: []Rect) {
+// 	rects_out = make([]Rect, len(rects_in))
+// 	for rect, i in rects_in do rects_out[i] = ui_rect_mirror_y(rect, offset)
+// 	return rects_out }
+
+// rects_mirror_y_centered_make :: proc(rects_in: []Rect, allocator: runtime.Allocator) -> (rects_out: []Rect) {
+// 	return rects_mirror_y_offset_make(rects_in, 0, allocator) }
+
+// rects_mirror_y_offset_edit :: proc(rects: []Rect, offset: f32) {
+// 	for &rect, i in rects do rect = ui_rect_mirror_y(rect, offset) }
+
+// rects_mirror_y_centered_edit :: proc(rects: []Rect) {
+// 	rects_mirror_y_offset_edit(rects, 0) }
+
+ui_rects_merge :: proc { ui_rects_merge_pair, ui_rects_merge_range }
+
+ui_rects_merge_pair :: proc(rect_a: Rect, rect_b: Rect) -> (result: Rect) {
+	x0: f32 = min(rect_a.position.x - rect_a.size.x / 2, rect_b.position.x - rect_b.size.x / 2)
+	x1: f32 = max(rect_a.position.x + rect_a.size.x / 2, rect_b.position.x + rect_b.size.x / 2)
+	y0: f32 = min(rect_a.position.y - rect_a.size.y / 2, rect_b.position.y - rect_b.size.y / 2)
+	y1: f32 = max(rect_a.position.y + rect_a.size.y / 2, rect_b.position.y + rect_b.size.y / 2)
+	result = {
+		position = { (x0 + x1) / 2, (y0 + y1) / 2 },
+		size = { (x1 - x0), (y1 - y0) } }
+	return result }
+
+ui_rects_merge_range :: proc(rects: ^[dynamic]Rect, range: [2]int, remove_range: bool=true) {
+	rect_a := rects[range[0]]
+	rect_b := rects[range[1] - 1]
+	if remove_range do ui_rects_remove_range(rects, { range.x + 1, range.y })
+	else do ordered_remove(rects, range.y - 1)
+	rects[range.x] = ui_rects_merge(rect_a, rect_b) }
+
+ui_rects_remove_range :: proc(rects: ^[dynamic]Rect, range: [2]int) {
+	for i, j in range[0] ..< range[1] {
+		ordered_remove(rects, i - j) } }
+
+ui_rect_rotate :: proc(rect_in: Rect) -> (result: Rect) {
+	result = rect_in
+	result.size.x = rect_in.size.y
+	result.size.y = rect_in.size.x
+	return result }
+
+ui_rect_translate :: proc(rect_in: Rect, offset: [2]f32) -> (result: Rect) {
+	return { rect_in.position + offset, rect_in.size } }
+
+ui_rect_scale :: proc(rect_in: Rect, scale: [2]f32) -> (result: Rect) {
+	return { rect_in.position, scale * rect_in.size } }
+
+ui_rect_resize :: proc(rect_in: Rect, size: [2]f32) -> (result: Rect) {
+	return { rect_in.position, size } }
+
+ui_rect_top_to :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
+	result = rect_in
+	result.position.y = target - result.size.y / 2
+	return result }
+
+ui_rect_bottom_to :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
+	result = rect_in
+	result.position.y = target + result.size.y / 2
+	return result }
+
+ui_rect_left_to :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
+	result = rect_in
+	result.position.x = target + result.size.x / 2
+	return result }
+
+ui_rect_right_to :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
+	result = rect_in
+	result.position.x = target - result.size.x / 2
+	return result }

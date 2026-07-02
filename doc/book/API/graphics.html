@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Graphics - OGGUN</title>
+        <title>gx - OGGUN</title>
 
 
         <!-- Custom HTML head -->
@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-50a9ab5b.js";
+            window.path_to_searchindex_js = "../searchindex-ed6e39ca.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-9163bbfe.js"></script>
+        <script src="../toc-ea170fa0.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -174,72 +174,177 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="graphics"><a class="header" href="#graphics">Graphics</a></h1>
-<p><code>graphics.tick</code> is called <em>at the beginning of the frame</em>!</p>
-<h3 id="types"><a class="header" href="#types">Types</a></h3>
-<h4 id="image"><a class="header" href="#image"><code>Image</code></a></h4>
-<pre><code class="language-c">Image :: struct {
+                        <h1 id="gx"><a class="header" href="#gx">gx</a></h1>
+<h2 id="image"><a class="header" href="#image">image</a></h2>
+<h4 id="image_asset-"><a class="header" href="#image_asset-"><code>Image_Asset</code> 🟨</a></h4>
+<pre><code class="language-c">Image_Asset :: struct {
+	using asset: Asset,
+	using image: image.Image,
+	modification_time: time.Time,
+	gpu_modification_time: time.Time,
+	handle: u32 }
+</code></pre>
+<h4 id="init_image-"><a class="header" href="#init_image-"><code>init_image</code> 🟩</a></h4>
+<pre><code class="language-c">init_image :: proc(
+	image: ^Image_Asset,
+	config: Asset_Config)
+</code></pre>
+<h4 id="image_equiv-"><a class="header" href="#image_equiv-"><code>image_equiv</code> 🟩</a></h4>
+<pre><code class="language-c">image_equiv :: proc(
+	a: ^Image_Asset,
+	b: ^Image_Asset) -&gt; bool
+</code></pre>
+<h4 id="image_modification_time-"><a class="header" href="#image_modification_time-"><code>image_modification_time</code> 🟩</a></h4>
+<pre><code class="language-c">image_modification_time :: proc(
+	image: ^Image_Asset,
+	location: Asset_Location_Field) -&gt; (modification_time: time.Time)
+</code></pre>
+<h4 id="image_asset_command-"><a class="header" href="#image_asset_command-"><code>image_asset_command</code> 🟩</a></h4>
+<pre><code class="language-c">image_asset_command :: proc(
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<h4 id="image_serialize-"><a class="header" href="#image_serialize-"><code>image_serialize</code> 🟩</a></h4>
+<pre><code class="language-c">@require_results
+image_serialize :: proc(
+	image: ^Image_Asset,
+	allocator: runtime.Allocator) -&gt; (image_bytes: []u8, err: os.Error)
+</code></pre>
+<h4 id="image_deserialize-"><a class="header" href="#image_deserialize-"><code>image_deserialize</code> 🟩</a></h4>
+<pre><code class="language-c">@require_results
+image_deserialize :: proc(
+	image_bytes: []u8,
+	allocator: runtime.Allocator) -&gt; (image: Image_Asset, err: os.Error)
+</code></pre>
+<!---`graphics.tick` is called *at the beginning of the frame*!
+
+### Types
+
+#### `Image`
+
+```c
+Image :: struct {
 	url: db.URL,
 	using image: im.Image }
-</code></pre>
-<h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
-<h4 id="image_equiv"><a class="header" href="#image_equiv"><code>image_equiv</code></a></h4>
-<pre><code class="language-c">image_equiv :: proc(
+```
+
+### Procedures
+
+#### `image_equiv`
+
+```c
+image_equiv :: proc(
 	a: ^Image,
-	b: ^Image) -&gt; bool
-</code></pre>
-<h4 id="import_or_retreive_image"><a class="header" href="#import_or_retreive_image"><code>import_or_retreive_image</code></a></h4>
-<pre><code class="language-c">import_or_retreive_image :: proc(
+	b: ^Image) -> bool
+```
+
+#### `import_or_retreive_image`
+
+```c
+import_or_retreive_image :: proc(
 	database: ^db.Database,
 	url: db.URL,
-	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
-</code></pre>
+	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
 <details><summary>Description</summary>
 Get an image from the database by URL. If no such image exists, load it from file and add to the database.
 </details>
-<h4 id="image_serialize"><a class="header" href="#image_serialize"><code>image_serialize</code></a></h4>
-<pre><code class="language-c">image_serialize :: proc(
+
+#### `image_serialize`
+
+```c
+image_serialize :: proc(
 	image: ^Image,
-	allocator: rt.Allocator) -&gt; (bytes: []u8, err: os.Error)
-</code></pre>
+	allocator: rt.Allocator) -> (bytes: []u8, err: os.Error)
+```
+
 <details><summary>Description</summary>
 Serialize an `Image` object.
 </details>
-<h4 id="image_deserialize"><a class="header" href="#image_deserialize"><code>image_deserialize</code></a></h4>
-<pre><code class="language-c">image_deserialize :: proc(
+
+#### `image_deserialize`
+
+```c
+image_deserialize :: proc(
 	bytes: []u8,
-	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
-</code></pre>
+	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
 <details><summary>Description</summary>
 Deserialize an `Image` object.
 </details>
-<h4 id="load_from_path"><a class="header" href="#load_from_path"><code>load_from_path</code></a></h4>
-<pre><code class="language-c">load_from_path :: proc(
+
+#### `load_from_path`
+
+```c
+load_from_path :: proc(
 	path: string,
 	url: db.URL,
-	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
-</code></pre>
-<h4 id="upload_image"><a class="header" href="#upload_image"><code>upload_image</code></a></h4>
-<pre><code class="language-c">upload_image :: proc(
-	image: ^Image) -&gt; bool
-</code></pre>
+	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
+#### `upload_image`
+
+```c
+upload_image :: proc(
+	image: ^Image) -> bool
+```
+
 <details><summary>Description</summary>
 Upload image to GPU memory.
 </details>
-<h4 id="download_image"><a class="header" href="#download_image"><code>download_image</code></a></h4>
-<pre><code class="language-c">download_image :: proc(
+
+#### `download_image`
+
+```c
+download_image :: proc(
 	image: ^Image)
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Release the GPU memory associated with the image.
 </details>
-<h4 id="image_loaded"><a class="header" href="#image_loaded"><code>image_loaded</code></a></h4>
-<pre><code class="language-c">image_loaded :: proc(
-	image: ^Image) -&gt; bool
-</code></pre>
+
+#### `image_loaded`
+
+```c
+image_loaded :: proc(
+	image: ^Image) -> bool
+```
+
 <details><summary>Description</summary>
 Check if the image has been uploaded to the GPU.
 </details>
+--->
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 
                     </main>
 

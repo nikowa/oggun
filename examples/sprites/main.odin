@@ -1,6 +1,6 @@
 #+feature using-stmt
 package example_input
-import "shared:oggun"
+import og "shared:oggun"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -12,10 +12,6 @@ import "core:slice"
 import "core:mem"
 
 stopwatch: time.Stopwatch
-
-main :: proc() {
-	context.logger = log.create_console_logger()
-	oggun.start(entry_point, n_workers_override = 1) }
 
 Sprite :: struct {
 	position: [2]f32,
@@ -35,12 +31,10 @@ Settings :: struct {
 	resolution: [2]f32,
 	fullscreen: bool }
 
-@(export)
-entry_point :: proc(thread_data: ^oggun.Thread_Data) {
-	using oggun
-
-	context = engine_begin_init(
-		engine_config=default_engine_config(
+main :: proc() {
+	context.logger = log.create_console_logger()
+	context = og.engine_begin_init(
+		engine_config=og.default_engine_config(
 			game_name="Sprites Example",
 			track_backing_allocations=true,
 			track_temp_allocations=true,
@@ -50,40 +44,40 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 		player_name = "Destroyer",
 		resolution = { 1920, 1080 },
 		fullscreen = true }
-	settings_manager_write(&engine.settings_manager, &settings)
+	og.settings_manager_write(&og.engine.settings_manager, &settings)
 
-	images: [5]Image_Asset
-	init_image(&images[0], { url = "image:kitten-1.png" })
-	init_image(&images[1], { url = "image:kitten-2.png" })
-	init_image(&images[2], { url = "image:kitten-3.png" })
-	init_image(&images[3], { url = "image:kitten-4.png" })
-	init_image(&images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	images: [5]og.Image_Asset
+	og.init_image(&images[0], { url = "image:kitten-1.png" })
+	og.init_image(&images[1], { url = "image:kitten-2.png" })
+	og.init_image(&images[2], { url = "image:kitten-3.png" })
+	og.init_image(&images[3], { url = "image:kitten-4.png" })
+	og.init_image(&images[4], { url = "image:kitten-5.png" })
+	for &image in images do assert(og.am_commands(og.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
 	N :: 10000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
 	slice.sort(splits[:])
 	splits[4] = N
 
-	font: Font
-	font_init(&font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	font: og.Font
+	og.font_init(&font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 
 	sprites := make([]Sprite, N)
 	for &sprite in sprites do sprite_init(&sprite)
 
-	zero_stopwatch(&stopwatch)
+	og.zero_stopwatch(&stopwatch)
 
-	context = engine_end_init()
+	context = og.engine_end_init()
 
-	for engine_running() {
-		time := read_stopwatch(&stopwatch)
-		if engine_tick() {
-			rect_screen := rect_screen()
+	for og.engine_running() {
+		time := og.read_stopwatch(&stopwatch)
+		if og.engine_tick() {
+			rect_screen := og.ui_rect_screen()
 
 			// Sprites //
 			image_index: int = 0
 			for &sprite, i in sprites {
-				sprite.position += engine.tick_manager.delta_time * sprite.speed * sprite.direction
+				sprite.position += og.engine.tick_manager.delta_time * sprite.speed * sprite.direction
 				if sprite.position.x > 1 {
 					sprite.position.x = 1
 					sprite.direction.x *= -1 }
@@ -96,10 +90,10 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 				if sprite.position.y < 0 {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
-				sprite_rect: Rect = { engine.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
-				{ gx_depth_scope(sprite.depth); dr_image(&images[image_index], sprite_rect, integer=false) }
+				sprite_rect: og.Rect = { og.engine.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
+				{ og.gx_depth_scope(sprite.depth); og.dr_image(&images[image_index], sprite_rect, integer=false) }
 				if i > splits[image_index] do image_index += 1 }
 
 			// Metrics //
-			{ gx_depth_scope(0.0); ui_metrics_widget() } } }
+			{ og.gx_depth_scope(0.0); og.ui_metrics_widget() } } }
 	return }

@@ -11,10 +11,10 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	// rect.position = plot_node.position.([2]f32) or_else { 0, 0 }
 	if plot_node.size == nil {
 		rect.size = PT_DEFAULT_NODE_SIZE
-		rect = rect_scale(rect, { scale, scale }) }
+		rect = ui_rect_scale(rect, { scale, scale }) }
 	else {
 		rect.size = plot_node.size.([2]f32)
-		rect = rect_scale(rect, { scale, scale })
+		rect = ui_rect_scale(rect, { scale, scale })
 		if rect.size.y == 0 do rect.size.y = ui_measure_text_box(plot_node.label, rect.size.x) }
 	text_rect := rect
 	rect = ui_rect_extend(rect, Interval(graph.padding))
@@ -32,8 +32,8 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 		dr_text_box(
 			rect=text_rect,
 			text=plot_node.label, integer=true) }
-	xlabel_rect := rect_top_to(rect_resize(rect, { rect.size.x, cast(f32)graph.text_style.font_size }), rect_bottom(rect))
-	xlabel_rect = rect_translate(xlabel_rect, { 0, -graph.margins })
+	xlabel_rect := ui_rect_top_to(ui_rect_resize(rect, { rect.size.x, cast(f32)graph.text_style.font_size }), rect_bottom(rect))
+	xlabel_rect = ui_rect_translate(xlabel_rect, { 0, -graph.margins })
 	dr_text_box(
 		rect=xlabel_rect,
 		text=plot_node.xlabel, integer=true)
@@ -91,7 +91,7 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 	if graph.arrowhead do dr_arrow_rectilinear(b, compass_invert(sides[1]), color, graph.arrowhead_size) }
 
 dr_plot_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {
-	distance := rect_distance(a, b)
+	distance := rects_distance(a, b)
 	if (distance.x < 2 * margin) || (distance.y < 2 * margin) do return
 	positions: [2][2]f32
 	py: f32 = a.size.x >= b.size.x ? a.position.y : b.position.y

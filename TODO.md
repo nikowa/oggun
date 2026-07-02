@@ -1,5 +1,9 @@
 
+- A procedure that converts an .odin file to a GLSL library. Use it to translate the image processing library.
+- Image processing library, for both CPU and GPU.
+- Write a widget that uses the "reflect" package to draw data structures.
 - Effect demo.
+- Terrain editor demo.
 - Flipbook GLSL library.
 - Flipbook effect.
 - Mesh creator GLSL library.

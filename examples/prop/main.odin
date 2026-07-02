@@ -21,27 +21,47 @@ stopwatch: time.Stopwatch
 entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	using oggun
 
-	context = engine_begin_init(
-		engine_config=default_engine_config(
-			game_name="Sprites Example",
-			track_backing_allocations=true,
-			track_temp_allocations=true,
-			temp_allocator_cap=1000 * mem.Megabyte))
+	ba: Bit_Array = make_bit_array(32)
+	log.info(len(ba.buffer), math.ceil_f32(f32(10_000) / 8))
+	bit_array_set(&ba, 13)
+	bit_array_set(&ba, 14)
+	bit_array_set(&ba, 17)
+	bit_array_set(&ba, 18)
+	bit_array_clear(&ba, 14)
+	bit_array_clear(&ba, 18)
+	assert(bit_array_read(&ba, 13) == 1)
+	assert(bit_array_read(&ba, 14) == 0)
+	assert(bit_array_read(&ba, 17) == 1)
+	assert(bit_array_read(&ba, 18) == 0)
+	// log.infof(">> %b", ba.buffer[2])
 
-	font: Font
-	font_init(&font, { name = "terminus", default_bearing = 0, default_advance = 0 })
+	// l :: 4
+	// n :: 300
+	// month_days: Bit_Array(int, l, n)
+	// log.info(len(month_days.buffer), math.ceil_f32(f32(l * n) / 8), n)
 
-	zero_stopwatch(&stopwatch)
+	// context = engine_begin_init(
+	// 	engine_config=default_engine_config(
+	// 		game_name="Sprites Example",
+	// 		track_backing_allocations=true,
+	// 		track_temp_allocations=true,
+	// 		temp_allocator_cap=1000 * mem.Megabyte))
 
-	context = engine_end_init()
+	// font: Font
+	// font_init(&font, { name = "terminus", default_bearing = 0, default_advance = 0 })
 
-	for engine_running() {
-		time := read_stopwatch(&stopwatch)
-		if engine_tick() {
-			rect_screen := rect_screen()
+	// zero_stopwatch(&stopwatch)
 
-			tick_scene(&scene)
-			render_scene(&scene, camera_node)
+	// context = engine_end_init()
 
-			{ gx_depth_scope(0.0); ui_metrics_widget() } } }
+	// for engine_running() {
+	// 	time := read_stopwatch(&stopwatch)
+	// 	if engine_tick() {
+	// 		rect_screen := ui_rect_screen()
+
+	// 		// tick_scene(&scene)
+	// 		// render_scene(&scene, camera_node)
+
+	// 		{ gx_depth_scope(0.0); ui_metrics_widget() } } }
+
 	return }

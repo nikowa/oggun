@@ -69,7 +69,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	pt_layout_post_process(&layout_builder)
 
 	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
-	scr_rect := rect_screen()
+	scr_rect := ui_rect_screen()
 	// dest_rect = scr_rect
 
 	for engine_running() {

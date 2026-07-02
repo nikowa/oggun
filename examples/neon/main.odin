@@ -68,7 +68,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			dr_rect({ { 0, 0 }, { 400, 120} }, fill_color=WHITE, stroke_color=BLACK, radius=24, stroke=1)
 
 			// Background //
-			screen_rect := rect_screen()
+			screen_rect := ui_rect_screen()
 			// dr_rect(ui_rect_extend(screen_rect, Interval(4)), BORDER_COLOR)
 			// gx_depth_scope_dec(0.01)
 			// dr_rect(ui_rect_margins(screen_rect, Interval(UI_SPACING_XS)), ui_get_background_color()[0], radius=UI_RADIUS_LARGE)
@@ -151,18 +151,18 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 				dr_badge(position + { 3 * 24, 0 }, text="*420+*", size=.L, color=.BLUE_BACKGROUND, h_align=.CENTER) }
 
 			// Colors //
-			_, colors_rect := rect_split_h(rect_screen(), Ratio(0.8), Interval(0))
+			_, colors_rect := ui_rect_split_h(ui_rect_screen(), Ratio(0.8), Interval(0))
 			// dr_rect_outline(colors_rect, RED)
 			ROWS :: len(UI_Theme_Key)
-			keys_rect, values_rect := rect_split_h(colors_rect, Ratio(0.5), Interval(0))
-			keys_grid := rect_grid_make(keys_rect, { 1, ROWS })
-			values_grid := rect_grid_make(values_rect, { 4, ROWS })
+			keys_rect, values_rect := ui_rect_split_h(colors_rect, Ratio(0.5), Interval(0))
+			keys_grid := ui_rect_grid_make(keys_rect, { 1, ROWS })
+			values_grid := ui_rect_grid_make(values_rect, { 4, ROWS })
 			for i in 0 ..< len(UI_Theme_Key) {
 				key_string, _ := strings.replace_all(strings.to_ada_case(fmt.aprintf("%v", cast(UI_Theme_Key)i)), "_", " ")
-				dr_text_box(key_string, keys_grid[rect_grid_index({ 1, ROWS }, 0, ROWS - i - 1)], h_align=.LEFT)
+				dr_text_box(key_string, keys_grid[ui_rect_grid_index({ 1, ROWS }, 0, ROWS - i - 1)], h_align=.LEFT)
 				for j in 0 ..< 4 {
 					color := engine.ui_manager.theme[i][j]
-					dr_rect(values_grid[rect_grid_index({ 4, ROWS }, j, ROWS - i - 1)], color, integer=false)
+					dr_rect(values_grid[ui_rect_grid_index({ 4, ROWS }, j, ROWS - i - 1)], color, integer=false)
 				}
 			}
 
@@ -187,9 +187,9 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 			// Metrics //
 			ui_metrics_widget()
-			// metrics_rect := ui_rect_embed(ui_rect_margins(rect_screen(), Interval(8)), { 160, 12 }, { .East, .North })
+			// metrics_rect := ui_rect_embed(ui_rect_margins(ui_rect_screen(), Interval(8)), { 160, 12 }, { .East, .North })
 			// dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(engine.tracking_allocator.current_memory_allocated)), metrics_rect, h_align=.LEFT, v_align=.TOP)
-			// dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), rect_translate(metrics_rect, { 0, -14 }), h_align=.RIGHT, v_align=.TOP)
+			// dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), ui_rect_translate(metrics_rect, { 0, -14 }), h_align=.RIGHT, v_align=.TOP)
 
 		}
 	}

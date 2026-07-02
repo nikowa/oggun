@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-50a9ab5b.js";
+            window.path_to_searchindex_js = "searchindex-ed6e39ca.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-9163bbfe.js"></script>
+        <script src="toc-ea170fa0.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -257,6 +257,13 @@ Informally, the rules are:
 <li><input disabled="" type="checkbox"> WGPU rendering backend</li>
 <li><input disabled="" type="checkbox"> DirectX rendering backend</li>
 </ul>
+<h1 id="api-status"><a class="header" href="#api-status">API Status</a></h1>
+<p>I have marked some types &amp; procedures with red, yellow, or green, to indicate their development status.</p>
+<ul>
+<li>🟩 decidedly final for the foreseeable future</li>
+<li>🟨 might need a rework</li>
+<li>🟥 decidedly needs a rework</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="top-level"><a class="header" href="#top-level">Top-Level</a></h2>
@@ -376,14 +383,89 @@ dr_model_trm(node, model_3)
 <h1 id="odin-api"><a class="header" href="#odin-api">Odin API</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="bs"><a class="header" href="#bs">bs</a></h1>
-<p>This is the base layer, responsible mainly for initialization, synchronization, and configuration.</p>
-<h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
-<h4 id="willow_version"><a class="header" href="#willow_version"><code>WILLOW_VERSION</code></a></h4>
-<pre><code>WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
+<h2 id="engine"><a class="header" href="#engine">engine</a></h2>
+<h4 id="oggun_version-"><a class="header" href="#oggun_version-"><code>OGGUN_VERSION</code> 🟩</a></h4>
+<pre><code class="language-c">OGGUN_VERSION: [3]u16 : { 0, 0, 1 }
 </code></pre>
-<h3 id="types"><a class="header" href="#types">Types</a></h3>
-<h4 id="tick_manager"><a class="header" href="#tick_manager"><code>Tick_Manager</code></a></h4>
-<pre><code class="language-c">Tick_Manager :: struct {
+<h4 id="default_name-"><a class="header" href="#default_name-"><code>DEFAULT_NAME</code> 🟩</a></h4>
+<pre><code class="language-c">DEFAULT_NAME :: "unnamed"
+</code></pre>
+<h4 id="default_engine_config-"><a class="header" href="#default_engine_config-"><code>DEFAULT_ENGINE_CONFIG</code> 🟨</a></h4>
+<pre><code class="language-c">DEFAULT_ENGINE_CONFIG: Engine_Config : {
+	game_name = "Oggun Game",
+	backing_allocator = {},
+	temp_allocator_cap = 100 * mem.Megabyte,
+	log_backing_allocations = false,
+	log_temp_allocations = false,
+	track_backing_allocations = false,
+	track_temp_allocations = false }
+</code></pre>
+<h4 id="magic_number-"><a class="header" href="#magic_number-"><code>MAGIC_NUMBER</code> 🟩</a></h4>
+<pre><code>MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
+</code></pre>
+<h4 id="entry_point-"><a class="header" href="#entry_point-"><code>Entry_Point</code> 🟨</a></h4>
+<pre><code>Entry_Point :: #type proc(data: ^Thread_Data)
+</code></pre>
+<h4 id="engine_config-"><a class="header" href="#engine_config-"><code>Engine_Config</code> 🟨</a></h4>
+<pre><code class="language-c">Engine_Config :: struct {
+	game_name: string,
+	backing_allocator: runtime.Allocator,
+	temp_allocator_cap: uintptr,
+	log_backing_allocations: bool,
+	log_temp_allocations: bool,
+	track_backing_allocations: bool,
+	track_temp_allocations: bool }
+</code></pre>
+<h4 id="thread_data-"><a class="header" href="#thread_data-"><code>Thread_Data</code> 🟨</a></h4>
+<pre><code class="language-c">Thread_Data :: struct {
+	index: u32,
+	_magic_number: u32,
+	_entry_point: Entry_Point }
+</code></pre>
+<h4 id="make_thread_data-"><a class="header" href="#make_thread_data-"><code>make_thread_data</code> 🟨</a></h4>
+<pre><code class="language-c">make_thread_data :: proc(entry_point: Entry_Point, index: u32) -&gt; (thread_data: ^Thread_Data)
+</code></pre>
+<h4 id="get_thread_data-"><a class="header" href="#get_thread_data-"><code>get_thread_data</code> 🟩</a></h4>
+<pre><code class="language-c">get_thread_data :: proc() -&gt; (thread_data: ^Thread_Data)
+</code></pre>
+<h4 id="engine_begin_init-"><a class="header" href="#engine_begin_init-"><code>engine_begin_init</code> 🟨</a></h4>
+<pre><code class="language-c">@require_results
+engine_begin_init :: proc(
+	engine_config: Engine_Config = DEFAULT_ENGINE_CONFIG,
+	asset_config: Asset_Manager_Config = DEFAULT_ASSET_MANAGER_CONFIG,
+	window_config: Window_Config = DEFAULT_WINDOW_CONFIG,
+	graphics_config: Graphics_Config = DEFAULT_GRAPHICS_CONFIG,
+	tick_config: Tick_Manager_Config = DEFAULT_TICK_MANAGER_CONFIG,
+	input_config: Input_Config = DEFAULT_INPUT_CONFIG,
+	settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) -&gt; runtime.Context
+</code></pre>
+<h4 id="engine_end_init-"><a class="header" href="#engine_end_init-"><code>engine_end_init</code> 🟩</a></h4>
+<pre><code class="language-c">engine_end_init :: proc() -&gt; runtime.Context
+</code></pre>
+<h4 id="engine_running-"><a class="header" href="#engine_running-"><code>engine_running</code> 🟩</a></h4>
+<pre><code class="language-c">engine_running :: proc() -&gt; bool
+</code></pre>
+<h4 id="engine_tick-"><a class="header" href="#engine_tick-"><code>engine_tick</code> 🟩</a></h4>
+<pre><code class="language-c">@(deferred_none=engine_tick_end)
+engine_tick :: proc() -&gt; bool
+</code></pre>
+<h4 id="engine_tick_begin-"><a class="header" href="#engine_tick_begin-"><code>engine_tick_begin</code> 🟩</a></h4>
+<pre><code class="language-c">engine_tick_begin :: proc() -&gt; bool
+</code></pre>
+<h4 id="engine_tick_end-"><a class="header" href="#engine_tick_end-"><code>engine_tick_end</code> 🟩</a></h4>
+<pre><code class="language-c">engine_tick_end :: proc()
+</code></pre>
+<h4 id="start-"><a class="header" href="#start-"><code>start</code> 🟩</a></h4>
+<pre><code class="language-c">start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil)
+</code></pre>
+<h4 id="get_frame_rate-"><a class="header" href="#get_frame_rate-"><code>get_frame_rate</code> 🟩</a></h4>
+<pre><code class="language-c">get_frame_rate :: proc() -&gt; f32
+</code></pre>
+<!---
+#### `Tick_Manager`
+
+```c
+Tick_Manager :: struct {
 	using tick_manager_config: Tick_Manager_Config,
 	stopwatch:                 time.Stopwatch,
 	tick_period_nsec:          i64,
@@ -393,16 +475,23 @@ dr_model_trm(node, model_3)
 	delta_time:                f32,
 	frame_rate:                f32,
 	flag:                      bool }
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Tick manager. Used for tracking frame-rate, calculating delta time, and limiting frame-rate. You can use this if you want something to happen at roughly equal time intervals, and to keep track of those intervals.
 </details>
-<h4 id="tick_manager_config"><a class="header" href="#tick_manager_config"><code>Tick_Manager_Config</code></a></h4>
-<pre><code class="language-c">Tick_Manager_Config :: struct {
+
+#### `Tick_Manager_Config`
+
+```c
+Tick_Manager_Config :: struct {
 	tickrate_setting: Tickrate_Setting }
-</code></pre>
-<h4 id="tickrate_setting"><a class="header" href="#tickrate_setting"><code>Tickrate_Setting</code></a></h4>
-<pre><code class="language-c">Tickrate_Setting :: enum {
+```
+
+#### `Tickrate_Setting`
+
+```c
+Tickrate_Setting :: enum {
 	LIMITED_30_FPS = 0,
 	LIMITED_60_FPS,
 	LIMITED_120_FPS,
@@ -410,100 +499,156 @@ Tick manager. Used for tracking frame-rate, calculating delta time, and limiting
 	LIMITED_240_FPS,
 	LIMITED_540_FPS,
 	UNLIMITED }
-</code></pre>
-<h4 id="settings_manager"><a class="header" href="#settings_manager"><code>Settings_Manager</code></a></h4>
-<pre><code class="language-c">Settings_Manager :: struct {
+```
+
+#### `Settings_Manager`
+
+```c
+Settings_Manager :: struct {
 	settings_path: string,
 	_map: map[string]map[string]string }
-</code></pre>
+```
+
 <details><summary>Description</summary>
 A helper class for game settings. Can compile an INI file from an arbitrary number of structs, and vice-versa.
 </details>
-<h4 id="thread_data"><a class="header" href="#thread_data"><code>Thread_Data</code></a></h4>
-<pre><code class="language-c">Thread_Data :: struct {
+
+#### `Thread_Data`
+
+```c
+Thread_Data :: struct {
 	index: u32,
 	... }
-</code></pre>
-<h4 id="lock"><a class="header" href="#lock"><code>Lock</code></a></h4>
-<pre><code class="language-c">Lock :: ...
-</code></pre>
-<p>The default mutex type.</p>
-<h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
-<h4 id="init_tick_manager"><a class="header" href="#init_tick_manager"><code>init_tick_manager</code></a></h4>
-<pre><code class="language-c">init_tick_manager :: proc(
+```
+
+#### `Lock`
+
+```c
+Lock :: ...
+```
+
+The default mutex type.
+
+#### `init_tick_manager`
+
+```c
+init_tick_manager :: proc(
 	tick_man: ^Tick_Manager,
 	config: Tick_Manager_Config)
-</code></pre>
-<h4 id="tick_manager_tick"><a class="header" href="#tick_manager_tick"><code>tick_manager_tick</code></a></h4>
-<pre><code class="language-c">tick_manager_tick :: proc(
-	tick_man: ^Tick_Manager) -&gt; bool
-</code></pre>
+```
+
+#### `tick_manager_tick`
+
+```c
+tick_manager_tick :: proc(
+	tick_man: ^Tick_Manager) -> bool
+```
+
 <details><summary>Description</summary>
 Returns true if enough time has passed since the previous frame that a new frame should be processed. Must call <code>tick_manager_reset</code> after the frame has been processed.
 </details>
-<h4 id="tick_manager_reset"><a class="header" href="#tick_manager_reset"><code>tick_manager_reset</code></a></h4>
-<pre><code class="language-c">tick_manager_reset :: proc(
+
+#### `tick_manager_reset`
+
+```c
+tick_manager_reset :: proc(
 	tick_man: ^Tick_Manager)
-</code></pre>
-<h4 id="zero_stopwatch"><a class="header" href="#zero_stopwatch"><code>zero_stopwatch</code></a></h4>
-<pre><code class="language-c">zero_stopwatch :: proc(
+```
+
+#### `zero_stopwatch`
+
+```c
+zero_stopwatch :: proc(
 	timer: ^time.Stopwatch)
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Stopwatch helper function. Zeroes and starts the stopwatch.
 </details>
-<h4 id="read_stopwatch"><a class="header" href="#read_stopwatch"><code>read_stopwatch</code></a></h4>
-<pre><code class="language-c">read_stopwatch :: proc(
-	timer: ^time.Stopwatch) -&gt; f32
-</code></pre>
+
+#### `read_stopwatch`
+
+```c
+read_stopwatch :: proc(
+	timer: ^time.Stopwatch) -> f32
+```
+
 <details><summary>Description</summary>
 Stopwatch helper function. Reads the stopwatch, in seconds.
 </details>
-<h4 id="init_settings_manager"><a class="header" href="#init_settings_manager"><code>init_settings_manager</code></a></h4>
-<pre><code class="language-c">init_settings_manager :: proc(
+
+#### `init_settings_manager`
+
+```c
+init_settings_manager :: proc(
 	settings: ^Settings_Manager,
 	application_name: string)
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Initialize a <code>Settings_Manager</code>. <code>application_name</code> is the name of a folder in <code>~/AppData/Local</code> where the setting will be saved.
 </details>
-<h4 id="settings_manager_write"><a class="header" href="#settings_manager_write"><code>settings_manager_write</code></a></h4>
-<pre><code class="language-c">settings_manager_write :: proc(
+
+#### `settings_manager_write`
+
+```c
+settings_manager_write :: proc(
 	settings: ^Settings_Manager,
 	value: ^$Type) where intrinsics.type_is_struct(Type)
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Write the contents of an arbitrary struct to the settings. The settings will be added under a new section named after type <code>Type</code>.
 </details>
-<h4 id="settings_manager_read"><a class="header" href="#settings_manager_read"><code>settings_manager_read</code></a></h4>
-<pre><code class="language-c">settings_manager_read :: proc(
+
+#### `settings_manager_read`
+
+```c
+settings_manager_read :: proc(
 	settings: ^Settings_Manager,
 	value: ^$Type) where intrinsics.type_is_struct(Type)
-</code></pre>
-<h4 id="settings_manager_export"><a class="header" href="#settings_manager_export"><code>settings_manager_export</code></a></h4>
-<pre><code class="language-c">settings_manager_export :: proc(
+```
+
+#### `settings_manager_export`
+
+```c
+settings_manager_export :: proc(
 	settings: ^Settings_Manager)
-</code></pre>
-<h4 id="settings_manager_import"><a class="header" href="#settings_manager_import"><code>settings_manager_import</code></a></h4>
-<pre><code class="language-c">settings_manager_import :: proc(
+```
+
+#### `settings_manager_import`
+
+```c
+settings_manager_import :: proc(
 	settings: ^Settings_Manager)
-</code></pre>
-<h4 id="start"><a class="header" href="#start"><code>start</code></a></h4>
-<pre><code class="language-c">start :: proc(
+```
+
+#### `start`
+
+```c
+start :: proc(
 	entry_point: Entry_Point,
 	n_workers_override: Maybe(u32) = nil)
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Create and start a number of threads with the same entry procedure. The number of threads will be equal to the number of logical cores minus 3, however you can override this by setting <code>n_workers_override</code>.
 </details>
-<h4 id="make_thread_data"><a class="header" href="#make_thread_data"><code>make_thread_data</code></a></h4>
-<pre><code class="language-c">make_thread_data :: proc(
+
+#### `make_thread_data`
+
+```c
+make_thread_data :: proc(
 	entry_point: Entry_Point,
-	index: u32) -&gt; (thread_data: ^Thread_Data)
-</code></pre>
-<h4 id="get_thread_data"><a class="header" href="#get_thread_data"><code>get_thread_data</code></a></h4>
-<pre><code class="language-c">get_thread_data :: proc() -&gt; (thread_data: ^Thread_Data)
-</code></pre>
+	index: u32) -> (thread_data: ^Thread_Data)
+```
+
+#### `get_thread_data`
+
+```c
+get_thread_data :: proc() -> (thread_data: ^Thread_Data)
+```
+--->
 <pre>
 
 
@@ -531,6 +676,20 @@ Create and start a number of threads with the same entry procedure. The number o
 
 </pre>
 
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="im"><a class="header" href="#im">im</a></h1>
+<p>Image processing utils.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="mt"><a class="header" href="#mt">mt</a></h1>
+<p>Meta-programming utils.</p>
+<h2 id="core"><a class="header" href="#core">core</a></h2>
+<h2 id="generator"><a class="header" href="#generator">generator</a></h2>
+<h2 id="glsl_generator"><a class="header" href="#glsl_generator">glsl_generator</a></h2>
+<h4 id="mt_odin_to_glsl-"><a class="header" href="#mt_odin_to_glsl-"><code>mt_odin_to_glsl</code> 🟩</a></h4>
+<pre><code class="language-c">mt_odin_to_glsl :: proc(
+	odin_source_path: string) -&gt; (glsl_source: string)
+</code></pre>
+<p>Translate all the procedures from a given Odin source file to GLSL.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="asset"><a class="header" href="#asset">Asset</a></h1>
 <h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
@@ -629,14 +788,14 @@ Create and start a number of threads with the same entry procedure. The number o
 </tbody>
 </table>
 </div>
-<h3 id="constants-1"><a class="header" href="#constants-1">Constants</a></h3>
+<h3 id="constants"><a class="header" href="#constants">Constants</a></h3>
 <h4 id="default_autosave_interval"><a class="header" href="#default_autosave_interval"><code>DEFAULT_AUTOSAVE_INTERVAL</code></a></h4>
 <pre><code class="language-c">DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute
 </code></pre>
 <h4 id="default_autosave_cap"><a class="header" href="#default_autosave_cap"><code>DEFAULT_AUTOSAVE_CAP</code></a></h4>
 <pre><code class="language-c">DEFAULT_AUTOSAVE_CAP :: 10
 </code></pre>
-<h3 id="types-1"><a class="header" href="#types-1">Types</a></h3>
+<h3 id="types"><a class="header" href="#types">Types</a></h3>
 <h4 id="asset_manager_config"><a class="header" href="#asset_manager_config"><code>Asset_Manager_Config</code></a></h4>
 <pre><code class="language-c">Asset_Manager_Config :: Database_Config
 </code></pre>
@@ -746,7 +905,7 @@ Asset manager.
 <h4 id="update_proc"><a class="header" href="#update_proc"><code>Update_Proc</code></a></h4>
 <pre><code class="language-c">Update_Proc :: #type proc(data: rawptr)
 </code></pre>
-<h3 id="procedures-1"><a class="header" href="#procedures-1">Procedures</a></h3>
+<h3 id="procedures"><a class="header" href="#procedures">Procedures</a></h3>
 <h4 id="asset_command-1"><a class="header" href="#asset_command-1"><code>asset_command</code></a></h4>
 <pre><code class="language-c">asset_command :: proc(
 	manager: ^Asset_Manager,
@@ -1077,7 +1236,7 @@ for {
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="container"><a class="header" href="#container">Container</a></h1>
 <p>Various containers used throughout Oggun.</p>
-<h3 id="types-2"><a class="header" href="#types-2">Types</a></h3>
+<h3 id="types-1"><a class="header" href="#types-1">Types</a></h3>
 <h4 id="bary"><a class="header" href="#bary"><code>Bary</code></a></h4>
 <pre><code class="language-c">Bary :: [3]f32
 </code></pre>
@@ -1086,7 +1245,7 @@ for {
 	buffer: [2]T,
 	len: u8 }
 </code></pre>
-<h3 id="procedures-2"><a class="header" href="#procedures-2">Procedures</a></h3>
+<h3 id="procedures-1"><a class="header" href="#procedures-1">Procedures</a></h3>
 <h4 id="bary_from_point"><a class="header" href="#bary_from_point"><code>bary_from_point</code></a></h4>
 <pre><code class="language-c">bary_from_point :: proc { bary_from_point2 }
 bary_from_point2 :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; (bary: Bary)
@@ -1181,11 +1340,11 @@ Check if the given Euclidean point is inside the given triangle.
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="bary-1"><a class="header" href="#bary-1">Bary</a></h1>
 <p>Various containers used throughout Oggun.</p>
-<h3 id="types-3"><a class="header" href="#types-3">Types</a></h3>
+<h3 id="types-2"><a class="header" href="#types-2">Types</a></h3>
 <h4 id="bary-1-1"><a class="header" href="#bary-1-1"><code>Bary</code></a></h4>
 <pre><code class="language-c">Bary :: [3]f32
 </code></pre>
-<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
+<h3 id="procedures-2"><a class="header" href="#procedures-2">Procedures</a></h3>
 <h4 id="bary_from_point-1"><a class="header" href="#bary_from_point-1"><code>bary_from_point</code></a></h4>
 <pre><code class="language-c">bary_from_point :: proc { bary_from_point2 }
 bary_from_point2 :: proc(point: [2]f32, triangle: [3][2]f32) -&gt; (bary: Bary)
@@ -1243,13 +1402,13 @@ Check if the given Euclidean point is inside the given triangle.
 
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="rect"><a class="header" href="#rect">Rect</a></h1>
-<h3 id="types-4"><a class="header" href="#types-4">Types</a></h3>
+<h3 id="types-3"><a class="header" href="#types-3">Types</a></h3>
 <h4 id="rect-1"><a class="header" href="#rect-1"><code>Rect</code></a></h4>
 <pre><code class="language-c">Rect :: struct #packed {
 	pos:  [2]f32,
 	size: [2]f32 }
 </code></pre>
-<h3 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h3>
+<h3 id="procedures-3"><a class="header" href="#procedures-3">Procedures</a></h3>
 <h4 id="make_rect"><a class="header" href="#make_rect"><code>make_rect</code></a></h4>
 <pre><code class="language-c">make_rect :: proc(pos_x, pos_y, size_x, size_y: f32) -&gt; Rect
 </code></pre>
@@ -1312,14 +1471,14 @@ Check if a given point is either <i>in</i> or <i>on</i> the given rectangle.
 
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="sdf"><a class="header" href="#sdf">SDF</a></h1>
-<h2 id="constants-2"><a class="header" href="#constants-2">Constants</a></h2>
+<h2 id="constants-1"><a class="header" href="#constants-1">Constants</a></h2>
 <h4 id="sdf_clear"><a class="header" href="#sdf_clear"><code>SDF_CLEAR</code></a></h4>
 <pre><code class="language-c">SDF_CLEAR :: 1000000
 </code></pre>
 <h4 id="collision_epsilon"><a class="header" href="#collision_epsilon"><code>COLLISION_EPSILON</code></a></h4>
 <pre><code class="language-c">COLLISION_EPSILON :: 0.05
 </code></pre>
-<h2 id="types-5"><a class="header" href="#types-5">Types</a></h2>
+<h2 id="types-4"><a class="header" href="#types-4">Types</a></h2>
 <h4 id="distance"><a class="header" href="#distance"><code>Distance</code></a></h4>
 <pre><code class="language-c">Distance :: f32
 </code></pre>
@@ -1398,7 +1557,7 @@ A solid convex mesh, defined as the intersection of a set of planes.
 <details><summary>Description</summary>
 A surface with a bounding sphere.
 </details>
-<h2 id="procedures-5"><a class="header" href="#procedures-5">Procedures</a></h2>
+<h2 id="procedures-4"><a class="header" href="#procedures-4">Procedures</a></h2>
 <h4 id="sdf_plane-1"><a class="header" href="#sdf_plane-1"><code>sdf_plane</code></a></h4>
 <pre><code class="language-c">sdf_plane :: proc(
 	p: [3]f32,
@@ -1538,96 +1697,205 @@ Smooth difference.
 Rounding.
 </details>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="graphics"><a class="header" href="#graphics">Graphics</a></h1>
-<p><code>graphics.tick</code> is called <em>at the beginning of the frame</em>!</p>
-<h3 id="types-6"><a class="header" href="#types-6">Types</a></h3>
-<h4 id="image"><a class="header" href="#image"><code>Image</code></a></h4>
-<pre><code class="language-c">Image :: struct {
+<h1 id="gx"><a class="header" href="#gx">gx</a></h1>
+<h2 id="image"><a class="header" href="#image">image</a></h2>
+<h4 id="image_asset-"><a class="header" href="#image_asset-"><code>Image_Asset</code> 🟨</a></h4>
+<pre><code class="language-c">Image_Asset :: struct {
+	using asset: Asset,
+	using image: image.Image,
+	modification_time: time.Time,
+	gpu_modification_time: time.Time,
+	handle: u32 }
+</code></pre>
+<h4 id="init_image-"><a class="header" href="#init_image-"><code>init_image</code> 🟩</a></h4>
+<pre><code class="language-c">init_image :: proc(
+	image: ^Image_Asset,
+	config: Asset_Config)
+</code></pre>
+<h4 id="image_equiv-"><a class="header" href="#image_equiv-"><code>image_equiv</code> 🟩</a></h4>
+<pre><code class="language-c">image_equiv :: proc(
+	a: ^Image_Asset,
+	b: ^Image_Asset) -&gt; bool
+</code></pre>
+<h4 id="image_modification_time-"><a class="header" href="#image_modification_time-"><code>image_modification_time</code> 🟩</a></h4>
+<pre><code class="language-c">image_modification_time :: proc(
+	image: ^Image_Asset,
+	location: Asset_Location_Field) -&gt; (modification_time: time.Time)
+</code></pre>
+<h4 id="image_asset_command-"><a class="header" href="#image_asset_command-"><code>image_asset_command</code> 🟩</a></h4>
+<pre><code class="language-c">image_asset_command :: proc(
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -&gt; (ok: bool)
+</code></pre>
+<h4 id="image_serialize-"><a class="header" href="#image_serialize-"><code>image_serialize</code> 🟩</a></h4>
+<pre><code class="language-c">@require_results
+image_serialize :: proc(
+	image: ^Image_Asset,
+	allocator: runtime.Allocator) -&gt; (image_bytes: []u8, err: os.Error)
+</code></pre>
+<h4 id="image_deserialize-"><a class="header" href="#image_deserialize-"><code>image_deserialize</code> 🟩</a></h4>
+<pre><code class="language-c">@require_results
+image_deserialize :: proc(
+	image_bytes: []u8,
+	allocator: runtime.Allocator) -&gt; (image: Image_Asset, err: os.Error)
+</code></pre>
+<!---`graphics.tick` is called *at the beginning of the frame*!
+
+### Types
+
+#### `Image`
+
+```c
+Image :: struct {
 	url: db.URL,
 	using image: im.Image }
-</code></pre>
-<h3 id="procedures-6"><a class="header" href="#procedures-6">Procedures</a></h3>
-<h4 id="image_equiv"><a class="header" href="#image_equiv"><code>image_equiv</code></a></h4>
-<pre><code class="language-c">image_equiv :: proc(
+```
+
+### Procedures
+
+#### `image_equiv`
+
+```c
+image_equiv :: proc(
 	a: ^Image,
-	b: ^Image) -&gt; bool
-</code></pre>
-<h4 id="import_or_retreive_image"><a class="header" href="#import_or_retreive_image"><code>import_or_retreive_image</code></a></h4>
-<pre><code class="language-c">import_or_retreive_image :: proc(
+	b: ^Image) -> bool
+```
+
+#### `import_or_retreive_image`
+
+```c
+import_or_retreive_image :: proc(
 	database: ^db.Database,
 	url: db.URL,
-	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
-</code></pre>
+	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
 <details><summary>Description</summary>
 Get an image from the database by URL. If no such image exists, load it from file and add to the database.
 </details>
-<h4 id="image_serialize"><a class="header" href="#image_serialize"><code>image_serialize</code></a></h4>
-<pre><code class="language-c">image_serialize :: proc(
+
+#### `image_serialize`
+
+```c
+image_serialize :: proc(
 	image: ^Image,
-	allocator: rt.Allocator) -&gt; (bytes: []u8, err: os.Error)
-</code></pre>
+	allocator: rt.Allocator) -> (bytes: []u8, err: os.Error)
+```
+
 <details><summary>Description</summary>
 Serialize an `Image` object.
 </details>
-<h4 id="image_deserialize"><a class="header" href="#image_deserialize"><code>image_deserialize</code></a></h4>
-<pre><code class="language-c">image_deserialize :: proc(
+
+#### `image_deserialize`
+
+```c
+image_deserialize :: proc(
 	bytes: []u8,
-	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
-</code></pre>
+	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
 <details><summary>Description</summary>
 Deserialize an `Image` object.
 </details>
-<h4 id="load_from_path"><a class="header" href="#load_from_path"><code>load_from_path</code></a></h4>
-<pre><code class="language-c">load_from_path :: proc(
+
+#### `load_from_path`
+
+```c
+load_from_path :: proc(
 	path: string,
 	url: db.URL,
-	allocator: rt.Allocator) -&gt; (image: Image, err: os.Error)
-</code></pre>
-<h4 id="upload_image"><a class="header" href="#upload_image"><code>upload_image</code></a></h4>
-<pre><code class="language-c">upload_image :: proc(
-	image: ^Image) -&gt; bool
-</code></pre>
+	allocator: rt.Allocator) -> (image: Image, err: os.Error)
+```
+
+#### `upload_image`
+
+```c
+upload_image :: proc(
+	image: ^Image) -> bool
+```
+
 <details><summary>Description</summary>
 Upload image to GPU memory.
 </details>
-<h4 id="download_image"><a class="header" href="#download_image"><code>download_image</code></a></h4>
-<pre><code class="language-c">download_image :: proc(
+
+#### `download_image`
+
+```c
+download_image :: proc(
 	image: ^Image)
-</code></pre>
+```
+
 <details><summary>Description</summary>
 Release the GPU memory associated with the image.
 </details>
-<h4 id="image_loaded"><a class="header" href="#image_loaded"><code>image_loaded</code></a></h4>
-<pre><code class="language-c">image_loaded :: proc(
-	image: ^Image) -&gt; bool
-</code></pre>
+
+#### `image_loaded`
+
+```c
+image_loaded :: proc(
+	image: ^Image) -> bool
+```
+
 <details><summary>Description</summary>
 Check if the image has been uploaded to the GPU.
 </details>
+--->
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="ui"><a class="header" href="#ui">ui</a></h1>
 <h2 id="rect-2"><a class="header" href="#rect-2">rect</a></h2>
 <p>Various layout construction procedures that operate on rectangles.</p>
-<h4 id="ui_rect_hovered"><a class="header" href="#ui_rect_hovered"><code>ui_rect_hovered</code></a></h4>
+<h4 id="ui_rect_hovered-"><a class="header" href="#ui_rect_hovered-"><code>ui_rect_hovered</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_hovered :: proc(r: Rect) -&gt; bool
 </code></pre>
-<h4 id="ui_rect_sect"><a class="header" href="#ui_rect_sect"><code>ui_rect_sect</code></a></h4>
+<h4 id="ui_rect_screen-"><a class="header" href="#ui_rect_screen-"><code>ui_rect_screen</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_screen :: proc() -&gt; Rect
+</code></pre>
+<p><img src="rect-screen.svg" alt="rect-screen"></p>
+<h4 id="ui_rect_sect-"><a class="header" href="#ui_rect_sect-"><code>ui_rect_sect</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_sect :: proc(a, b: Rect) -&gt; (c: Rect)
 </code></pre>
 <p><img src="rect-sect.svg" alt="rect-sect"></p>
-<h4 id="ui_rect_union"><a class="header" href="#ui_rect_union"><code>ui_rect_union</code></a></h4>
+<h4 id="ui_rect_union-"><a class="header" href="#ui_rect_union-"><code>ui_rect_union</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_union :: proc(a, b: Rect) -&gt; (c: Rect)
 </code></pre>
 <p><img src="rect-union.svg" alt="rect-union"></p>
-<h4 id="ui_rect_interpolate"><a class="header" href="#ui_rect_interpolate"><code>ui_rect_interpolate</code></a></h4>
+<h4 id="ui_rect_interpolate-"><a class="header" href="#ui_rect_interpolate-"><code>ui_rect_interpolate</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_interpolate :: proc(r: Rect, t: [2]f32) -&gt; (p: [2]f32)
 </code></pre>
 <p><img src="rect-interpolate.svg" alt="rect-interpolate"></p>
-<h4 id="ui_rect_interpolate_centered"><a class="header" href="#ui_rect_interpolate_centered"><code>ui_rect_interpolate_centered</code></a></h4>
+<h4 id="ui_rect_interpolate_centered-"><a class="header" href="#ui_rect_interpolate_centered-"><code>ui_rect_interpolate_centered</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_interpolate_centered :: proc(r: Rect, t: [2]f32) -&gt; (p: [2]f32)
 </code></pre>
 <p><img src="rect-interpolate-centered.svg" alt="rect-interpolate-centered"></p>
-<h4 id="ui_rect_fit"><a class="header" href="#ui_rect_fit"><code>ui_rect_fit</code></a></h4>
+<h4 id="ui_rect_fit-"><a class="header" href="#ui_rect_fit-"><code>ui_rect_fit</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_fit :: proc(
 	rect, container: Rect,
 	fit: UI_Fit) -&gt; (result: Rect)
@@ -1643,14 +1911,14 @@ UI_Fit :: enum {
 <p><img src="rect-fit-fill.svg" alt="rect-fit-fill"></p>
 <p><img src="rect-fit-cover.svg" alt="rect-fit-cover"></p>
 <p><img src="rect-fit-contain.svg" alt="rect-fit-contain"></p>
-<h4 id="ui_rect_embed"><a class="header" href="#ui_rect_embed"><code>ui_rect_embed</code></a></h4>
+<h4 id="ui_rect_embed-"><a class="header" href="#ui_rect_embed-"><code>ui_rect_embed</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_embed :: proc(
 	rect: Rect,
 	size: [2]f32,
 	pivot: bit_set[Compass] = {}) -&gt; (result: Rect)
 </code></pre>
 <p><img src="rect-embed.svg" alt="rect-embed"></p>
-<h4 id="ui_rect_margins"><a class="header" href="#ui_rect_margins"><code>ui_rect_margins</code></a></h4>
+<h4 id="ui_rect_margins-"><a class="header" href="#ui_rect_margins-"><code>ui_rect_margins</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_margins :: proc {
 	ui_rect_margins_i,
 	ui_rect_margins_r }
@@ -1664,7 +1932,7 @@ UI_Fit :: enum {
 	margin: Ratio) -&gt; (result: Rect)
 </code></pre>
 <p><img src="rect-margins.svg" alt="rect-margins"></p>
-<h4 id="ui_rect_margins_variate"><a class="header" href="#ui_rect_margins_variate"><code>ui_rect_margins_variate</code></a></h4>
+<h4 id="ui_rect_margins_variate-"><a class="header" href="#ui_rect_margins_variate-"><code>ui_rect_margins_variate</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_margins_variate :: proc {
 	ui_rect_margins_variate_r,
 	ui_rect_margins_variate_i }
@@ -1684,7 +1952,7 @@ UI_Fit :: enum {
 	north: Interval = 0) -&gt; (result: Rect)
 </code></pre>
 <p><img src="rect-margins-variate.svg" alt="rect-margins-variate"></p>
-<h4 id="ui_rect_extend"><a class="header" href="#ui_rect_extend"><code>ui_rect_extend</code></a></h4>
+<h4 id="ui_rect_extend-"><a class="header" href="#ui_rect_extend-"><code>ui_rect_extend</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_extend :: proc {
 	ui_rect_extend_i,
 	ui_rect_extend_r }
@@ -1698,7 +1966,7 @@ UI_Fit :: enum {
 	extent: Ratio) -&gt; (result: Rect)
 </code></pre>
 <p><img src="rect-extend.svg" alt="rect-extend"></p>
-<h4 id="ui_rect_extend_variate"><a class="header" href="#ui_rect_extend_variate"><code>ui_rect_extend_variate</code></a></h4>
+<h4 id="ui_rect_extend_variate-"><a class="header" href="#ui_rect_extend_variate-"><code>ui_rect_extend_variate</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_extend_variate :: proc {
 	ui_rect_extend_variate_r,
 	ui_rect_extend_variate_i }
@@ -1718,16 +1986,143 @@ UI_Fit :: enum {
 	north: Interval = 0) -&gt; (result: Rect)
 </code></pre>
 <p><img src="rect-extend-variate.svg" alt="rect-extend-variate"></p>
-<h4 id="rect_split_h"><a class="header" href="#rect_split_h"><code>rect_split_h</code></a></h4>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s, m: Ratio) -&gt; (b, c: Rect)
+<h4 id="ui_rect_split_h-"><a class="header" href="#ui_rect_split_h-"><code>ui_rect_split_h</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s, m: Ratio) -&gt; (b, c: Rect)
 </code></pre>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s, m: Interval) -&gt; (b, c: Rect)
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s, m: Interval) -&gt; (b, c: Rect)
 </code></pre>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b, c: Rect)
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b, c: Rect)
 </code></pre>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b, c: Rect)
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b, c: Rect)
 </code></pre>
 <p><img src="rect-split-h.svg" alt="rect-split-h"></p>
+<h4 id="ui_rect_split_v-"><a class="header" href="#ui_rect_split_v-"><code>ui_rect_split_v</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Ratio, m: Ratio) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Interval, m: Interval) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<p><img src="rect-split-v.svg" alt="rect-split-v"></p>
+<h4 id="ui_rect_slice_h-"><a class="header" href="#ui_rect_slice_h-"><code>ui_rect_slice_h</code> 🟨</a></h4>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Interval,
+	n_max: int,
+	result: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Interval,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Ratio,
+	n_max: int,
+	rects: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Ratio,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false)
+</code></pre>
+<p><img src="rect-slice-h.svg" alt="rect-slice-h"></p>
+<h4 id="ui_rect_slice_v-"><a class="header" href="#ui_rect_slice_v-"><code>ui_rect_slice_v</code> 🟨</a></h4>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Interval,
+	n_max: int,
+	result: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Interval,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false) -&gt; (result: []Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Ratio,
+	n_max: int,
+	result: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Ratio,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false) -&gt; (result: []Rect)
+</code></pre>
+<p><img src="rect-slice-v.svg" alt="rect-slice-v"></p>
+<h4 id="ui_rect_grid-"><a class="header" href="#ui_rect_grid-"><code>ui_rect_grid</code> 🟨</a></h4>
+<pre><code class="language-c">ui_rect_grid :: proc(
+	rect: Rect,
+	size: [2]int,
+	result: ^[dynamic]Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_grid :: proc(
+	rect: Rect,
+	size: [2]int,
+	allocator := context.allocator) -&gt; (result: []Rect)
+</code></pre>
+<p><img src="rect-grid.svg" alt="rect-grid"></p>
+<h4 id="ui_rect_grid_index-"><a class="header" href="#ui_rect_grid_index-"><code>ui_rect_grid_index</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_grid_index :: proc(size: [2]int, i, j: int) -&gt; int
+</code></pre>
+<h4 id="ui_rect_mirror_x-"><a class="header" href="#ui_rect_mirror_x-"><code>ui_rect_mirror_x</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_mirror_x :: proc(rect: Rect) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_mirror_x :: proc(rect: Rect, offset: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_mirror_y-"><a class="header" href="#ui_rect_mirror_y-"><code>ui_rect_mirror_y</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_mirror_y :: proc(rect: Rect) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_mirror_y :: proc(rect: Rect, offset: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rects_merge-"><a class="header" href="#ui_rects_merge-"><code>ui_rects_merge</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rects_merge :: proc(rect_a: Rect, rect_b: Rect) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rects_merge :: proc(rects: ^[dynamic]Rect, range: [2]int, remove_range: bool=true)
+</code></pre>
+<h4 id="ui_rects_remove_range-"><a class="header" href="#ui_rects_remove_range-"><code>ui_rects_remove_range</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rects_remove_range :: proc(rects: ^[dynamic]Rect, range: [2]int)
+</code></pre>
+<h4 id="ui_rect_rotate-"><a class="header" href="#ui_rect_rotate-"><code>ui_rect_rotate</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_rotate :: proc(rect: Rect) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_translate-"><a class="header" href="#ui_rect_translate-"><code>ui_rect_translate</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_translate :: proc(rect: Rect, offset: [2]f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_scale-"><a class="header" href="#ui_rect_scale-"><code>ui_rect_scale</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_scale :: proc(rect: Rect, scale: [2]f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_resize-"><a class="header" href="#ui_rect_resize-"><code>ui_rect_resize</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_resize :: proc(rect: Rect, size: [2]f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_top_to-"><a class="header" href="#ui_rect_top_to-"><code>ui_rect_top_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_top_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_bottom_to-"><a class="header" href="#ui_rect_bottom_to-"><code>ui_rect_bottom_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_bottom_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_left_to-"><a class="header" href="#ui_rect_left_to-"><code>ui_rect_left_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_left_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_right_to-"><a class="header" href="#ui_rect_right_to-"><code>ui_rect_right_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_right_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="input-1"><a class="header" href="#input-1">Input</a></h1>
 <pre><code class="language-c">package input_sys
@@ -1761,7 +2156,7 @@ input_sys.process(&amp;in_mngr)
 <pre><code class="language-c">input_sys.query(.W, .Up)
 </code></pre>
 <hr>
-<h3 id="types-7"><a class="header" href="#types-7">Types</a></h3>
+<h3 id="types-5"><a class="header" href="#types-5">Types</a></h3>
 <h4 id="input_manager"><a class="header" href="#input_manager"><code>Input_Manager</code></a></h4>
 <pre><code class="language-c">Input_Manager :: struct {
 	mouse_position: [2]f32,
@@ -1905,7 +2300,7 @@ input_sys.process(&amp;in_mngr)
 	Pressed,
 	Released }
 </code></pre>
-<h3 id="procedures-7"><a class="header" href="#procedures-7">Procedures</a></h3>
+<h3 id="procedures-5"><a class="header" href="#procedures-5">Procedures</a></h3>
 <h4 id="process"><a class="header" href="#process"><code>process</code></a></h4>
 <pre><code class="language-c">process :: proc(
 	im: ^Input_Manager)
@@ -1929,7 +2324,7 @@ input_sys.process(&amp;in_mngr)
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="model"><a class="header" href="#model">Model</a></h1>
-<h3 id="types-8"><a class="header" href="#types-8">Types</a></h3>
+<h3 id="types-6"><a class="header" href="#types-6">Types</a></h3>
 <h4 id="model-1"><a class="header" href="#model-1"><code>Model</code></a></h4>
 <pre><code class="language-c">Model :: struct {
 	... }
@@ -1959,7 +2354,7 @@ input_sys.process(&amp;in_mngr)
 	bytes: []u8,
 	allocator: rt.Allocator) -&gt; (model: Model, err: os.Error)
 </code></pre>
-<h4 id="load_from_path-1"><a class="header" href="#load_from_path-1"><code>load_from_path</code></a></h4>
+<h4 id="load_from_path"><a class="header" href="#load_from_path"><code>load_from_path</code></a></h4>
 <pre><code class="language-c">load_from_path :: proc(
 	path: string,
 	url: db.URL,
@@ -2025,7 +2420,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 <h2 id="positioning-nodes"><a class="header" href="#positioning-nodes">Positioning nodes</a></h2>
 <p>The <code>translate</code>, <code>rotate</code>, and <code>scale</code> fields of <code>Node</code> are meant to be used to describe the position, orientation, and size of the node’s contents, relative to it’s parent node. The graphics system does not use those fields, instead it uses contents of the <code>transform</code> field. If you want, you can write to <code>transform</code> directly, or you can use the <code>node_update_transform</code> procedure to update <code>transform</code> based on the contents of <code>translate</code>, <code>rotate</code>, and <code>scale</code>. You can also use <code>tree_update_transforms</code> to update the transforms of all nodes in the tree in the aforementioned way.</p>
 <p>Every node has a <code>Transform</code> field.</p>
-<h3 id="types-9"><a class="header" href="#types-9">Types</a></h3>
+<h3 id="types-7"><a class="header" href="#types-7">Types</a></h3>
 <h4 id="scene_config"><a class="header" href="#scene_config"><code>Scene_Config</code></a></h4>
 <pre><code class="language-c">Scene_Config :: struct {
 	url: db.URL,
@@ -2100,7 +2495,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	node: Node,
 	using model: ^gx.Model }
 </code></pre>
-<h3 id="procedures-8"><a class="header" href="#procedures-8">Procedures</a></h3>
+<h3 id="procedures-6"><a class="header" href="#procedures-6">Procedures</a></h3>
 <h4 id="make_scene"><a class="header" href="#make_scene"><code>make_scene</code></a></h4>
 <p>The intended way to construct a <code>Scene</code>.</p>
 <pre><code class="language-c">make_scene :: proc(
@@ -2267,7 +2662,7 @@ example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 <pre><code class="language-c">dll.watch_dll(&amp;example_dll)
 </code></pre>
 <p>While the DLL is being reloaded, the proc pointers in it will become temporarily invalid. Thus make sure this isn’t called while any of those procs is in use.</p>
-<h3 id="types-10"><a class="header" href="#types-10">Types</a></h3>
+<h3 id="types-8"><a class="header" href="#types-8">Types</a></h3>
 <h4 id="dll-1"><a class="header" href="#dll-1"><code>DLL</code></a></h4>
 <pre><code class="language-c">DLL :: struct {
 	lib: dl.Library,
@@ -2275,7 +2670,7 @@ example_dll, err = dll.make_dll(Example_DLL, "example-dll/example-dll.odin")
 	dll_relpath: string,
 	modification_time: tm.Time }
 </code></pre>
-<h3 id="procedures-9"><a class="header" href="#procedures-9">Procedures</a></h3>
+<h3 id="procedures-7"><a class="header" href="#procedures-7">Procedures</a></h3>
 <h4 id="make_dll"><a class="header" href="#make_dll"><code>make_dll</code></a></h4>
 <pre><code class="language-c">make_dll :: proc(
 	$T: typeid,

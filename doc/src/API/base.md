@@ -1,17 +1,147 @@
 # bs
 
-This is the base layer, responsible mainly for initialization, synchronization, and configuration.
+## engine
 
-### Constants
+#### `OGGUN_VERSION` 🟩
 
-#### `WILLOW_VERSION`
-
-```
-WILLOW_VERSION: [3]u16 : { 0, 0, 1 }
+```c
+OGGUN_VERSION: [3]u16 : { 0, 0, 1 }
 ```
 
-### Types
+#### `DEFAULT_NAME` 🟩
 
+```c
+DEFAULT_NAME :: "unnamed"
+```
+
+#### `DEFAULT_ENGINE_CONFIG` 🟨
+
+```c
+DEFAULT_ENGINE_CONFIG: Engine_Config : {
+	game_name = "Oggun Game",
+	backing_allocator = {},
+	temp_allocator_cap = 100 * mem.Megabyte,
+	log_backing_allocations = false,
+	log_temp_allocations = false,
+	track_backing_allocations = false,
+	track_temp_allocations = false }
+```
+
+#### `MAGIC_NUMBER` 🟩
+
+```
+MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
+```
+
+#### `Entry_Point` 🟨
+
+```
+Entry_Point :: #type proc(data: ^Thread_Data)
+```
+
+#### `Engine_Config` 🟨
+
+```c
+Engine_Config :: struct {
+	game_name: string,
+	backing_allocator: runtime.Allocator,
+	temp_allocator_cap: uintptr,
+	log_backing_allocations: bool,
+	log_temp_allocations: bool,
+	track_backing_allocations: bool,
+	track_temp_allocations: bool }
+```
+
+#### `Thread_Data` 🟨
+
+```c
+Thread_Data :: struct {
+	index: u32,
+	_magic_number: u32,
+	_entry_point: Entry_Point }
+```
+
+#### `make_thread_data` 🟨
+
+```c
+make_thread_data :: proc(entry_point: Entry_Point, index: u32) -> (thread_data: ^Thread_Data)
+```
+
+#### `get_thread_data` 🟩
+
+```c
+get_thread_data :: proc() -> (thread_data: ^Thread_Data)
+```
+
+#### `engine_begin_init` 🟨
+
+```c
+@require_results
+engine_begin_init :: proc(
+	engine_config: Engine_Config = DEFAULT_ENGINE_CONFIG,
+	asset_config: Asset_Manager_Config = DEFAULT_ASSET_MANAGER_CONFIG,
+	window_config: Window_Config = DEFAULT_WINDOW_CONFIG,
+	graphics_config: Graphics_Config = DEFAULT_GRAPHICS_CONFIG,
+	tick_config: Tick_Manager_Config = DEFAULT_TICK_MANAGER_CONFIG,
+	input_config: Input_Config = DEFAULT_INPUT_CONFIG,
+	settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) -> runtime.Context
+```
+
+#### `engine_end_init` 🟩
+
+```c
+engine_end_init :: proc() -> runtime.Context
+```
+
+#### `engine_running` 🟩
+
+```c
+engine_running :: proc() -> bool
+```
+
+#### `engine_tick` 🟩
+
+```c
+@(deferred_none=engine_tick_end)
+engine_tick :: proc() -> bool
+```
+
+#### `engine_tick_begin` 🟩
+
+```c
+engine_tick_begin :: proc() -> bool
+```
+
+#### `engine_tick_end` 🟩
+
+```c
+engine_tick_end :: proc()
+```
+
+#### `start` 🟩
+
+```c
+start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil)
+```
+
+#### `get_frame_rate` 🟩
+
+```c
+get_frame_rate :: proc() -> f32
+```
+
+
+
+
+
+
+
+
+
+
+
+
+<!---
 #### `Tick_Manager`
 
 ```c
@@ -78,8 +208,6 @@ Lock :: ...
 ```
 
 The default mutex type.
-
-### Procedures
 
 #### `init_tick_manager`
 
@@ -200,7 +328,7 @@ make_thread_data :: proc(
 ```c
 get_thread_data :: proc() -> (thread_data: ^Thread_Data)
 ```
-
+--->
 <pre>
 
 

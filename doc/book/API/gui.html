@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-50a9ab5b.js";
+            window.path_to_searchindex_js = "../searchindex-ed6e39ca.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-9163bbfe.js"></script>
+        <script src="../toc-ea170fa0.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -177,26 +177,30 @@
                         <h1 id="ui"><a class="header" href="#ui">ui</a></h1>
 <h2 id="rect"><a class="header" href="#rect">rect</a></h2>
 <p>Various layout construction procedures that operate on rectangles.</p>
-<h4 id="ui_rect_hovered"><a class="header" href="#ui_rect_hovered"><code>ui_rect_hovered</code></a></h4>
+<h4 id="ui_rect_hovered-"><a class="header" href="#ui_rect_hovered-"><code>ui_rect_hovered</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_hovered :: proc(r: Rect) -&gt; bool
 </code></pre>
-<h4 id="ui_rect_sect"><a class="header" href="#ui_rect_sect"><code>ui_rect_sect</code></a></h4>
+<h4 id="ui_rect_screen-"><a class="header" href="#ui_rect_screen-"><code>ui_rect_screen</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_screen :: proc() -&gt; Rect
+</code></pre>
+<p><img src="../rect-screen.svg" alt="rect-screen"></p>
+<h4 id="ui_rect_sect-"><a class="header" href="#ui_rect_sect-"><code>ui_rect_sect</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_sect :: proc(a, b: Rect) -&gt; (c: Rect)
 </code></pre>
 <p><img src="../rect-sect.svg" alt="rect-sect"></p>
-<h4 id="ui_rect_union"><a class="header" href="#ui_rect_union"><code>ui_rect_union</code></a></h4>
+<h4 id="ui_rect_union-"><a class="header" href="#ui_rect_union-"><code>ui_rect_union</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_union :: proc(a, b: Rect) -&gt; (c: Rect)
 </code></pre>
 <p><img src="../rect-union.svg" alt="rect-union"></p>
-<h4 id="ui_rect_interpolate"><a class="header" href="#ui_rect_interpolate"><code>ui_rect_interpolate</code></a></h4>
+<h4 id="ui_rect_interpolate-"><a class="header" href="#ui_rect_interpolate-"><code>ui_rect_interpolate</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_interpolate :: proc(r: Rect, t: [2]f32) -&gt; (p: [2]f32)
 </code></pre>
 <p><img src="../rect-interpolate.svg" alt="rect-interpolate"></p>
-<h4 id="ui_rect_interpolate_centered"><a class="header" href="#ui_rect_interpolate_centered"><code>ui_rect_interpolate_centered</code></a></h4>
+<h4 id="ui_rect_interpolate_centered-"><a class="header" href="#ui_rect_interpolate_centered-"><code>ui_rect_interpolate_centered</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_interpolate_centered :: proc(r: Rect, t: [2]f32) -&gt; (p: [2]f32)
 </code></pre>
 <p><img src="../rect-interpolate-centered.svg" alt="rect-interpolate-centered"></p>
-<h4 id="ui_rect_fit"><a class="header" href="#ui_rect_fit"><code>ui_rect_fit</code></a></h4>
+<h4 id="ui_rect_fit-"><a class="header" href="#ui_rect_fit-"><code>ui_rect_fit</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_fit :: proc(
 	rect, container: Rect,
 	fit: UI_Fit) -&gt; (result: Rect)
@@ -212,14 +216,14 @@ UI_Fit :: enum {
 <p><img src="../rect-fit-fill.svg" alt="rect-fit-fill"></p>
 <p><img src="../rect-fit-cover.svg" alt="rect-fit-cover"></p>
 <p><img src="../rect-fit-contain.svg" alt="rect-fit-contain"></p>
-<h4 id="ui_rect_embed"><a class="header" href="#ui_rect_embed"><code>ui_rect_embed</code></a></h4>
+<h4 id="ui_rect_embed-"><a class="header" href="#ui_rect_embed-"><code>ui_rect_embed</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_embed :: proc(
 	rect: Rect,
 	size: [2]f32,
 	pivot: bit_set[Compass] = {}) -&gt; (result: Rect)
 </code></pre>
 <p><img src="../rect-embed.svg" alt="rect-embed"></p>
-<h4 id="ui_rect_margins"><a class="header" href="#ui_rect_margins"><code>ui_rect_margins</code></a></h4>
+<h4 id="ui_rect_margins-"><a class="header" href="#ui_rect_margins-"><code>ui_rect_margins</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_margins :: proc {
 	ui_rect_margins_i,
 	ui_rect_margins_r }
@@ -233,7 +237,7 @@ UI_Fit :: enum {
 	margin: Ratio) -&gt; (result: Rect)
 </code></pre>
 <p><img src="../rect-margins.svg" alt="rect-margins"></p>
-<h4 id="ui_rect_margins_variate"><a class="header" href="#ui_rect_margins_variate"><code>ui_rect_margins_variate</code></a></h4>
+<h4 id="ui_rect_margins_variate-"><a class="header" href="#ui_rect_margins_variate-"><code>ui_rect_margins_variate</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_margins_variate :: proc {
 	ui_rect_margins_variate_r,
 	ui_rect_margins_variate_i }
@@ -253,7 +257,7 @@ UI_Fit :: enum {
 	north: Interval = 0) -&gt; (result: Rect)
 </code></pre>
 <p><img src="../rect-margins-variate.svg" alt="rect-margins-variate"></p>
-<h4 id="ui_rect_extend"><a class="header" href="#ui_rect_extend"><code>ui_rect_extend</code></a></h4>
+<h4 id="ui_rect_extend-"><a class="header" href="#ui_rect_extend-"><code>ui_rect_extend</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_extend :: proc {
 	ui_rect_extend_i,
 	ui_rect_extend_r }
@@ -267,7 +271,7 @@ UI_Fit :: enum {
 	extent: Ratio) -&gt; (result: Rect)
 </code></pre>
 <p><img src="../rect-extend.svg" alt="rect-extend"></p>
-<h4 id="ui_rect_extend_variate"><a class="header" href="#ui_rect_extend_variate"><code>ui_rect_extend_variate</code></a></h4>
+<h4 id="ui_rect_extend_variate-"><a class="header" href="#ui_rect_extend_variate-"><code>ui_rect_extend_variate</code> 🟩</a></h4>
 <pre><code class="language-c">ui_rect_extend_variate :: proc {
 	ui_rect_extend_variate_r,
 	ui_rect_extend_variate_i }
@@ -287,16 +291,143 @@ UI_Fit :: enum {
 	north: Interval = 0) -&gt; (result: Rect)
 </code></pre>
 <p><img src="../rect-extend-variate.svg" alt="rect-extend-variate"></p>
-<h4 id="rect_split_h"><a class="header" href="#rect_split_h"><code>rect_split_h</code></a></h4>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s, m: Ratio) -&gt; (b, c: Rect)
+<h4 id="ui_rect_split_h-"><a class="header" href="#ui_rect_split_h-"><code>ui_rect_split_h</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s, m: Ratio) -&gt; (b, c: Rect)
 </code></pre>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s, m: Interval) -&gt; (b, c: Rect)
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s, m: Interval) -&gt; (b, c: Rect)
 </code></pre>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b, c: Rect)
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b, c: Rect)
 </code></pre>
-<pre><code class="language-c">rect_split_h :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b, c: Rect)
+<pre><code class="language-c">ui_rect_split_h :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b, c: Rect)
 </code></pre>
 <p><img src="../rect-split-h.svg" alt="rect-split-h"></p>
+<h4 id="ui_rect_split_v-"><a class="header" href="#ui_rect_split_v-"><code>ui_rect_split_v</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Ratio, m: Ratio) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Ratio, m: Interval) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Interval, m: Ratio) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_split_v :: proc(a: Rect, s: Interval, m: Interval) -&gt; (b: Rect, c: Rect)
+</code></pre>
+<p><img src="../rect-split-v.svg" alt="rect-split-v"></p>
+<h4 id="ui_rect_slice_h-"><a class="header" href="#ui_rect_slice_h-"><code>ui_rect_slice_h</code> 🟨</a></h4>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Interval,
+	n_max: int,
+	result: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Interval,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Ratio,
+	n_max: int,
+	rects: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_h :: proc(
+	rect: Rect,
+	scale: Ratio,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false)
+</code></pre>
+<p><img src="../rect-slice-h.svg" alt="rect-slice-h"></p>
+<h4 id="ui_rect_slice_v-"><a class="header" href="#ui_rect_slice_v-"><code>ui_rect_slice_v</code> 🟨</a></h4>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Interval,
+	n_max: int,
+	result: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Interval,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false) -&gt; (result: []Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Ratio,
+	n_max: int,
+	result: ^[dynamic]Rect,
+	inverse: bool = false)
+</code></pre>
+<pre><code class="language-c">ui_rect_slice_v :: proc(
+	rect: Rect,
+	size: Ratio,
+	n_max: int,
+	allocator := context.allocator,
+	inverse: bool = false) -&gt; (result: []Rect)
+</code></pre>
+<p><img src="../rect-slice-v.svg" alt="rect-slice-v"></p>
+<h4 id="ui_rect_grid-"><a class="header" href="#ui_rect_grid-"><code>ui_rect_grid</code> 🟨</a></h4>
+<pre><code class="language-c">ui_rect_grid :: proc(
+	rect: Rect,
+	size: [2]int,
+	result: ^[dynamic]Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_grid :: proc(
+	rect: Rect,
+	size: [2]int,
+	allocator := context.allocator) -&gt; (result: []Rect)
+</code></pre>
+<p><img src="../rect-grid.svg" alt="rect-grid"></p>
+<h4 id="ui_rect_grid_index-"><a class="header" href="#ui_rect_grid_index-"><code>ui_rect_grid_index</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_grid_index :: proc(size: [2]int, i, j: int) -&gt; int
+</code></pre>
+<h4 id="ui_rect_mirror_x-"><a class="header" href="#ui_rect_mirror_x-"><code>ui_rect_mirror_x</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_mirror_x :: proc(rect: Rect) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_mirror_x :: proc(rect: Rect, offset: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_mirror_y-"><a class="header" href="#ui_rect_mirror_y-"><code>ui_rect_mirror_y</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_mirror_y :: proc(rect: Rect) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rect_mirror_y :: proc(rect: Rect, offset: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rects_merge-"><a class="header" href="#ui_rects_merge-"><code>ui_rects_merge</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rects_merge :: proc(rect_a: Rect, rect_b: Rect) -&gt; (result: Rect)
+</code></pre>
+<pre><code class="language-c">ui_rects_merge :: proc(rects: ^[dynamic]Rect, range: [2]int, remove_range: bool=true)
+</code></pre>
+<h4 id="ui_rects_remove_range-"><a class="header" href="#ui_rects_remove_range-"><code>ui_rects_remove_range</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rects_remove_range :: proc(rects: ^[dynamic]Rect, range: [2]int)
+</code></pre>
+<h4 id="ui_rect_rotate-"><a class="header" href="#ui_rect_rotate-"><code>ui_rect_rotate</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_rotate :: proc(rect: Rect) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_translate-"><a class="header" href="#ui_rect_translate-"><code>ui_rect_translate</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_translate :: proc(rect: Rect, offset: [2]f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_scale-"><a class="header" href="#ui_rect_scale-"><code>ui_rect_scale</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_scale :: proc(rect: Rect, scale: [2]f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_resize-"><a class="header" href="#ui_rect_resize-"><code>ui_rect_resize</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_resize :: proc(rect: Rect, size: [2]f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_top_to-"><a class="header" href="#ui_rect_top_to-"><code>ui_rect_top_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_top_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_bottom_to-"><a class="header" href="#ui_rect_bottom_to-"><code>ui_rect_bottom_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_bottom_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_left_to-"><a class="header" href="#ui_rect_left_to-"><code>ui_rect_left_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_left_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
+<h4 id="ui_rect_right_to-"><a class="header" href="#ui_rect_right_to-"><code>ui_rect_right_to</code> 🟩</a></h4>
+<pre><code class="language-c">ui_rect_right_to :: proc(rect: Rect, target: f32) -&gt; (result: Rect)
+</code></pre>
 
                     </main>
 

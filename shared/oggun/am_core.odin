@@ -18,7 +18,6 @@ import "core:math/bits"
 
 URL :: distinct string
 
-MAGIC_NUMBER :: 0b10110100_10010100_10011111_10111100
 _Asset_Manager_Binary_Header :: struct {
 	magic_number: u32,
 	modification_time: time.Time,

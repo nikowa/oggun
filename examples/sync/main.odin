@@ -121,7 +121,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Sync Example", temp_allocator_cap=1000 * mem.Megabyte))
-	screen_rect = rect_screen()
+	screen_rect = ui_rect_screen()
 
 	init_image(&background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
