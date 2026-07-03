@@ -6,9 +6,9 @@ There are 4 primary layers: *base*, *core*, *app*, and *ext*. Each layer is depe
 
 ![top-level](top-level.svg)
 
-- **1. base** --- general procedures and data structured
+- **1. Base** --- general procedures and data structured
 	- 1.1. *bs*
-- **2. core** --- essential engine components
+- **2. Core** --- essential engine components
 	- *wd* --- window
 	- *gx* --- graphics
 	- *au* --- audio
@@ -20,17 +20,17 @@ There are 4 primary layers: *base*, *core*, *app*, and *ext*. Each layer is depe
 	- *mt* --- meta
 	- *ms* --- mesh
 	- *px* --- physics
-- **3. app/game** --- auxiliary components for game development
+- **3. App/Game** --- auxiliary components for game development
 	- *sn* --- scene
 	- *dg* --- dialogue
 	- *ec* --- entity component system
 	- *fx* --- graphical effects
 	- *sm* --- state machine
 	- *ai* --- ai
-- **3. app/tool** --- auxiliary components for application & tool development
+- **3. App/Tool** --- auxiliary components for application & tool development
 	- *pt* --- plot
 	- *ti* --- tools interface
-- **4. ext** --- extensions to components from the layers bellow
+- **4. Ext** --- extensions to components from the layers bellow
 
 ## Context Trees
 
@@ -67,3 +67,40 @@ dr_model_trm(node, model_2)
 dr_model_trm(node, model_3)
 // (Goes up the graph until it finds a camera node or an env node.)
 ```
+
+## Asset Manager
+
+![asset-manager](asset-manager.svg)
+
+`Asset` is a generic class for managing things like images, sounds, models, levels, etc. It provides a standard interface for importing from and exporting to standard exchange formats, saving to and loading from the database, reading from and writing to disk, and downloading from and uploading to the GPU.
+
+All asset operatins happen through a single asset command procedure which is mapped to the derived asset type when the asset is registered with the asset manager.
+
+It can query where an asset is represented and when each representation was last modified. It can also automate transports from one location to another, which can be used for live-reloading of assets. This is demonstrated in the [watcher example](examples.html#watcher).
+
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>

@@ -1,5 +1,7 @@
 # Roadmap
 
+This is the general roadmap with all the big checkpoints. I update this every once in a while.
+
 - [x] OpenGL rendering backend
 - [x] Asset manager
 - [x] Effects system
@@ -22,8 +24,8 @@
 
 # API Status
 
-I have marked some types & procedures with red, yellow, or green, to indicate their development status.
+While Oggun is still in a prototyping phase, I'm going to use stoplight colors to indicate the development status of types & procedures.
 
-- 🟩 decidedly final for the foreseeable future
-- 🟨 might need a rework
-- 🟥 decidedly needs a rework
+- 🟩 decidedly stable for the foreseeable future
+- 🟨 moderately unstable
+- 🟥 critically unstable

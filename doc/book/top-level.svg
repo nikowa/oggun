@@ -24,7 +24,7 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
      inkscape:zoom="1.5962963"
-     inkscape:cx="334.83759"
+     inkscape:cx="335.15081"
      inkscape:cy="171.02088"
      inkscape:window-width="1920"
      inkscape:window-height="1057"
@@ -268,7 +268,7 @@
          id="tspan3"
          x="375"
          y="24.676077"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">base</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Base</tspan></text>
     <rect
        style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
        id="rect39"
@@ -286,7 +286,7 @@
          id="tspan39"
          x="375"
          y="76.360916"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">core</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Core</tspan></text>
     <rect
        style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
        id="rect40"
@@ -311,7 +311,7 @@
          id="tspan40"
          x="311.72855"
          y="129.29594"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">game</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Game</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
@@ -322,7 +322,7 @@
          id="tspan41"
          x="437.64502"
          y="129.29594"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">tool</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Tool</tspan></text>
     <rect
        style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
        id="rect42"
@@ -340,7 +340,7 @@
          id="tspan42"
          x="375"
          y="180.79501"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">ext</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Ext</tspan></text>
     <path
        style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
        d="m 375,40.33733 c 0,3.894946 0,7.789891 0,11.684837"

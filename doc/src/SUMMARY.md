@@ -10,7 +10,7 @@
   - [bs](./API/base.md)
   - [im](./API/im.md)
   - [mt](./API/mt.md)
-  - [Asset](./API/asset.md)
+  - [am](./API/asset.md)
   - [Container](./API/container.md)
     - [Bary](./API/bary.md)
     - [Rect](./API/rect.md)

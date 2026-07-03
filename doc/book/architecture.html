@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-ed6e39ca.js";
+            window.path_to_searchindex_js = "searchindex-9b8f6de1.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-ea170fa0.js"></script>
+        <script src="toc-315dde17.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -179,12 +179,12 @@
 <p>There are 4 primary layers: <em>base</em>, <em>core</em>, <em>app</em>, and <em>ext</em>. Each layer is dependent on the layers below it and independent from the layers above it. The layer <em>app</em> is split into <em>game</em> and <em>tool</em>. You’ll most likely use <em>base</em> + <em>core</em> or <em>base</em> + <em>core</em> + <em>app</em>. The layer <em>ext</em> is for optional extensions to any of the components of the layers below it.</p>
 <p><img src="top-level.svg" alt="top-level"></p>
 <ul>
-<li><strong>1. base</strong> — general procedures and data structured
+<li><strong>1. Base</strong> — general procedures and data structured
 <ul>
 <li>1.1. <em>bs</em></li>
 </ul>
 </li>
-<li><strong>2. core</strong> — essential engine components
+<li><strong>2. Core</strong> — essential engine components
 <ul>
 <li><em>wd</em> — window</li>
 <li><em>gx</em> — graphics</li>
@@ -199,7 +199,7 @@
 <li><em>px</em> — physics</li>
 </ul>
 </li>
-<li><strong>3. app/game</strong> — auxiliary components for game development
+<li><strong>3. App/Game</strong> — auxiliary components for game development
 <ul>
 <li><em>sn</em> — scene</li>
 <li><em>dg</em> — dialogue</li>
@@ -209,13 +209,13 @@
 <li><em>ai</em> — ai</li>
 </ul>
 </li>
-<li><strong>3. app/tool</strong> — auxiliary components for application &amp; tool development
+<li><strong>3. App/Tool</strong> — auxiliary components for application &amp; tool development
 <ul>
 <li><em>pt</em> — plot</li>
 <li><em>ti</em> — tools interface</li>
 </ul>
 </li>
-<li><strong>4. ext</strong> — extensions to components from the layers bellow</li>
+<li><strong>4. Ext</strong> — extensions to components from the layers bellow</li>
 </ul>
 <h2 id="context-trees"><a class="header" href="#context-trees">Context Trees</a></h2>
 <p>Certain families of objects—eg. entities in a scene, widgets in a GUI, commands in a render graph—naturally form a tree-like structure, where adjacent nodes have a <em>child</em>-<em>parent</em> relationship, and generally the parent provides some kind of context to the child, such that any procedure that constructs/processes the child requires to know who it’s parent is (and who the parent of it’s parent is and so on).</p>
@@ -247,6 +247,38 @@ dr_model_trm(node, model_2)
 dr_model_trm(node, model_3)
 // (Goes up the graph until it finds a camera node or an env node.)
 </code></pre>
+<h2 id="asset-manager"><a class="header" href="#asset-manager">Asset Manager</a></h2>
+<p><img src="asset-manager.svg" alt="asset-manager"></p>
+<p><code>Asset</code> is a generic class for managing things like images, sounds, models, levels, etc. It provides a standard interface for importing from and exporting to standard exchange formats, saving to and loading from the database, reading from and writing to disk, and downloading from and uploading to the GPU.</p>
+<p>All asset operatins happen through a single asset command procedure which is mapped to the derived asset type when the asset is registered with the asset manager.</p>
+<p>It can query where an asset is represented and when each representation was last modified. It can also automate transports from one location to another, which can be used for live-reloading of assets. This is demonstrated in the <a href="examples.html#watcher">watcher example</a>.</p>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
 
                     </main>
 
