@@ -1,7 +1,9 @@
 package tests
 
 // @require import "asset"
-@require import "base_settings"
+@require import "bit_array"
+@require import "bitpacked_array"
+// @require import "base_settings"
 // import rt "base:runtime"
 // import sl "core:slice"
 // import tst "core:testing"

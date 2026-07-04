@@ -1,6 +1,8 @@
 
-- Bitmap text generator.
+- Write tests for "Bitpacked_Array"
 - A procedure that converts an .odin file to a GLSL library. Use it to translate the image processing library.
+- Write a META procedure which scans the TEST code and collect the names of all procedures that occur in it and then scans the OGGUN code and flags all procedure that don't occur in TEST with @(deprecated="untested").
+- Bitmap text generator.
 - Image processing library, for both CPU and GPU.
 - Write a widget that uses the "reflect" package to draw data structures.
 - Effect demo.
@@ -35,8 +37,6 @@
 - Implement win32 window backend (just write a "window_win32" and surround the whole file in "when WINDOW_WIN32")
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
 - Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"
-- ural
-
 - Test the font renderer with a multicolored font
 - Add a procedure in the checker to make sure all structs with "singleton" tag are instantited only once
 - Neon shadows
