@@ -78,3 +78,7 @@ dynamic_bit_array_append_chunk :: proc(array: ^Dynamic_Bit_Array, value: Backing
 	if len_to_wordlen(uint(array.len) + len) > len_to_wordlen(array.len) do resize(&array.buffer, len_to_wordlen(uint(array.len) + len))
 	array.len += u32(len)
 	dynamic_bit_array_write_chunk(array, { uint(array.len) - len, uint(array.len) }, value) }
+
+dynamic_bit_arena_resize :: proc(array: ^Dynamic_Bit_Array, #any_int new_size: uint) {
+	if len_to_wordlen(new_size) > len_to_wordlen(array.len) do resize(&array.buffer, len_to_wordlen(new_size))
+	array.len = u32(new_size) }
