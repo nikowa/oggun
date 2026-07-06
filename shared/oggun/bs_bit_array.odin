@@ -42,17 +42,12 @@ aprint_bit_array_ext :: proc(array: ^Bit_Array, allocator := context.allocator) 
 delete_bit_array :: proc(array: ^Bit_Array) {
 	delete(array.buffer) }
 
-bit_array_read :: proc { bit_array_read_bit, bit_array_read_chunk }
-
-bit_array_write :: proc { bit_array_write_bit }
-
-bit_array_read_bit :: proc(array: ^Bit_Array, #any_int j: uint) -> u8 {
-	return u8(0b1 & (array.buffer[j / BIT_ARRAY_W] >> (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W)))) }
-
 bit_array_set :: proc(array: ^Bit_Array, #any_int j: uint) {
 	array.buffer[j / BIT_ARRAY_W] |= 0b1 << (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W)) }
 
-bit_array_clear :: proc(array: ^Bit_Array, #any_int j: uint) {
+bit_array_clear :: proc { bit_array_clear_bit, bit_array_clear_chunk }
+
+bit_array_clear_bit :: proc(array: ^Bit_Array, #any_int j: uint) {
 	array.buffer[j / BIT_ARRAY_W] &= ~ (0b1 << (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W))) }
 
 bit_array_clear_chunk :: proc(array: ^Bit_Array, range: [2]uint) {
@@ -60,9 +55,11 @@ bit_array_clear_chunk :: proc(array: ^Bit_Array, range: [2]uint) {
 	mask: Backing_Type = ((0b1 << n) - 1) << (BIT_ARRAY_W - n - (range[0]  % BIT_ARRAY_W))
 	array.buffer[range[0] / BIT_ARRAY_W] &= ~ mask }
 
-bit_array_write_bit :: proc(array: ^Bit_Array, #any_int j: uint, value: u8) {
-	if cast(bool)value do bit_array_set(array, j)
-	else do bit_array_clear(array, j) }
+bit_array_read :: proc { bit_array_read_bit, bit_array_read_chunk }
+
+bit_array_read_bit :: proc(array: ^Bit_Array, #any_int j: uint) -> u8 {
+	runtime.bounds_check_error_loc(index=cast(int)j, count=cast(int)array.len)
+	return u8(0b1 & (array.buffer[j / BIT_ARRAY_W] >> (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W)))) }
 
 @private _bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]uint) -> (result: Backing_Type) {
 	n := range[1] - range[0]
@@ -74,6 +71,7 @@ bit_array_write_bit :: proc(array: ^Bit_Array, #any_int j: uint, value: u8) {
 	return result }
 
 bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]uint) -> Backing_Type {
+	runtime.bounds_check_error_loc(index=cast(int)range[1]-1, count=cast(int)array.len)
 	assert(range[1] - range[0] <= BIT_ARRAY_W)
 	if range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W {
 		return _bit_array_read_chunk(array, range) }
@@ -84,6 +82,13 @@ bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]uint) -> Backing_Type 
 		lo := _bit_array_read_chunk(array, lo_range)
 		return (hi << (lo_range[1] - lo_range[0])) | lo } }
 
+bit_array_write :: proc { bit_array_write_bit, bit_array_write_chunk }
+
+bit_array_write_bit :: proc(array: ^Bit_Array, #any_int j: uint, value: u8) {
+	runtime.bounds_check_error_loc(index=cast(int)j, count=cast(int)array.len)
+	if cast(bool)value do bit_array_set(array, j)
+	else do bit_array_clear(array, j) }
+
 @private _bit_array_write_chunk :: proc(array: ^Bit_Array, range: [2]uint, value: Backing_Type) {
 	assert(range[1] - range[0] <= BIT_ARRAY_W)
 	assert(range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W)
@@ -93,6 +98,7 @@ bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]uint) -> Backing_Type 
 	array.buffer[i] |= value << ((BIT_ARRAY_W - range[1]) % BIT_ARRAY_W) }
 
 bit_array_write_chunk :: proc(array: ^Bit_Array, range: [2]uint, value: Backing_Type) {
+	runtime.bounds_check_error_loc(index=cast(int)range[1]-1, count=cast(int)array.len)
 	assert(range[1] - range[0] <= BIT_ARRAY_W)
 	if range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W {
 		_bit_array_write_chunk(array, range, value) }

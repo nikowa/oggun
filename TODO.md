@@ -1,4 +1,6 @@
 
+- Dynamic_Bit_Array
+- Dynamic_Bitpacked_Array
 - Write tests for "Bitpacked_Array"
 - A procedure that converts an .odin file to a GLSL library. Use it to translate the image processing library.
 - Write a META procedure which scans the TEST code and collect the names of all procedures that occur in it and then scans the OGGUN code and flags all procedure that don't occur in TEST with @(deprecated="untested").

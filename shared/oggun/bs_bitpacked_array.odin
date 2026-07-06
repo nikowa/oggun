@@ -1,6 +1,7 @@
 #+feature using-stmt
 package oggun
 import "base:runtime"
+import "core:log"
 
 Bitpacked_Array :: struct($Elem_Type: typeid, $elem_size: uint) {
 	len: uint,
@@ -15,8 +16,8 @@ clone_bitpacked_array :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), a
 	backing, err := clone_bit_array(&array.backing, allocator)
 	return { backing = backing }, err }
 
-bitpacked_array_read :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), i: uint) -> Elem_Type {
-	return cast(Backing_Type)bit_array_read(&array.backing, { i * elem_size, (i + 1) * elem_size }) }
+bitpacked_array_read :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), #any_int i: uint) -> Elem_Type {
+	return cast(Elem_Type)bit_array_read(&array.backing, [2]uint{ i * elem_size, (i + 1) * elem_size }) }
 
-bitpacked_array_write :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), i: uint, value: Elem_Type) {
-	return bit_array_write(&array.backing, { i * elem_size, (i + 1) * elem_size }, cast(Backing_Type)Elem_Type) }
+bitpacked_array_write :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), #any_int i: uint, value: Elem_Type) {
+	bit_array_write(&array.backing, [2]uint{ i * elem_size, (i + 1) * elem_size }, cast(Backing_Type)value) }
