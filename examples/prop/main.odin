@@ -10,6 +10,7 @@ import "core:math/rand"
 import "core:math/linalg"
 import "core:slice"
 import "core:mem"
+import "core:relative"
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -21,18 +22,10 @@ stopwatch: time.Stopwatch
 entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	using oggun
 
-	ba: Bit_Array = make_bit_array(32)
-	log.info(len(ba.buffer), math.ceil_f32(f32(10_000) / 8))
-	bit_array_set(&ba, 13)
-	bit_array_set(&ba, 14)
-	bit_array_set(&ba, 17)
-	bit_array_set(&ba, 18)
-	bit_array_clear(&ba, 14)
-	bit_array_clear(&ba, 18)
-	assert(bit_array_read(&ba, 13) == 1)
-	assert(bit_array_read(&ba, 14) == 0)
-	assert(bit_array_read(&ba, 17) == 1)
-	assert(bit_array_read(&ba, 18) == 0)
+	ptr: relative.Pointer(^u64, u8)
+	log.info(relative.pointer_get(&ptr))
+	relative.pointer_set(&ptr, nil)
+	log.info(relative.pointer_get(&ptr))
 	// log.infof(">> %b", ba.buffer[2])
 
 	// l :: 4

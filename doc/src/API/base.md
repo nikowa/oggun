@@ -329,6 +329,357 @@ make_thread_data :: proc(
 get_thread_data :: proc() -> (thread_data: ^Thread_Data)
 ```
 --->
+
+## tree
+
+#### `Tree`
+
+```c
+Tree :: struct($V: typeid, $B: typeid) {
+	value: V,
+	parent, first_child, next_sibling: relative.Pointer(rawptr, B) }
+```
+
+#### `Tree_Builder`
+
+```c
+Tree_Builder :: struct($V: typeid, $B: typeid) {
+	allocator: runtime.Allocator,
+	root: ^Tree,
+	current: ^Tree }
+```
+
+#### `Tree_Iterator`
+
+```c
+Tree_Iterator :: struct($V: typeid, $B: typeid) {
+	curr: ^Tree(V, B),
+	next: proc(iter: ^Tree_Iterator(V, B)) }
+```
+
+#### `tree_root`
+
+```c
+tree_root :: proc(
+	tree: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_first_child`
+
+```c
+tree_first_child :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_last_child`
+
+```c
+tree_last_child :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_next_sibling`
+
+```c
+tree_next_sibling :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_prev_sibling`
+
+```c
+tree_prev_sibling :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_first_sibling`
+
+```c
+tree_first_sibling :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_last_sibling`
+
+```c
+tree_last_sibling :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_parent`
+
+```c
+tree_parent :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_first_leaf`
+
+```c
+tree_first_leaf :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_last_leaf`
+
+```c
+tree_last_leaf :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_is_root`
+
+```c
+tree_is_root :: proc(
+	node: ^Tree($V, $B)) -> bool
+```
+
+#### `tree_is_leaf`
+
+```c
+tree_is_leaf :: proc(
+	node: ^Tree($V, $B)) -> bool
+```
+
+#### `tree_is_branching`
+
+```c
+tree_is_branching :: proc(
+	node: ^Tree($V, $B)) -> bool
+```
+
+#### `tree_height`
+
+```c
+tree_height :: proc(
+	node: ^Tree($V, $B)) -> uint
+```
+
+#### `tree_size`
+
+```c
+tree_size :: proc(
+	node: ^Tree($V, $B)) -> uint
+```
+
+#### `tree_is_ancestor`
+
+```c
+tree_is_ancestor :: proc(
+	node: ^Tree($V, $B), ancestor: ^Tree(V, B)) -> bool
+```
+
+#### `make_tree_preorder_iterator`
+
+```c
+make_tree_preorder_iterator :: proc(
+	tree: ^Tree($V, $B)) -> Tree_Iterator(V, B)
+```
+
+#### `make_tree_postorder_iterator`
+
+```c
+make_tree_postorder_iterator :: proc(
+	tree: ^Tree($V, $B)) -> Tree_Iterator(V, B)
+```
+
+#### `make_tree_inorder_iterator`
+
+```c
+make_tree_inorder_iterator :: proc(
+	tree: ^Tree($V, $B)) -> Tree_Iterator(V, B)
+```
+
+#### `tree_n_children`
+
+```c
+tree_n_children :: proc(
+	tree: ^Tree($V, $B)) -> uint
+```
+
+#### `tree_nth_child`
+
+```c
+tree_nth_child :: proc(
+	tree: ^Tree($V, $B),
+	n: uint) -> (result: ^Tree(V, B))
+```
+
+#### `tree_lowest_common_ancestor`
+
+```c
+tree_lowest_common_ancestor :: proc(
+	tree_a: ^Tree($V, $B),
+	tree_b: ^Tree(V, B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_lowest_branching_ancestor`
+
+```c
+tree_lowest_branching_ancestor :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_lowest_branching_ancestor`
+
+```c
+tree_highest_branching_descendant :: proc(
+	node: ^Tree($V, $B)) -> (result: ^Tree(V, B))
+```
+
+#### `tree_n_leaves`
+
+```c
+tree_n_leaves :: proc(
+	tree: ^Tree($V, $B)) -> uint
+```
+
+#### `tree_set_parent`
+
+```c
+tree_set_parent :: proc(
+	node: ^Tree($V, $B),
+	parent: ^Tree(V, B))
+```
+
+#### `tree_set_first_child`
+
+```c
+tree_set_first_child :: proc(
+	node: ^Tree($V, $B),
+	first_child: ^Tree(V, B))
+```
+
+#### `tree_set_next_sibling`
+
+```c
+tree_set_next_sibling :: proc(
+	node: ^Tree($V, $B),
+	next_sibling: ^Tree(V, B))
+```
+
+#### `tree_append_child`
+
+```c
+tree_append_child :: proc(
+	node: ^Tree($V, $B),
+	child: ^Tree(V, B))
+```
+
+#### `tree_append_sibling`
+
+```c
+tree_append_sibling :: proc(node: ^Tree($V, $B), sibling: ^Tree(V, B))
+```
+
+#### `make_tree_builder`
+
+```c
+make_tree_builder :: proc(
+	$V: typeid,
+	$B: typeid,
+	allocator := context.allocator) -> Tree_Builder(V, B)
+```
+
+#### `tree_builder_capacity`
+
+```c
+tree_builder_capacity :: proc(
+	builder: ^Tree_Builder($V, $B)) -> uint
+```
+
+#### `tree_builder_parent`
+
+```c
+tree_builder_parent :: proc(
+	builder: ^Tree_Builder($V, $B)) -> ^Tree(V, B)
+```
+
+#### `tree_build_node`
+
+```c
+tree_build_node :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -> ^Tree(V, B)
+```
+
+#### `tree_build_node_begin`
+
+```c
+tree_build_node_begin :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -> ^Tree(V, B)
+```
+
+#### `tree_build_node_end`
+
+```c
+tree_build_node_end :: proc(
+	builder: ^Tree_Builder($V, $B))
+```
+
+#### `tree_build_root`
+
+```c
+tree_build_root :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -> ^Tree(V, B)
+```
+
+#### `tree_build_root_begin`
+
+```c
+tree_build_root_begin :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -> ^Tree(V, B)
+```
+
+#### `tree_build_root_end`
+
+```c
+tree_build_root_end :: proc(
+	builder: ^Tree_Builder($V, $B))
+```
+
+#### `tree_build_child`
+
+```c
+tree_build_child :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -> ^Tree(V, B)
+```
+
+#### `tree_build_child_begin`
+
+```c
+tree_build_child_begin :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -> ^Tree(V, B)
+```
+
+#### `tree_build_child_end`
+
+```c
+tree_build_child_end :: proc(
+	builder: ^Tree_Builder($V, $B))
+```
+
+#### `aprint_tree`
+
+```c
+aprint_tree :: proc(
+	tree: ^Tree($V, $B),
+	allocator := context.allocator) -> string
+```
+
+#### `tree_build_root`
+
+```c
+tree_build_root :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V)
+```
+
 <pre>
 
 

@@ -331,3 +331,5 @@ compass_invert :: proc(compass: Compass) -> Compass {
 	case .North: return .South
 	case .South: return .North }
 	return {} }
+
+push :: append

@@ -3,6 +3,7 @@ package tests
 // @require import "asset"
 @require import "bit_array"
 @require import "bitpacked_array"
+@require import "tree"
 // @require import "base_settings"
 // import rt "base:runtime"
 // import sl "core:slice"

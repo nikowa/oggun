@@ -188,6 +188,7 @@ extensions_names_free :: proc(names: []string) {
 
 @(require_results)
 uri_parse :: proc(uri: Uri, gltf_dir: string) -> Uri {
+    uri := uri
     if uri == nil {
         return uri
     }
@@ -222,7 +223,8 @@ uri_parse :: proc(uri: Uri, gltf_dir: string) -> Uri {
 
         switch encoding {
         case "base64":
-            return base64.decode(str_data[encoding_end_idx + 1:])
+            uri, _ = base64.decode(str_data[encoding_end_idx + 1:])
+            return uri
         }
     }
 

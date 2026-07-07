@@ -40,7 +40,7 @@ Scene_Element_Param :: struct {
 		visible: bool } }
 
 // (TODO): This will cache the last node, to save itseslf some work.
-scene_element_from_node :: proc(node: ^Tree_Node(Scene_Element_Param, u16)) -> (scene_element: Scene_Element) {
+scene_element_from_node :: proc(node: ^Tree(Scene_Element_Param, u16)) -> (scene_element: Scene_Element) {
 	// scene_element = DEFAULT_SCENE_ELEMENT
 	// curr := node
 	// for {
@@ -52,7 +52,7 @@ scene_element_from_node :: proc(node: ^Tree_Node(Scene_Element_Param, u16)) -> (
 	return {}
 }
 
-dr_model_trm :: proc(node: ^Tree_Node(Scene_Element_Param, u16), model: ^Model) {
+dr_model_trm :: proc(node: ^Tree(Scene_Element_Param, u16), model: ^Model) {
 	_dr_model_im(scene_element_from_node(node), model) }
 
 // (TODO): This should have a nice API with only the necessary parameters. //

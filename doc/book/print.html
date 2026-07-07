@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-9b8f6de1.js";
+            window.path_to_searchindex_js = "searchindex-26b1a460.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-315dde17.js"></script>
@@ -681,6 +681,214 @@ make_thread_data :: proc(
 get_thread_data :: proc() -> (thread_data: ^Thread_Data)
 ```
 --->
+<h2 id="tree"><a class="header" href="#tree">tree</a></h2>
+<h4 id="tree-1"><a class="header" href="#tree-1"><code>Tree</code></a></h4>
+<pre><code class="language-c">Tree :: struct($V: typeid, $B: typeid) {
+	value: V,
+	parent, first_child, next_sibling: relative.Pointer(rawptr, B) }
+</code></pre>
+<h4 id="tree_builder"><a class="header" href="#tree_builder"><code>Tree_Builder</code></a></h4>
+<pre><code class="language-c">Tree_Builder :: struct($V: typeid, $B: typeid) {
+	allocator: runtime.Allocator,
+	root: ^Tree,
+	current: ^Tree }
+</code></pre>
+<h4 id="tree_iterator"><a class="header" href="#tree_iterator"><code>Tree_Iterator</code></a></h4>
+<pre><code class="language-c">Tree_Iterator :: struct($V: typeid, $B: typeid) {
+	curr: ^Tree(V, B),
+	next: proc(iter: ^Tree_Iterator(V, B)) }
+</code></pre>
+<h4 id="tree_root"><a class="header" href="#tree_root"><code>tree_root</code></a></h4>
+<pre><code class="language-c">tree_root :: proc(
+	tree: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_first_child"><a class="header" href="#tree_first_child"><code>tree_first_child</code></a></h4>
+<pre><code class="language-c">tree_first_child :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_last_child"><a class="header" href="#tree_last_child"><code>tree_last_child</code></a></h4>
+<pre><code class="language-c">tree_last_child :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_next_sibling"><a class="header" href="#tree_next_sibling"><code>tree_next_sibling</code></a></h4>
+<pre><code class="language-c">tree_next_sibling :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_prev_sibling"><a class="header" href="#tree_prev_sibling"><code>tree_prev_sibling</code></a></h4>
+<pre><code class="language-c">tree_prev_sibling :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_first_sibling"><a class="header" href="#tree_first_sibling"><code>tree_first_sibling</code></a></h4>
+<pre><code class="language-c">tree_first_sibling :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_last_sibling"><a class="header" href="#tree_last_sibling"><code>tree_last_sibling</code></a></h4>
+<pre><code class="language-c">tree_last_sibling :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_parent"><a class="header" href="#tree_parent"><code>tree_parent</code></a></h4>
+<pre><code class="language-c">tree_parent :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_first_leaf"><a class="header" href="#tree_first_leaf"><code>tree_first_leaf</code></a></h4>
+<pre><code class="language-c">tree_first_leaf :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_last_leaf"><a class="header" href="#tree_last_leaf"><code>tree_last_leaf</code></a></h4>
+<pre><code class="language-c">tree_last_leaf :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_is_root"><a class="header" href="#tree_is_root"><code>tree_is_root</code></a></h4>
+<pre><code class="language-c">tree_is_root :: proc(
+	node: ^Tree($V, $B)) -&gt; bool
+</code></pre>
+<h4 id="tree_is_leaf"><a class="header" href="#tree_is_leaf"><code>tree_is_leaf</code></a></h4>
+<pre><code class="language-c">tree_is_leaf :: proc(
+	node: ^Tree($V, $B)) -&gt; bool
+</code></pre>
+<h4 id="tree_is_branching"><a class="header" href="#tree_is_branching"><code>tree_is_branching</code></a></h4>
+<pre><code class="language-c">tree_is_branching :: proc(
+	node: ^Tree($V, $B)) -&gt; bool
+</code></pre>
+<h4 id="tree_height"><a class="header" href="#tree_height"><code>tree_height</code></a></h4>
+<pre><code class="language-c">tree_height :: proc(
+	node: ^Tree($V, $B)) -&gt; uint
+</code></pre>
+<h4 id="tree_size"><a class="header" href="#tree_size"><code>tree_size</code></a></h4>
+<pre><code class="language-c">tree_size :: proc(
+	node: ^Tree($V, $B)) -&gt; uint
+</code></pre>
+<h4 id="tree_is_ancestor"><a class="header" href="#tree_is_ancestor"><code>tree_is_ancestor</code></a></h4>
+<pre><code class="language-c">tree_is_ancestor :: proc(
+	node: ^Tree($V, $B), ancestor: ^Tree(V, B)) -&gt; bool
+</code></pre>
+<h4 id="make_tree_preorder_iterator"><a class="header" href="#make_tree_preorder_iterator"><code>make_tree_preorder_iterator</code></a></h4>
+<pre><code class="language-c">make_tree_preorder_iterator :: proc(
+	tree: ^Tree($V, $B)) -&gt; Tree_Iterator(V, B)
+</code></pre>
+<h4 id="make_tree_postorder_iterator"><a class="header" href="#make_tree_postorder_iterator"><code>make_tree_postorder_iterator</code></a></h4>
+<pre><code class="language-c">make_tree_postorder_iterator :: proc(
+	tree: ^Tree($V, $B)) -&gt; Tree_Iterator(V, B)
+</code></pre>
+<h4 id="make_tree_inorder_iterator"><a class="header" href="#make_tree_inorder_iterator"><code>make_tree_inorder_iterator</code></a></h4>
+<pre><code class="language-c">make_tree_inorder_iterator :: proc(
+	tree: ^Tree($V, $B)) -&gt; Tree_Iterator(V, B)
+</code></pre>
+<h4 id="tree_n_children"><a class="header" href="#tree_n_children"><code>tree_n_children</code></a></h4>
+<pre><code class="language-c">tree_n_children :: proc(
+	tree: ^Tree($V, $B)) -&gt; uint
+</code></pre>
+<h4 id="tree_nth_child"><a class="header" href="#tree_nth_child"><code>tree_nth_child</code></a></h4>
+<pre><code class="language-c">tree_nth_child :: proc(
+	tree: ^Tree($V, $B),
+	n: uint) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_lowest_common_ancestor"><a class="header" href="#tree_lowest_common_ancestor"><code>tree_lowest_common_ancestor</code></a></h4>
+<pre><code class="language-c">tree_lowest_common_ancestor :: proc(
+	tree_a: ^Tree($V, $B),
+	tree_b: ^Tree(V, B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_lowest_branching_ancestor"><a class="header" href="#tree_lowest_branching_ancestor"><code>tree_lowest_branching_ancestor</code></a></h4>
+<pre><code class="language-c">tree_lowest_branching_ancestor :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_lowest_branching_ancestor-1"><a class="header" href="#tree_lowest_branching_ancestor-1"><code>tree_lowest_branching_ancestor</code></a></h4>
+<pre><code class="language-c">tree_highest_branching_descendant :: proc(
+	node: ^Tree($V, $B)) -&gt; (result: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_n_leaves"><a class="header" href="#tree_n_leaves"><code>tree_n_leaves</code></a></h4>
+<pre><code class="language-c">tree_n_leaves :: proc(
+	tree: ^Tree($V, $B)) -&gt; uint
+</code></pre>
+<h4 id="tree_set_parent"><a class="header" href="#tree_set_parent"><code>tree_set_parent</code></a></h4>
+<pre><code class="language-c">tree_set_parent :: proc(
+	node: ^Tree($V, $B),
+	parent: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_set_first_child"><a class="header" href="#tree_set_first_child"><code>tree_set_first_child</code></a></h4>
+<pre><code class="language-c">tree_set_first_child :: proc(
+	node: ^Tree($V, $B),
+	first_child: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_set_next_sibling"><a class="header" href="#tree_set_next_sibling"><code>tree_set_next_sibling</code></a></h4>
+<pre><code class="language-c">tree_set_next_sibling :: proc(
+	node: ^Tree($V, $B),
+	next_sibling: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_append_child"><a class="header" href="#tree_append_child"><code>tree_append_child</code></a></h4>
+<pre><code class="language-c">tree_append_child :: proc(
+	node: ^Tree($V, $B),
+	child: ^Tree(V, B))
+</code></pre>
+<h4 id="tree_append_sibling"><a class="header" href="#tree_append_sibling"><code>tree_append_sibling</code></a></h4>
+<pre><code class="language-c">tree_append_sibling :: proc(node: ^Tree($V, $B), sibling: ^Tree(V, B))
+</code></pre>
+<h4 id="make_tree_builder"><a class="header" href="#make_tree_builder"><code>make_tree_builder</code></a></h4>
+<pre><code class="language-c">make_tree_builder :: proc(
+	$V: typeid,
+	$B: typeid,
+	allocator := context.allocator) -&gt; Tree_Builder(V, B)
+</code></pre>
+<h4 id="tree_builder_capacity"><a class="header" href="#tree_builder_capacity"><code>tree_builder_capacity</code></a></h4>
+<pre><code class="language-c">tree_builder_capacity :: proc(
+	builder: ^Tree_Builder($V, $B)) -&gt; uint
+</code></pre>
+<h4 id="tree_builder_parent"><a class="header" href="#tree_builder_parent"><code>tree_builder_parent</code></a></h4>
+<pre><code class="language-c">tree_builder_parent :: proc(
+	builder: ^Tree_Builder($V, $B)) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_node"><a class="header" href="#tree_build_node"><code>tree_build_node</code></a></h4>
+<pre><code class="language-c">tree_build_node :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_node_begin"><a class="header" href="#tree_build_node_begin"><code>tree_build_node_begin</code></a></h4>
+<pre><code class="language-c">tree_build_node_begin :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_node_end"><a class="header" href="#tree_build_node_end"><code>tree_build_node_end</code></a></h4>
+<pre><code class="language-c">tree_build_node_end :: proc(
+	builder: ^Tree_Builder($V, $B))
+</code></pre>
+<h4 id="tree_build_root"><a class="header" href="#tree_build_root"><code>tree_build_root</code></a></h4>
+<pre><code class="language-c">tree_build_root :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_root_begin"><a class="header" href="#tree_build_root_begin"><code>tree_build_root_begin</code></a></h4>
+<pre><code class="language-c">tree_build_root_begin :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_root_end"><a class="header" href="#tree_build_root_end"><code>tree_build_root_end</code></a></h4>
+<pre><code class="language-c">tree_build_root_end :: proc(
+	builder: ^Tree_Builder($V, $B))
+</code></pre>
+<h4 id="tree_build_child"><a class="header" href="#tree_build_child"><code>tree_build_child</code></a></h4>
+<pre><code class="language-c">tree_build_child :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_child_begin"><a class="header" href="#tree_build_child_begin"><code>tree_build_child_begin</code></a></h4>
+<pre><code class="language-c">tree_build_child_begin :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V) -&gt; ^Tree(V, B)
+</code></pre>
+<h4 id="tree_build_child_end"><a class="header" href="#tree_build_child_end"><code>tree_build_child_end</code></a></h4>
+<pre><code class="language-c">tree_build_child_end :: proc(
+	builder: ^Tree_Builder($V, $B))
+</code></pre>
+<h4 id="aprint_tree"><a class="header" href="#aprint_tree"><code>aprint_tree</code></a></h4>
+<pre><code class="language-c">aprint_tree :: proc(
+	tree: ^Tree($V, $B),
+	allocator := context.allocator) -&gt; string
+</code></pre>
+<h4 id="tree_build_root-1"><a class="header" href="#tree_build_root-1"><code>tree_build_root</code></a></h4>
+<pre><code class="language-c">tree_build_root :: proc(
+	builder: ^Tree_Builder($V, $B),
+	value: V)
+</code></pre>
 <pre>
 
 
@@ -2458,7 +2666,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	using config: Scene_Config,
 	tree: Tree }
 </code></pre>
-<h4 id="tree"><a class="header" href="#tree"><code>Tree</code></a></h4>
+<h4 id="tree-2"><a class="header" href="#tree-2"><code>Tree</code></a></h4>
 <pre><code class="language-c">Tree :: struct {
 	root: ^Node }
 </code></pre>
@@ -2493,7 +2701,7 @@ camera_node = scn.make_camera_node(node_config, &amp;camera, context.allocator)
 	next_sibling: ^Node,
 	prev_sibling: ^Node }
 </code></pre>
-<h4 id="tree_iterator"><a class="header" href="#tree_iterator"><code>Tree_Iterator</code></a></h4>
+<h4 id="tree_iterator-1"><a class="header" href="#tree_iterator-1"><code>Tree_Iterator</code></a></h4>
 <pre><code class="language-c">Tree_Iterator :: struct {
 	curr: ^Node }
 </code></pre>
