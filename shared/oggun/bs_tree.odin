@@ -4,6 +4,7 @@ import "core:relative"
 import "core:strings"
 import "core:fmt"
 import "core:log"
+import "core:slice"
 
 Tree_Builder :: struct($V: typeid, $B: typeid) {
 	allocator: runtime.Allocator,
@@ -19,13 +20,6 @@ Tree_Iterator :: struct($V: typeid, $B: typeid) {
 	stack: [dynamic]^Tree(V, B),
 	next: proc(iter: ^Tree_Iterator(V, B)) -> (node: ^Tree(V, B), ok: bool) }
 
-// tree_add_child :: proc(builder: ^Tree_Builder($V, $B), value: V) {
-// 	child := new(Tree, builder.allocator)
-// 	tree_attach_child(builder.current,
-// 	// Tree :: struct($V: typeid, $B: typeid)
-// }
-
-// (DESC): Acceleration structure for walking a tree. //
 Tree_Walker :: struct($V: typeid, $B: typeid) {
 	tree: ^Tree(V, B) }
 
@@ -158,23 +152,31 @@ make_tree_postorder_iterator :: proc(tree: ^Tree($V, $B)) -> Tree_Iterator(V, B)
 			else do iter.curr = tree_first_leaf(next_sibling)
 			return node, ok } } }
 
-tree_n_children :: proc(tree: ^Tree($V, $B)) -> uint {
-	return 0 }
-
 tree_nth_child :: proc(tree: ^Tree($V, $B), n: uint) -> (result: ^Tree(V, B)) {
-	return nil }
+	child := tree_first_child(node)
+	for i in 0 ..< n do child = tree_next_sibling(node)
+	return child }
+
+tree_branching_ancestors :: proc(node: ^Tree($V, $B), allocator := context.allocator) -> (result: []^Tree(V, B)) {
+	branching_ancestors := make([dynamic]^Tree(V, B), allocator)
+	for parent := tree_parent(node); parent != nil; parent = tree_degree(parent) {
+		if tree_degree(parent) > 1 do append(&branching_ancestors, parent) }
+	shrink(&branching_ancestors)
+	return branching_ancestors[:] }
 
 tree_lowest_common_ancestor :: proc(tree_a: ^Tree($V, $B), tree_b: ^Tree(V, B)) -> (result: ^Tree(V, B)) {
+	a_ancestors, b_ancestors := tree_branching_ancestors(tree_a), tree_branching_ancestors(tree_b)
+	for ancestor in a_ancestors do if slice.contains(&b_ancestors, ancestor) do return ancestor
 	return nil }
 
 tree_lowest_branching_ancestor :: proc(node: ^Tree($V, $B)) -> (result: ^Tree(V, B)) {
+	for ancestor := tree_parent(node); ancestor != nil; ancestor = tree_degree(ancestor) do if tree_degree(ancestor) > 1 do return ancestor
 	return nil }
 
-tree_highest_branching_descendant :: proc(node: ^Tree($V, $B)) -> (result: ^Tree(V, B)) {
-	return nil }
-
-tree_n_leaves :: proc(tree: ^Tree($V, $B)) -> uint {
-	return 0 }
+tree_leaf_count :: proc(tree: ^Tree($V, $B)) -> (count: uint) {
+	iter := og.make_tree_postorder_iterator(b2.root)
+	for node in iter.next(&iter) do if tree_is_leaf(node) do count += 1
+	return count }
 
 tree_capacity_check_error :: proc(ptr: ^relative.Pointer(rawptr, $B), addr: [2]rawptr, loc := #caller_location) {
 	if relative.pointer_get(ptr) != addr[1] {
@@ -183,7 +185,6 @@ tree_capacity_check_error :: proc(ptr: ^relative.Pointer(rawptr, $B), addr: [2]r
 
 tree_set_parent :: proc(node: ^Tree($V, $B), parent: ^Tree(V, B)) {
 	relative.pointer_set(&node.parent, parent)
-	// log.info(rawptr(parent), rawptr(tree_parent(node)))
 	tree_capacity_check_error(&node.parent, { cast(rawptr)node, cast(rawptr)parent }) }
 
 tree_set_first_child :: proc(node: ^Tree($V, $B), first_child: ^Tree(V, B)) {
@@ -264,25 +265,8 @@ aprint_tree :: proc(tree: ^Tree($V, $B), allocator := context.allocator) -> stri
 		if depth > 0 do if tree_next_sibling(node) != nil do fmt.sbprint(sb, "|--")
 			else do fmt.sbprint(sb, "'--")
 		fmt.sbprint(sb, node.value)
-		// fmt.sbprintfln(sb, " %x (%x %x %x)", cast(rawptr)node, cast(rawptr)tree_parent(node), cast(rawptr)tree_first_child(node), cast(rawptr)tree_next_sibling(node))
 		fmt.sbprintln(sb)
 		sbprint_tree(sb, tree_first_child(node), depth + 1)
 		sbprint_tree(sb, tree_next_sibling(node), depth) }
 	sbprint_tree(&sb, tree, 0)
 	return strings.to_string(sb) }
-
-// tree_attach_root :: proc(tree: ^Tree, node: ^Node) {
-// 	tree.root = node }
-
-// node_attach_sibling :: proc(node: ^Node, sibling: ^Node) {
-// 	node.parent.last_child.next_sibling = sibling
-// 	sibling.prev_sibling = node.parent.last_child
-// 	node.parent.last_child = sibling
-// 	sibling.parent = node.parent }
-
-// node_attach_child :: proc(node: ^Node, child: ^Node) {
-// 	if node.first_child == nil {
-// 		node.first_child = child
-// 		node.last_child = child
-// 		child.parent = node }
-// 	else do node_attach_sibling(node.last_child, child) }
