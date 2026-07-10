@@ -16,8 +16,8 @@ Tree :: struct($V: typeid, $B: typeid) #packed {
 
 Tree_Iterator :: struct($V: typeid, $B: typeid) {
 	curr: ^Tree(V, B),
-	branches_stack: [dynamic]^Tree(V, B),
-	next: proc(iter: ^Tree_Iterator(V, B)) }
+	stack: [dynamic]^Tree(V, B),
+	next: proc(iter: ^Tree_Iterator(V, B)) -> (node: ^Tree(V, B), ok: bool) }
 
 // tree_add_child :: proc(builder: ^Tree_Builder($V, $B), value: V) {
 // 	child := new(Tree, builder.allocator)
@@ -37,6 +37,14 @@ tree_root :: proc(tree: ^Tree($V, $B)) -> (root: ^Tree(V, B)) {
 		if parent == nil do return node
 		node = parent }
 	return nil }
+
+tree_degree :: proc(node: ^Tree($V, $B)) -> (degree: uint) {
+	degree = 0
+	child := tree_first_child(node)
+	for child != nil {
+		degree += 1
+		child = tree_next_sibling(node) }
+	return degree }
 
 tree_first_child :: proc(node: ^Tree($V, $B)) -> (result: ^Tree(V, B)) {
 	if node == nil do return nil
@@ -125,13 +133,30 @@ tree_is_ancestor :: proc(node: ^Tree($V, $B), ancestor: ^Tree(V, B)) -> bool {
 	return true }
 
 make_tree_preorder_iterator :: proc(tree: ^Tree($V, $B)) -> Tree_Iterator(V, B) {
-	return {} }
+	return {
+		curr = tree,
+		stack = make([dynamic]^Tree(V, B)),
+		next = proc(iter: ^Tree_Iterator(V, B)) -> (node: ^Tree(V, B), ok: bool) {
+			node, ok = iter.curr, iter.curr != nil
+			next_sibling := tree_next_sibling(node)
+			first_child := tree_first_child(node)
+			if next_sibling != nil do push(&iter.stack, next_sibling)
+			if first_child != nil do iter.curr = first_child
+			else {
+				if len(iter.stack) > 0 do iter.curr = pop(&iter.stack)
+				else do iter.curr = nil }
+			return node, ok } } }
 
 make_tree_postorder_iterator :: proc(tree: ^Tree($V, $B)) -> Tree_Iterator(V, B) {
-	return {} }
-
-make_tree_inorder_iterator :: proc(tree: ^Tree($V, $B)) -> Tree_Iterator(V, B) {
-	return {} }
+	return {
+		curr = tree_first_leaf(tree),
+		next = proc(iter: ^Tree_Iterator(V, B)) -> (node: ^Tree(V, B), ok: bool) {
+			node, ok = iter.curr, iter.curr != nil
+			next_sibling := tree_next_sibling(node)
+			parent := tree_parent(node)
+			if next_sibling == nil do iter.curr = parent
+			else do iter.curr = tree_first_leaf(next_sibling)
+			return node, ok } } }
 
 tree_n_children :: proc(tree: ^Tree($V, $B)) -> uint {
 	return 0 }
@@ -239,7 +264,8 @@ aprint_tree :: proc(tree: ^Tree($V, $B), allocator := context.allocator) -> stri
 		if depth > 0 do if tree_next_sibling(node) != nil do fmt.sbprint(sb, "|--")
 			else do fmt.sbprint(sb, "'--")
 		fmt.sbprint(sb, node.value)
-		fmt.sbprintfln(sb, " %x (%x %x %x)", cast(rawptr)node, cast(rawptr)tree_parent(node), cast(rawptr)tree_first_child(node), cast(rawptr)tree_next_sibling(node))
+		// fmt.sbprintfln(sb, " %x (%x %x %x)", cast(rawptr)node, cast(rawptr)tree_parent(node), cast(rawptr)tree_first_child(node), cast(rawptr)tree_next_sibling(node))
+		fmt.sbprintln(sb)
 		sbprint_tree(sb, tree_first_child(node), depth + 1)
 		sbprint_tree(sb, tree_next_sibling(node), depth) }
 	sbprint_tree(&sb, tree, 0)
