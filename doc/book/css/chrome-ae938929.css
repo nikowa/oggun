@@ -635,7 +635,7 @@ html:not(.js) .sidebar-resize-handle {
 
 .on-this-page {
     margin-left: 22px;
-    border-inline-start: 2px solid var(--sidebar-header-border-color);
+    border-inline-start: 4px solid var(--sidebar-header-border-color);
     padding-left: 8px;
 }
 
