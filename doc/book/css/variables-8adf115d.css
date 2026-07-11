@@ -78,16 +78,16 @@
 }
 
 .coal {
-    --bg: #202020;
-    --fg: #ffffff;
+    --bg: hsl(200, 7%, 8%);
+    --fg: #98a3ad;
 
-    --sidebar-bg: #202020;
-    --sidebar-fg: #ffffff;
+    --sidebar-bg: #292c2f;
+    --sidebar-fg: #a1adb8;
     --sidebar-non-existant: #505254;
-    --sidebar-active: #f7812c;
+    --sidebar-active: #3473ad;
     --sidebar-spacer: #393939;
 
-    --scrollbar: #515251;
+    --scrollbar: var(--sidebar-fg);
 
     --icons: #43484d;
     --icons-hover: #b3c0cc;
@@ -96,7 +96,7 @@
 
     --inline-code-color: #c5c8c6;
 
-    --theme-popup-bg: #202020;
+    --theme-popup-bg: #141617;
     --theme-popup-border: #43484d;
     --theme-hover: #1f2124;
 
@@ -135,11 +135,7 @@
     --blockquote-warning-color: #d29922;
     --blockquote-caution-color: #d91b29;
 
-    --sidebar-header-border-color: #e07e38;
-}
-
-.hljs {
-    background: none !important;
+    --sidebar-header-border-color: #3473ad;
 }
 
 .light, html:not(.js) {
