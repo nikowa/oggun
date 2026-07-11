@@ -2,7 +2,3 @@
 title = "OGGUN"
 authors = ["Nikola Stefanov"]
 language = "en"
-
-[output.html]
-default-theme = "light"
-preferred-dark-theme = "coal"
