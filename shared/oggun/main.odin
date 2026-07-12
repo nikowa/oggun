@@ -48,7 +48,9 @@ main :: proc() {
 			return }
 		project_path, _ := os.get_absolute_path(os.args[2], context.allocator)
 		if ! os.exists(project_path) do fmt.eprintfln("Error: %s is not a valid path.", project_path)
-		mt_list_untested(project_path)
+		executable_directory, _ := os.get_executable_directory(context.allocator)
+		oggun_directory_path, _ := os.join_path({ executable_directory, "shared", "oggun" }, context.allocator)
+		mt_list_untested(oggun_directory_path, project_path)
 	case: no_command = true }
 	else do no_command = true
 	if no_command do fmt.println(prompt) }

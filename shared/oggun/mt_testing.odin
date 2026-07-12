@@ -50,12 +50,25 @@ mt_test_coverage :: proc(directory_path: string) -> (tested, untested: []string)
 						if slice.contains(data.procs[:], proc_name) do append_deduplicate(&data.tested_procs, proc_name) }
 					return true }) } } }
 	shrink(&data.tested_procs)
-	for proc_name in data.procs do if ! slice.contains(data.procs[:], proc_name) do append(&untested_procs, proc_name)
+	for proc_name in data.procs do if ! slice.contains(data.tested_procs[:], proc_name) do append(&untested_procs, proc_name)
 	shrink(&untested_procs)
-	log.infof("Test coverage: %v%%", math.round(f32(len(data.tested_procs)) / f32(len(data.procs)) * 100))
+	log.infof("Test coverage: " + ANSI_FG_INTENSE_WHITE + "%v%%" + ANSI_DEFAULT, math.round(f32(len(data.tested_procs)) / f32(len(data.procs)) * 100))
 	return data.tested_procs[:], untested_procs[:] }
 
-mt_list_untested :: proc(project_path: string) {
-	tested, untested := mt_test_coverage(project_path)
-
-}
+mt_list_untested :: proc(oggun_directory_path, project_path: string) {
+	log.infof("Checking %s %s.", project_path, oggun_directory_path)
+	tested, untested := mt_test_coverage(oggun_directory_path)
+	file_infos, err := os.read_directory_by_path(project_path, -1, context.allocator)
+	Data :: struct { untested_procs: []string }
+	data: Data = { untested_procs = untested }
+	for file_info in file_infos {
+		if os.ext(file_info.name) != ".odin" do continue
+		mt_walk_file(file_info.fullpath, &data, proc(walker: ^Walker, node: ^ast.Node) -> bool {
+			data: ^Data = auto_cast walker.user_data
+			#partial switch derived in node.derived {
+			case ^ast.Call_Expr:
+				proc_name := mt_node_string(walker, derived.expr.expr_base)
+				if ! strings.has_prefix(proc_name, "og.") do return true
+				proc_name = proc_name[3:]
+				if slice.contains(data.untested_procs[:], proc_name) do log.warnf("Proc " + ANSI_FG_INTENSE_WHITE + "%s" + ANSI_DEFAULT + " is untested.", proc_name) }
+			return true }) } }

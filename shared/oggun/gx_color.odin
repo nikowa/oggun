@@ -19,6 +19,42 @@ DARK_GRAY:   Color : 0x404040ff
 CYAN:        Color : 0x00ffffff
 DARK_CYAN:   Color : 0x008080ff
 
+ANSI_FG_BLACK :: "\e[30m"
+ANSI_FG_RED :: "\e[31m"
+ANSI_FG_GREEN :: "\e[32m"
+ANSI_FG_YELLOW :: "\e[33m"
+ANSI_FG_BLUE :: "\e[34m"
+ANSI_FG_MAGENTA :: "\e[35m"
+ANSI_FG_CYAN :: "\e[36m"
+ANSI_FG_WHITE :: "\e[37m"
+ANSI_FG_INTENSE_BLACK :: "\e[90m"
+ANSI_FG_INTENSE_RED :: "\e[91m"
+ANSI_FG_INTENSE_GREEN :: "\e[92m"
+ANSI_FG_INTENSE_YELLOW :: "\e[93m"
+ANSI_FG_INTENSE_BLUE :: "\e[94m"
+ANSI_FG_INTENSE_MAGENTA :: "\e[95m"
+ANSI_FG_INTENSE_CYAN :: "\e[96m"
+ANSI_FG_INTENSE_WHITE :: "\e[97m"
+ANSI_BG_BLACK :: "\e[40m"
+ANSI_BG_RED :: "\e[41m"
+ANSI_BG_GREEN :: "\e[42m"
+ANSI_BG_YELLOW :: "\e[43m"
+ANSI_BG_BLUE :: "\e[44m"
+ANSI_BG_MAGENTA :: "\e[45m"
+ANSI_BG_CYAN :: "\e[46m"
+ANSI_BG_WHITE :: "\e[47m"
+ANSI_BG_INTENSE_BLACK :: "\e[100m"
+ANSI_BG_INTENSE_RED :: "\e[101m"
+ANSI_BG_INTENSE_GREEN :: "\e[102m"
+ANSI_BG_INTENSE_YELLOW :: "\e[103m"
+ANSI_BG_INTENSE_BLUE :: "\e[104m"
+ANSI_BG_INTENSE_MAGENTA :: "\e[105m"
+ANSI_BG_INTENSE_CYAN :: "\e[106m"
+ANSI_BG_INTENSE_WHITE :: "\e[107m"
+ANSI_DEFAULT :: "\e[0m"
+
+ANSI_FG_15 :: "\e[38;5;15m"
+
 gx_color_to_4f32 :: proc "contextless" (color: Color) -> [4]f32 {
 	return {
 		f32((color & 0xFF000000) >> 24) / 255.0,
