@@ -19,31 +19,31 @@ Generator :: struct {
 
 generators: map[string]Generator
 
-gn_get_generator :: proc(member_path: string) -> ^Generator {
+mt_get_generator :: proc(member_path: string) -> ^Generator {
 	prefix := strings.split(member_path, "_")[0]
 	if prefix not_in generators {
 		generator: Generator = gx_make_generator(prefix, 10_000)
 		fmt.sbprintfln(&generator.builder, `package oggun`)
-		gn_timestamp(&generator.builder)
+		mt_timestamp(&generator.builder)
 		generators[prefix] = generator }
 	return &generators[prefix] }
 
-gn_generate :: proc(oggun_path: string) {
-	gn_generate_defaults(oggun_path)
-	gn_generate_stacks(oggun_path) }
+mt_generate :: proc(oggun_path: string) {
+	mt_generate_defaults(oggun_path)
+	mt_generate_stacks(oggun_path) }
 
 timestamp_buf: [time.MIN_HMS_LEN]u8
 
-gn_timestamp :: proc(sb: ^strings.Builder) {
+mt_timestamp :: proc(sb: ^strings.Builder) {
 	fmt.sbprintfln(sb, "// Generated at %s //\n", time.time_to_string_hms(time.now(), timestamp_buf[:])) }
 
-gn_generate_defaults :: proc(oggun_path: string) {
+mt_generate_defaults :: proc(oggun_path: string) {
 	builder: strings.Builder
 	strings.builder_init_len_cap(&builder, 0, 10_000, context.allocator)
 	fmt.sbprintln(&builder, "package oggun")
 	fmt.sbprintln(&builder, `import "core:time"`)
 	fmt.sbprintln(&builder, `import "base:runtime"`)
-	gn_timestamp(&builder)
+	mt_timestamp(&builder)
 
 	node_to_string :: proc(source: string, node: ast.Node) -> string {
 		return source[node.pos.offset : max(node.end.offset, node.pos.offset)] }
@@ -91,9 +91,7 @@ gn_generate_defaults :: proc(oggun_path: string) {
 	for file_info in file_infos {
 		source_path: string = file_info.fullpath
 		if os.ext(source_path) != ".odin" do continue
-		source_bytes, _ := os.read_entire_file_from_path(source_path, context.allocator)
-		source: string = string(source_bytes)
-		file_node := mt_parse_file(source_path, source)
+		file_node, source := mt_parse_file(source_path)
 		config_types_data: Config_Types_Data = {
 			source = source,
 			config_type_infos = &config_type_infos }
@@ -131,10 +129,7 @@ gn_generate_defaults :: proc(oggun_path: string) {
 
 	for file_info in file_infos {
 		source_path: string = file_info.fullpath
-		if os.ext(source_path) != ".odin" do continue
-		source_bytes, _ := os.read_entire_file_from_path(source_path, context.allocator)
-		source: string = string(source_bytes)
-		file_node := mt_parse_file(source_path, source)
+		file_node, source := mt_parse_file(source_path)
 		config_instances_data: Config_Instances_Data = {
 			source = source,
 			config_type_infos = &config_type_infos }
@@ -174,7 +169,7 @@ gn_generate_defaults :: proc(oggun_path: string) {
 	path, _ := os.join_path({ oggun_path, "generated.odin" }, context.allocator)
 	_ = os.write_entire_file(path, strings.to_string(builder)) }
 
-gn_generate_stack :: proc(generator: ^Generator, name: string, type: string, default: string, field: string) {
+mt_generate_stack :: proc(generator: ^Generator, name: string, type: string, default: string, field: string) {
 	prefix := generator.prefix
 
 	fmt.sbprintfln(&generator.builder, `
@@ -206,18 +201,18 @@ gx_make_generator :: proc(prefix: string, cap: int) -> Generator {
 		prefix=prefix,
 		builder=builder } }
 
-gn_generator_commit :: proc(generator: ^Generator, oggun_path: string) {
+mt_generator_commit :: proc(generator: ^Generator, oggun_path: string) {
 	path, _ := os.join_path({ oggun_path, fmt.aprintf("%s_generated.odin", generator.prefix) }, context.allocator)
 	_ = os.write_entire_file(path, strings.to_string(generator.builder)) }
 
-gn_generate_stacks :: proc(oggun_path: string) {
-	generator := gn_get_generator("ui")
-	gn_generate_stack(generator, "disabled", "bool", "false", "ui_manager")
-	gn_generate_stack(generator, "button_shape", "UI_Button_Shape", ".ROUNDED", "ui_manager")
-	gn_generate_stack(generator, "appearance", "UI_Appearance", ".DEFAULT", "ui_manager")
-	gn_generate_stack(generator, "text_style", "Text_Style", "engine.ui_manager.text_style", "ui_manager")
-	gn_generator_commit(generator, oggun_path)
-	generator = gn_get_generator("gx")
-	gn_generate_stack(generator, "clip", "Clip", "{ ui_rect_screen(), 0 }", "graphics_manager")
-	gn_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
-	gn_generator_commit(generator, oggun_path) }
+mt_generate_stacks :: proc(oggun_path: string) {
+	generator := mt_get_generator("ui")
+	mt_generate_stack(generator, "disabled", "bool", "false", "ui_manager")
+	mt_generate_stack(generator, "button_shape", "UI_Button_Shape", ".ROUNDED", "ui_manager")
+	mt_generate_stack(generator, "appearance", "UI_Appearance", ".DEFAULT", "ui_manager")
+	mt_generate_stack(generator, "text_style", "Text_Style", "engine.ui_manager.text_style", "ui_manager")
+	mt_generator_commit(generator, oggun_path)
+	generator = mt_get_generator("gx")
+	mt_generate_stack(generator, "clip", "Clip", "{ ui_rect_screen(), 0 }", "graphics_manager")
+	mt_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
+	mt_generator_commit(generator, oggun_path) }

@@ -333,3 +333,11 @@ compass_invert :: proc(compass: Compass) -> Compass {
 	return {} }
 
 push :: append
+
+// deduplicate :: proc(array: [dynamic]$T) {
+// 	for i := 0; i < len(array); i += 1 do if
+// }
+
+append_deduplicate :: proc(array: ^$T/[dynamic]$E, #no_broadcast arg: E, loc := #caller_location) -> (num_appended: int, err: runtime.Allocator_Error) #optional_allocator_error {
+	if slice.contains(array[:], arg) do return 0, nil
+	return append(array, arg, loc) }

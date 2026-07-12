@@ -15,7 +15,7 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
      id="namedview1"
-     pagecolor="#ffffff"
+     pagecolor="#1e1e1e"
      bordercolor="#000000"
      borderopacity="0.25"
      inkscape:showpageshadow="2"
@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
-     inkscape:zoom="2.2575037"
-     inkscape:cx="365.00493"
-     inkscape:cy="103.21135"
+     inkscape:zoom="1.5962962"
+     inkscape:cx="348.30629"
+     inkscape:cy="121.53133"
      inkscape:window-width="1920"
      inkscape:window-height="1057"
      inkscape:window-x="-8"
@@ -535,14 +535,14 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#8a8a8a;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#8ecae6;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect4"
        width="160"
        height="158.13422"
        x="512.01984"
        y="24.511429" />
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect2"
        width="120"
        height="40"
@@ -550,7 +550,7 @@
        y="44.183105" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="590.49884"
        y="67.643684"
        id="text31-8"><tspan
@@ -558,9 +558,9 @@
          id="tspan31-8"
          x="590.49884"
          y="67.643684"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Source</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Source</tspan></text>
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect3"
        width="120"
        height="40"
@@ -568,7 +568,7 @@
        y="124.36871" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="590.49884"
        y="147.8293"
        id="text3"><tspan
@@ -576,10 +576,10 @@
          id="tspan3"
          x="590.49884"
          y="147.8293"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Storage</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Storage</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none"
        x="590.49884"
        y="17.50271"
        id="text5"><tspan
@@ -587,16 +587,16 @@
          id="tspan5"
          x="590.49884"
          y="17.50271"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Disk</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none">Disk</tspan></text>
     <rect
-       style="fill:#8a8a8a;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#8ecae6;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect5"
        width="160"
        height="158.13422"
        x="281.48618"
        y="24.511429" />
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect6"
        width="120"
        height="40"
@@ -604,7 +604,7 @@
        y="44.183105" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="359.96518"
        y="67.643684"
        id="text6"><tspan
@@ -612,9 +612,9 @@
          id="tspan6"
          x="359.96518"
          y="67.643684"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Memory</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Memory</tspan></text>
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect7"
        width="120"
        height="40"
@@ -622,7 +622,7 @@
        y="124.36871" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;fill-opacity:1;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="359.96518"
        y="147.8293"
        id="text7"><tspan
@@ -630,10 +630,10 @@
          id="tspan7"
          x="359.96518"
          y="147.8293"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Database</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Database</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none"
        x="359.96518"
        y="17.50271"
        id="text8"><tspan
@@ -641,16 +641,16 @@
          id="tspan8"
          x="359.96518"
          y="17.50271"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">RAM</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none">RAM</tspan></text>
     <rect
-       style="fill:#8a8a8a;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#8ecae6;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect8"
        width="160"
        height="79.466377"
        x="49.543007"
        y="24.511429" />
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect9"
        width="120"
        height="40"
@@ -658,7 +658,7 @@
        y="44.183105" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;fill-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#000000;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;fill-opacity:1;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="128.022"
        y="67.643684"
        id="text9"><tspan
@@ -666,10 +666,10 @@
          id="tspan9"
          x="128.022"
          y="67.643684"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">GPU</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">GPU</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none"
        x="128.022"
        y="17.50271"
        id="text11"><tspan
@@ -677,7 +677,7 @@
          id="tspan11"
          x="128.022"
          y="17.50271"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">VRAM</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none">VRAM</tspan></text>
     <path
        style="fill:#c9cba3;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;marker-end:url(#Triangle);paint-order:markers fill stroke"
        d="m 532.06622,92.51622 c -35.05802,0 -70.11606,0 -105.17409,0"
@@ -688,7 +688,7 @@
        transform="translate(0,-39.18581)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="476.65628"
        y="46.517067"
        id="text22"><tspan
@@ -696,7 +696,7 @@
          id="tspan22"
          x="476.65628"
          y="46.517067"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">import</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">import</tspan></text>
     <path
        style="fill:#c9cba3;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;marker-start:url(#Triangle);paint-order:markers fill stroke"
        d="m 526.69783,92.51622 c -35.05508,0 -70.11017,0 -105.16527,0"
@@ -707,7 +707,7 @@
        transform="translate(0,-18.798022)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="476.65628"
        y="88.067833"
        id="text23"><tspan
@@ -715,7 +715,7 @@
          id="tspan23"
          x="476.65628"
          y="88.067833"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">export</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">export</tspan></text>
     <path
        style="fill:#c9cba3;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;marker-end:url(#Triangle);paint-order:markers fill stroke"
        d="m 532.06622,92.51622 c -35.05802,0 -70.11606,0 -105.17409,0"
@@ -726,7 +726,7 @@
        transform="translate(0,42.048585)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="476.65628"
        y="127.75146"
        id="text26"><tspan
@@ -734,7 +734,7 @@
          id="tspan26"
          x="476.65628"
          y="127.75146"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">read</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">read</tspan></text>
     <path
        style="fill:#c9cba3;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;marker-start:url(#Triangle);paint-order:markers fill stroke"
        d="m 526.69783,92.51622 c -35.05508,0 -70.11017,0 -105.16527,0"
@@ -745,7 +745,7 @@
        transform="translate(0,62.436373)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="476.65628"
        y="169.30223"
        id="text27"><tspan
@@ -753,7 +753,7 @@
          id="tspan27"
          x="476.65628"
          y="169.30223"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">write</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">write</tspan></text>
     <path
        style="fill:#e26d5c;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1;marker-start:url(#Triangle);paint-order:markers fill stroke"
        d="m 361.53256,89.498711 c 0,11.623339 0,23.246669 0,34.869999"
@@ -772,7 +772,7 @@
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="407.12683"
        y="108.72069"
        id="text33"><tspan
@@ -780,10 +780,10 @@
          id="tspan33"
          x="407.12683"
          y="108.72069"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">serialize</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">serialize</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="310.41745"
        y="108.72069"
        id="text34"><tspan
@@ -791,7 +791,7 @@
          id="tspan34"
          x="310.41745"
          y="108.72069"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">deserialize</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">deserialize</tspan></text>
     <path
        style="fill:#c9cba3;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;marker-end:url(#Triangle);paint-order:markers fill stroke"
        d="m 532.18106,92.51622 c -35.51393,0 -71.02789,0 -106.54183,0"
@@ -802,7 +802,7 @@
        transform="translate(-230.6485,-39.18581)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="246.00778"
        y="46.517067"
        id="text35"><tspan
@@ -810,7 +810,7 @@
          id="tspan35"
          x="246.00778"
          y="46.517067"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">upload</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">upload</tspan></text>
     <path
        style="fill:#c9cba3;fill-opacity:1;stroke:#000000;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;marker-start:url(#Triangle);paint-order:markers fill stroke"
        d="m 526.69783,92.51622 c -35.48664,0 -70.97328,0 -106.45994,0"
@@ -821,7 +821,7 @@
        transform="translate(-230.6485,-18.798022)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"
        x="246.00778"
        y="88.067833"
        id="text36"><tspan
@@ -829,6 +829,6 @@
          id="tspan36"
          x="246.00778"
          y="88.067833"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">download</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial, Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">download</tspan></text>
   </g>
 </svg>

@@ -16,7 +16,7 @@
         <link rel="shortcut icon" href="favicon-8114d1fc.png">
         <link rel="stylesheet" href="css/variables-a4897eb5.css">
         <link rel="stylesheet" href="css/general-2459343d.css">
-        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/chrome-85ebd5e4.css">
         <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-26b1a460.js";
+            window.path_to_searchindex_js = "searchindex-5850c5a6.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-315dde17.js"></script>
@@ -172,16 +172,16 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="cli"><a class="header" href="#cli">CLI</a></h1>
-<p><code>~/Oggun/willow.exe</code> is a command-line utility which provides some commands that should make it easier to install and use Oggun. It is entirely optional.</p>
+<p><code>~/Oggun/oggun.exe</code> is a command-line utility which provides some commands that should make it easier to install and use oggun. It is entirely optional.</p>
 <h3 id="install"><a class="header" href="#install">Install</a></h3>
-<p>The <code>install</code> command copies the Oggun library from Oggun’s installation directory to the <code>shared/</code> folder in the Odin installation directory on your machine. You need to do this once, before using Oggun in your Odin package. Alternatively, you can manually copy <code>~/Oggun/shared/willow</code> to <code>~/Odin/shared/willow</code>.</p>
-<pre><code>willow install
+<p>The <code>install</code> command copies the oggun library from oggun’s installation directory to the <code>shared/</code> folder in the odin installation directory on your machine. You need to do this once, before using oggun in your odin package. Alternatively, you can manually copy <code>~/Oggun/shared/oggun</code> to <code>~/Odin/shared/oggun</code>.</p>
+<pre><code>oggun install
 </code></pre>
 <h3 id="init"><a class="header" href="#init">Init</a></h3>
-<p>The <code>init</code> command initializes a starter project directory using the Oggun engine. It creates a new directory, copies to it the contents of <code>~/Oggun/starter</code>, and initializes a Git repo in it.</p>
-<pre><code>willow init &lt;directory-name&gt;
+<p>The <code>init</code> command initializes a starter project directory using the oggun engine. It creates a new directory, copies to it the contents of <code>~/Oggun/starter</code>, and initializes a Git repo in it.</p>
+<pre><code>oggun init &lt;directory-name&gt;
 </code></pre>
-<p>Invoking <code>willow init game</code> will create the following directory structure:</p>
+<p>Invoking <code>oggun init game</code> will create the following directory structure:</p>
 <pre><code>game/
 ├─ data/
 │  ├─ ...
@@ -190,10 +190,10 @@
 ├─ README.md
 </code></pre>
 <h3 id="check"><a class="header" href="#check">Check</a></h3>
-<p>The <code>check</code> command runs the Oggun preprocessor on a given Odin package, to check whether or not Oggun’s thread synchronization rules are followed.</p>
-<pre><code>willow check &lt;directory-name&gt; [-r]
+<p>The <code>check</code> command runs the oggun preprocessor on a given odin package, which will check whether oggun’s synchronization rules are followed and warn you if you’re using untested or unstable procedures.</p>
+<pre><code>oggun check &lt;directory-name&gt; [-r]
 </code></pre>
-<p>If the <code>-r</code> option is enabled, Oggun will also preprocess all imported packages recursively, excluding the ones from the Odin standard library.</p>
+<p>If the <code>-r</code> option is enabled, oggun will also preprocess all imported packages recursively, excluding the ones from the odin standard library.</p>
 
                     </main>
 

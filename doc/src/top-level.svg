@@ -15,7 +15,7 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
      id="namedview1"
-     pagecolor="#ffffff"
+     pagecolor="#202020"
      bordercolor="#000000"
      borderopacity="0.25"
      inkscape:showpageshadow="2"
@@ -216,7 +216,7 @@
          result="flood"
          in="SourceGraphic"
          flood-opacity="1.000000"
-         flood-color="rgb(138,138,138)"
+         flood-color="rgb(218,104,76)"
          id="feFlood38" />
       <feGaussianBlur
          result="blur"
@@ -252,7 +252,7 @@
        id="text1"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3333px;line-height:64.6701px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect1);display:inline;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke" />
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect3"
        width="240"
        height="40"
@@ -260,7 +260,7 @@
        y="0.33732986" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
        x="375"
        y="24.676077"
        id="text3"><tspan
@@ -268,9 +268,9 @@
          id="tspan3"
          x="375"
          y="24.676077"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Base</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#000000;fill-opacity:1">Base</tspan></text>
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect39"
        width="240"
        height="40"
@@ -278,7 +278,7 @@
        y="52.022167" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
        x="375"
        y="76.360916"
        id="text39"><tspan
@@ -286,16 +286,16 @@
          id="tspan39"
          x="375"
          y="76.360916"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Core</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal">Core</tspan></text>
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect40"
        width="112.5174"
        height="40"
        x="382.4826"
        y="104.9572" />
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect41"
        width="114.70999"
        height="40"
@@ -303,7 +303,7 @@
        y="104.9572" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
        x="311.72855"
        y="129.29594"
        id="text40"><tspan
@@ -311,10 +311,10 @@
          id="tspan40"
          x="311.72855"
          y="129.29594"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Game</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal">Game</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
        x="437.64502"
        y="129.29594"
        id="text41"><tspan
@@ -322,9 +322,9 @@
          id="tspan41"
          x="437.64502"
          y="129.29594"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Tool</tspan></text>
+         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1;-inkscape-font-specification:'Arial Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal">Tool</tspan></text>
     <rect
-       style="fill:#d9d9d9;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;filter:url(#filter39)"
+       style="fill:#ffb703;fill-opacity:1;stroke:none;stroke-width:1.333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect42"
        width="240"
        height="40"
@@ -332,7 +332,7 @@
        y="156.45627" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Sans;-inkscape-font-specification:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#cacaca;stroke-width:1.33333;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.983437;paint-order:markers fill stroke"
        x="375"
        y="180.79501"
        id="text42"><tspan
@@ -340,33 +340,33 @@
          id="tspan42"
          x="375"
          y="180.79501"
-         style="font-size:14px;line-height:56.5863px;fill:#000000;fill-opacity:1">Ext</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:14px;line-height:56.5863px;font-family:Arial;-inkscape-font-specification:'Arial Bold';fill:#000000;fill-opacity:1">Ext</tspan></text>
     <path
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
+       style="fill:#d9d9d9;fill-opacity:1;stroke:#fdfdfd;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
        d="m 375,40.33733 c 0,3.894946 0,7.789891 0,11.684837"
        id="path42"
        inkscape:path-effect="#path-effect42"
        inkscape:original-d="m 375,40.33733 c 0,3.894946 0,7.789891 0,11.684837" />
     <path
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowWide);paint-order:markers fill stroke"
+       style="fill:#d9d9d9;fill-opacity:1;stroke:#fdfdfd;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowWide);paint-order:markers fill stroke"
        d="m 312.355,104.9572 c 0,-4.31168 0,-8.623355 0,-12.935033"
        id="path43"
        inkscape:path-effect="#path-effect43"
        inkscape:original-d="m 312.355,104.9572 c 0,-4.31168 0,-8.623355 0,-12.935033" />
     <path
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowWide);paint-order:markers fill stroke"
+       style="fill:#d9d9d9;fill-opacity:1;stroke:#fdfdfd;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#ArrowWide);paint-order:markers fill stroke"
        d="m 438.7413,104.9572 c 0,-4.31168 0,-8.623355 0,-12.935033"
        id="path44"
        inkscape:path-effect="#path-effect44"
        inkscape:original-d="m 438.7413,104.9572 c 0,-4.31168 0,-8.623355 0,-12.935033" />
     <path
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
+       style="fill:#d9d9d9;fill-opacity:1;stroke:#fdfdfd;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
        d="m 438.7413,144.9572 c 0,3.83302 0,7.66605 0,11.49907"
        id="path45"
        inkscape:path-effect="#path-effect45"
        inkscape:original-d="m 438.7413,144.9572 c 0,3.83302 0,7.66605 0,11.49907" />
     <path
-       style="fill:#d9d9d9;fill-opacity:1;stroke:#000000;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
+       style="fill:#d9d9d9;fill-opacity:1;stroke:#fdfdfd;stroke-width:1.33333333;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide);paint-order:markers fill stroke"
        d="m 312.355,144.9572 c 0,3.83302 0,7.66605 0,11.49907"
        id="path46"
        inkscape:path-effect="#path-effect46"

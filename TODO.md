@@ -1,6 +1,6 @@
 
-- A procedure that converts an .odin file to a GLSL library. Use it to translate the image processing library.
 - Write a META procedure which scans the TEST code and collect the names of all procedures that occur in it and then scans the OGGUN code and flags all procedure that don't occur in TEST with @(deprecated="untested").
+- A procedure that converts an .odin file to a GLSL library. Use it to translate the image processing library.
 - Bitmap text generator.
 - Image processing library, for both CPU and GPU.
 - Write a widget that uses the "reflect" package to draw data structures.

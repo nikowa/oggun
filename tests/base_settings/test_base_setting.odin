@@ -1,19 +1,17 @@
 #+feature using-stmt
 package test_asset
-import "shared:oggun"
+import og "shared:oggun"
 import "base:runtime"
 import "core:testing"
 import "core:log"
 
 @(test)
 settings_test :: proc(t_context: ^testing.T) {
-	using oggun
-
 	APPLICATION_NAME :: "Oggun Test"
 	SETTINGS_NAME :: "Settings"
 
 	settings_manager: Settings_Manager
-	settings_manager_init(&settings_manager, APPLICATION_NAME, SETTINGS_NAME)
+	og.settings_manager_init(&settings_manager, APPLICATION_NAME, SETTINGS_NAME)
 
 	Settings :: struct {
 		fullscreen: bool,
@@ -55,11 +53,11 @@ settings_test :: proc(t_context: ^testing.T) {
 		player_name = "d3stroy3r67",
 		backpack_size = { 4, 8 },
 		friends = { "Iva", "Mari", "Tynka", "Tomas" } }
-	testing.expect(t_context, settings_verify(&settings))
+	testing.expect(t_context, og.settings_verify(&settings))
 
-	settings_manager_write(&settings_manager, &settings)
+	og.settings_manager_write(&settings_manager, &settings)
 	settings_2: Settings
-	settings_manager_read(&settings_manager, &settings_2)
+	og.settings_manager_read(&settings_manager, &settings_2)
 	settings_compare(t_context, &settings, &settings_2)
 	for _, i in settings.friends do testing.expect(t_context, settings.friends[i] == settings_2.friends[i])
 

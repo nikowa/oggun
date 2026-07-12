@@ -1,24 +1,24 @@
 # CLI
 
-`~/Oggun/willow.exe` is a command-line utility which provides some commands that should make it easier to install and use Oggun. It is entirely optional.
+`~/Oggun/oggun.exe` is a command-line utility which provides some commands that should make it easier to install and use oggun. It is entirely optional.
 
 ### Install
 
-The `install` command copies the Oggun library from Oggun's installation directory to the `shared/` folder in the Odin installation directory on your machine. You need to do this once, before using Oggun in your Odin package. Alternatively, you can manually copy `~/Oggun/shared/willow` to `~/Odin/shared/willow`.
+The `install` command copies the oggun library from oggun's installation directory to the `shared/` folder in the odin installation directory on your machine. You need to do this once, before using oggun in your odin package. Alternatively, you can manually copy `~/Oggun/shared/oggun` to `~/Odin/shared/oggun`.
 
 ```
-willow install
+oggun install
 ```
 
 ### Init
 
-The `init` command initializes a starter project directory using the Oggun engine. It creates a new directory, copies to it the contents of `~/Oggun/starter`, and initializes a Git repo in it.
+The `init` command initializes a starter project directory using the oggun engine. It creates a new directory, copies to it the contents of `~/Oggun/starter`, and initializes a Git repo in it.
 
 ```
-willow init <directory-name>
+oggun init <directory-name>
 ```
 
-Invoking `willow init game` will create the following directory structure:
+Invoking `oggun init game` will create the following directory structure:
 
 ```
 game/
@@ -31,10 +31,10 @@ game/
 
 ### Check
 
-The `check` command runs the Oggun preprocessor on a given Odin package, to check whether or not Oggun's thread synchronization rules are followed.
+The `check` command runs the oggun preprocessor on a given odin package, which will check whether oggun's synchronization rules are followed and warn you if you're using untested or unstable procedures.
 
 ```
-willow check <directory-name> [-r]
+oggun check <directory-name> [-r]
 ```
 
-If the `-r` option is enabled, Oggun will also preprocess all imported packages recursively, excluding the ones from the Odin standard library.
+If the `-r` option is enabled, oggun will also preprocess all imported packages recursively, excluding the ones from the odin standard library.
