@@ -1,7 +1,7 @@
 package oggun
 import "core:time"
 import "base:runtime"
-// Generated at 17:05:25 //
+// Generated at 22:41:49 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,

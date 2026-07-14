@@ -26,7 +26,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Graph Example", temp_allocator_cap=1000 * mem.Megabyte),
 		graphics_config={ clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
-	ui_set_theme(ui_theme_ms_dark)
+	ui_set_theme(ui_theme_ms_light)
 	// set_clear_color(BLACK)
 
 	font_group: Font_Group
@@ -49,7 +49,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	sn_init_camera_2d(&camera, DEFAULT_CAMERA_2D_CONFIG)
 
 	plot_graph: Plot_Graph
-	pt_graph_init(&plot_graph, default_plot_graph_config(
+	pt_graph_init_begin(&plot_graph, default_plot_graph_config(
 		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
 		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
 		text_style=ui_text_style_get(), margins=12, padding=4, radius=4, orientation=.Horizontal))
@@ -59,17 +59,27 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	// pt_append_node(&plot_graph, default_plot_node(id=1, label="Node A with very long subtitle", position=[2]f32{ -0.8, 0 }))
 	// b := pt_append_node(&plot_graph, default_plot_node(id=2, label="Node B", position=[2]f32{ 0.8, 0 }))
 	// pt_append_edge(&plot_graph, default_plot_edge(ids={ 1, 2 }, xlabel="Connector", stroke_color=WHITE))
-	for i in 0 ..< 16 {
-		pt_append_node(&plot_graph, default_plot_node(id=1, label=fmt.aprintf("Node %d", i), size=[2]f32{ 50, 0 }))
-	}
+	ORDER :: 16
+	SIZE :: 16
+	for i in 0 ..< ORDER {
+		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("Node %d", i), size=[2]f32{ 50, 0 })) }
+	for i in 0 ..< SIZE {
+		ids: [2]uintptr = { auto_cast (1 + rand.int31_max(ORDER)), auto_cast (1 + rand.int31_max(ORDER)) }
+		if ids[0] != ids[1] do pt_append_edge(&plot_graph, { ids=ids, stroke_color=BLACK }) }
+
+	pt_graph_init_end(&plot_graph)
 
 	layout_builder := pt_nudge_layout_builder(&plot_graph, { max_steps=100, radius=0.1 })
 	pt_layout_initialize(&layout_builder)
 	pt_layout_process(&layout_builder)
 	pt_layout_post_process(&layout_builder)
 
-	dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
+	// graph.nodes_map
+	// assert(1 == 2)
+
 	scr_rect := ui_rect_screen()
+	// dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
+	dest_rect: Rect = ui_rect_margins(scr_rect, Interval(100))
 	// dest_rect = scr_rect
 
 	for engine_running() {
@@ -155,8 +165,8 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			ui_camera_2d_control(&camera, dest_rect, scale_range={ 0.1 * scr_rect.size.y, scr_rect.size.y })
 
 			// dr_curve(proc(t: f32) -> [2]f32 { return { 100 * math.sin(4 * t), 100 * math.cos(4 * t) } }, 32, WHITE)
-			dr_hermite({ { - 200, - 100}, { -50, 50 } }, { { 0, 500 }, engine.input_manager.mouse_position - { -50, 50 } }, 32, WHITE, debug=false)
-			dr_hermite_spline({ { -800, -400 }, { -750, -200 }, { -600, 0 } }, { { 1000, 0 }, { -500, 500 }, { 500, -1000 } }, 100, WHITE, debug=false)
+			// dr_hermite({ { - 200, - 100}, { -50, 50 } }, { { 0, 500 }, engine.input_manager.mouse_position - { -50, 50 } }, 32, BLACK, debug=false)
+			// dr_hermite_spline({ { -800, -400 }, { -750, -200 }, { -600, 0 } }, { { 1000, 0 }, { -500, 500 }, { 500, -1000 } }, 100, BLACK, debug=false)
 
 
 			gx_clip_scope({ rect=dest_rect })

@@ -58,7 +58,9 @@ dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 			math.unlerp(graph.range_y[0], graph.range_y[1], position.y))
 		position = sn_camera_2d_map_point(camera, rect, position)
 		size := dr_plot_node(&plot_node, graph, position, scale.y)
-		plot_node._rect = { position, size } }
+		plot_node._rect = { position, size }
+		// log.infof("%v (%x) - %v", plot_node.id, rawptr(&plot_node), plot_node._rect)
+	}
 	gx_depth_scope(0.1)
 	for edge in graph.edges do dr_plot_edge(graph, edge, graph.margins, graph.radius, edge.stroke_color) }
 
@@ -70,8 +72,11 @@ rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
 dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f32, color: Color=WHITE) {
 	// (TODO): Implement "edge.xlabel" //
 	nodes: [2]^Plot_Node
-	nodes[0], _ = graph.nodes_map[edge.ids[0]]
-	nodes[1], _ = graph.nodes_map[edge.ids[1]]
+	ok: bool
+	nodes[0], ok = graph.nodes_map[edge.ids[0]]; assert(ok)
+	nodes[1], ok = graph.nodes_map[edge.ids[1]]; assert(ok)
+	// log.warn(nodes[0], nodes[1])
+	if nodes[0] == nil || nodes[1] == nil do return
 	sides: [2]Compass
 	switch graph.orientation {
 	case .Horizontal:
@@ -80,8 +85,9 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 	case .Vertical, .None:
 		if nodes[0]._rect.position.y < nodes[1]._rect.position.y do sides = { .North, .South }
 		else do sides = { .South, .North } }
-	// DICK
 	rects: [2]Rect = { ui_rect_extend(nodes[0]._rect, Interval(graph.edge_margins)), ui_rect_extend(nodes[1]._rect, Interval(graph.edge_margins)) }
+	// log.warnf("%v (%x) - %v", nodes[0].id, rawptr(nodes[0]), nodes[0]._rect)
+	// log.warnf("%v (%x) - %v", nodes[1].id, rawptr(nodes[1]), nodes[1]._rect)
 	a, b := rect_side(rects[0], sides[0]), rect_side(rects[1], sides[1])
 	a1, b1 := a + margin * compass_normal(sides[0]), b + margin * compass_normal(sides[1])
 	c: [2]f32 = { a1.x, b1.y }

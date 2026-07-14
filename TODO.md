@@ -1,4 +1,5 @@
 
+- Add option to use hermite splines for graph edges instead of rounded path.
 - Add a Normalized vs Screen coordinates option for all 2D graphics operations.
 - Render bezier.
 - Bitmatrix.

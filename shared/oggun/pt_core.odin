@@ -84,16 +84,19 @@ DEFAULT_PLOT_EDGE: Plot_Edge : {
 	stroke_color=WHITE,
 	xlabel=DEFAULT_NAME }
 
-pt_graph_init :: proc(graph: ^Plot_Graph, config: Plot_Graph_Config) {
+pt_graph_init_begin :: proc(graph: ^Plot_Graph, config: Plot_Graph_Config) {
 	graph.config = config
 	graph.nodes = make([dynamic]Plot_Node)
 	graph.edges = make([dynamic]Plot_Edge)
 	graph.nodes_map = make(map[ID]^Plot_Node) }
 
+pt_graph_init_end :: proc(graph: ^Plot_Graph) {
+	for _, i in graph.nodes do graph.nodes_map[graph.nodes[i].id] = &graph.nodes[i] }
+
 pt_append_node :: proc(graph: ^Plot_Graph, node: Plot_Node) -> (ptr: ^Plot_Node) {
 	append(&graph.nodes, node)
 	ptr = &graph.nodes[len(graph.nodes) - 1]
-	graph.nodes_map[node.id] = ptr
+	// graph.nodes_map[node.id] = ptr
 	return ptr }
 
 pt_append_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> (ptr: ^Plot_Edge) {
