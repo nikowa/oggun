@@ -37,7 +37,7 @@ test :: proc(t: ^testing.T) {
 			og.tree_build_child(&b, value); value += 1
 		}
 	}
-	log.infof("\n%s", og.aprint_tree(b.root))
+	// log.infof("\n%s", og.aprint_tree(b.root))
 
 	px := new(relative.Pointer(^uint, u8))
 	x: uint = 4
@@ -96,9 +96,9 @@ test :: proc(t: ^testing.T) {
 			og.tree_build_child(&b2, 'G')
 		}
 	}
-	log.infof("\n%s", og.aprint_tree(b2.root))
+	// log.infof("\n%s", og.aprint_tree(b2.root))
 	it2 := og.make_tree_preorder_iterator(b2.root)
-	log.info("Pre-order:")
+	// log.info("Pre-order:")
 	pre_order: string = "ABDHPIEJKQRCFLMNSTUOG"
 	i := 0
 	for node in it2.next(&it2) {
@@ -106,7 +106,7 @@ test :: proc(t: ^testing.T) {
 		i += 1 }
 		// log.info(node.value) }
 	it2 = og.make_tree_postorder_iterator(b2.root)
-	log.info("Post-order:")
+	// log.info("Post-order:")
 	post_order: string = "PHIDJQRKEBLMSTUNOFGCA"
 	i = 0
 	for node in it2.next(&it2) {

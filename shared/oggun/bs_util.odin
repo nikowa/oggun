@@ -341,3 +341,5 @@ push :: append
 append_deduplicate :: proc(array: ^$T/[dynamic]$E, #no_broadcast arg: E, loc := #caller_location) -> (num_appended: int, err: runtime.Allocator_Error) #optional_allocator_error {
 	if slice.contains(array[:], arg) do return 0, nil
 	return append(array, arg, loc) }
+
+pow :: math.pow_f32

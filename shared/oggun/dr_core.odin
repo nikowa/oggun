@@ -83,6 +83,29 @@ dr_line :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
 		clip = gx_clip_get() }
 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
 
+// Draw_Hermite_Command :: struct {
+// 	using params: Draw_Hermite_Params,
+// 	using group_params: Draw_Hermite_Group_Params }
+
+// Draw_Hermite_Params :: struct {
+// 	point_a: [2]f32,
+// 	point_b: [2]f32,
+// 	color: Color,
+// 	depth: f32,
+// 	clip: Clip }
+
+// Draw_Hermite_Group_Params :: struct {
+// 	render_buffer: Maybe(^Render_Buffer) }
+
+// dr_hermite :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
+// 	command: Draw_Line_Command = {
+// 		point_a = integer ? { math.round_f32(points[0].x), math.round_f32(points[0].y) } : points[0],
+// 		point_b = integer ? { math.round_f32(points[1].x), math.round_f32(points[1].y) } : points[1],
+// 		color = color,
+// 		depth = gx_depth_get(),
+// 		clip = gx_clip_get() }
+// 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+
 Draw_Arc_Command :: struct {
 	using params: Draw_Arc_Params,
 	using group_params: Draw_Arc_Group_Params }
@@ -390,3 +413,33 @@ line_trim_head :: proc(line: [2][2]f32, delta: f32) -> [2][2]f32 {
 
 line_trim_tail :: proc(line: [2][2]f32, delta: f32) -> [2][2]f32 {
 	return line_extend_tail(line, -delta) }
+
+dr_curve :: proc(func: proc(t: f32) -> [2]f32, res: u32, color: Color) {
+	points: [][2]f32 = make([][2]f32, res + 1)
+	for i in 0 ..= res {
+		t: f32 = f32(i) / f32(res)
+		points[i] = func(t) }
+	for i in 0 ..< res {
+		dr_line({ points[i], points[i + 1] }, color, integer=false)
+		for j in 0 ..< 2 do dr_rect({ points[i], { 3, 3 } }, fill_color=RED) } }
+
+dr_hermite :: proc(ends: [2][2]f32, tangents: [2][2]f32, res: u32, color: Color, debug: bool=false) {
+	points: [][2]f32 = make([][2]f32, res + 1)
+	for i in 0 ..= res {
+		t: f32 = f32(i) / f32(res)
+		points[i] = linalg.hermite(ends[0], tangents[0], ends[1], tangents[1], t) }
+	for i in 0 ..< res {
+		dr_line({ points[i], points[i + 1] }, color, integer=false)
+		// for j in 0 ..< 2 do dr_rect({ points[i], { 3, 3 } }, fill_color=RED)
+	}
+	if debug {
+		for i in 0 ..< 2 do dr_rect({ ends[i], { 3, 3 } }, fill_color=WHITE)
+		dr_rect({ ends[0] + tangents[0], { 3, 3 } }, fill_color=GREEN)
+		dr_rect({ ends[1] + tangents[1], { 3, 3 } }, fill_color=GREEN)
+		dr_line({ ends[0], ends[0] + tangents[0] }, GREEN)
+		dr_line({ ends[1], ends[1] + tangents[1] }, GREEN) } }
+
+dr_hermite_spline :: proc(points: [][2]f32, tangents: [][2]f32, res: u32, color: Color, debug: bool=false) {
+	assert(len(points) == len(tangents))
+	for i in 0 ..< len(points) - 1 {
+		dr_hermite({ points[i], points[i + 1] }, { tangents[i], tangents[i + 1] }, res, color, debug) } }

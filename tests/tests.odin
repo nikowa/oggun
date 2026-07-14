@@ -4,6 +4,7 @@ package tests
 @require import "bit_array"
 @require import "bitpacked_array"
 @require import "tree"
+@require import "bit_matrix"
 // @require import "base_settings"
 // import rt "base:runtime"
 // import sl "core:slice"

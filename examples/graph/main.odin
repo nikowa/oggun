@@ -154,8 +154,14 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))
 			ui_camera_2d_control(&camera, dest_rect, scale_range={ 0.1 * scr_rect.size.y, scr_rect.size.y })
 
+			// dr_curve(proc(t: f32) -> [2]f32 { return { 100 * math.sin(4 * t), 100 * math.cos(4 * t) } }, 32, WHITE)
+			dr_hermite({ { - 200, - 100}, { -50, 50 } }, { { 0, 500 }, engine.input_manager.mouse_position - { -50, 50 } }, 32, WHITE, debug=false)
+			dr_hermite_spline({ { -800, -400 }, { -750, -200 }, { -600, 0 } }, { { 1000, 0 }, { -500, 500 }, { 500, -1000 } }, 100, WHITE, debug=false)
+
+
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)
+
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)
 			// rect.size.y = ui_measure_text_box(text, rect.size.x)
