@@ -31,9 +31,9 @@ float sample_alpha(vec2 off) {
 void main(void) {
 	color = line_color;
 	color.a = 0;
-	msaa16_scope_begin(color.a, vec2(1.0))
+	msaa8_scope_begin(color.a, vec2(1.0))
 		color.a += sample_alpha(msaa_off);
-	msaa16_scope_end(color.a)
+	msaa8_scope_end(color.a)
 	color.a = 1 - pow(1 - color.a, 2);
 	gl_FragDepth = depth;
 	if (color.a == 0) gl_FragDepth = 1;

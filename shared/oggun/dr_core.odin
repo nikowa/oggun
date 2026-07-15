@@ -380,7 +380,7 @@ dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bo
 	for i in 0 ..< len(points) - 1 do lengths[i] = rectilinear_length(points[i] - points[i + 1])
 	for i in 1 ..< len(points) - 1 {
 		radiuses[i - 1] = min(radius, lengths[i - 1] / 2, lengths[i] / 2)
-		// dr_point_labeled(points[i], fmt.aprint(radiuses[i - 1]), { 6, 6 }, CYAN)
+		dr_point_labeled(points[i], fmt.aprint(radiuses[i - 1]), { 6, 6 }, CYAN)
 		dr_path_corner({ points[i - 1], points[i], points[i + 1] }, radiuses[i - 1], color, integer)
 	}
 	for i in 0 ..< len(points) - 1 {
@@ -394,6 +394,22 @@ dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bo
 		// dr_point_labeled((points[i] + points[i + 1]) / 2, fmt.aprint(lengths[i]), { 6, 6 }, WHITE)
 	}
 }
+
+dr_path_hermite :: proc(points: [][2]f32, radius: f32, color: Color, tangent: f32 = 200, integer: bool = true) {
+	points := path_cleanup(points)
+	hermite_points := make([][2]f32, len(points) + 1)
+	hermite_tangents := make([][2]f32, len(hermite_points))
+	last := len(points) - 1
+	hlast := len(hermite_points) - 1
+	hermite_points[0] = points[0]
+	hermite_tangents[0] = points[1] - points[0]
+	hermite_points[hlast] = points[last]
+	hermite_tangents[hlast] = points[last] - points[last - 1]
+	for i in 0 ..< last {
+		hermite_points[i + 1] = (points[i] + points[i + 1]) / 2
+		hermite_tangents[i + 1] = points[i + 1] - points[i] }
+	length := path_length(points)
+	dr_hermite_spline(hermite_points, hermite_tangents, u32(length / 32), color, debug=false) }
 
 line_tangent :: proc(line: [2][2]f32) -> [2]f32 {
 	return linalg.normalize(line[1] - line[0]) }
@@ -428,9 +444,10 @@ dr_hermite :: proc(ends: [2][2]f32, tangents: [2][2]f32, res: u32, color: Color,
 	for i in 0 ..= res {
 		t: f32 = f32(i) / f32(res)
 		points[i] = linalg.hermite(ends[0], tangents[0], ends[1], tangents[1], t) }
+	if debug do dr_rect({ points[0], { 3, 3 } }, fill_color=RED)
 	for i in 0 ..< res {
 		dr_line({ points[i], points[i + 1] }, color, integer=false)
-		// for j in 0 ..< 2 do dr_rect({ points[i], { 3, 3 } }, fill_color=RED)
+		if debug do dr_rect({ points[i + 1], { 3, 3 } }, fill_color=RED)
 	}
 	if debug {
 		for i in 0 ..< 2 do dr_rect({ ends[i], { 3, 3 } }, fill_color=WHITE)

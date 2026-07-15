@@ -93,7 +93,8 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 	c: [2]f32 = { a1.x, b1.y }
 	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
 	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
-	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
+	// dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
+	dr_path_hermite({ a, a1, c, b1, b }, radius=radius, color=color)
 	if graph.arrowhead do dr_arrow_rectilinear(b, compass_invert(sides[1]), color, graph.arrowhead_size) }
 
 dr_plot_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {

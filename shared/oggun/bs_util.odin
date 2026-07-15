@@ -343,3 +343,7 @@ append_deduplicate :: proc(array: ^$T/[dynamic]$E, #no_broadcast arg: E, loc := 
 	return append(array, arg, loc) }
 
 pow :: math.pow_f32
+
+path_length :: proc(path: [][2]f32) -> (length: f32) {
+	for i in 0 ..< len(path) - 1 do length += linalg.length(path[i] - path[i + 1])
+	return length }
