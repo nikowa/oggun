@@ -6,6 +6,7 @@ import "core:math"
 // (TODO): Create a "Camera_2D" type for mapping points to the screen. //
 
 dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32, scale: f32) -> (size: [2]f32) {
+	// DICK
 	rect: Rect
 	rect.position = position
 	// rect.position = plot_node.position.([2]f32) or_else { 0, 0 }
@@ -20,10 +21,14 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	rect = ui_rect_extend(rect, Interval(graph.padding))
 	background_color: Color = plot_node.background_color if plot_node.background_color != 0 else graph.default_background_color
 	stroke_color: Color = plot_node.stroke_color if plot_node.stroke_color != 0 else graph.default_stroke_color
+	hovered := ui_rect_hovered(rect)
+	if hovered {
+		graph.node_was_hovered = true
+		graph.hovered_node = plot_node }
 	dr_rect(
 		rect=rect,
 		fill_color=background_color,
-		stroke_color=stroke_color,
+		stroke_color=hovered ? RED : pt_connected(graph, { plot_node, graph.hovered_node }) ? RED : stroke_color,
 		radius=graph.radius,
 		stroke=1)
 	text_style := graph.text_style
@@ -40,6 +45,7 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	return rect.size }
 
 dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+	graph.node_was_hovered = false
 	scale := sn_camera_2d_scale(camera)
 	// range_x
 	scale *= rect.size
@@ -62,7 +68,8 @@ dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 		// log.infof("%v (%x) - %v", plot_node.id, rawptr(&plot_node), plot_node._rect)
 	}
 	gx_depth_scope(0.1)
-	for edge in graph.edges do dr_plot_edge(graph, edge, graph.margins, graph.radius, edge.stroke_color) }
+	for edge in graph.edges do dr_plot_edge(graph, edge, graph.margins, graph.radius, edge.stroke_color)
+	if ! graph.node_was_hovered do graph.hovered_node = nil }
 
 rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
 	if (vecs[0].x == vecs[1].x) && (math.sign(vecs[0].y) == -math.sign(vecs[1].y)) do return true
@@ -93,8 +100,8 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 	c: [2]f32 = { a1.x, b1.y }
 	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
 	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
-	// dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
-	dr_path_hermite({ a, a1, c, b1, b }, radius=radius, color=color)
+	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
+	// dr_path_hermite({ a, a1, c, b1, b }, radius=radius, color=color)
 	if graph.arrowhead do dr_arrow_rectilinear(b, compass_invert(sides[1]), color, graph.arrowhead_size) }
 
 dr_plot_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {

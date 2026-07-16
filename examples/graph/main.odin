@@ -26,7 +26,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Graph Example", temp_allocator_cap=1000 * mem.Megabyte),
 		graphics_config={ clear_color = COLOR_NEUTRAL_BACKGROUND_1_NORMAL_LIGHT })
-	ui_set_theme(ui_theme_ms_light)
+	ui_set_theme(ui_theme_ms_dark)
 	// set_clear_color(BLACK)
 
 	font_group: Font_Group
@@ -62,14 +62,14 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	ORDER :: 16
 	SIZE :: 16
 	for i in 0 ..< ORDER {
-		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("Node %d", i), size=[2]f32{ 50, 0 })) }
+		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("%d", i), xlabel="", size=[2]f32{ 10, 0 })) }
 	for i in 0 ..< SIZE {
 		ids: [2]uintptr = { auto_cast (1 + rand.int31_max(ORDER)), auto_cast (1 + rand.int31_max(ORDER)) }
-		if ids[0] != ids[1] do pt_append_edge(&plot_graph, { ids=ids, stroke_color=BLACK }) }
+		if ids[0] != ids[1] do pt_append_edge(&plot_graph, { ids=ids, stroke_color=GRAY }) }
 
 	pt_graph_init_end(&plot_graph)
 
-	layout_builder := pt_nudge_layout_builder(&plot_graph, { max_steps=100, radius=0.1 })
+	layout_builder := pt_random_layout_builder(&plot_graph, { max_steps=100, radius=0.1 })
 	pt_layout_initialize(&layout_builder)
 	pt_layout_process(&layout_builder)
 	pt_layout_post_process(&layout_builder)
@@ -87,7 +87,13 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 		if engine_tick() {
 			// dest_rect.size.x = 600// + 100 * math.sin(2 * time)
 			// dest_rect.size.y = 400// + 100 * math.cos(3 * time)
-			dr_rect_outline(dest_rect, RED)
+			dr_rect_outline(dest_rect, GRAY)
+
+			gx_depth_scope_dec(0.02)
+			@static text := "Does m0NESY have a real shot at HLTV's 2026 Player of the Year over ZywOo and donk?"
+			dr_text_box(text, { { 0, 0 }, { 120, 20 } }, background_color=BLUE)
+			dr_text_box(text, { { 200, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.LEFT, v_align=.TOP)
+			dr_text_box(text, { { 400, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.RIGHT, v_align=.BOTTOM)
 
 			// b_pos := b.position.([2]f32)
 			// b_pos.x = 700 * math.sin(time)
@@ -168,6 +174,21 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			// dr_hermite({ { - 200, - 100}, { -50, 50 } }, { { 0, 500 }, engine.input_manager.mouse_position - { -50, 50 } }, 32, BLACK, debug=false)
 			// dr_hermite_spline({ { -800, -400 }, { -750, -200 }, { -600, 0 } }, { { 1000, 0 }, { -500, 500 }, { 500, -1000 } }, 100, BLACK, debug=false)
 
+			// rect: Rect = { { 0, 0 }, UI_BUTTON_SIZE_SMALL }
+			rect := ui_rect_embed(ui_rect_margins(scr_rect, Interval(8)), UI_BUTTON_SIZE_SMALL, { .West, .North })
+			ui_appearance_scope(.DEFAULT)
+			pressed: bool
+			if .PRESS in ui_button(rect, "*Random*") {
+				layout_builder = pt_random_layout_builder(&plot_graph, { max_steps=100, radius=0.1 })
+				pressed = true }
+			rect = ui_rect_translate(rect, { UI_BUTTON_SIZE_SMALL.x + 8, 0 })
+			if .PRESS in ui_button(rect, "*Eades*") {
+				layout_builder = pt_eades_layout_builder(&plot_graph, { })
+				pressed = true }
+			if pressed {
+				pt_layout_initialize(&layout_builder)
+				pt_layout_process(&layout_builder)
+				pt_layout_post_process(&layout_builder) }
 
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)

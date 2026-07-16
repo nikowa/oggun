@@ -348,6 +348,7 @@ ui_rect_scale :: proc(rect_in: Rect, scale: [2]f32) -> (result: Rect) {
 ui_rect_resize :: proc(rect_in: Rect, size: [2]f32) -> (result: Rect) {
 	return { rect_in.position, size } }
 
+// (TODO): Rename to *_translate_to_top
 ui_rect_top_to :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
 	result = rect_in
 	result.position.y = target - result.size.y / 2
@@ -367,3 +368,18 @@ ui_rect_right_to :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
 	result = rect_in
 	result.position.x = target - result.size.x / 2
 	return result }
+
+ui_rect_position_top :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
+	result = rect_in
+	size_y: f32 = rect_in.size.y + target - rect_top(rect_in)
+	result.position.y = target - size_y / 2
+	result.size.y = size_y
+	return result }
+
+ui_rect_position_bottom :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
+	result = rect_in
+	size_y: f32 = rect_in.size.y - target + rect_bottom(rect_in)
+	result.position.y = target + size_y / 2
+	result.size.y = size_y
+	return result }
+

@@ -281,17 +281,32 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 	return width }
 
 // (TODO): Maybe some of these params should be on a stack. //
-dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, integer: bool = true) -> (size: [2]f32) {
-	if rect_is_empty(rect) do return
+// (TODO): Two overflow behavior options: (1) extend and (2) clip. //
+dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, integer: bool = true) -> Rect {
+	rect := rect
+	if text == "" do return {}
 	using style := ui_text_style_get()
 	ui_text_style_checkpoint()
-	// dr_rect_outline(graphics_manager, rect, BLUE, 0.1)
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	if h_align == .JUSTIFY do spacing = 1.0
-	// (TODO): This looks wrong v
+	text_width, _ := ui_measure_text(text, scale_factor)
+	// log.info(text_width)
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	line_distance: f32 = height * style.leading
 	line_height: f32 = height * (1.0 + style.leading)
+	if rect.size == {} {
+	// DICK
+		dr_rect({ rect.position, { 4, 4 } }, GREEN)
+		// n_lines: int = text_width
+		// ratio = (text_width / n_lines) / (line_height * n_lines)
+		// ratio = text_width / (n_lines * line_height * n_lines)
+		// n_lines * n_lines = text_width / (line_height * ratio)
+		// n_lines = sqrt(text_width / (line_height * ratio))
+		// n_lines := math.ceil_f32(math.sqrt_f32(ratio / (text_width * line_height)))
+		n_lines := math.sqrt_f32(text_width / (line_height * ratio))
+		// rect.size.x = max(rect.size.x, text_width / n_lines)
+		rect.size.x = text_width / math.floor_f32(n_lines)
+		rect.size.y = math.ceil_f32(n_lines) * line_height }
 	position: [2]f32 = rect.position
 	lines := ui_text_box_lines(rect, text, scale_factor)
 	n: int = len(lines)
@@ -315,7 +330,8 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		pivot = { .East }
 		position.x += rect.size.x / 2
 	}
-	origin := position
+	start_position := position
+	dr_rect({ start_position + { 0, line_height }, { 4, 4 } }, RED)
 	for line, i in lines {
 		if h_align == .JUSTIFY && i == len(lines) - 1 {
 			desired_width = nil
@@ -324,14 +340,20 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		width := dr_text_line_compound(line, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
 		if width > max_width do max_width = width
 		position.y -= line_height }
+	dr_rect({ position + { 0, line_height - line_distance }, { 4, 4 } }, RED)
+	content_rect := ui_rect_position_top(rect, start_position.y + line_height)
+	content_rect = ui_rect_position_bottom(content_rect, position.y + line_height - line_distance)
+	dr_rect_outline(content_rect, CYAN)
 	gx_depth_scope_inc(0.01) // (TODO): Make this a DEPTH_DELTA constant. //
-	if background_color != 0 {
-		background_rect: Rect
-		background_rect.size = { max_width, total_height }
-		background_rect.position = origin + background_rect.size / 2
-		// (TODO): Add "margins" and "padding" stacks to "ui_manager". //
-		dr_rect(ui_rect_extend(background_rect, Interval(4)), background_color) }
-	return { max_width, total_height } }
+	// (TODO): This is wrong!
+	// if background_color != 0 {
+	// 	content_rect: Rect
+	// 	content_rect.size = { max_width, total_height }
+	// 	content_rect.position = start_position// + content_rect.size / 2
+	// 	// (TODO): Add "margins" and "padding" stacks to "ui_manager". //
+	// 	// dr_rect(ui_rect_extend(content_rect, Interval(4)), background_color)
+	// }
+	return content_rect }
 
 dr_path :: proc(points: [][2]f32, color: Color, integer: bool = true) {
 	for _, i in 0 ..< len(points) - 1 do dr_line({ points[i], points[i + 1] }, color, integer) }
@@ -373,27 +395,23 @@ path_cleanup :: proc(path: [][2]f32) -> [][2]f32 {
 	shrink(&result)
 	return result[:] }
 
-dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bool = true) {
+dr_path_rounded :: proc(points: [][2]f32, radius: f32, color: Color, integer: bool = true, debug: bool = false) {
 	points := path_cleanup(points)
 	lengths: []f32 = make([]f32, len(points) - 1)
 	radiuses: []f32 = make([]f32, len(points) - 2)
 	for i in 0 ..< len(points) - 1 do lengths[i] = rectilinear_length(points[i] - points[i + 1])
 	for i in 1 ..< len(points) - 1 {
 		radiuses[i - 1] = min(radius, lengths[i - 1] / 2, lengths[i] / 2)
-		dr_point_labeled(points[i], fmt.aprint(radiuses[i - 1]), { 6, 6 }, CYAN)
-		dr_path_corner({ points[i - 1], points[i], points[i + 1] }, radiuses[i - 1], color, integer)
-	}
+		if debug do dr_point_labeled(points[i], fmt.aprint(radiuses[i - 1]), { 6, 6 }, CYAN)
+		dr_path_corner({ points[i - 1], points[i], points[i + 1] }, radiuses[i - 1], color, integer) }
 	for i in 0 ..< len(points) - 1 {
 		line: [2][2]f32 = { points[i], points[i + 1] }
 		if (i > 0) && (i < len(points) - 2) && rectilinear_length(line[1] - line[0]) <= 2 * radius do continue
 		if i > 0 do line = line_trim_head(line, radiuses[i - 1])
 		if i < len(points) - 2 do line = line_trim_tail(line, radiuses[i])
-		// dr_rect({ line[0], { 2, 2 } }, RED)
-		// dr_rect({ line[1], { 2, 2 } }, RED)
+		if debug do for j in 0 ..< 2 do dr_rect({ line[j], { 3, 3 } }, RED)
 		dr_line(line, color, integer)
-		// dr_point_labeled((points[i] + points[i + 1]) / 2, fmt.aprint(lengths[i]), { 6, 6 }, WHITE)
-	}
-}
+		if debug do dr_point_labeled((points[i] + points[i + 1]) / 2, fmt.aprint(lengths[i]), { 6, 6 }, WHITE) } }
 
 dr_path_hermite :: proc(points: [][2]f32, radius: f32, color: Color, tangent: f32 = 200, integer: bool = true) {
 	points := path_cleanup(points)

@@ -1,4 +1,8 @@
 
+- Text box with smart size, inferred from it's content and a desired ratio.
+- Node hover effect.
+- Node hover label.
+- Change color of node edges when the node is hovered.
 - Add option to use hermite splines for graph edges instead of rounded path.
 - Add a Normalized vs Screen coordinates option for all 2D graphics operations.
 - Render bezier.

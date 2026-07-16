@@ -2,6 +2,7 @@
 package oggun
 import "core:math/rand"
 import "core:log"
+import "core:math"
 
 Plot_Graph_Config :: struct {
 	default_background_color: Color,
@@ -40,7 +41,10 @@ Plot_Graph :: struct {
 	using config: Plot_Graph_Config,
 	nodes: [dynamic]Plot_Node,
 	edges: [dynamic]Plot_Edge,
-	nodes_map: map[ID]^Plot_Node }
+	nodes_map: map[ID]^Plot_Node,
+	graph: Graph,
+	hovered_node: ^Plot_Node,
+	node_was_hovered: bool }
 
 Plot_Node :: struct {
 	// (TODO): Put these in "Plot_Node_Config". //
@@ -90,8 +94,18 @@ pt_graph_init_begin :: proc(graph: ^Plot_Graph, config: Plot_Graph_Config) {
 	graph.edges = make([dynamic]Plot_Edge)
 	graph.nodes_map = make(map[ID]^Plot_Node) }
 
+pt_node_index :: proc(graph: ^Plot_Graph, node: ^Plot_Node) -> u32 {
+	return auto_cast ((cast(uintptr)node - cast(uintptr)&graph.nodes[0]) / size_of(Plot_Node)) }
+
 pt_graph_init_end :: proc(graph: ^Plot_Graph) {
-	for _, i in graph.nodes do graph.nodes_map[graph.nodes[i].id] = &graph.nodes[i] }
+	for _, i in graph.nodes do graph.nodes_map[graph.nodes[i].id] = &graph.nodes[i]
+	graph.graph = make_graph(cast(u32)len(graph.nodes))
+	for edge in graph.edges {
+		indexes: [2]u32
+		for i in 0 ..< 2 do indexes[i] = pt_node_index(graph, graph.nodes_map[edge.ids[i]])
+		graph_simple_connect(&graph.graph, indexes[0], indexes[1]) } }
+
+pt_graph_update :: pt_graph_init_end
 
 pt_append_node :: proc(graph: ^Plot_Graph, node: Plot_Node) -> (ptr: ^Plot_Node) {
 	append(&graph.nodes, node)
@@ -103,8 +117,17 @@ pt_append_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> (ptr: ^Plot_Edge)
 	append(&graph.edges, edge)
 	return &graph.edges[len(graph.edges) - 1] }
 
+// graph.hovered_node
+pt_connected :: proc(graph: ^Plot_Graph, nodes: [2]^Plot_Node) -> bool {
+	if nodes[0] == nil || nodes[1] == nil do return false
+	indexes: [2]u32 = { pt_node_index(graph, nodes[0]), pt_node_index(graph, nodes[1]) }
+	return graph_simply_connected(&graph.graph, indexes[0], indexes[1]) }
+
 PT_Layout_Builder_Variant :: enum {
-	NUDGE,
+	RANDOM,
+	EADES,
+
+	// Unimplemented //
 	DOT,
 	FDP,
 	NEATO,
@@ -150,39 +173,79 @@ pt_fdp_layout_builder :: proc() -> PT_Layout_Builder {
 		process=pt_fdp_layout_process,
 		post_process=pt_fdp_layout_post_process } }
 
-PT_NUDGE_Layout_Builder_Config :: struct {
+PT_RANDOM_Layout_Builder_Config :: struct {
 	max_steps: int,
 	radius: f32 }
 
-PT_NUDGE_Layout_Builder :: struct {
-	using config: PT_NUDGE_Layout_Builder_Config,
+PT_RANDOM_Layout_Builder :: struct {
+	using config: PT_RANDOM_Layout_Builder_Config,
 	steps: int,
 	_: u8 }
 
-pt_nudge_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
-	log.info("initializing")
-	builder: ^PT_NUDGE_Layout_Builder = auto_cast data
+pt_random_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_RANDOM_Layout_Builder = auto_cast data
 	for &node in graph.nodes {
 		node.position = [2]f32{
 			rand.float32_range(graph.range_x[0], graph.range_x[1]),
 			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
 
-pt_nudge_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_NUDGE_Layout_Builder = auto_cast data }
+pt_random_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_RANDOM_Layout_Builder = auto_cast data }
 
-pt_nudge_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_NUDGE_Layout_Builder = auto_cast data }
+pt_random_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_RANDOM_Layout_Builder = auto_cast data }
 
-pt_nudge_layout_builder :: proc(graph: ^Plot_Graph, config: PT_NUDGE_Layout_Builder_Config) -> PT_Layout_Builder {
-	builder := new(PT_NUDGE_Layout_Builder)
+pt_random_layout_builder :: proc(graph: ^Plot_Graph, config: PT_RANDOM_Layout_Builder_Config) -> PT_Layout_Builder {
+	builder := new(PT_RANDOM_Layout_Builder)
 	builder.config = config
 	return {
-		variant=.NUDGE,
+		variant=.RANDOM,
 		data=cast(rawptr)builder,
 		graph=graph,
-		initialize=pt_nudge_layout_initialize,
-		process=pt_nudge_layout_process,
-		post_process=pt_nudge_layout_post_process } }
+		initialize=pt_random_layout_initialize,
+		process=pt_random_layout_process,
+		post_process=pt_random_layout_post_process } }
+
+PT_EADES_Layout_Builder_Config :: struct {
+	c1: f32,
+	c2: f32 }
+
+PT_EADES_Layout_Builder :: struct {
+	using config: PT_EADES_Layout_Builder_Config,
+	momentums: [][2]f32,
+	forces: [][2]f32 }
+
+pt_eades_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_EADES_Layout_Builder = auto_cast data
+	builder.momentums = make([][2]f32, len(graph.nodes))
+	builder.forces = make([][2]f32, len(graph.nodes))
+	for &node in graph.nodes {
+		node.position = [2]f32{
+			rand.float32_range(graph.range_x[0], graph.range_x[1]),
+			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
+
+pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	force_function :: proc(distance, c1, c2: f32) -> f32 {
+		return c1 * math.log10_f32(distance / c2 + 1) }
+	builder: ^PT_EADES_Layout_Builder = auto_cast data
+	for &node, i in graph.nodes {
+		// DICK
+	}
+}
+
+pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_EADES_Layout_Builder = auto_cast data }
+
+pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_EADES_Layout_Builder_Config) -> PT_Layout_Builder {
+	builder := new(PT_EADES_Layout_Builder)
+	builder.config = config
+	return {
+		variant=.EADES,
+		data=cast(rawptr)builder,
+		graph=graph,
+		initialize=pt_eades_layout_initialize,
+		process=pt_eades_layout_process,
+		post_process=pt_eades_layout_post_process } }
 
 // pt_fdp_layout_builder :: proc(graph: ^Plot_Graph) {
 // 	initialize: {
