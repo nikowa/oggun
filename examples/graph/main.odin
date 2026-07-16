@@ -91,9 +91,9 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 			gx_depth_scope_dec(0.02)
 			@static text := "Does m0NESY have a real shot at HLTV's 2026 Player of the Year over ZywOo and donk?"
-			dr_text_box(text, { { 0, 0 }, { 120, 20 } }, background_color=BLUE)
-			dr_text_box(text, { { 200, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.LEFT, v_align=.TOP)
-			dr_text_box(text, { { 400, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.RIGHT, v_align=.BOTTOM)
+			dr_text_box(text, { { 0, 0 }, { 120, 20 } }, background_color=BLUE, origin = { .South })
+			dr_text_box(text, { { 150, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.LEFT, v_align=.TOP, origin = { .South })
+			dr_text_box(text, { { 300, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.RIGHT, v_align=.BOTTOM, origin = { .South })
 
 			// b_pos := b.position.([2]f32)
 			// b_pos.x = 700 * math.sin(time)

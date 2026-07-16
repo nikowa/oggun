@@ -282,8 +282,9 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 
 // (TODO): Maybe some of these params should be on a stack. //
 // (TODO): Two overflow behavior options: (1) extend and (2) clip. //
-dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, integer: bool = true) -> Rect {
+dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, margins: f32 = 4, integer: bool = true, debug: bool = false) -> Rect {
 	rect := rect
+	if debug do dr_rect_outline(rect, CYAN - 0x88)
 	if text == "" do return {}
 	using style := ui_text_style_get()
 	ui_text_style_checkpoint()
@@ -294,9 +295,9 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	line_distance: f32 = height * style.leading
 	line_height: f32 = height * (1.0 + style.leading)
+	if debug do dr_rect({ rect.position, { 4, 4 } }, GREEN)
 	if rect.size == {} {
 	// DICK
-		dr_rect({ rect.position, { 4, 4 } }, GREEN)
 		// n_lines: int = text_width
 		// ratio = (text_width / n_lines) / (line_height * n_lines)
 		// ratio = text_width / (n_lines * line_height * n_lines)
@@ -330,8 +331,15 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		pivot = { .East }
 		position.x += rect.size.x / 2
 	}
-	start_position := position
-	dr_rect({ start_position + { 0, line_height }, { 4, 4 } }, RED)
+	bounds: [2]f32 = { position.y + line_height, position.y - line_height * f32(n) + line_height - line_distance }
+	offset: [2]f32
+	if .South in origin do offset.y += rect.position.y - bounds[1] + margins
+	if .North in origin do offset.y += rect.position.y - bounds[0] - margins
+	bounds[0] += offset.y
+	bounds[1] += offset.y
+	position.y += offset.y
+	if debug do dr_rect({ { position.x, bounds[0] }, { 4, 4 } }, RED)
+	if debug do dr_rect({ { position.x, bounds[1] }, { 4, 4 } }, RED)
 	for line, i in lines {
 		if h_align == .JUSTIFY && i == len(lines) - 1 {
 			desired_width = nil
@@ -340,19 +348,12 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		width := dr_text_line_compound(line, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
 		if width > max_width do max_width = width
 		position.y -= line_height }
-	dr_rect({ position + { 0, line_height - line_distance }, { 4, 4 } }, RED)
-	content_rect := ui_rect_position_top(rect, start_position.y + line_height)
-	content_rect = ui_rect_position_bottom(content_rect, position.y + line_height - line_distance)
-	dr_rect_outline(content_rect, CYAN)
+	content_rect := ui_rect_position_top(rect, bounds[0])
+	content_rect = ui_rect_position_bottom(content_rect, bounds[1])
+	if debug do dr_rect_outline(content_rect, CYAN)
 	gx_depth_scope_inc(0.01) // (TODO): Make this a DEPTH_DELTA constant. //
-	// (TODO): This is wrong!
-	// if background_color != 0 {
-	// 	content_rect: Rect
-	// 	content_rect.size = { max_width, total_height }
-	// 	content_rect.position = start_position// + content_rect.size / 2
-	// 	// (TODO): Add "margins" and "padding" stacks to "ui_manager". //
-	// 	// dr_rect(ui_rect_extend(content_rect, Interval(4)), background_color)
-	// }
+	// DICK
+	if background_color != 0 do dr_rect(ui_rect_extend(content_rect, Interval(margins)), background_color)
 	return content_rect }
 
 dr_path :: proc(points: [][2]f32, color: Color, integer: bool = true) {
