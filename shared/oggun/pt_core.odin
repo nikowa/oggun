@@ -249,12 +249,13 @@ pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 			for &other_node, j in graph.nodes {
 				distance := linalg.distance(node.position.([2]f32), other_node.position.([2]f32))
 				if graph_simply_connected(&graph.graph, cast(u32)i, cast(u32)j) {
-					builder.forces[i] += spring_force(other_node.position.([2]f32), node.position.([2]f32), distance, 0.0001, 1.0) }
-				else {
-					builder.forces[i] += repulsion_force(other_node.position.([2]f32), node.position.([2]f32), distance, 0.0000001) } }
+					builder.forces[i] += spring_force(other_node.position.([2]f32), node.position.([2]f32), distance,  0.0001, 1.0) }
+				// else {
+					builder.forces[i] += repulsion_force(other_node.position.([2]f32), node.position.([2]f32), distance,  0.0000005) } //}
 			builder.momentums[i] += builder.forces[i] }
 		for &node, i in graph.nodes {
-			node.position = (node.position.([2]f32) or_else [2]f32{ 0,0 }) + builder.momentums[i] } } }
+			node.position = (node.position.([2]f32) or_else [2]f32{ 0, 0 }) + builder.momentums[i]
+			builder.momentums[i] *= 0.99 } } }
 
 pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_EADES_Layout_Builder = auto_cast data }

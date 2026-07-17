@@ -82,6 +82,8 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	dest_rect: Rect = ui_rect_margins_variate(scr_rect, Interval(8), Interval(8), Interval(8), Interval(40))
 	// dest_rect = scr_rect
 
+	n: int = 0
+
 	for engine_running() {
 		time := read_stopwatch(&stopwatch)
 		if engine_tick() {
@@ -184,7 +186,8 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 				pressed = true }
 			rect = ui_rect_translate(rect, { UI_BUTTON_SIZE_SMALL.x + 8, 0 })
 			if .PRESS in ui_button(rect, "*Eades*") {
-				layout_builder = pt_eades_layout_builder(&plot_graph, { steps = 100 }, engine.backing_allocator)
+				n = 0
+				layout_builder = pt_eades_layout_builder(&plot_graph, { steps = 1000 }, engine.backing_allocator)
 				pressed = true }
 			if pressed {
 				pt_layout_initialize(&layout_builder)
@@ -193,6 +196,8 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 			// TEMP
 			// pt_layout_process(&layout_builder)
+			// n += 1
+			// log.info(n)
 
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)
