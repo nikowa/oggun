@@ -1,5 +1,6 @@
 
-- Text box with smart size, inferred from it's content and a desired ratio.
+- Rect function that creates a matrix that maps from one rect to another. Use it to fit the nodes to the canvas after laying them ut.
+- Add drag to the node layout algorithm.
 - Node hover effect.
 - Node hover label.
 - Change color of node edges when the node is hovered.

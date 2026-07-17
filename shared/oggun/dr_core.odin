@@ -280,9 +280,10 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 		symbol_position.x += symbol_delta }
 	return width }
 
+AUTO_SIZE: [2]f32 : {}
+
 // (TODO): Maybe some of these params should be on a stack. //
-// (TODO): Two overflow behavior options: (1) extend and (2) clip. //
-dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, margins: f32 = 4, integer: bool = true, debug: bool = false) -> Rect {
+dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, margins: f32 = 4, overflow: UI_Overflow = .EXTEND, integer: bool = true, debug: bool = false) -> Rect {
 	rect := rect
 	if debug do dr_rect_outline(rect, CYAN - 0x88)
 	if text == "" do return {}
@@ -291,23 +292,16 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 	scale_factor := font_size_to_font_scale(font_size, font_group.normal)
 	if h_align == .JUSTIFY do spacing = 1.0
 	text_width, _ := ui_measure_text(text, scale_factor)
-	// log.info(text_width)
 	height: f32 = cast(f32)font_group.normal.height * scale_factor
 	line_distance: f32 = height * style.leading
 	line_height: f32 = height * (1.0 + style.leading)
-	if debug do dr_rect({ rect.position, { 4, 4 } }, GREEN)
 	if rect.size == {} {
-	// DICK
-		// n_lines: int = text_width
-		// ratio = (text_width / n_lines) / (line_height * n_lines)
-		// ratio = text_width / (n_lines * line_height * n_lines)
-		// n_lines * n_lines = text_width / (line_height * ratio)
-		// n_lines = sqrt(text_width / (line_height * ratio))
-		// n_lines := math.ceil_f32(math.sqrt_f32(ratio / (text_width * line_height)))
 		n_lines := math.sqrt_f32(text_width / (line_height * ratio))
-		// rect.size.x = max(rect.size.x, text_width / n_lines)
 		rect.size.x = text_width / math.floor_f32(n_lines)
 		rect.size.y = math.ceil_f32(n_lines) * line_height }
+	if debug do dr_rect({ rect.position, { 4, 4 } }, GREEN)
+	if overflow == .CLIP do gx_clip_push({ rect=ui_rect_extend(rect, Interval(margins)) })
+	defer if overflow == .CLIP do gx_clip_pop()
 	position: [2]f32 = rect.position
 	lines := ui_text_box_lines(rect, text, scale_factor)
 	n: int = len(lines)
@@ -329,8 +323,7 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 	case .RIGHT:
 		desired_width = nil
 		pivot = { .East }
-		position.x += rect.size.x / 2
-	}
+		position.x += rect.size.x / 2 }
 	bounds: [2]f32 = { position.y + line_height, position.y - line_height * f32(n) + line_height - line_distance }
 	offset: [2]f32
 	if .South in origin do offset.y += rect.position.y - bounds[1] + margins
@@ -348,11 +341,12 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 		width := dr_text_line_compound(line, position, pivot = pivot + { .South }, desired_width = desired_width, integer = integer)
 		if width > max_width do max_width = width
 		position.y -= line_height }
-	content_rect := ui_rect_position_top(rect, bounds[0])
-	content_rect = ui_rect_position_bottom(content_rect, bounds[1])
+	content_rect := rect
+	if overflow == .EXTEND {
+		content_rect = ui_rect_position_top(content_rect, bounds[0])
+		content_rect = ui_rect_position_bottom(content_rect, bounds[1]) }
 	if debug do dr_rect_outline(content_rect, CYAN)
 	gx_depth_scope_inc(0.01) // (TODO): Make this a DEPTH_DELTA constant. //
-	// DICK
 	if background_color != 0 do dr_rect(ui_rect_extend(content_rect, Interval(margins)), background_color)
 	return content_rect }
 
@@ -428,7 +422,7 @@ dr_path_hermite :: proc(points: [][2]f32, radius: f32, color: Color, tangent: f3
 		hermite_points[i + 1] = (points[i] + points[i + 1]) / 2
 		hermite_tangents[i + 1] = points[i + 1] - points[i] }
 	length := path_length(points)
-	dr_hermite_spline(hermite_points, hermite_tangents, u32(length / 32), color, debug=false) }
+	dr_hermite_spline(hermite_points, hermite_tangents, u32(length / 16), color, debug=false) }
 
 line_tangent :: proc(line: [2][2]f32) -> [2]f32 {
 	return linalg.normalize(line[1] - line[0]) }

@@ -18,6 +18,8 @@ LIGHT_GRAY:  Color : 0xc0c0c0ff
 DARK_GRAY:   Color : 0x404040ff
 CYAN:        Color : 0x00ffffff
 DARK_CYAN:   Color : 0x008080ff
+PURPLE:      Color : 0xff00ffff
+DARK_PURPLE: Color : 0x800080ff
 
 ANSI_FG_BLACK :: "\e[30m"
 ANSI_FG_RED :: "\e[31m"

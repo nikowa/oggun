@@ -52,7 +52,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	pt_graph_init_begin(&plot_graph, default_plot_graph_config(
 		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
 		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
-		text_style=ui_text_style_get(), margins=12, padding=4, radius=4, orientation=.Horizontal))
+		text_style=ui_text_style_get(), margins=12, padding=8, radius=0, orientation=.Horizontal))
 
 	// (TODO): Does dynamic array ever reallocate? //
 
@@ -62,10 +62,10 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	ORDER :: 16
 	SIZE :: 16
 	for i in 0 ..< ORDER {
-		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("%d", i), xlabel="", size=[2]f32{ 10, 0 })) }
+		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("%d", i), xlabel="", size=[2]f32{ 10, 0 }, background_color=BLUE)) }
 	for i in 0 ..< SIZE {
 		ids: [2]uintptr = { auto_cast (1 + rand.int31_max(ORDER)), auto_cast (1 + rand.int31_max(ORDER)) }
-		if ids[0] != ids[1] do pt_append_edge(&plot_graph, { ids=ids, stroke_color=GRAY }) }
+		if ids[0] != ids[1] do pt_append_edge(&plot_graph, { ids=ids, stroke_color=WHITE }) }
 
 	pt_graph_init_end(&plot_graph)
 
@@ -79,7 +79,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 	scr_rect := ui_rect_screen()
 	// dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
-	dest_rect: Rect = ui_rect_margins(scr_rect, Interval(100))
+	dest_rect: Rect = ui_rect_margins_variate(scr_rect, Interval(8), Interval(8), Interval(8), Interval(40))
 	// dest_rect = scr_rect
 
 	for engine_running() {
@@ -90,10 +90,11 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			dr_rect_outline(dest_rect, GRAY)
 
 			gx_depth_scope_dec(0.02)
-			@static text := "Does m0NESY have a real shot at HLTV's 2026 Player of the Year over ZywOo and donk?"
-			dr_text_box(text, { { 0, 0 }, { 120, 20 } }, background_color=BLUE, origin = { .South })
-			dr_text_box(text, { { 150, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.LEFT, v_align=.TOP, origin = { .South })
-			dr_text_box(text, { { 300, 0 }, { 120, 20 } }, background_color=BLUE, h_align=.RIGHT, v_align=.BOTTOM, origin = { .South })
+
+			// @static text := "Does m0NESY have a real shot at HLTV's 2026 Player of the Year over ZywOo and donk?"
+			// dr_text_box(text, { { 0, 0 }, { 100, 40 } }, ratio = 2, background_color=BLUE, overflow=.EXTEND, debug=false)
+			// dr_text_box(text, { { 200, 0 }, { 100, 40 } }, ratio = 2, background_color=BLUE, overflow=.EXTEND, h_align=.LEFT, v_align=.TOP, debug=false)
+			// dr_text_box(text, { { 400, 0 }, { 100, 40 } }, ratio = 2, background_color=BLUE, overflow=.EXTEND, h_align=.RIGHT, v_align=.BOTTOM, debug=false)
 
 			// b_pos := b.position.([2]f32)
 			// b_pos.x = 700 * math.sin(time)
@@ -183,12 +184,15 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 				pressed = true }
 			rect = ui_rect_translate(rect, { UI_BUTTON_SIZE_SMALL.x + 8, 0 })
 			if .PRESS in ui_button(rect, "*Eades*") {
-				layout_builder = pt_eades_layout_builder(&plot_graph, { })
+				layout_builder = pt_eades_layout_builder(&plot_graph, { steps = 100 }, engine.backing_allocator)
 				pressed = true }
 			if pressed {
 				pt_layout_initialize(&layout_builder)
 				pt_layout_process(&layout_builder)
 				pt_layout_post_process(&layout_builder) }
+
+			// TEMP
+			// pt_layout_process(&layout_builder)
 
 			gx_clip_scope({ rect=dest_rect })
 			dr_plot_graph(&plot_graph, &camera, dest_rect)

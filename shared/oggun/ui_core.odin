@@ -238,6 +238,10 @@ UI_Icon :: enum u8 {
 	Notifications_1,
 	Notifications_0 }
 
+UI_Overflow :: enum {
+	EXTEND,
+	CLIP }
+
 COLOR_NEUTRAL_FOREGROUND_1_LIGHT :: 0x242424ff
 COLOR_NEUTRAL_FOREGROUND_2_NORMAL_LIGHT :: 0x424242ff
 COLOR_NEUTRAL_FOREGROUND_2_HOVER_LIGHT :: 0x242424ff
@@ -1026,7 +1030,7 @@ ui_set_theme :: proc(theme: ^UI_Theme) {
 }
 
 ui_get_background_color :: proc() -> UI_Color {
-	return engine.ui_manager.theme[UI_Theme_Key.NEUTRAL_BACKGROUND_1] }
+	return engine.ui_manager.theme[UI_Theme_Key.NEUTRAL_BACKGROUND_3] }
 
 ui_get_text_color :: proc() -> UI_Color {
 	return engine.ui_manager.theme[UI_Theme_Key.NEUTRAL_FOREGROUND_1] }

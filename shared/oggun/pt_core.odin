@@ -1,8 +1,10 @@
 #+feature using-stmt
 package oggun
+import "base:runtime"
 import "core:math/rand"
 import "core:log"
 import "core:math"
+import "core:math/linalg"
 
 Plot_Graph_Config :: struct {
 	default_background_color: Color,
@@ -19,7 +21,8 @@ Plot_Graph_Config :: struct {
 	range_y: [2]f32,
 	arrowhead_size: UI_Size,
 	orientation: Orientation,
-	arrowhead: bool }
+	arrowhead: bool,
+	outline: bool }
 
 DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	default_background_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK,
@@ -33,9 +36,10 @@ DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	radius=4,
 	range_x={ -1, 1 },
 	range_y={ -1, 1 },
-	arrowhead_size=.M,
+	arrowhead_size=.L,
 	orientation=.Vertical,
-	arrowhead=true }
+	arrowhead=true,
+	outline=false }
 
 Plot_Graph :: struct {
 	using config: Plot_Graph_Config,
@@ -208,37 +212,57 @@ pt_random_layout_builder :: proc(graph: ^Plot_Graph, config: PT_RANDOM_Layout_Bu
 
 PT_EADES_Layout_Builder_Config :: struct {
 	c1: f32,
-	c2: f32 }
+	c2: f32,
+	c3: f32,
+	steps: u32 }
 
 PT_EADES_Layout_Builder :: struct {
 	using config: PT_EADES_Layout_Builder_Config,
 	momentums: [][2]f32,
-	forces: [][2]f32 }
+	forces: [][2]f32,
+	allocator: runtime.Allocator }
 
 pt_eades_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_EADES_Layout_Builder = auto_cast data
-	builder.momentums = make([][2]f32, len(graph.nodes))
-	builder.forces = make([][2]f32, len(graph.nodes))
+	builder.momentums = make([][2]f32, len(graph.nodes), builder.allocator)
+	builder.forces = make([][2]f32, len(graph.nodes), builder.allocator)
 	for &node in graph.nodes {
 		node.position = [2]f32{
 			rand.float32_range(graph.range_x[0], graph.range_x[1]),
 			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
 
 pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	force_function :: proc(distance, c1, c2: f32) -> f32 {
-		return c1 * math.log10_f32(distance / c2 + 1) }
+	spring_force :: proc(source: [2]f32, target: [2]f32, distance, c1, c2: f32) -> [2]f32 {
+		if distance == 0 do return 0
+		force := linalg.normalize(source - target) * (c1 * math.log10_f32(distance / c2 + 1))
+		// log.info(distance, force)
+		return force }
+	repulsion_force :: proc(source: [2]f32, target: [2]f32, distance, c3: f32) -> [2]f32 {
+		if distance == 0 do return 0
+		force := linalg.normalize(target - source) * (c3 / math.sqrt_f32(distance))
+		// log.warn(distance, force)
+		return force }
 	builder: ^PT_EADES_Layout_Builder = auto_cast data
-	for &node, i in graph.nodes {
-		// DICK
-	}
-}
+	for i in 0 ..< builder.steps {
+		for &node, i in graph.nodes {
+			builder.forces[i] = 0
+			for &other_node, j in graph.nodes {
+				distance := linalg.distance(node.position.([2]f32), other_node.position.([2]f32))
+				if graph_simply_connected(&graph.graph, cast(u32)i, cast(u32)j) {
+					builder.forces[i] += spring_force(other_node.position.([2]f32), node.position.([2]f32), distance, 0.0001, 1.0) }
+				else {
+					builder.forces[i] += repulsion_force(other_node.position.([2]f32), node.position.([2]f32), distance, 0.0000001) } }
+			builder.momentums[i] += builder.forces[i] }
+		for &node, i in graph.nodes {
+			node.position = (node.position.([2]f32) or_else [2]f32{ 0,0 }) + builder.momentums[i] } } }
 
 pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_EADES_Layout_Builder = auto_cast data }
 
-pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_EADES_Layout_Builder_Config) -> PT_Layout_Builder {
-	builder := new(PT_EADES_Layout_Builder)
+pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_EADES_Layout_Builder_Config, allocator := context.allocator) -> PT_Layout_Builder {
+	builder := new(PT_EADES_Layout_Builder, allocator)
 	builder.config = config
+	builder.allocator = allocator
 	return {
 		variant=.EADES,
 		data=cast(rawptr)builder,

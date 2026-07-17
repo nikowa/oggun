@@ -25,15 +25,16 @@ vec2 point_b = vec2(_point_b.x, -_point_b.y);
 
 float sample_alpha(vec2 off) {
 	vec2 p = get_p(res) + off;
-	float dist = sdf_segment(p, point_a, point_b);
-	return (dist >= thickness / 2) ? 0 : 1; }
+	vec2 tangent = normalize(point_b - point_a);
+	float dist = sdf_segment(p, point_a - 1 * tangent, point_b + 1 * tangent);
+	return (dist >= thickness / 1.5) ? 0 : 1; }
 
 void main(void) {
 	color = line_color;
 	color.a = 0;
-	msaa8_scope_begin(color.a, vec2(1.0))
+	msaa16_scope_begin(color.a, vec2(1.0))
 		color.a += sample_alpha(msaa_off);
-	msaa8_scope_end(color.a)
+	msaa16_scope_end(color.a)
 	color.a = 1 - pow(1 - color.a, 2);
 	gl_FragDepth = depth;
 	if (color.a == 0) gl_FragDepth = 1;

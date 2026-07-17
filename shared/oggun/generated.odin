@@ -1,7 +1,7 @@
 package oggun
 import "core:time"
 import "base:runtime"
-// Generated at 14:09:42 //
+// Generated at 11:01:49 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -138,6 +138,7 @@ default_plot_graph_config :: proc(
 		arrowhead_size: UI_Size = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead_size,
 		orientation: Orientation = DEFAULT_PLOT_GRAPH_CONFIG.orientation,
 		arrowhead: bool = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead,
+		outline: bool = DEFAULT_PLOT_GRAPH_CONFIG.outline,
 ) -> Plot_Graph_Config {
 	return {
 		default_background_color = default_background_color,
@@ -153,7 +154,8 @@ default_plot_graph_config :: proc(
 		range_y = range_y,
 		arrowhead_size = arrowhead_size,
 		orientation = orientation,
-		arrowhead = arrowhead } }
+		arrowhead = arrowhead,
+		outline = outline } }
 
 default_plot_node :: proc(
 		id: ID = DEFAULT_PLOT_NODE.id,

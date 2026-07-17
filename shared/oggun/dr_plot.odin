@@ -22,13 +22,14 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	background_color: Color = plot_node.background_color if plot_node.background_color != 0 else graph.default_background_color
 	stroke_color: Color = plot_node.stroke_color if plot_node.stroke_color != 0 else graph.default_stroke_color
 	hovered := ui_rect_hovered(rect)
+	hovered_adjacent := pt_connected(graph, { plot_node, graph.hovered_node })
 	if hovered {
 		graph.node_was_hovered = true
 		graph.hovered_node = plot_node }
 	dr_rect(
 		rect=rect,
-		fill_color=background_color,
-		stroke_color=hovered ? RED : pt_connected(graph, { plot_node, graph.hovered_node }) ? RED : stroke_color,
+		fill_color=hovered_adjacent ? PURPLE : hovered ? RED : background_color,
+		stroke_color=hovered_adjacent ? RED : stroke_color,
 		radius=graph.radius,
 		stroke=1)
 	text_style := graph.text_style
@@ -49,7 +50,7 @@ dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 	scale := sn_camera_2d_scale(camera)
 	// range_x
 	scale *= rect.size
-	dr_rect_outline(sn_camera_2d_map_rect(camera, rect, camera.initial_rect), WHITE)
+	if graph.outline do dr_rect_outline(sn_camera_2d_map_rect(camera, rect, camera.initial_rect), WHITE)
 	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
