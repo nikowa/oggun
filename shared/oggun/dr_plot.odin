@@ -47,12 +47,15 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	if plot_node.tooltip != "" && hovered do dr_text_box(plot_node.tooltip, { rect_bottom_point(rect) + { 0, -graph.margins }, AUTO_SIZE }, background_color=BLUE, origin={ .North }, margins=8, debug=false)
 	return rect.size }
 
-dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+dr_plot_graph :: proc(graph: ^Plot_Graph, rect: Rect) {
 	rect := rect
+	canvas_rect := ui_rect_margins(rect, Interval(graph.canvas_padding))
+	scr_rect := ui_rect_screen()
+	ui_camera_2d_control(&graph.camera, rect, scale_range={ 0.1 * scr_rect.size.y, scr_rect.size.y })
 	graph.node_was_hovered = false
-	scale := sn_camera_2d_scale(camera)
+	scale := sn_camera_2d_scale(&graph.camera)
 	scale *= rect.size
-	if graph.outline do dr_rect_outline(sn_camera_2d_map_rect(camera, rect, camera.initial_rect), GRAY)
+	if graph.outline do dr_rect_outline(sn_camera_2d_map_rect(&graph.camera, canvas_rect, graph.camera.initial_rect), GRAY)
 	// rect = ui_rect_margins(rect, Interval(graph.canvas_padding))
 	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
@@ -60,14 +63,14 @@ dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 		// (TODO): The following two lines break the camera panning. Why? //
 		// (TODO): Use rect_lerp here.
 		position.x = math.lerp(
-			rect_left(camera.initial_rect),
-			rect_right(camera.initial_rect),
+			rect_left(graph.camera.initial_rect),
+			rect_right(graph.camera.initial_rect),
 			math.unlerp(rect_left(graph.plot_rect), rect_right(graph.plot_rect), position.x))
 		position.y = math.lerp(
-			rect_bottom(camera.initial_rect),
-			rect_top(camera.initial_rect),
+			rect_bottom(graph.camera.initial_rect),
+			rect_top(graph.camera.initial_rect),
 			math.unlerp(rect_bottom(graph.plot_rect), rect_top(graph.plot_rect), position.y))
-		position = sn_camera_2d_map_point(camera, rect, position)
+		position = sn_camera_2d_map_point(&graph.camera, canvas_rect, position)
 		size := dr_plot_node(&plot_node, graph, position, scale.y)
 		plot_node._rect = { position, size }
 		// log.infof("%v (%x) - %v", plot_node.id, rawptr(&plot_node), plot_node._rect)

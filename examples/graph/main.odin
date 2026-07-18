@@ -45,14 +45,15 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	backing_allocator := context.allocator
 	context.allocator = context.temp_allocator
 
-	camera: Camera_2D
-	sn_init_camera_2d(&camera, DEFAULT_CAMERA_2D_CONFIG)
+	scr_rect := ui_rect_screen()
+	// dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
+	dest_rect: Rect = ui_rect_margins_variate(scr_rect, Interval(8), Interval(8), Interval(8), Interval(40))
+	// dest_rect = scr_rect
 
 	plot_graph: Plot_Graph
 	pt_graph_init_begin(&plot_graph, default_plot_graph_config(
-		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK,
-		dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
-		text_style=ui_text_style_get(), margins=12, padding=8, radius=0, orientation=.Horizontal))
+		light_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_DARK, dark_foreground_color=COLOR_NEUTRAL_FOREGROUND_1_LIGHT,
+		text_style=ui_text_style_get(), margins=12, padding=8, radius=0, orientation=.Horizontal, canvas_rect=dest_rect))
 
 	// (TODO): Does dynamic array ever reallocate? //
 
@@ -76,11 +77,6 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 	// graph.nodes_map
 	// assert(1 == 2)
-
-	scr_rect := ui_rect_screen()
-	// dest_rect: Rect = { { 400, 140 }, { 600, 400 } }
-	dest_rect: Rect = ui_rect_margins_variate(scr_rect, Interval(8), Interval(8), Interval(8), Interval(40))
-	// dest_rect = scr_rect
 
 	n: int = 0
 
@@ -168,11 +164,6 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			// dr_arrow_rectilinear({ 0, 100 }, .North, .L)
 			// dr_arrow_rectilinear({ 0, 150 }, .South, .L)
 
-			// sn_camera_2d_tick(&camera)
-			// camera.rect_normalized.position = ui_pan_control(loc_id(), dest_rect=dest_rect, src_rect=camera.rect, reset=input_query(.R, .PRESSED))
-			// camera.scale = scr_rect.size.y * (1 + 32 * ui_zoom_control(loc_id(), scr_rect, initial_value=0, speed=2, reset=input_query(.R, .PRESSED)))
-			ui_camera_2d_control(&camera, dest_rect, scale_range={ 0.1 * scr_rect.size.y, scr_rect.size.y })
-
 			// dr_curve(proc(t: f32) -> [2]f32 { return { 100 * math.sin(4 * t), 100 * math.cos(4 * t) } }, 32, WHITE)
 			// dr_hermite({ { - 200, - 100}, { -50, 50 } }, { { 0, 500 }, engine.input_manager.mouse_position - { -50, 50 } }, 32, BLACK, debug=false)
 			// dr_hermite_spline({ { -800, -400 }, { -750, -200 }, { -600, 0 } }, { { 1000, 0 }, { -500, 500 }, { 500, -1000 } }, 100, BLACK, debug=false)
@@ -205,7 +196,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			// log.info(n)
 
 			gx_clip_scope({ rect=dest_rect })
-			dr_plot_graph(&plot_graph, &camera, dest_rect)
+			dr_plot_graph(&plot_graph, dest_rect)
 
 
 			// rect := make_rect(0, 0, 400 + 300/* * math.sin(0.05 * time)*/, 320)

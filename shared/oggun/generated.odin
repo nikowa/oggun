@@ -1,7 +1,7 @@
 package oggun
 import "core:time"
 import "base:runtime"
-// Generated at 15:00:03 //
+// Generated at 16:36:10 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -135,11 +135,13 @@ default_plot_graph_config :: proc(
 		edge_margins: f32 = DEFAULT_PLOT_GRAPH_CONFIG.edge_margins,
 		radius: f32 = DEFAULT_PLOT_GRAPH_CONFIG.radius,
 		plot_rect: Rect = DEFAULT_PLOT_GRAPH_CONFIG.plot_rect,
+		canvas_rect: Rect = DEFAULT_PLOT_GRAPH_CONFIG.canvas_rect,
 		arrowhead_size: UI_Size = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead_size,
 		orientation: Orientation = DEFAULT_PLOT_GRAPH_CONFIG.orientation,
 		arrowhead: bool = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead,
 		outline: bool = DEFAULT_PLOT_GRAPH_CONFIG.outline,
 		edge_shape: UI_Path_Shape = DEFAULT_PLOT_GRAPH_CONFIG.edge_shape,
+		control: bool = DEFAULT_PLOT_GRAPH_CONFIG.control,
 ) -> Plot_Graph_Config {
 	return {
 		default_background_color = default_background_color,
@@ -153,11 +155,13 @@ default_plot_graph_config :: proc(
 		edge_margins = edge_margins,
 		radius = radius,
 		plot_rect = plot_rect,
+		canvas_rect = canvas_rect,
 		arrowhead_size = arrowhead_size,
 		orientation = orientation,
 		arrowhead = arrowhead,
 		outline = outline,
-		edge_shape = edge_shape } }
+		edge_shape = edge_shape,
+		control = control } }
 
 default_plot_node :: proc(
 		id: ID = DEFAULT_PLOT_NODE.id,

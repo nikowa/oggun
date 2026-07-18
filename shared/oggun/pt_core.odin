@@ -18,14 +18,14 @@ Plot_Graph_Config :: struct {
 	canvas_padding: f32,
 	edge_margins: f32,
 	radius: f32,
-	// (TODO): Use Rect instead of ranges. //
 	plot_rect: Rect,
-	// canvas_rect: Rect,
+	canvas_rect: Rect,
 	arrowhead_size: UI_Size,
 	orientation: Orientation,
 	arrowhead: bool,
 	outline: bool,
-	edge_shape: UI_Path_Shape }
+	edge_shape: UI_Path_Shape,
+	control: bool }
 
 DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	default_background_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK,
@@ -39,11 +39,13 @@ DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	edge_margins=0,
 	radius=4,
 	plot_rect={ { 0, 0 }, { 2, 2 } },
+	canvas_rect={ { 0, 0 }, { 1024, 1024 } },
 	arrowhead_size=.L,
 	orientation=.Vertical,
 	arrowhead=true,
 	outline=true,
-	edge_shape=.Rectilinear }
+	edge_shape=.Rectilinear,
+	control=true }
 
 Plot_Graph :: struct {
 	using config: Plot_Graph_Config,
@@ -52,7 +54,8 @@ Plot_Graph :: struct {
 	nodes_map: map[ID]^Plot_Node,
 	graph: Graph,
 	hovered_node: ^Plot_Node,
-	node_was_hovered: bool }
+	node_was_hovered: bool,
+	camera: Camera_2D }
 
 Plot_Node :: struct {
 	// (TODO): Put these in "Plot_Node_Config". //
@@ -100,7 +103,9 @@ pt_graph_init_begin :: proc(graph: ^Plot_Graph, config: Plot_Graph_Config) {
 	graph.config = config
 	graph.nodes = make([dynamic]Plot_Node)
 	graph.edges = make([dynamic]Plot_Edge)
-	graph.nodes_map = make(map[ID]^Plot_Node) }
+	graph.nodes_map = make(map[ID]^Plot_Node)
+	// graph.canvas_rect = ui_rect_margins(graph.canvas_rect, Interval(graph.canvas_padding))
+	sn_init_camera_2d(&graph.camera, DEFAULT_CAMERA_2D_CONFIG) }
 
 pt_node_index :: proc(graph: ^Plot_Graph, node: ^Plot_Node) -> u32 {
 	return auto_cast ((cast(uintptr)node - cast(uintptr)&graph.nodes[0]) / size_of(Plot_Node)) }
@@ -248,8 +253,9 @@ pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_Eades_Layout_Builder = auto_cast data
 	points := pt_node_positions(graph)
 	domain := points_bounding_rect(points)
-	// range = ui_rect_margins(range, Interval(graph.canvas_padding))
-	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, graph.plot_rect, node.position.([2]f32)) }
+	// range := ui_rect_margins(graph.plot_rect, Ratio(0.1))
+	range := ui_rect_margins(ui_rect_fit(domain, graph.plot_rect, .CONTAIN), Ratio(0.1))
+	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, range, node.position.([2]f32)) }
 
 pt_edge_hovered :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> bool {
 	if graph.hovered_node == nil do return false
