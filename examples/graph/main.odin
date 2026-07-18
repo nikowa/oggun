@@ -189,6 +189,11 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 				n = 0
 				layout_builder = pt_eades_layout_builder(&plot_graph, { steps = 1000 }, engine.backing_allocator)
 				pressed = true }
+			rect = ui_rect_translate(rect, { UI_BUTTON_SIZE_SMALL.x + 8, 0 })
+			if .PRESS in ui_button(rect, "*Permuter*") {
+				n = 0
+				layout_builder = pt_permuter_layout_builder(&plot_graph, { steps = 1000 }, engine.backing_allocator)
+				pressed = true }
 			if pressed {
 				pt_layout_initialize(&layout_builder)
 				pt_layout_process(&layout_builder)

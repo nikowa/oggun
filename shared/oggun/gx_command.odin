@@ -67,8 +67,7 @@ command_buffer_init :: proc(command_buffer: ^Command_Buffer) {
 // last_command
 command_buffer_record :: proc(command_buffer: ^Command_Buffer, config: Command_Config) {
 	append(&command_buffer.commands, Command{ config = config, submitted = false })
-	command := &command_buffer.commands[len(command_buffer.commands) - 1]
-}
+	command := &command_buffer.commands[len(command_buffer.commands) - 1] }
 
 command_submit :: proc(command: Command, index: int) {
 	if command.submitted do return

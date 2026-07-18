@@ -46,15 +46,17 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 	return rect.size }
 
 dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
+	rect := rect
 	graph.node_was_hovered = false
 	scale := sn_camera_2d_scale(camera)
-	// range_x
 	scale *= rect.size
-	if graph.outline do dr_rect_outline(sn_camera_2d_map_rect(camera, rect, camera.initial_rect), WHITE)
+	if graph.outline do dr_rect_outline(sn_camera_2d_map_rect(camera, rect, camera.initial_rect), GRAY)
+	// rect = ui_rect_margins(rect, Interval(graph.canvas_padding))
 	for &plot_node in graph.nodes {
 		gx_depth_scope(0.5)
 		position: [2]f32 = plot_node.position.([2]f32) or_else { 0, 0 }
 		// (TODO): The following two lines break the camera panning. Why? //
+		// (TODO): Use rect_lerp here.
 		position.x = math.lerp(
 			rect_left(camera.initial_rect),
 			rect_right(camera.initial_rect),

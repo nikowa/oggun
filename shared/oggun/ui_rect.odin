@@ -27,13 +27,18 @@ ui_rect_union :: proc(a, b: Rect) -> (c: Rect) {
 		bottom = min(a_bottom, b_bottom),
 		top    = max(a_top, b_top)) }
 
-ui_rect_interpolate :: proc(r: Rect, t: [2]f32) -> (p: [2]f32) {
+ui_rect_lerp :: proc(r: Rect, t: [2]f32) -> (p: [2]f32) {
 	return {
 		math.lerp(rect_left(r), rect_right(r), t.x),
 		math.lerp(rect_bottom(r), rect_top(r), t.y) } }
 
-ui_rect_interpolate_centered :: proc(r: Rect, t: [2]f32) -> (p: [2]f32) {
-	return ui_rect_interpolate(r, (t + { 1, 1 }) / 2) }
+ui_rect_lerp_centered :: proc(r: Rect, t: [2]f32) -> (p: [2]f32) {
+	return ui_rect_lerp(r, (t + { 1, 1 }) / 2) }
+
+ui_rect_unlerp :: proc(r: Rect, p: [2]f32) -> (t: [2]f32) {
+	return {
+		math.unlerp(rect_left(r), rect_right(r), p.x),
+		math.unlerp(rect_bottom(r), rect_top(r), p.y) } }
 
 ui_rect_fit :: proc(rect, container: Rect, fit: UI_Fit) -> (result: Rect) {
 	switch fit {
@@ -382,4 +387,3 @@ ui_rect_position_bottom :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
 	result.position.y = target + size_y / 2
 	result.size.y = size_y
 	return result }
-

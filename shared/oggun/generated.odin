@@ -1,7 +1,7 @@
 package oggun
 import "core:time"
 import "base:runtime"
-// Generated at 20:17:55 //
+// Generated at 10:30:05 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -131,6 +131,7 @@ default_plot_graph_config :: proc(
 		text_style: Text_Style = DEFAULT_PLOT_GRAPH_CONFIG.text_style,
 		margins: f32 = DEFAULT_PLOT_GRAPH_CONFIG.margins,
 		padding: f32 = DEFAULT_PLOT_GRAPH_CONFIG.padding,
+		canvas_padding: f32 = DEFAULT_PLOT_GRAPH_CONFIG.canvas_padding,
 		edge_margins: f32 = DEFAULT_PLOT_GRAPH_CONFIG.edge_margins,
 		radius: f32 = DEFAULT_PLOT_GRAPH_CONFIG.radius,
 		range_x: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_x,
@@ -148,6 +149,7 @@ default_plot_graph_config :: proc(
 		text_style = text_style,
 		margins = margins,
 		padding = padding,
+		canvas_padding = canvas_padding,
 		edge_margins = edge_margins,
 		radius = radius,
 		range_x = range_x,

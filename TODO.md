@@ -1,10 +1,12 @@
 
 - Rect function that creates a matrix that maps from one rect to another. Use it to fit the nodes to the canvas after laying them ut.
-- Add drag to the node layout algorithm.
+- Permuter layout algorithm.
 - Node hover effect.
 - Node hover label.
-- Change color of node edges when the node is hovered.
-- Add option to use hermite splines for graph edges instead of rounded path.
+- Render graph.
+- Render graph widget.
+- Test render graph on Neon example.
+
 - Add a Normalized vs Screen coordinates option for all 2D graphics operations.
 - Render bezier.
 - Bitmatrix.

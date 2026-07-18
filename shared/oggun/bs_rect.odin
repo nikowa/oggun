@@ -108,3 +108,18 @@ rect_side :: proc(rect: Rect, side: Compass) -> [2]f32 {
 	case .South: return rect_bottom_point(rect) }
 	log.error("bad")
 	return rect.position }
+
+rect_to_rect_map :: proc(domain, range: Rect, point: [2]f32) -> [2]f32 {
+	return ui_rect_lerp(range, ui_rect_unlerp(domain, point)) }
+
+points_bounding_rect :: proc(points: [][2]f32) -> Rect {
+	left: f32 = math.F32_MAX
+	right: f32 = math.F32_MIN
+	bottom: f32 = math.F32_MAX
+	top: f32 = math.F32_MIN
+	for point in points {
+		if point.x < left do left = point.x
+		if point.x > right do right = point.x
+		if point.y < bottom do bottom = point.y
+		if point.y > top do top = point.y }
+	return rect_from_sides(left, right, bottom, top) }

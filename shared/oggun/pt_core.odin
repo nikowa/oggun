@@ -13,10 +13,12 @@ Plot_Graph_Config :: struct {
 	dark_foreground_color: Color,
 	// (TODO): Add "xlabel_color" maybe?
 	text_style: Text_Style,
-	margins: f32,
-	padding: f32,
+	margins: f32, // (TODO): Rename to node margins
+	padding: f32, // (TODO): Rename to node padding
+	canvas_padding: f32,
 	edge_margins: f32,
 	radius: f32,
+	// (TODO): Use Rect instead of ranges. //
 	range_x: [2]f32,
 	range_y: [2]f32,
 	arrowhead_size: UI_Size,
@@ -32,6 +34,7 @@ DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	text_style=DEFAULT_TEXT_STYLE,
 	margins=4,
 	padding=4,
+	canvas_padding=32,
 	edge_margins=0,
 	radius=4,
 	range_x={ -1, 1 },
@@ -39,7 +42,7 @@ DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	arrowhead_size=.L,
 	orientation=.Vertical,
 	arrowhead=true,
-	outline=false }
+	outline=true }
 
 Plot_Graph :: struct {
 	using config: Plot_Graph_Config,
@@ -128,15 +131,13 @@ pt_connected :: proc(graph: ^Plot_Graph, nodes: [2]^Plot_Node) -> bool {
 	return graph_simply_connected(&graph.graph, indexes[0], indexes[1]) }
 
 PT_Layout_Builder_Variant :: enum {
-	RANDOM,
-	EADES,
-
-	// Unimplemented //
-	DOT,
-	FDP,
-	NEATO,
-	OSAGE,
-	PATCHWORK }
+	Random,
+	Eades,
+	Permuter,
+	// 1. spread nodes randomly, without touching. perhap spawning them one by one
+	// 2. swap pairs to minimize total edge length
+	// 3. repeat until edge length cannot be reduced any further
+}
 
 PT_Layout_Proc :: #type proc(data: rawptr, graph: ^Plot_Graph)
 
@@ -157,73 +158,54 @@ pt_layout_process :: proc(builder: ^PT_Layout_Builder) {
 pt_layout_post_process :: proc(builder: ^PT_Layout_Builder) {
 	builder.post_process(builder.data, builder.graph) }
 
-PT_FDP_Layout_Builder :: struct {
-	_: u8 }
-
-pt_fdp_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_FDP_Layout_Builder = auto_cast data }
-
-pt_fdp_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_FDP_Layout_Builder = auto_cast data }
-
-pt_fdp_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_FDP_Layout_Builder = auto_cast data }
-
-pt_fdp_layout_builder :: proc() -> PT_Layout_Builder {
-	return {
-		variant=.FDP,
-		data=cast(rawptr)new(PT_FDP_Layout_Builder),
-		initialize=pt_fdp_layout_initialize,
-		process=pt_fdp_layout_process,
-		post_process=pt_fdp_layout_post_process } }
-
-PT_RANDOM_Layout_Builder_Config :: struct {
+PT_Random_Layout_Builder_Config :: struct {
 	max_steps: int,
 	radius: f32 }
 
-PT_RANDOM_Layout_Builder :: struct {
-	using config: PT_RANDOM_Layout_Builder_Config,
+PT_Random_Layout_Builder :: struct {
+	using config: PT_Random_Layout_Builder_Config,
 	steps: int,
 	_: u8 }
 
 pt_random_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_RANDOM_Layout_Builder = auto_cast data
+	builder: ^PT_Random_Layout_Builder = auto_cast data
 	for &node in graph.nodes {
 		node.position = [2]f32{
 			rand.float32_range(graph.range_x[0], graph.range_x[1]),
 			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
 
 pt_random_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_RANDOM_Layout_Builder = auto_cast data }
+	builder: ^PT_Random_Layout_Builder = auto_cast data }
 
 pt_random_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_RANDOM_Layout_Builder = auto_cast data }
+	builder: ^PT_Random_Layout_Builder = auto_cast data }
 
-pt_random_layout_builder :: proc(graph: ^Plot_Graph, config: PT_RANDOM_Layout_Builder_Config) -> PT_Layout_Builder {
-	builder := new(PT_RANDOM_Layout_Builder)
+pt_random_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Random_Layout_Builder_Config) -> PT_Layout_Builder {
+	builder := new(PT_Random_Layout_Builder)
 	builder.config = config
 	return {
-		variant=.RANDOM,
+		variant=.Random,
 		data=cast(rawptr)builder,
 		graph=graph,
 		initialize=pt_random_layout_initialize,
 		process=pt_random_layout_process,
 		post_process=pt_random_layout_post_process } }
 
-PT_EADES_Layout_Builder_Config :: struct {
+PT_Eades_Layout_Builder_Config :: struct {
+	// (TODO): Implement these parameters. //
 	c1: f32,
 	c2: f32,
 	c3: f32,
 	steps: u32 }
 
-PT_EADES_Layout_Builder :: struct {
-	using config: PT_EADES_Layout_Builder_Config,
+PT_Eades_Layout_Builder :: struct {
+	using config: PT_Eades_Layout_Builder_Config,
 	momentums: [][2]f32,
 	forces: [][2]f32,
 	allocator: runtime.Allocator }
 
 pt_eades_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_EADES_Layout_Builder = auto_cast data
+	builder: ^PT_Eades_Layout_Builder = auto_cast data
 	builder.momentums = make([][2]f32, len(graph.nodes), builder.allocator)
 	builder.forces = make([][2]f32, len(graph.nodes), builder.allocator)
 	for &node in graph.nodes {
@@ -242,7 +224,7 @@ pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 		force := linalg.normalize(target - source) * (c3 / math.sqrt_f32(distance))
 		// log.warn(distance, force)
 		return force }
-	builder: ^PT_EADES_Layout_Builder = auto_cast data
+	builder: ^PT_Eades_Layout_Builder = auto_cast data
 	for i in 0 ..< builder.steps {
 		for &node, i in graph.nodes {
 			builder.forces[i] = 0
@@ -257,20 +239,65 @@ pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 			node.position = (node.position.([2]f32) or_else [2]f32{ 0, 0 }) + builder.momentums[i]
 			builder.momentums[i] *= 0.99 } } }
 
-pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_EADES_Layout_Builder = auto_cast data }
+pt_node_positions :: proc(graph: ^Plot_Graph, allocator := context.allocator) -> [][2]f32 {
+	points := make([][2]f32, len(graph.nodes), allocator)
+	for node, i in graph.nodes do points[i] = node.position.([2]f32)
+	return points }
 
-pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_EADES_Layout_Builder_Config, allocator := context.allocator) -> PT_Layout_Builder {
-	builder := new(PT_EADES_Layout_Builder, allocator)
+pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_Eades_Layout_Builder = auto_cast data
+	points := pt_node_positions(graph)
+	domain := points_bounding_rect(points)
+	range := rect_from_sides(graph.range_x[0], graph.range_x[1], graph.range_y[0], graph.range_y[1])
+	// range = ui_rect_margins(range, Interval(graph.canvas_padding))
+	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, range, node.position.([2]f32)) }
+
+pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Eades_Layout_Builder_Config, allocator := context.allocator) -> PT_Layout_Builder {
+	builder := new(PT_Eades_Layout_Builder, allocator)
 	builder.config = config
 	builder.allocator = allocator
 	return {
-		variant=.EADES,
+		variant=.Eades,
 		data=cast(rawptr)builder,
 		graph=graph,
 		initialize=pt_eades_layout_initialize,
 		process=pt_eades_layout_process,
 		post_process=pt_eades_layout_post_process } }
+
+
+
+
+PT_Permuter_Layout_Builder_Config :: struct {
+	steps: u32,
+	distance: f32 }
+
+PT_Permuter_Layout_Builder :: struct {
+	using config: PT_Permuter_Layout_Builder_Config,
+	allocator: runtime.Allocator }
+
+pt_permuter_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_Permuter_Layout_Builder = auto_cast data }
+
+pt_permuter_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_Permuter_Layout_Builder = auto_cast data }
+
+pt_permuter_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_Permuter_Layout_Builder = auto_cast data }
+
+pt_permuter_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Permuter_Layout_Builder_Config, allocator := context.allocator) -> PT_Layout_Builder {
+	builder := new(PT_Permuter_Layout_Builder, allocator)
+	builder.config = config
+	builder.allocator = allocator
+	return {
+		variant=.Permuter,
+		data=cast(rawptr)builder,
+		graph=graph,
+		initialize=pt_permuter_layout_initialize,
+		process=pt_permuter_layout_process,
+		post_process=pt_permuter_layout_post_process } }
+
+
+
 
 // pt_fdp_layout_builder :: proc(graph: ^Plot_Graph) {
 // 	initialize: {
