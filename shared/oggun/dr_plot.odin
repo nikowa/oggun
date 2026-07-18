@@ -40,9 +40,11 @@ dr_plot_node :: proc(plot_node: ^Plot_Node, graph: ^Plot_Graph, position: [2]f32
 			text=plot_node.label, integer=true) }
 	xlabel_rect := ui_rect_top_to(ui_rect_resize(rect, { rect.size.x, cast(f32)graph.text_style.font_size }), rect_bottom(rect))
 	xlabel_rect = ui_rect_translate(xlabel_rect, { 0, -graph.margins })
-	dr_text_box(
+	if plot_node.xlabel != "" do dr_text_box(
 		rect=xlabel_rect,
 		text=plot_node.xlabel, integer=true)
+	// (TODO): Use "clamp_rect" param. //
+	if plot_node.tooltip != "" && hovered do dr_text_box(plot_node.tooltip, { rect_bottom_point(rect) + { 0, -graph.margins }, AUTO_SIZE }, background_color=BLUE, origin={ .North }, margins=8, debug=false)
 	return rect.size }
 
 dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
@@ -60,18 +62,18 @@ dr_plot_graph :: proc(graph: ^Plot_Graph, camera: ^Camera_2D, rect: Rect) {
 		position.x = math.lerp(
 			rect_left(camera.initial_rect),
 			rect_right(camera.initial_rect),
-			math.unlerp(graph.range_x[0], graph.range_x[1], position.x))
+			math.unlerp(rect_left(graph.plot_rect), rect_right(graph.plot_rect), position.x))
 		position.y = math.lerp(
 			rect_bottom(camera.initial_rect),
 			rect_top(camera.initial_rect),
-			math.unlerp(graph.range_y[0], graph.range_y[1], position.y))
+			math.unlerp(rect_bottom(graph.plot_rect), rect_top(graph.plot_rect), position.y))
 		position = sn_camera_2d_map_point(camera, rect, position)
 		size := dr_plot_node(&plot_node, graph, position, scale.y)
 		plot_node._rect = { position, size }
 		// log.infof("%v (%x) - %v", plot_node.id, rawptr(&plot_node), plot_node._rect)
 	}
 	gx_depth_scope(0.1)
-	for edge in graph.edges do dr_plot_edge(graph, edge, graph.margins, graph.radius, edge.stroke_color)
+	for edge in graph.edges do dr_plot_edge(graph, edge, graph.margins, graph.radius, edge.stroke_color - (pt_edge_hovered(graph, edge) ? 0x00 : 0x88))
 	if ! graph.node_was_hovered do graph.hovered_node = nil }
 
 rectilinear_vectors_are_antiparallel :: proc(vecs: [2][2]f32) -> bool {
@@ -103,8 +105,9 @@ dr_plot_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge, margin: f32, radius: f
 	c: [2]f32 = { a1.x, b1.y }
 	if rectilinear_vectors_are_antiparallel({ c - a, a1 - a }) ||
 	   rectilinear_vectors_are_antiparallel({ c - b, b1 - b }) { c = { b1.x, a1.y } }
-	dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
-	// dr_path_hermite({ a, a1, c, b1, b }, radius=radius, color=color)
+	switch graph.edge_shape {
+	case .Rectilinear: dr_path_rounded({ a, a1, c, b1, b }, radius=radius, color=color, integer=true)
+	case .Curvilinear: dr_path_hermite({ a, a1, c, b1, b }, radius=radius, color=color) }
 	if graph.arrowhead do dr_arrow_rectilinear(b, compass_invert(sides[1]), color, graph.arrowhead_size) }
 
 dr_plot_edge_horizontal :: proc(a: Rect, b: Rect, margin: f32, color: Color=WHITE) {

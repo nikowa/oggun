@@ -29,6 +29,10 @@ UI_Manager :: struct {
 	disabled_stack, disabled_stack_store: [dynamic]bool,
 	text_style_stack, text_style_stack_store: [dynamic]Text_Style }
 
+UI_Path_Shape :: enum {
+	Rectilinear,
+	Curvilinear }
+
 Ratio :: distinct f32
 Interval :: distinct f32
 

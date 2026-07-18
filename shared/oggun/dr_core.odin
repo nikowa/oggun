@@ -283,7 +283,7 @@ dr_text_line_compound :: proc(text: string, position: [2]f32, pivot: bit_set[Com
 AUTO_SIZE: [2]f32 : {}
 
 // (TODO): Maybe some of these params should be on a stack. //
-dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, margins: f32 = 4, overflow: UI_Overflow = .EXTEND, integer: bool = true, debug: bool = false) -> Rect {
+dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align: UI_H_Align = .CENTER, v_align: UI_V_Align = .CENTER, ratio: f32 = 3.0, origin: bit_set[Compass] = {}, margins: f32 = 4, overflow: UI_Overflow = .EXTEND, clamp_rect: Rect = {}, integer: bool = true, debug: bool = false) -> Rect {
 	rect := rect
 	if debug do dr_rect_outline(rect, CYAN - 0x88)
 	if text == "" do return {}
@@ -302,6 +302,7 @@ dr_text_box :: proc(text: string, rect: Rect, background_color: Color=0, h_align
 	if debug do dr_rect({ rect.position, { 4, 4 } }, GREEN)
 	if overflow == .CLIP do gx_clip_push({ rect=ui_rect_extend(rect, Interval(margins)) })
 	defer if overflow == .CLIP do gx_clip_pop()
+	if clamp_rect != {} do rect = rect_clamp_rect(clamp_rect, rect)
 	position: [2]f32 = rect.position
 	lines := ui_text_box_lines(rect, text, scale_factor)
 	n: int = len(lines)

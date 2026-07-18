@@ -387,3 +387,22 @@ ui_rect_position_bottom :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
 	result.position.y = target + size_y / 2
 	result.size.y = size_y
 	return result }
+
+rect_clamp :: proc { rect_clamp_point, rect_clamp_rect }
+
+rect_clamp_point :: proc(bounds: Rect, point: [2]f32) -> (result: [2]f32) {
+	return {
+		clamp(point.x, rect_left(bounds), rect_right(bounds)),
+		clamp(point.y, rect_bottom(bounds), rect_top(bounds)) } }
+
+rect_clamp_rect :: proc(bounds: Rect, rect: Rect) -> (result: Rect) {
+	result = rect
+	dist_left := rect_left(rect) - rect_left(bounds)
+	dist_right := rect_right(bounds) - rect_right(rect)
+	dist_bottom := rect_bottom(rect) - rect_bottom(bounds)
+	dist_top := rect_top(bounds) - rect_top(rect)
+	if dist_left < 0 do result = ui_rect_translate(result, { -dist_left, 0 })
+	if dist_right < 0 do result = ui_rect_translate(result, { dist_right, 0 })
+	if dist_bottom < 0 do result = ui_rect_translate(result, { 0, -dist_bottom })
+	if dist_top < 0 do result = ui_rect_translate(result, { 0, dist_top })
+	return result }

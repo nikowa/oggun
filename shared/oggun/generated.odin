@@ -1,7 +1,7 @@
 package oggun
 import "core:time"
 import "base:runtime"
-// Generated at 10:30:05 //
+// Generated at 15:00:03 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -134,12 +134,12 @@ default_plot_graph_config :: proc(
 		canvas_padding: f32 = DEFAULT_PLOT_GRAPH_CONFIG.canvas_padding,
 		edge_margins: f32 = DEFAULT_PLOT_GRAPH_CONFIG.edge_margins,
 		radius: f32 = DEFAULT_PLOT_GRAPH_CONFIG.radius,
-		range_x: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_x,
-		range_y: [2]f32 = DEFAULT_PLOT_GRAPH_CONFIG.range_y,
+		plot_rect: Rect = DEFAULT_PLOT_GRAPH_CONFIG.plot_rect,
 		arrowhead_size: UI_Size = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead_size,
 		orientation: Orientation = DEFAULT_PLOT_GRAPH_CONFIG.orientation,
 		arrowhead: bool = DEFAULT_PLOT_GRAPH_CONFIG.arrowhead,
 		outline: bool = DEFAULT_PLOT_GRAPH_CONFIG.outline,
+		edge_shape: UI_Path_Shape = DEFAULT_PLOT_GRAPH_CONFIG.edge_shape,
 ) -> Plot_Graph_Config {
 	return {
 		default_background_color = default_background_color,
@@ -152,12 +152,12 @@ default_plot_graph_config :: proc(
 		canvas_padding = canvas_padding,
 		edge_margins = edge_margins,
 		radius = radius,
-		range_x = range_x,
-		range_y = range_y,
+		plot_rect = plot_rect,
 		arrowhead_size = arrowhead_size,
 		orientation = orientation,
 		arrowhead = arrowhead,
-		outline = outline } }
+		outline = outline,
+		edge_shape = edge_shape } }
 
 default_plot_node :: proc(
 		id: ID = DEFAULT_PLOT_NODE.id,

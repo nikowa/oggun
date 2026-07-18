@@ -62,7 +62,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	ORDER :: 16
 	SIZE :: 16
 	for i in 0 ..< ORDER {
-		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("%d", i), xlabel="", size=[2]f32{ 10, 0 }, background_color=BLUE)) }
+		pt_append_node(&plot_graph, default_plot_node(id=auto_cast i + 1, label=fmt.aprintf("%d", i), xlabel="", size=[2]f32{ 10, 0 }, background_color=BLUE, tooltip=text)) }
 	for i in 0 ..< SIZE {
 		ids: [2]uintptr = { auto_cast (1 + rand.int31_max(ORDER)), auto_cast (1 + rand.int31_max(ORDER)) }
 		if ids[0] != ids[1] do pt_append_edge(&plot_graph, { ids=ids, stroke_color=WHITE }) }

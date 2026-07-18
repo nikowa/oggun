@@ -19,12 +19,13 @@ Plot_Graph_Config :: struct {
 	edge_margins: f32,
 	radius: f32,
 	// (TODO): Use Rect instead of ranges. //
-	range_x: [2]f32,
-	range_y: [2]f32,
+	plot_rect: Rect,
+	// canvas_rect: Rect,
 	arrowhead_size: UI_Size,
 	orientation: Orientation,
 	arrowhead: bool,
-	outline: bool }
+	outline: bool,
+	edge_shape: UI_Path_Shape }
 
 DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	default_background_color=COLOR_NEUTRAL_BACKGROUND_1_NORMAL_DARK,
@@ -37,12 +38,12 @@ DEFAULT_PLOT_GRAPH_CONFIG: Plot_Graph_Config : {
 	canvas_padding=32,
 	edge_margins=0,
 	radius=4,
-	range_x={ -1, 1 },
-	range_y={ -1, 1 },
+	plot_rect={ { 0, 0 }, { 2, 2 } },
 	arrowhead_size=.L,
 	orientation=.Vertical,
 	arrowhead=true,
-	outline=true }
+	outline=true,
+	edge_shape=.Rectilinear }
 
 Plot_Graph :: struct {
 	using config: Plot_Graph_Config,
@@ -167,12 +168,14 @@ PT_Random_Layout_Builder :: struct {
 	steps: int,
 	_: u8 }
 
+pt_random_point :: proc(graph: ^Plot_Graph) -> [2]f32 {
+	return {
+		rand.float32_range(rect_left(graph.plot_rect), rect_right(graph.plot_rect)),
+		rand.float32_range(rect_bottom(graph.plot_rect), rect_top(graph.plot_rect)) } }
+
 pt_random_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_Random_Layout_Builder = auto_cast data
-	for &node in graph.nodes {
-		node.position = [2]f32{
-			rand.float32_range(graph.range_x[0], graph.range_x[1]),
-			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
+	for &node in graph.nodes do node.position = pt_random_point(graph) }
 
 pt_random_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_Random_Layout_Builder = auto_cast data }
@@ -208,10 +211,7 @@ pt_eades_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_Eades_Layout_Builder = auto_cast data
 	builder.momentums = make([][2]f32, len(graph.nodes), builder.allocator)
 	builder.forces = make([][2]f32, len(graph.nodes), builder.allocator)
-	for &node in graph.nodes {
-		node.position = [2]f32{
-			rand.float32_range(graph.range_x[0], graph.range_x[1]),
-			rand.float32_range(graph.range_y[0], graph.range_y[1]) } } }
+	for &node in graph.nodes do node.position = pt_random_point(graph) }
 
 pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	spring_force :: proc(source: [2]f32, target: [2]f32, distance, c1, c2: f32) -> [2]f32 {
@@ -248,9 +248,13 @@ pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_Eades_Layout_Builder = auto_cast data
 	points := pt_node_positions(graph)
 	domain := points_bounding_rect(points)
-	range := rect_from_sides(graph.range_x[0], graph.range_x[1], graph.range_y[0], graph.range_y[1])
 	// range = ui_rect_margins(range, Interval(graph.canvas_padding))
-	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, range, node.position.([2]f32)) }
+	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, graph.plot_rect, node.position.([2]f32)) }
+
+pt_edge_hovered :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> bool {
+	if graph.hovered_node == nil do return false
+	hovered_id := graph.hovered_node.id
+	return edge.ids[0] == hovered_id || edge.ids[1] == hovered_id }
 
 pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Eades_Layout_Builder_Config, allocator := context.allocator) -> PT_Layout_Builder {
 	builder := new(PT_Eades_Layout_Builder, allocator)
@@ -263,9 +267,6 @@ pt_eades_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Eades_Layout_Buil
 		initialize=pt_eades_layout_initialize,
 		process=pt_eades_layout_process,
 		post_process=pt_eades_layout_post_process } }
-
-
-
 
 PT_Permuter_Layout_Builder_Config :: struct {
 	steps: u32,
