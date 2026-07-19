@@ -1,4 +1,5 @@
 #+feature using-stmt
+#+feature dynamic-literals
 package oggun
 import "core:os"
 import "core:fmt"
@@ -32,11 +33,18 @@ help_prompt: string :
 `Usage:
 	oggun check <project-dir>`
 
+help_prompts: map[string]string = {
+	"check" = check_prompt,
+	"audit" = audit_prompt,
+	"help" = help_prompt }
+
 main :: proc() {
 	context.logger = log.create_console_logger()
 	context.logger.options = { .Level }
-	no_command: bool = false
-	if len(os.args) > 1 do switch os.args[1] {
+	executable_directory, _ := os.get_executable_directory(context.allocator)
+	oggun_directory_path, _ := os.join_path({ executable_directory, "shared", "oggun" }, context.allocator)
+	if len(os.args) < 2 do fmt.println(prompt)
+	else do switch os.args[1] {
 	case "install":
 		log.info("Installing OGGUN...")
 		src_dir, _ := os.get_executable_directory(context.allocator)
@@ -58,13 +66,20 @@ main :: proc() {
 			return }
 		project_path, _ := os.get_absolute_path(os.args[2], context.allocator)
 		if ! os.exists(project_path) do fmt.eprintfln("Error: %s is not a valid path.", project_path)
-		executable_directory, _ := os.get_executable_directory(context.allocator)
-		oggun_directory_path, _ := os.join_path({ executable_directory, "shared", "oggun" }, context.allocator)
 		mt_list_untested(oggun_directory_path, project_path)
 	case "audit":
-		mt_list_untested(oggun_directory_path, project_path, files=os.args[2:])
+		mt_list_untested(oggun_directory_path, oggun_directory_path, prefix="", files=os.args[2:])
 	case "help":
-
-	case: no_command = true }
-	else do no_command = true
-	if no_command do fmt.println(prompt) }
+		if len(os.args) < 3 {
+			fmt.println("Error: No command to provide help for.")
+			fmt.println(help_prompt)
+			return }
+		command := os.args[2]
+		if command not_in help_prompts {
+			fmt.println("Error: Unrecognized command.")
+			fmt.println(help_prompt)
+			return }
+		fmt.println(help_prompts[command])
+	case:
+		fmt.println("Error: Unrecognized command.")
+		fmt.println(prompt) } }
