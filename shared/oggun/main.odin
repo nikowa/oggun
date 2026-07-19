@@ -16,9 +16,19 @@ prompt: string :
 Commands:
 	install   Install the oggun library in your Odin directory.
 	check     Run the oggun checker on a project directory.
-	version   Print the version of oggun.`
+	audit     Analyze the oggun source and documentation.
+	version   Print the version of oggun.
+	help      Detailed description of command.`
 
 check_prompt: string :
+`Usage:
+	oggun check <project-dir>`
+
+audit_prompt: string :
+`Usage:
+	oggun audit [files]`
+
+help_prompt: string :
 `Usage:
 	oggun check <project-dir>`
 
@@ -51,6 +61,10 @@ main :: proc() {
 		executable_directory, _ := os.get_executable_directory(context.allocator)
 		oggun_directory_path, _ := os.join_path({ executable_directory, "shared", "oggun" }, context.allocator)
 		mt_list_untested(oggun_directory_path, project_path)
+	case "audit":
+		mt_list_untested(oggun_directory_path, project_path, files=os.args[2:])
+	case "help":
+
 	case: no_command = true }
 	else do no_command = true
 	if no_command do fmt.println(prompt) }

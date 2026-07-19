@@ -55,7 +55,7 @@ mt_test_coverage :: proc(directory_path: string) -> (tested, untested: []string)
 	log.infof("Test coverage: " + ANSI_FG_INTENSE_WHITE + "%v%%" + ANSI_DEFAULT, math.round(f32(len(data.tested_procs)) / f32(len(data.procs)) * 100))
 	return data.tested_procs[:], untested_procs[:] }
 
-mt_list_untested :: proc(oggun_directory_path, project_path: string) {
+mt_list_untested :: proc(oggun_directory_path, project_path: string, files: []string = {}) {
 	log.infof("Checking %s %s.", project_path, oggun_directory_path)
 	tested, untested := mt_test_coverage(oggun_directory_path)
 	file_infos, err := os.read_directory_by_path(project_path, -1, context.allocator)
@@ -63,6 +63,7 @@ mt_list_untested :: proc(oggun_directory_path, project_path: string) {
 	data: Data = { untested_procs = untested }
 	for file_info in file_infos {
 		if os.ext(file_info.name) != ".odin" do continue
+		if len(files) > 0 do if ! slice.contains(files, file_info.name) do continue
 		mt_walk_file(file_info.fullpath, &data, proc(walker: ^Walker, node: ^ast.Node) -> bool {
 			data: ^Data = auto_cast walker.user_data
 			#partial switch derived in node.derived {

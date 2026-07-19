@@ -14,6 +14,10 @@ import "core:math"
 
 ID :: uintptr
 
+Range :: struct($T: typeid) {
+	x: [2]T,
+	y: [2]T }
+
 Orientation :: enum {
 	None,
 	Horizontal,
@@ -82,11 +86,10 @@ clamp_floor :: proc(val: f32, floor: f32) -> f32 {
 		return floor }
 	else {
 		return val } }
-
+*/
 
 angle_vec :: proc(angle: f32, mag: f32) -> [2]f32 {
 	return linalg.normalize([2]f32{ linalg.cos(angle), linalg.sin(angle) }) * mag }
-
 
 vec_angle :: proc(vec: [2]f32) -> f32 {
 	vec := vec
@@ -98,7 +101,7 @@ vec_angle :: proc(vec: [2]f32) -> f32 {
 		angle = -linalg.acos(vec.x) }
 	return angle }
 
-
+/*
 iconv :: proc(i: []int, dim_a: []int, dim_b: []int) -> []int {
 	return dim_b }
 
@@ -347,3 +350,6 @@ pow :: math.pow_f32
 path_length :: proc(path: [][2]f32) -> (length: f32) {
 	for i in 0 ..< len(path) - 1 do length += linalg.length(path[i] - path[i + 1])
 	return length }
+
+index2_to_index :: proc(shape: [2]u32, index2: [2]u32) -> u32 {
+	return index2.y * shape.x + index2.x }

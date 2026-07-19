@@ -107,6 +107,14 @@ pt_graph_init_begin :: proc(graph: ^Plot_Graph, config: Plot_Graph_Config) {
 	// graph.canvas_rect = ui_rect_margins(graph.canvas_rect, Interval(graph.canvas_padding))
 	sn_init_camera_2d(&graph.camera, DEFAULT_CAMERA_2D_CONFIG) }
 
+pt_edge_nodes :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> (nodes: [2]^Plot_Node) {
+	for i in 0 ..< 2 do nodes[i], _ = graph.nodes_map[edge.ids[i]]
+	return nodes }
+
+pt_edge_length :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> f32 {
+	nodes := pt_edge_nodes(graph, edge)
+	return linalg.distance(nodes[0].position.? or_else [2]f32{}, nodes[1].position.? or_else [2]f32{}) }
+
 pt_node_index :: proc(graph: ^Plot_Graph, node: ^Plot_Node) -> u32 {
 	return auto_cast ((cast(uintptr)node - cast(uintptr)&graph.nodes[0]) / size_of(Plot_Node)) }
 
@@ -249,13 +257,15 @@ pt_node_positions :: proc(graph: ^Plot_Graph, allocator := context.allocator) ->
 	for node, i in graph.nodes do points[i] = node.position.([2]f32)
 	return points }
 
-pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_Eades_Layout_Builder = auto_cast data
+pt_fit_post_process :: proc(graph: ^Plot_Graph) {
 	points := pt_node_positions(graph)
 	domain := points_bounding_rect(points)
-	// range := ui_rect_margins(graph.plot_rect, Ratio(0.1))
 	range := ui_rect_margins(ui_rect_fit(domain, graph.plot_rect, .CONTAIN), Ratio(0.1))
 	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, range, node.position.([2]f32)) }
+
+pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
+	builder: ^PT_Eades_Layout_Builder = auto_cast data
+	pt_fit_post_process(graph) }
 
 pt_edge_hovered :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> bool {
 	if graph.hovered_node == nil do return false
@@ -280,16 +290,73 @@ PT_Permuter_Layout_Builder_Config :: struct {
 
 PT_Permuter_Layout_Builder :: struct {
 	using config: PT_Permuter_Layout_Builder_Config,
-	allocator: runtime.Allocator }
+	allocator: runtime.Allocator,
+	grid_x: [2]i32,
+	grid_y: [2]i32,
+	occupancy: Bit_Matrix }
+
+pt_swap_node_positions :: proc(node0, node1: ^Plot_Node) {
+	temp := node0.position
+	node0.position = node1.position
+	node1.position = temp }
 
 pt_permuter_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_Permuter_Layout_Builder = auto_cast data }
+	builder: ^PT_Permuter_Layout_Builder = auto_cast data
+	radius: f32 = 0.05
+	position: [2]f32 = { 0, 0 }
+	rows: i32 = i32(1.2 * math.sqrt_f32(cast(f32)len(graph.nodes)))
+	cols: i32 = cast(i32)len(graph.nodes) / rows
+	for &node, i in graph.nodes {
+		x := i32(i) % rows
+		y := i32(i) / rows
+		node.position = [2]f32{ f32(x), f32(y) } }
+	builder.grid_x = { 0, rows - 1 }
+	builder.grid_y = { 0, cols - 1 }
+	builder.occupancy = make_bit_matrix({ cast(u32)rows, cast(u32)cols }, builder.allocator)
+	bit_matrix_fill(&builder.occupancy, 1)
+	log.infof("\n%s", aprint_bit_matrix(&builder.occupancy))
+	log.info(bit_matrix_rank(&builder.occupancy, 0), bit_matrix_rank(&builder.occupancy, 1), bit_matrix_size(&builder.occupancy))
+	// DICK
+	// (TODO): Keep a bit matrix record of the occupation of the grid.
+	// * check if grid is all 1s, if so extend grid by 1
+	// * pick random tile from grid, adjacent to exitsing node
+	// * iterate through nodes and see if any of them can be placed there to reduce objective function
+	// (NOTE): Objective function is "pt_total_edge_length"
+	// for step in 0 ..< 100 {
+		// DICK
+	// }
+	// for &node, i in graph.nodes {
+	// 	node.position = [2]f32{ 0, 0 }
+	// 	for angle: f32 = 0; angle < 2 * math.PI; angle += 0.3 {
+	// 		collided: bool = false
+	// 		new_position: [2]f32 = position + angle_vec(angle, radius)
+	// 		for &other_node in graph.nodes[0:i] {
+	// 			if linalg.distance(new_position, other_node.position.([2]f32)) < radius {
+	// 				collided = true
+	// 				break } }
+	// 		if ! collided {
+	// 			node.position = new_position
+	// 			position = node.position.([2]f32)
+	// 			break
+	// 		}
+	// 	}
+	// }
+}
 
 pt_permuter_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_Permuter_Layout_Builder = auto_cast data }
+	builder: ^PT_Permuter_Layout_Builder = auto_cast data
+	current_length := pt_total_edge_length(graph)
+	node := &graph.nodes[rand.int31_max(cast(i32)len(graph.nodes))]
+	for &other_node in graph.nodes {
+		if &other_node == node do continue
+		pt_swap_node_positions(node, &other_node)
+		new_length := pt_total_edge_length(graph)
+		if new_length < current_length do break
+		pt_swap_node_positions(node, &other_node) } }
 
 pt_permuter_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
-	builder: ^PT_Permuter_Layout_Builder = auto_cast data }
+	builder: ^PT_Permuter_Layout_Builder = auto_cast data
+	pt_fit_post_process(graph) }
 
 pt_permuter_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Permuter_Layout_Builder_Config, allocator := context.allocator) -> PT_Layout_Builder {
 	builder := new(PT_Permuter_Layout_Builder, allocator)
@@ -303,7 +370,10 @@ pt_permuter_layout_builder :: proc(graph: ^Plot_Graph, config: PT_Permuter_Layou
 		process=pt_permuter_layout_process,
 		post_process=pt_permuter_layout_post_process } }
 
-
+pt_total_edge_length :: proc(graph: ^Plot_Graph) -> f32 {
+	length: f32
+	for edge in graph.edges do length += pt_edge_length(graph, edge)
+	return length }
 
 
 // pt_fdp_layout_builder :: proc(graph: ^Plot_Graph) {

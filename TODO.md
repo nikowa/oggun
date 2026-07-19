@@ -1,5 +1,5 @@
 
-- Rect function that creates a matrix that maps from one rect to another. Use it to fit the nodes to the canvas after laying them ut.
+- Function that lists the number of untested functions from a specific file.
 - Permuter layout algorithm.
 - Node hover effect.
 - Node hover label.
