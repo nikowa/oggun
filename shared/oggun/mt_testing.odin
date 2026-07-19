@@ -12,6 +12,10 @@ import "core:path/filepath"
 import "core:path/slashpath"
 import "core:slice"
 import "core:math"
+import "core:testing"
+
+expect :: proc(cond: bool, loc := #caller_location) {
+	testing.expect(auto_cast context.user_ptr, cond, loc=loc) }
 
 mt_test_coverage :: proc(directory_path: string, files: []string={}, silent: bool=false) -> (tested, untested: []string) {
 	untested_procs := make([dynamic]string)
@@ -48,8 +52,8 @@ mt_test_coverage :: proc(directory_path: string, files: []string={}, silent: boo
 					#partial switch derived in node.derived {
 					case ^ast.Call_Expr:
 						proc_name := mt_node_string(walker, derived.expr.expr_base)
-						if ! strings.has_prefix(proc_name, "og.") do return true
-						proc_name = proc_name[3:]
+						// if ! strings.has_prefix(proc_name, "og.") do return true
+						// proc_name = proc_name[3:]
 						if slice.contains(data.procs[:], proc_name) do append_deduplicate(&data.tested_procs, proc_name) }
 					return true }) } } }
 	shrink(&data.tested_procs)

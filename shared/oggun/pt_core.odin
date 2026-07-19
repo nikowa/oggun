@@ -313,10 +313,13 @@ pt_permuter_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder.grid_x = { 0, rows - 1 }
 	builder.grid_y = { 0, cols - 1 }
 	builder.occupancy = make_bit_matrix({ cast(u32)rows, cast(u32)cols }, builder.allocator)
-	bit_matrix_fill(&builder.occupancy, 1)
-	log.infof("\n%s", aprint_bit_matrix(&builder.occupancy))
-	log.info(bit_matrix_rank(&builder.occupancy, 0), bit_matrix_rank(&builder.occupancy, 1), bit_matrix_size(&builder.occupancy))
+	_bit_matrix_fill(&builder.occupancy, 1)
+	log.infof("\n%s", _aprint_bit_matrix(&builder.occupancy))
+	log.info(_bit_matrix_rank(&builder.occupancy, 0), _bit_matrix_rank(&builder.occupancy, 1), _bit_matrix_size(&builder.occupancy))
 	// DICK
+	// if _bit_matrix_rank(&builder.occupancy, 1) = _bit_matrix_size(&builder.occupancy) {
+
+	// }
 	// (TODO): Keep a bit matrix record of the occupation of the grid.
 	// * check if grid is all 1s, if so extend grid by 1
 	// * pick random tile from grid, adjacent to exitsing node

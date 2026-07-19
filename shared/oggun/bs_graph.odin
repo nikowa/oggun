@@ -13,22 +13,22 @@ make_graph :: proc(order: u32, allocator := context.allocator, loc := #caller_lo
 	return { order = order, size = 0, adjacency_matrix = adjacency_matrix }, err }
 
 graph_connect :: proc(graph: ^Graph, src, dest: u32) {
-	bit_matrix_write(&graph.adjacency_matrix, { src, dest }, 1) }
+	write(&graph.adjacency_matrix, [2]u32{ src, dest }, 1) }
 
 graph_simple_connect :: proc(graph: ^Graph, src, dest: u32) {
-	bit_matrix_write(&graph.adjacency_matrix, { max(src, dest), min(src, dest) }, 1) }
+	write(&graph.adjacency_matrix, [2]u32{ max(src, dest), min(src, dest) }, 1) }
 
 graph_disconnect :: proc(graph: ^Graph, src, dest: u32) {
-	bit_matrix_write(&graph.adjacency_matrix, { src, dest }, 0) }
+	write(&graph.adjacency_matrix, [2]u32{ src, dest }, 0) }
 
 graph_simple_disconnect :: proc(graph: ^Graph, src, dest: u32) {
-	bit_matrix_write(&graph.adjacency_matrix, { max(src, dest), min(src, dest) }, 0) }
+	write(&graph.adjacency_matrix, [2]u32{ max(src, dest), min(src, dest) }, 0) }
 
 graph_connected :: proc(graph: ^Graph, src, dest: u32) -> bool {
-	return cast(bool)bit_matrix_read(&graph.adjacency_matrix, { src, dest }) }
+	return cast(bool)read(&graph.adjacency_matrix, [2]u32{ src, dest }) }
 
 graph_simply_connected :: proc(graph: ^Graph, src, dest: u32) -> bool {
-	return cast(bool)bit_matrix_read(&graph.adjacency_matrix, { max(src, dest), min(src, dest) }) }
+	return cast(bool)read(&graph.adjacency_matrix, [2]u32{ max(src, dest), min(src, dest) }) }
 
 graph_neighbors :: proc(graph: ^Graph, src: u32, allocator := context.allocator) -> []u32 {
 	neighbors_dynamic := make_dynamic_array_len_cap([dynamic]u32, 0, graph.order, allocator)

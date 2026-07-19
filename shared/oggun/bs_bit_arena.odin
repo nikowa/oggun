@@ -12,7 +12,7 @@ bit_arena_alloc :: proc(arena: ^Bit_Arena, #any_int size: uint, loc := #caller_l
 	if uint(arena.len) + size > uint(arena.cap) do return 0, .Out_Of_Memory
 	offset = uint(arena.len)
 	dynamic_bit_arena_resize(arena, uint(arena.len) + size)
-	dynamic_bit_array_clear_chunk(arena, { offset, uint(arena.len) })
+	dynamic_bit_array_zero_chunk(arena, [2]u32{ cast(u32)offset, cast(u32)arena.len })
 	return offset, nil }
 
 bit_arena_free_all :: proc(arena: ^Bit_Arena) {

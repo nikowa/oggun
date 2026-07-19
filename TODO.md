@@ -1,5 +1,4 @@
 
-- Function that lists the number of untested functions from a specific file.
 - Permuter layout algorithm.
 - Node hover effect.
 - Node hover label.
