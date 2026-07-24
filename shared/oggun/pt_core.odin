@@ -293,6 +293,8 @@ PT_Permuter_Layout_Builder :: struct {
 	allocator: runtime.Allocator,
 	grid_x: [2]i32,
 	grid_y: [2]i32,
+	// DICK
+	// grid_nodes: []Plot_Node,
 	occupancy: Bit_Matrix }
 
 pt_swap_node_positions :: proc(node0, node1: ^Plot_Node) {
@@ -316,14 +318,6 @@ pt_permuter_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
 	_bit_matrix_fill(&builder.occupancy, 1)
 	log.infof("\n%s", _aprint_bit_matrix(&builder.occupancy))
 	log.info(_bit_matrix_rank(&builder.occupancy, 0), _bit_matrix_rank(&builder.occupancy, 1), _bit_matrix_size(&builder.occupancy))
-	// DICK
-	// if _bit_matrix_rank(&builder.occupancy, 1) = _bit_matrix_size(&builder.occupancy) {
-
-	// }
-	// (TODO): Keep a bit matrix record of the occupation of the grid.
-	// * check if grid is all 1s, if so extend grid by 1
-	// * pick random tile from grid, adjacent to exitsing node
-	// * iterate through nodes and see if any of them can be placed there to reduce objective function
 	// (NOTE): Objective function is "pt_total_edge_length"
 	// for step in 0 ..< 100 {
 		// DICK
@@ -355,7 +349,17 @@ pt_permuter_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 		pt_swap_node_positions(node, &other_node)
 		new_length := pt_total_edge_length(graph)
 		if new_length < current_length do break
-		pt_swap_node_positions(node, &other_node) } }
+		pt_swap_node_positions(node, &other_node) }
+	if _bit_matrix_rank(&builder.occupancy, 1) = _bit_matrix_size(&builder.occupancy) {
+		builder.grid_x += { -1, 1 }
+		builder.grid_y += { -1, 1 }
+		// DICK
+	}
+	// (TODO): Keep a bit matrix record of the occupation of the grid.
+	// * check if grid is all 1s, if so extend grid by 1
+	// * pick random tile from grid, adjacent to exitsing node
+	// * iterate through nodes and see if any of them can be placed there to reduce objective function
+}
 
 pt_permuter_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder: ^PT_Permuter_Layout_Builder = auto_cast data
