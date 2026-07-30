@@ -29,7 +29,7 @@ test: lib
 	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
 
 doc:
-	mdbook serve doc
+	mkdocs serve
 
 lib:
 	cls

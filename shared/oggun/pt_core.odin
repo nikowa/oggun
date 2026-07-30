@@ -350,11 +350,11 @@ pt_permuter_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 		new_length := pt_total_edge_length(graph)
 		if new_length < current_length do break
 		pt_swap_node_positions(node, &other_node) }
-	if _bit_matrix_rank(&builder.occupancy, 1) = _bit_matrix_size(&builder.occupancy) {
-		builder.grid_x += { -1, 1 }
-		builder.grid_y += { -1, 1 }
-		// DICK
-	}
+	// if _bit_matrix_rank(&builder.occupancy, 1) = _bit_matrix_size(&builder.occupancy) {
+	// 	builder.grid_x += { -1, 1 }
+	// 	builder.grid_y += { -1, 1 }
+	// 	// DICK
+	// }
 	// (TODO): Keep a bit matrix record of the occupation of the grid.
 	// * check if grid is all 1s, if so extend grid by 1
 	// * pick random tile from grid, adjacent to exitsing node

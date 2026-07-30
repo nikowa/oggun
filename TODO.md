@@ -1,4 +1,11 @@
 
+- Bit_Tensor
+- Matrix
+- Tensor
+
+- Graph is a set with labeled edges. Poset (partially ordered set) is a graph with no labels. Graph is represented by adjacency matrix, while poset is represented by an incidence matrix.
+
+- Generic multi-dimensional array (tensor) type.
 - Permuter layout algorithm.
 - Node hover effect.
 - Node hover label.

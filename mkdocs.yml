@@ -1,0 +1,66 @@
+site_name: oggun docs
+site_url: https://nikowa.github.io/oggun/
+repo_url: https://github.com/nikowa/oggun
+repo_name: nikowa/oggun
+
+theme:
+  name: material
+  logo: img/logo-doc.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - scheme: default
+      primary: black
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      use_pygments: false
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - https://unpkg.com/@highlightjs/cdn-assets@11/highlight.min.js
+  - https://unpkg.com/highlightjs-odinlang@1.4.0/dist/odin.min.js
+  - https://unpkg.com/@highlightjs/cdn-assets@11/languages/glsl.min.js
+  - scripts/highlight.js
+
+extra_css:
+  - https://unpkg.com/@highlightjs/cdn-assets@11/styles/intellij-light.css
+  - https://unpkg.com/@highlightjs/cdn-assets@11/styles/base16/black-metal-bathory.css
+
+nav:
+  - Overview: index.md
+  - Installation: setup.md
+  - CLI: CLI.md
+  - Architecture: architecture.md
+  - Examples: examples.md
+  - Roadmap: roadmap.md
+  - Odin API:
+    - bs:
+      - bit_array: bs_bit_array.md
+      - bit_matrix: bs_bit_matrix.md
+      - matrix: bs_matrix.md
+      - poset: bs_poset.md
+  - GLSL API:
+    - clip: clip.md
+    - msaa: msaa.md
