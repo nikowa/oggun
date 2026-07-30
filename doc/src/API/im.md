@@ -1,3 +1,0 @@
-# im
-
-Image processing utils.
