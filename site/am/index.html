@@ -1,0 +1,2205 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://nikowa.github.io/oggun/am/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>am - oggun docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11/styles/intellij-light.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11/styles/base16/black-metal-bathory.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#am" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="oggun docs" class="md-header__button md-logo" aria-label="oggun docs" data-md-component="logo">
+      
+  <img src="../img/logo-doc.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            oggun docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              am
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/nikowa/oggun" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nikowa/oggun
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="oggun docs" class="md-nav__button md-logo" aria-label="oggun docs" data-md-component="logo">
+      
+  <img src="../img/logo-doc.svg" alt="logo">
+
+    </a>
+    oggun docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/nikowa/oggun" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nikowa/oggun
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CLI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Odin API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Odin API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    bs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bs_bit_array/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bit_array
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bs_bit_matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    bit_matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bs_matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bs_poset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    poset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GLSL API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    GLSL API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clip/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    clip
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../msaa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    msaa
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#asset-representations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset representations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#asset-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#making-custom-asset-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Making custom asset types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-binary-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Binary Format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Binary Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constants
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constants">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default_autosave_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DEFAULT_AUTOSAVE_INTERVAL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#default_autosave_cap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DEFAULT_AUTOSAVE_CAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#asset_manager_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Manager_Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Manager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_location_field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Location_Field
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_command_proc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Command_Proc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset_Kind
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#string_asset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        String_Asset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database_Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry_Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#watcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watcher
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outdated_proc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outdated_Proc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_proc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update_Proc
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#procedures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procedures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Procedures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#asset_command_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        asset_command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        asset_commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#init_asset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init_asset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        asset_object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_asset_manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_asset_manager
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register_asset_kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        register_asset_kind
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#watch_assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watch_assets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset_manager_autosave" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        asset_manager_autosave
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#init_string_asset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init_string_asset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#string_asset_command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        string_asset_command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register_builtin_asset_kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        register_builtin_asset_kinds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        delete_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry_equiv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        entry_equiv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry_from_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        entry_from_url
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_or_make_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_or_make_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#contains_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contains_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log_database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry_integrity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        entry_integrity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add_or_update_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add_or_update_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        remove_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clone_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clone_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        clone
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equiv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        equiv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relpath_to_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        relpath_to_path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relpath_to_source_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        relpath_to_source_path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path_to_relpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        path_to_relpath
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_or_read_database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_or_read_database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove_database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        remove_database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url_join" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        url_join
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url_split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        url_split
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relpath_from_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        relpath_from_url
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path_from_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        path_from_url
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entry_was_modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        entry_was_modified
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update_entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_entry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url_search_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        url_search_source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file_was_modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        file_was_modified
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        remove_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rename_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rename_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#watcher_tick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watcher_tick
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="am">am</h1>
+<h3 id="asset-representations">Asset representations</h3>
+<p>An asset can have up to five representations. None of these is mandatory.</p>
+<ul>
+<li><code>Source_Directory</code> --- The source file from which the asset is imported.</li>
+<li><code>Database_File</code> --- The binary file where the database stores its contents.</li>
+<li><code>Database</code> --- The in-memory contents of the database.</li>
+<li><code>Main_Memory</code> --- The primary in-memory representation of the asset.</li>
+<li><code>GPU_Memory</code> --- The GPU representation of the asset.</li>
+</ul>
+<h3 id="asset-commands">Asset commands</h3>
+<ul>
+<li><code>Validate</code> --- Check if the asset is initialized with valid contents.</li>
+<li><code>Query_Location</code> --- Checks which locations Updates the <code>location</code> field with the current locationns of the asset.</li>
+<li><code>Import</code> --- Produces a database representation from a source representation.</li>
+<li><code>Export</code> --- Produces a source representation from a database representation.</li>
+<li><code>Load</code> --- Produces a default representation from a database representation.</li>
+<li><code>Save</code> --- Produces a database representation from a default representation.</li>
+<li><code>Upload</code> --- Produces a GPU representation from a default representation.</li>
+<li><code>Download</code> --- Produces a representation from a GPU representation.</li>
+</ul>
+<h3 id="making-custom-asset-types">Making custom asset types</h3>
+<p>To make a custom asset type, you need to do these four things:</p>
+<ol>
+<li>Define a struct type that derives from <code>Asset</code>.</li>
+</ol>
+<pre class="highlight"><code class="language-c">My_Asset :: ---
+    ... }</code></pre>
+<ol>
+<li>Call <code>init_assset</code> on the <code>Asset</code> field, whenever your custom asset type is initialized.</li>
+</ol>
+<pre class="highlight"><code class="language-c">init_my_asset :: proc(
+        as_mngr: ^Asset_Manager,
+        my_asset: ^My_Asset,
+        config: Asset_Config) {
+    init_asset(as_mngr, &amp;string_asset.asset, config)
+    ... }</code></pre>
+<ol>
+<li>Define an <code>Asset_Command_Proc</code> procedure for your custom asset type.</li>
+</ol>
+<pre class="highlight"><code class="language-c">my_asset_command :: proc(
+        as_mngr: ^Asset_Manager,
+        asset: ^Asset,
+        command: Asset_Command,
+        watch: bool = false) -&gt; (ok: bool) {
+    my_asset := asset_object(asset, My_Asset, "asset")
+    switch command {
+    case .Validate: ...
+    case .Query_Location: ...
+    case .Import: ...
+    case .Export: ...
+    case .Load: ...
+    case .Save: ...
+    case .Upload: ...
+    case .Download: ...
+    return false }</code></pre>
+<ol>
+<li>Register your custom asset type.</li>
+</ol>
+<pre class="highlight"><code class="language-c">register_asset_kind(as_mngr, My_Asset, { command = my_asset_command })</code></pre>
+<h3 id="database-binary-format">Database Binary Format</h3>
+<h4 id="database"><code>Database</code></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>header</code></td>
+<td style="text-align: left;"><code>_Database_Binary_Header</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>entries</code></td>
+<td style="text-align: left;"><code>[^]u8</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="entry"><code>Entry</code></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>url_len</code></td>
+<td style="text-align: left;"><code>u8</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>url</code></td>
+<td style="text-align: left;"><code>[^]u8</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>modification_time</code></td>
+<td style="text-align: left;"><code>time.Time</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>data_len</code></td>
+<td style="text-align: left;"><code>u32</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;"><code>[^]u8</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="constants">Constants</h3>
+<h4 id="default_autosave_interval"><code>DEFAULT_AUTOSAVE_INTERVAL</code></h4>
+<pre class="highlight"><code class="language-c">DEFAULT_AUTOSAVE_INTERVAL :: 30 * tm.Minute</code></pre>
+<h4 id="default_autosave_cap"><code>DEFAULT_AUTOSAVE_CAP</code></h4>
+<pre class="highlight"><code class="language-c">DEFAULT_AUTOSAVE_CAP :: 10</code></pre>
+<h3 id="types">Types</h3>
+<h4 id="asset_manager_config"><code>Asset_Manager_Config</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Manager_Config :: Database_Config</code></pre>
+<h4 id="asset_manager"><code>Asset_Manager</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Manager :: struct {
+    using database: Database,
+    assets: [dynamic]^Asset,
+    asset_kinds: map[typeid]Asset_Kind }</code></pre>
+<details><summary>Description</summary>
+Asset manager.
+</details>
+
+<h4 id="asset_command"><code>Asset_Command</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Command :: enum {
+    Validate,
+    Query_Location,
+    Import,
+    Export,
+    Load,
+    Save,
+    Upload,
+    Download }</code></pre>
+<h4 id="asset_location"><code>Asset_Location</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Location :: bit_set[Asset_Location_Field]</code></pre>
+<h4 id="asset_location_field"><code>Asset_Location_Field</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Location_Field :: enum {
+    Source_Directory,
+    Database_File,
+    Database,
+    Main_Memory,
+    GPU_Memory }</code></pre>
+<h4 id="asset_command_proc"><code>Asset_Command_Proc</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Command_Proc :: #type proc(
+    manager: ^Asset_Manager,
+    asset: ^Asset,
+    command: Asset_Command,
+    watch: bool = false) -&gt; (ok: bool)</code></pre>
+<h4 id="asset_config"><code>Asset_Config</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Config :: struct {
+    url: URL,
+    derived_type: typeid }</code></pre>
+<h4 id="asset"><code>Asset</code></h4>
+<pre class="highlight"><code class="language-c">Asset :: struct {
+    using asset_config: Asset_Config,
+    location: Asset_Location }</code></pre>
+<h4 id="asset_kind"><code>Asset_Kind</code></h4>
+<pre class="highlight"><code class="language-c">Asset_Kind :: struct {
+    command: Asset_Command_Proc }</code></pre>
+<h4 id="string_asset"><code>String_Asset</code></h4>
+<pre class="highlight"><code class="language-c">String_Asset :: struct {
+    using asset: Asset,
+    str: string }</code></pre>
+<h4 id="url"><code>URL</code></h4>
+<pre class="highlight"><code class="language-c">URL :: distinct string</code></pre>
+<h4 id="database_config"><code>Database_Config</code></h4>
+<pre class="highlight"><code class="language-c">Database_Config :: struct {
+    relpath: string,
+    source_directory_relpath: string,
+    autosave_interval: tm.Duration,
+    autosave_cap: u32 }</code></pre>
+<h4 id="database_1"><code>Database</code></h4>
+<pre class="highlight"><code class="language-c">Database :: struct {
+    using config: Database_Config,
+    allocator: runtime.Allocator,
+    last_autosave_time: time.Time,
+    modification_time: time.Time,
+    entries: list.List,
+    entries_map: map[URL]^Entry,
+    spec_modified: bool
+    _arena: mem.Arena }</code></pre>
+<details><summary>Description</summary>
+<code>allocator</code> — the allocator which allocates the entries<br>
+<code>modification_time</code> — the last time an entry was added or removed, not counting the adding of entries on database reading
+</details>
+
+<h4 id="entry_config"><code>Entry_Config</code></h4>
+<pre class="highlight"><code class="language-c">Entry_Config :: struct {
+    url: URL,
+    modification_time: tm.Time,
+    compressed: b8,
+    data: []u8 }</code></pre>
+<h4 id="entry_1"><code>Entry</code></h4>
+<pre class="highlight"><code class="language-c">Entry :: struct {
+    using config: Entry_Config,
+    hash: u32 }</code></pre>
+<h4 id="watcher"><code>Watcher</code></h4>
+<pre class="highlight"><code class="language-c">Watcher :: struct {
+    data: rawptr,
+    outdated_proc: Outdated_Proc,
+    update_proc: Update_Proc }</code></pre>
+<h4 id="outdated_proc"><code>Outdated_Proc</code></h4>
+<pre class="highlight"><code class="language-c">Outdated_Proc :: #type proc(data: rawptr) -&gt; bool</code></pre>
+<h4 id="update_proc"><code>Update_Proc</code></h4>
+<pre class="highlight"><code class="language-c">Update_Proc :: #type proc(data: rawptr)</code></pre>
+<h3 id="procedures">Procedures</h3>
+<h4 id="asset_command_1"><code>asset_command</code></h4>
+<pre class="highlight"><code class="language-c">asset_command :: proc(
+    manager: ^Asset_Manager,
+    Asset_Type: typeid,
+    asset: ^Asset,
+    command: Asset_Command,
+    watch: bool = false) -&gt; (ok: bool)</code></pre>
+<details><summary>Description</summary>
+Execute an asset command. <code>Asset_Type</code> must be a type that derives from <code>Asset</code>, and <code>asset</code> must be a pointer to a field in an object of that type. If <code>watch</code> is true, the command will be exucted only if the source is more recent than the target.
+</details>
+
+<h4 id="asset_commands"><code>asset_commands</code></h4>
+<pre class="highlight"><code class="language-c">asset_commands :: proc(
+    manager: ^Asset_Manager,
+    Asset_Type: typeid,
+    asset: ^Asset,
+    commands: []Asset_Command,
+    watch: bool = false) -&gt; (ok: bool)</code></pre>
+<h4 id="init_asset"><code>init_asset</code></h4>
+<pre class="highlight"><code class="language-c">@(deferred_in=_init_asset_end)
+init_asset :: proc(
+    manager: ^Asset_Manager,
+    Asset_Type: typeid,
+    asset: ^Asset,
+    config: Asset_Config)</code></pre>
+<details><summary>Description</summary>
+Initialize the asset <code>asset</code> with the config <code>config</code> and add it to the internal collection of assets in <code>as_mngr</code>. <code>_init_asset_end</code> executes the <code>.Validate</code> and <code>.Query_Location</code> asset commands.
+</details>
+
+<h4 id="asset_object"><code>asset_object</code></h4>
+<pre class="highlight"><code class="language-c">asset_object :: proc(
+    asset: ^Asset,
+    $T: typeid,
+    $field_name: string) -&gt; (^T)</code></pre>
+<details><summary>Description</summary>
+If <code>asset</code> is a pointer to a field named <code>field_name</code> in a struct of type <code>T</code>, produce a pointer to the object whose field this is.
+</details>
+
+<h4 id="make_asset_manager"><code>make_asset_manager</code></h4>
+<pre class="highlight"><code class="language-c">make_asset_manager :: proc(
+    config: Asset_Manager_Config,
+    allocator: runtime.Allocator) -&gt; (asset_manager: Asset_Manager)</code></pre>
+<details><summary>Description</summary>
+The <code>Asset_Manager</code> constructor.
+</details>
+
+<h4 id="register_asset_kind"><code>register_asset_kind</code></h4>
+<pre class="highlight"><code class="language-c">register_asset_kind :: proc(
+    manager: ^Asset_Manager,
+    $Type: typeid,
+    kind: Asset_Kind)</code></pre>
+<details><summary>Description</summary>
+Register a new asset kind. An asset kind must be registered for any asset type before asset commands can be executed on instances of that type.
+</details>
+
+<h4 id="watch_assets"><code>watch_assets</code></h4>
+<pre class="highlight"><code class="language-c">watch_assets :: proc(
+    manager: ^Asset_Manager)</code></pre>
+<details><summary>Description</summary>
+Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
+</details>
+
+<h4 id="asset_manager_autosave"><code>asset_manager_autosave</code></h4>
+<pre class="highlight"><code class="language-c">asset_manager_autosave :: proc(
+    asset_manager: ^Asset_Manager)</code></pre>
+<h4 id="init_string_asset"><code>init_string_asset</code></h4>
+<pre class="highlight"><code class="language-c">init_string_asset :: proc(
+    asset_manager: ^Asset_Manager,
+    string_asset: ^String_Asset,
+    config: Asset_Config)</code></pre>
+<h4 id="string_asset_command"><code>string_asset_command</code></h4>
+<pre class="highlight"><code class="language-c">string_asset_command :: proc(
+    as_mngr: ^Asset_Manager,
+    asset: ^Asset,
+    command: Asset_Command,
+    watch: bool = false) -&gt; (ok: bool)</code></pre>
+<h4 id="register_builtin_asset_kinds"><code>register_builtin_asset_kinds</code></h4>
+<pre class="highlight"><code class="language-c">register_builtin_asset_kinds :: proc(
+    as_mngr: ^Asset_Manager)</code></pre>
+<h4 id="make_database"><code>make_database</code></h4>
+<p>Database constructor.</p>
+<pre class="highlight"><code class="language-c">make_database :: proc(
+    config: Database_Config,
+    allocator: rt.Allocator) -&gt; (database: Database)</code></pre>
+<h4 id="delete_database"><code>delete_database</code></h4>
+<p>Database destructor.</p>
+<pre class="highlight"><code class="language-c">delete_database :: proc(
+    database: Database,
+    allocator: runtime.Allocator)</code></pre>
+<h4 id="make_entry"><code>make_entry</code></h4>
+<p>Entry constructor.</p>
+<pre class="highlight"><code class="language-c">make_entry :: proc(
+    url: URL,
+    data: []u8,
+    modification_time: time.Time = { },
+    compressed: b8 = false) -&gt; (entry: Entry)</code></pre>
+<h4 id="delete_entry"><code>delete_entry</code></h4>
+<p>Entry destructor.</p>
+<pre class="highlight"><code class="language-c">delete_entry :: proc(
+    entry: Entry,
+    allocator: runtime.Allocator)</code></pre>
+<h4 id="entry_equiv"><code>entry_equiv</code></h4>
+<p>Check if two entries are equivalent (equivalent URL, equivalent data, equivalent compressedness state).</p>
+<pre class="highlight"><code class="language-c">entry_equiv :: proc(
+    entry_a: ^Entry,
+    entry_b: ^Entry)</code></pre>
+<h4 id="entry_from_url"><code>entry_from_url</code></h4>
+<p>Retreive entry from database by URL.</p>
+<pre class="highlight"><code class="language-c">entry_from_url :: proc(
+    database: ^Database,
+    url: URL) -&gt; (entry: ^Entry, ok: bool)</code></pre>
+<h4 id="get_entry"><code>get_entry</code></h4>
+<pre class="highlight"><code class="language-c">get_entry :: proc(
+    database: ^Database,
+    url: URL) -&gt; (entry: ^Entry, ok: bool)</code></pre>
+<h4 id="get_or_make_entry"><code>get_or_make_entry</code></h4>
+<pre class="highlight"><code class="language-c">get_or_make_entry :: proc(
+    database: ^Database,
+    url: URL) -&gt; (entry: ^Entry, existed: bool)</code></pre>
+<h4 id="contains_entry"><code>contains_entry</code></h4>
+<p>Check if database contains entry with given URL.</p>
+<pre class="highlight"><code class="language-c">contains_entry :: proc(
+    database: ^Database,
+    url: URL) -&gt; bool</code></pre>
+<h4 id="log_database"><code>log_database</code></h4>
+<pre class="highlight"><code class="language-c">log_database :: proc(
+    database: ^Database)</code></pre>
+<h4 id="entry_integrity"><code>entry_integrity</code></h4>
+<pre class="highlight"><code class="language-c">entry_integrity :: proc(
+    entry: ^Entry) -&gt; (ok: bool)</code></pre>
+<h4 id="add_entry"><code>add_entry</code></h4>
+<p>Add entry to database.</p>
+<pre class="highlight"><code class="language-c">add_entry :: proc(
+    database: ^Database,
+    entry_config: Entry_Config,
+    modified: bool) -&gt; (entry_ptr: ^Entry, err: os.Error)</code></pre>
+<h4 id="add_or_update_entry"><code>add_or_update_entry</code></h4>
+<p>Add entry to database; If exists, update it.</p>
+<pre class="highlight"><code class="language-c">add_or_update_entry :: proc(
+    database: ^Database,
+    entry_config: Entry_Config,
+    modified: bool) -&gt; (entry_ptr: ^Entry, err: os.Error)</code></pre>
+<h4 id="remove_entry"><code>remove_entry</code></h4>
+<p>Remove entry from database.</p>
+<pre class="highlight"><code class="language-c">remove_entry :: proc(
+    database: ^Database,
+    entry: ^Entry)</code></pre>
+<h4 id="clone_entry"><code>clone_entry</code></h4>
+<p>Clone an entry.</p>
+<pre class="highlight"><code class="language-c">clone_entry :: proc(
+    entry: ^Entry,
+    allocator: rt.Allocator) -&gt; (entry_clone: Entry)</code></pre>
+<h4 id="clone"><code>clone</code></h4>
+<p>Clone a database.</p>
+<pre class="highlight"><code class="language-c">clone :: proc(
+    database: ^Database,
+    allocator: rt.Allocator) -&gt; (database_clone: Database)</code></pre>
+<h4 id="equiv"><code>equiv</code></h4>
+<p>Check if two databases are equivalent (have equivalent entries).</p>
+<pre class="highlight"><code class="language-c">equiv :: proc(
+    database_a,
+    database_b: ^Database) -&gt; bool</code></pre>
+<h4 id="relpath_to_path"><code>relpath_to_path</code></h4>
+<p>Convert a relative path string (relative to the directory of the executable) to an absolute path string.</p>
+<pre class="highlight"><code class="language-c">relpath_to_path :: proc(
+    relpath: string,
+    allocator: rt.Allocator) -&gt; (path: string)</code></pre>
+<h4 id="relpath_to_source_path"><code>relpath_to_source_path</code></h4>
+<p>Convert a relative path string (relative to the source directory of the database) to an absolute path string.</p>
+<pre class="highlight"><code class="language-c">relpath_to_source_path :: proc(
+    database: ^Database,
+    relpath: string,
+    allocator: rt.Allocator) -&gt; (path: string)</code></pre>
+<h4 id="path_to_relpath"><code>path_to_relpath</code></h4>
+<p>Convert an absolute path string to a relative path string (relative to the directory of the executable).</p>
+<pre class="highlight"><code class="language-c">path_to_relpath :: proc(
+    path: string,
+    allocator: rt.Allocator) -&gt; (relpath: string)</code></pre>
+<h4 id="make_or_read_database"><code>make_or_read_database</code></h4>
+<p>Check if a database exists at the given relative path. If it exists, read it; If it does not exist, construct a new one.</p>
+<pre class="highlight"><code class="language-c">make_or_read_database :: proc(
+    config: Database_Config,
+    allocator: rt.Allocator) -&gt; (database: Database)</code></pre>
+<h4 id="read"><code>read</code></h4>
+<p>Read the database at the given relative path.</p>
+<pre class="highlight"><code class="language-c">read :: proc(
+    config: Database_Config,
+    allocator: runtime.Allocator,
+    relpath_override: string = "") -&gt; (database: Database)</code></pre>
+<h4 id="write"><code>write</code></h4>
+<pre class="highlight"><code class="language-c">write :: proc(
+    database: ^Database,
+    allocator: runtime.Allocator,
+    relpath_override: string = "")</code></pre>
+<h4 id="remove_database"><code>remove_database</code></h4>
+<p>Remove the database file from disk.</p>
+<pre class="highlight"><code class="language-c">remove_database :: proc(
+    database: ^Database) -&gt; (err: os.Error)</code></pre>
+<h4 id="url_join"><code>url_join</code></h4>
+<pre class="highlight"><code class="language-c">url_join :: proc(
+    urls: []URL,
+    allocator: rt.Allocator) -&gt; URL</code></pre>
+<h4 id="url_split"><code>url_split</code></h4>
+<pre class="highlight"><code class="language-c">url_split :: proc(
+    url: URL,
+    allocator: rt.Allocator) -&gt; (res: []string)</code></pre>
+<h4 id="relpath_from_url"><code>relpath_from_url</code></h4>
+<p>Get the relative path (relative to the source directory of the database) of the source of the entry with the given URL.</p>
+<pre class="highlight"><code class="language-c">relpath_from_url :: proc(
+    database: ^Database,
+    url: URL,
+    allocator: rt.Allocator) -&gt; (path: string)</code></pre>
+<h4 id="path_from_url"><code>path_from_url</code></h4>
+<p>Get the absolute path of the source of the entry with the given URL.</p>
+<pre class="highlight"><code class="language-c">path_from_url :: proc(
+    database: ^Database,
+    url: URL,
+    allocator: rt.Allocator) -&gt; (path: string)</code></pre>
+<h4 id="entry_was_modified"><code>entry_was_modified</code></h4>
+<p>Check if the source of the given entry has been updated since the entry was imported to the database.</p>
+<pre class="highlight"><code class="language-c">entry_was_modified :: proc(
+    database: ^Database,
+    entry: ^Entry) -&gt; (outdated: bool)</code></pre>
+<h4 id="update_entry"><code>update_entry</code></h4>
+<p>Update the contents of an entry.</p>
+<pre class="highlight"><code class="language-c">update_entry :: proc(
+    database: ^Database,
+    entry: ^Entry,
+    config: Entry_Config,
+    modified: bool)</code></pre>
+<h4 id="url_search_source"><code>url_search_source</code></h4>
+<pre class="highlight"><code class="language-c">url_search_source :: proc(
+    database: ^Database,
+    url: URL,
+    allocator: rt.Allocator) -&gt; (path: string, err: os.Error)</code></pre>
+<details><summary>Description</summary>
+Get the path of the first file in the database's source directory that has the a name matching the given URL.
+</details>
+
+<h4 id="file_was_modified"><code>file_was_modified</code></h4>
+<pre class="highlight"><code class="language-c">file_was_modified :: proc(
+    relpath: string,
+    modification_time: ^tm.Time) -&gt; (was_modified: bool)</code></pre>
+<details><summary>Description</summary>
+Watch a given file for modifications. The modification_time parameter is where the latest modification time is stored. Whenever the file is modified, this function will return `true`. This will happen only once per modification. Example:
+
+<pre class="highlight"><code>modification_time: tm.Time
+for {
+    game_tick()
+    if file_was_modified(relpath, &amp;modification_time) do do_something() }</code></pre>
+
+</details>
+
+<h4 id="remove_file"><code>remove_file</code></h4>
+<pre class="highlight"><code class="language-c">remove_file :: proc(
+    relpath: string,
+    allocator: runtime.Allocator) -&gt; (err: os.Error)</code></pre>
+<h4 id="rename_file"><code>rename_file</code></h4>
+<pre class="highlight"><code class="language-c">rename_file :: proc(
+    old_relpath: string,
+    new_relpath: string,
+    allocator: runtime.Allocator) -&gt; (err: os.Error)</code></pre>
+<h4 id="watcher_tick"><code>watcher_tick</code></h4>
+<pre class="highlight"><code class="language-c">watcher_tick :: proc(watcher: ^Watcher)</code></pre>
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://unpkg.com/@highlightjs/cdn-assets@11/highlight.min.js"></script>
+      
+        <script src="https://unpkg.com/highlightjs-odinlang@1.4.0/dist/odin.min.js"></script>
+      
+        <script src="https://unpkg.com/@highlightjs/cdn-assets@11/languages/glsl.min.js"></script>
+      
+        <script src="../scripts/highlight.js"></script>
+      
+    
+  </body>
+</html>
