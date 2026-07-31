@@ -28,9 +28,12 @@ mt_get_generator :: proc(member_path: string) -> ^Generator {
 		generators[prefix] = generator }
 	return &generators[prefix] }
 
-mt_generate :: proc(oggun_path: string) {
+mt_generate_on_install :: proc(oggun_path: string) {
 	mt_generate_defaults(oggun_path)
 	mt_generate_stacks(oggun_path) }
+
+mt_generate_on_compile :: proc(oggun_path: string, package_path: string) {
+	mt_generate_overloaded(oggun_path, package_path) }
 
 timestamp_buf: [time.MIN_HMS_LEN]u8
 
@@ -193,6 +196,9 @@ mt_generate_stack :: proc(generator: ^Generator, name: string, type: string, def
 %s_%s_pop :: proc() -> (res: %s, ok: bool) {{
 	return pop_safe(&engine.%s.%s_stack) }}`,
 		prefix, name, type, field, name) }
+
+mt_generate_overloaded :: proc(oggun_path: string, package_path: string) {
+}
 
 gx_make_generator :: proc(prefix: string, cap: int) -> Generator {
 	builder: strings.Builder

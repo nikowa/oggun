@@ -16,6 +16,8 @@ import "core:slice"
 // stopwatch: time.Stopwatch
 // ui_manager: UI_Manager
 
+OGGUN_EXE :: #config(OGGUN_EXE, false)
+
 OGGUN_VERSION: [3]u16 : { 0, 0, 1 }
 nil_stub: rawptr
 NIL_STUB_SIZE :: 1 * mem.Megabyte

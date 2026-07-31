@@ -6,9 +6,9 @@ default: current
 current: example_graph
 	examples/graph.exe
 
-flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\""
+flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\" -ignore-unknown-attributes"
 
-check_flags := "-max-error-count:4"
+check_flags := "-max-error-count:4 -ignore-unknown-attributes"
 
 release:
 	make -C ./build
@@ -33,7 +33,7 @@ doc:
 
 lib:
 	cls
-	odin build shared/oggun -out:oggun.exe {{flags}} -ignore-unknown-attributes -ignore-warnings
+	odin build shared/oggun -out:oggun.exe {{flags}} -ignore-warnings -define:OGGUN_EXE=true
 	./oggun.exe install
 
 example_input: lib
@@ -52,7 +52,8 @@ example_sync: lib
 	odin build examples/sync -out:examples/sync.exe {{flags}}
 
 example_graph: lib
-	odin build examples/graph -out:examples/graph.exe {{flags}}
+	oggun build examples/graph -out:examples/graph.exe {{flags}}
+#	odin build examples/graph -out:examples/graph.exe {{flags}}
 
 example_prop: lib
 	odin build examples/prop -out:examples/prop.exe {{flags}}

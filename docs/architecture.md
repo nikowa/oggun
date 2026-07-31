@@ -150,7 +150,7 @@ odin run <oggun-path> -- <package-path> [build-args]
 ```
 
 ```txt
-oggun <package-path> [build-args]
+oggun build <package-path> [build-args]
 ```
 
 ## Asset Flowchart

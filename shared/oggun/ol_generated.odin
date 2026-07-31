@@ -1,5 +1,6 @@
 package oggun
 
+when ! OGGUN_EXE {
 clone :: proc {
 	_clone_bit_array,
 	_clone_bit_matrix }
@@ -64,3 +65,4 @@ not :: proc {
 
 size :: proc {
 	_bit_matrix_size }
+}

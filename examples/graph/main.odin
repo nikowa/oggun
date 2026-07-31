@@ -1,6 +1,6 @@
 #+feature using-stmt
 package example_input
-import "shared:oggun"
+import og "shared:oggun"
 import "base:runtime"
 import "core:fmt"
 import "core:log"
@@ -15,13 +15,18 @@ stopwatch: time.Stopwatch
 
 main :: proc() {
 	context.logger = log.create_console_logger()
-	oggun.start(entry_point, n_workers_override = 1) }
+	og.start(entry_point, n_workers_override = 1) }
 
 @(export)
-entry_point :: proc(thread_data: ^oggun.Thread_Data) {
-	using oggun
+entry_point :: proc(thread_data: ^og.Thread_Data) {
+	using og
 
 	log.info(gx_color_lightness(WHITE), gx_color_lightness(BLACK))
+
+	shape: [2]u32 : { 8, 4 }
+	mx := og.make_matrix(u32, shape)
+	for i in 0 ..< shape.x do for j in 0 ..< shape.y do og._matrix_write(&mx, [2]u32{ cast(u32)i, cast(u32)j }, og.index2_to_index({ 8, 4 }, { cast(u32)i, cast(u32)j }))
+	log.infof("\n%s", og._aprint_matrix(&mx))
 
 	context = engine_begin_init(
 		engine_config=default_engine_config(game_name="Graph Example", temp_allocator_cap=1000 * mem.Megabyte),
