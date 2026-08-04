@@ -8,6 +8,8 @@ Matrix :: struct($T: typeid) {
 	backing: []T }
 ```
 
+A generic 2-dimensional array. Unlike the built-in type `matrix`, this can hold data of any type.
+
 ### `make_matrix`
 
 ```odin
@@ -20,46 +22,46 @@ make_matrix :: proc(
 	err: runtime.Allocator_Error) #optional_allocator_error
 ```
 
-### `clone`
+### `matrix_clone`
 
 ```odin
-clone :: proc(
+matrix_clone :: proc(
 	mx: ^Matrix($T),
 	allocator := context.allocator) -> (
 	Matrix(T),
 	runtime.Allocator_Error) #optional_allocator_error
 ```
 
-### `size`
+### `matrix_size`
 
 ```odin
-size :: proc(
+matrix_size :: proc(
 	mx: ^Matrix($T)) -> u32
 ```
 
-### `fill_random`
+### `matrix_fill_random`
 
 ```odin
-fill_random :: proc(
+matrix_fill_random :: proc(
 	mx: ^Matrix($T))
 ```
 
 Fills the matrix with random bits.
 
-### `fill`
+### `matrix_fill`
 
 ```odin
-fill :: proc(
+matrix_fill :: proc(
 	mx: ^Matrix($T),
 	value: u8)
 ```
 
 Sets all cells to the given value.
 
-### `rank`
+### `matrix_rank`
 
 ```odin
-rank :: proc(
+matrix_rank :: proc(
 	mx: ^Matrix($T),
 	value: u8) -> (
 	rank: u32)
@@ -67,17 +69,17 @@ rank :: proc(
 
 Counts the number of occurrences of the given value.
 
-### `write`
+### `matrix_write`
 
 ```odin
-write :: proc(
+matrix_write :: proc(
 	mx: ^Matrix($T),
 	index2: [2]u32,
 	value: u8)
 ```
 
 ```odin
-write :: proc(
+matrix_write :: proc(
 	mx: ^Matrix($T),
 	first_index2: [2]u32,
 	last_index2: [2]u32,
@@ -86,16 +88,16 @@ write :: proc(
 
 Writes the given value to a given cell or range of cells.
 
-### `read`
+### `matrix_read`
 
 ```odin
-read :: proc(
+matrix_read :: proc(
 	mx: ^Matrix($T),
 	index2: [2]u32) -> u8
 ```
 
 ```odin
-read :: proc(
+matrix_read :: proc(
 	mx: ^Matrix($T),
 	first_index2: [2]u32,
 	last_index2: [2]u32) -> Backing_Type
@@ -103,12 +105,39 @@ read :: proc(
 
 Retreive the value of a given cell or range of cells.
 
-### `aprint`
+### `aprint_matrix`
 
 ```odin
-aprint :: proc(
+aprint_matrix :: proc(
 	mx: ^Matrix($T),
 	allocator := context.allocator) -> string
 ```
 
 Pretty-print the matrix.
+
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>

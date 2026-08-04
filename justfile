@@ -3,8 +3,8 @@ set shell := ["powershell.exe", "-c"]
 
 default: current
 
-current: example_graph
-	examples/graph.exe
+current: example_sprites
+	examples/sprites.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\" -ignore-unknown-attributes"
 
@@ -26,7 +26,7 @@ check: lib
 
 test: lib
 	cls
-	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false
+	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false -ignore-unknown-attributes
 
 doc:
 	mkdocs serve

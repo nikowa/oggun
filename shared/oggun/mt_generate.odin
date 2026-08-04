@@ -11,4 +11,200 @@ import "core:odin/ast"
 import "core:path/filepath"
 import "core:slice"
 
+stub_error_handler :: proc(_: tokenizer.Pos, _: string, _: ..any) { }
 
+mt_generate_on_install :: proc(oggun_path: string) {
+	mt_generate_defaults(oggun_path)
+	mt_generate_stacks(oggun_path) }
+
+mt_generate_on_compile :: proc(oggun_path: string, package_path: string) {
+	mt_generate_overloaded(oggun_path, package_path) }
+
+generators: map[string]Generator
+
+mt_get_generator :: proc(member_path: string) -> ^Generator {
+	prefix := strings.split(member_path, "_")[0]
+	if prefix not_in generators {
+		generator: Generator = gx_make_generator(prefix, 10_000)
+		fmt.sbprintfln(&generator.builder, `package oggun`)
+		mt_timestamp(&generator.builder)
+		generators[prefix] = generator }
+	return &generators[prefix] }
+
+timestamp_buf: [time.MIN_HMS_LEN]u8
+
+mt_timestamp :: proc(sb: ^strings.Builder) {
+	fmt.sbprintfln(sb, "// Generated at %s //\n", time.time_to_string_hms(time.now(), timestamp_buf[:])) }
+
+mt_generate_defaults :: proc(oggun_path: string) {
+	builder: strings.Builder
+	strings.builder_init_len_cap(&builder, 0, 10_000, context.allocator)
+	fmt.sbprintln(&builder, "package oggun")
+	fmt.sbprintln(&builder, `import "core:time"`)
+	fmt.sbprintln(&builder, `import "base:runtime"`)
+	mt_timestamp(&builder)
+
+	node_to_string :: proc(source: string, node: ast.Node) -> string {
+		return source[node.pos.offset : max(node.end.offset, node.pos.offset)] }
+
+	// Collect Config types //
+	Config_Type_Info :: struct {
+		selected:     bool,
+		name:         string,
+		default_name: string,
+		field_names:  []string,
+		field_types:  []string }
+	Config_Types_Data :: struct {
+		source:            string,
+		config_type_infos: ^[dynamic]Config_Type_Info }
+
+	config_types_visitor :: proc(v: ^ast.Visitor, node: ^ast.Node) -> ^ast.Visitor {
+		if node == nil do return nil
+		config_types_data: ^Config_Types_Data = cast(^Config_Types_Data)v.data
+		using config_types_data
+		#partial switch stmt in node.derived {
+			case ^ast.Value_Decl:
+				value_decl := node.derived.(^ast.Value_Decl)
+				if len(value_decl.values) != 1 do return v
+				if len(value_decl.names) != 1 do return v
+				ident := value_decl.names[0].derived.(^ast.Ident)
+				struct_type, ok := value_decl.values[0].derived.(^ast.Struct_Type)
+				if ! ok do return v
+				config_type_info: Config_Type_Info
+				config_type_info.name = ident.name
+				config_type_info.default_name = fmt.aprintf("DEFAULT_%s", strings.to_upper(ident.name, context.allocator))
+				field_names := make([dynamic]string, context.allocator)
+				field_types := make([dynamic]string, context.allocator)
+				for field in struct_type.fields.list do for name in field.names {
+					append(&field_names, node_to_string(source, name.expr_base))
+					append(&field_types, node_to_string(source, field.type.expr_base)) }
+				shrink(&field_names)
+				shrink(&field_types)
+				config_type_info.field_names = field_names[:]
+				config_type_info.field_types = field_types[:]
+				append(config_type_infos, config_type_info) }
+		return v }
+
+	config_type_infos := make([dynamic]Config_Type_Info, context.allocator)
+	file_infos, _ := os.read_directory_by_path(oggun_path, -1, context.allocator)
+	for file_info in file_infos {
+		source_path: string = file_info.fullpath
+		if os.ext(source_path) != ".odin" do continue
+		file_node, source := mt_parse_file(source_path)
+		config_types_data: Config_Types_Data = {
+			source = source,
+			config_type_infos = &config_type_infos }
+		visitor := &ast.Visitor {
+			visit = config_types_visitor,
+			data = &config_types_data }
+		ast.walk(visitor, &file_node) }
+
+	// Collect Config instances //
+	Config_Instances_Data :: struct {
+		source:            string,
+		config_type_infos: ^[dynamic]Config_Type_Info }
+
+	config_instances_visitor :: proc(v: ^ast.Visitor, node: ^ast.Node) -> ^ast.Visitor {
+		if node == nil do return nil
+		config_instances_data: ^Config_Instances_Data = cast(^Config_Instances_Data)v.data
+		using config_instances_data
+		value_decl, ok := node.derived.(^ast.Value_Decl)
+		if ! ok do return v
+		if len(value_decl.values) != 1 do return v
+		if len(value_decl.names) != 1 do return v
+		name_ident := value_decl.names[0].derived.(^ast.Ident)
+		if value_decl.type != nil {
+			type_ident, ok := value_decl.type.derived.(^ast.Ident)
+			if ! ok do return v
+			selected: bool = false
+			for _, i in config_type_infos[:] {
+				type_info := &config_type_infos[i]
+				if name_ident.name == type_info.default_name {
+					selected = true
+					type_info.selected = true
+					break } }
+			if ! selected do return v }
+		return v }
+
+	for file_info in file_infos {
+		source_path: string = file_info.fullpath
+		file_node, source := mt_parse_file(source_path)
+		config_instances_data: Config_Instances_Data = {
+			source = source,
+			config_type_infos = &config_type_infos }
+		visitor := &ast.Visitor {
+			visit = config_instances_visitor,
+			data = &config_instances_data }
+		ast.walk(visitor, &file_node) }
+
+	// Generate default helpers //
+	selected_config_type_infos := make([dynamic]Config_Type_Info, context.allocator)
+	for type_info in config_type_infos do if type_info.selected do append(&selected_config_type_infos, type_info)
+
+	for type_info in selected_config_type_infos {
+		fmt.sbprintfln(&builder, "%s :: proc(", strings.to_lower(type_info.default_name))
+		for _, i in type_info.field_names do if type_info.field_types[i] == "typeid" {
+			fmt.sbprintf(&builder, "\t\t%s: %s",
+				type_info.field_names[i],
+				type_info.field_types[i])
+			fmt.sbprint(&builder, ",\n") }
+		for _, i in type_info.field_names do if type_info.field_types[i] != "typeid" {
+			fmt.sbprintf(&builder, "\t\t%s: %s = %s.%s",
+				type_info.field_names[i],
+				type_info.field_types[i],
+				type_info.default_name,
+				type_info.field_names[i])
+			fmt.sbprint(&builder, ",\n")
+		}
+		fmt.sbprintfln(&builder, ") -> %s {{\n\treturn {{", type_info.name)
+		for _, i in type_info.field_names {
+			fmt.sbprintf(&builder, "\t\t%s = %s",
+				type_info.field_names[i],
+				type_info.field_names[i])
+			if i < len(type_info.field_names) - 1 do fmt.sbprintln(&builder, ",") }
+		fmt.sbprintln(&builder, " } }\n")
+	}
+
+	path, _ := os.join_path({ oggun_path, "generated.odin" }, context.allocator)
+	_ = os.write_entire_file(path, strings.to_string(builder)) }
+
+mt_generate_stack :: proc(generator: ^Generator, name: string, type: string, default: string, field: string) {
+	prefix := generator.prefix
+
+	fmt.sbprintfln(&generator.builder, `
+%s_%s_get :: proc() -> %s {{
+	if len(engine.%s.%s_stack) == 0 do return %s
+	return engine.%s.%s_stack[len(engine.%s.%s_stack) - 1] }}`,
+		prefix, name, type, field, name, default, field, name, field, name)
+
+	fmt.sbprintfln(&generator.builder, `
+@(deferred_none=%s_%s_pop)
+%s_%s_scope :: proc(%s: %s) {{
+	%s_%s_push(%s) }}`,
+		prefix, name, prefix, name, name, type, prefix, name, name)
+
+	fmt.sbprintfln(&generator.builder, `
+%s_%s_push :: proc(%s: %s) {{
+	append(&engine.%s.%s_stack, %s) }}`,
+		prefix, name, name, type, field, name, name)
+
+	fmt.sbprintfln(&generator.builder, `
+%s_%s_pop :: proc() -> (res: %s, ok: bool) {{
+	return pop_safe(&engine.%s.%s_stack) }}`,
+		prefix, name, type, field, name) }
+
+mt_generate_overloaded :: proc(oggun_path: string, package_path: string) {
+	/* (1) Parse "ol_core"
+	   (2) Generate "ol_generated" */ }
+
+mt_generate_stacks :: proc(oggun_path: string) {
+	generator := mt_get_generator("ui")
+	mt_generate_stack(generator, "disabled", "bool", "false", "ui_manager")
+	mt_generate_stack(generator, "button_shape", "UI_Button_Shape", ".ROUNDED", "ui_manager")
+	mt_generate_stack(generator, "appearance", "UI_Appearance", ".DEFAULT", "ui_manager")
+	mt_generate_stack(generator, "text_style", "Text_Style", "engine.ui_manager.text_style", "ui_manager")
+	mt_generator_commit(generator, oggun_path)
+	generator = mt_get_generator("gx")
+	mt_generate_stack(generator, "clip", "Clip", "{ ui_rect_screen(), 0 }", "graphics_manager")
+	mt_generate_stack(generator, "depth", "f32", "0.999999", "graphics_manager")
+	mt_generator_commit(generator, oggun_path) }

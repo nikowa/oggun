@@ -63,13 +63,13 @@ dr_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) {
 		case .PRIMARY:
 			fill_color = theme[UI_Theme_Key.NEUTRAL_BACKGROUND_4][0]
 			stroke_color = theme[UI_Theme_Key.NEUTRAL_BACKGROUND_4][0] }
-		// if hover do set_cursor(.Disabled)
+		// if hover do wd_set_cursor(.Disabled)
 		hover = false
 		press = false }
 
 // case .PRIMARY
 	dr_rect(rect, fill_color = fill_color, stroke_color = stroke_color, stroke = stroke, radius = radius)
-	// if hover do set_cursor(.Hand)
+	// if hover do wd_set_cursor(.Hand)
 	// dr_icon :: proc(icon: UI_Icon, position: [2]f32, angle: f32 = 0.0) {
 	if icon != .None {
 		icon_position := rect.position + { - rect.size.x / 2 + rect.size.y / 2, 0 }

@@ -1,35 +1,35 @@
-# bs/poset
+# bs/digraph
 
-### `Poset`
+### `Digraph`
 
 ```odin
-Poset :: struct {
+Digraph :: struct($Label: typeid) {
 	adjacency_matrix: Bit_Matrix }
 ```
 
-A `Poset` is equivalent to an unlabeled directed graph.
+A `Digraph` is equivalent to a labeled directed graph.
 
 | shallow size | $24$ |
 |--|--|
-| deep size | $24 + \text{order}^2 / 8$ |
+| deep size | $24 + \text{order}^2 \cdot \text{size}(\text{Label})$ |
 
-### `make_poset`
+### `make`
 
 ```odin
-make_poset :: proc(
+make_digraph :: proc(
 	order: u32,
 	allocator := context.allocator,
 	loc := #caller_location) -> (
-	poset: Poset,
+	digraph: Digraph($Label),
 	err: runtime.Allocator_Error) #optional_allocator_error
 ```
 
-Creates a new `Poset`.
+Creates a new `Digraph($Label)`.
 
 ### `size`
 
 ```odin
-poset_size :: proc(poset: ^Poset) -> u32
+digraph_size :: proc(digraph: ^Digraph($Label)) -> u32
 ```
 
 Counts the number of edges.
@@ -37,7 +37,7 @@ Counts the number of edges.
 ### `order`
 
 ```odin
-poset_order :: proc(poset: ^Poset) -> u32
+digraph_order :: proc(digraph: ^Digraph($Label)) -> u32
 ```
 
 Counts the number of vertices.
@@ -46,8 +46,9 @@ Counts the number of vertices.
 
 ```odin
 connect :: proc(
-	poset: ^Poset,
-	vert0, vert1: u32)
+	digraph: ^Digraph($Label),
+	vert0, vert1: u32,
+	label: Label)
 ```
 
 Adds an edge from `vert0` to `vert1`.
@@ -56,8 +57,9 @@ Adds an edge from `vert0` to `vert1`.
 
 ```odin
 biconnect :: proc(
-	poset: ^Poset,
-	vert0, vert1: u32)
+	digraph: ^Digraph($Label),
+	vert0, vert1: u32,
+	label: Label)
 ```
 
 Adds an edge from `vert0` to `vert1` and an edge from `vert1` to `vert0`.
@@ -66,7 +68,7 @@ Adds an edge from `vert0` to `vert1` and an edge from `vert1` to `vert0`.
 
 ```odin
 disconnect :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert0, vert1: u32)
 ```
 
@@ -76,7 +78,7 @@ Removes the edge from `vert0` to `vert1`, if it exists.
 
 ```odin
 bidisconnect :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert0, vert1: u32)
 ```
 
@@ -86,8 +88,8 @@ Removes the edge from `vert0` to `vert1` and the egde from `vert1` to `vert0`, i
 
 ```odin
 connected :: proc(
-	poset: ^Poset,
-	vert0, vert1: u32) -> bool
+	digraph: ^Digraph($Label),
+	vert0, vert1: u32) -> (bool, Label)
 ```
 
 Checks if there is an edge from `vert0` to `vert1`.
@@ -96,8 +98,8 @@ Checks if there is an edge from `vert0` to `vert1`.
 
 ```odin
 biconnected :: proc(
-	poset: ^Poset,
-	vert0, vert1: u32) -> bool
+	digraph: ^Digraph($Label),
+	vert0, vert1: u32) -> (bool, Label, Label)
 ```
 
 Checks if there is an edge from `vert0` to `vert1` or from `vert1` to `vert0`.
@@ -106,7 +108,7 @@ Checks if there is an edge from `vert0` to `vert1` or from `vert1` to `vert0`.
 
 ```odin
 neighbors :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert: u32,
 	allocator := context.allocator) -> []u32
 ```
@@ -117,7 +119,7 @@ Creates a list of the neighbors of `vert`.
 
 ```odin
 outneighbors :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert: u32,
 	allocator := context.allocator) -> []u32
 ```
@@ -128,7 +130,7 @@ Creates a list of all verts that are the destination of an edge starting at `ver
 
 ```odin
 inneighbors :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert: u32,
 	allocator := context.allocator) -> []u32
 ```
@@ -139,7 +141,7 @@ Creates a list of all verts that are the source of an edge ending at `vert`.
 
 ```odin
 outdegree :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert: u32,
 	allocator := context.allocator) -> (degree: u32)
 ```
@@ -150,7 +152,7 @@ Counts the number of edges starting at `vert`.
 
 ```odin
 indegree :: proc(
-	poset: ^Poset,
+	digraph: ^Digraph($Label),
 	vert: u32,
 	allocator := context.allocator) -> (
 	degree: u32)

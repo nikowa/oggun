@@ -353,3 +353,24 @@ path_length :: proc(path: [][2]f32) -> (length: f32) {
 
 index2_to_index :: proc(shape: [2]u32, index2: [2]u32) -> u32 {
 	return index2.y * shape.x + index2.x }
+
+index2_to_index_triangular :: proc(shape: u32, index2: [2]u32) -> u32 {
+	//      w
+	//    /---\
+	// tttxxxxx n \
+	// 0ttxxxxx n | h
+	// 00txxxxx n /
+	// 000iirxx n
+	// 0000xxxx n
+	// 00000xxx n
+	// 000000xx n
+	// 0000000x n
+	dy: u32 = index2[1]
+	t: u32 = ((dy) * (dy + 1)) / 2
+	w: u32 = shape - index2[1]
+	h: u32 = index2[1]
+	i: u32 = index2[0] - index2[1]
+	return t + w * h + i }
+
+index2_triangulate :: proc(index2: [2]u32) -> [2]u32 {
+	return { max(index2.x, index2.y), min(index2.x, index2.y) } }

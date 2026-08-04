@@ -151,7 +151,7 @@ engine_tick :: proc() -> bool {
 engine_tick_begin :: proc() -> bool {
 	if tick_manager_tick(&engine.tick_manager) {
 		am_tick()
-		window_tick()
+		wd_tick()
 		tick_graphics_manager()
 		input_manager_tick()
 		engine.ticked = true

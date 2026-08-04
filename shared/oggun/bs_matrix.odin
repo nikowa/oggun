@@ -18,33 +18,33 @@ make_matrix :: proc($T: typeid, shape: [2]u32, allocator := context.allocator, l
 	return mx, err }
 
 @(overload="clone")
-_clone_matrix :: proc(mx: ^Matrix($T), allocator := context.allocator) -> (Matrix(T), runtime.Allocator_Error) #optional_allocator_error {
+clone_matrix :: proc(mx: ^Matrix($T), allocator := context.allocator) -> (Matrix(T), runtime.Allocator_Error) #optional_allocator_error {
 	backing, err := slice.clone(&mx.backing, allocator)
 	return { shape = mx.shape, backing = backing }, err }
 
 @(overload="size")
-_matrix_size :: proc(mx: ^Matrix($T)) -> u32 {
+matrix_size :: proc(mx: ^Matrix($T)) -> u32 {
 	return mx.shape.x * mx.shape.y }
 
 @(overload="fill")
-_matrix_fill :: proc(mx: ^Matrix($T), value: T) {
+matrix_fill :: proc(mx: ^Matrix($T), value: T) {
 	for &cell in mx.backing do cell = value }
 
 @(overload="rank")
-_matrix_rank :: proc(mx: ^Matrix($T), value: T) -> (rank: u32) {
+matrix_rank :: proc(mx: ^Matrix($T), value: T) -> (rank: u32) {
 	for &cell in mx.backing do if cell == value do rank += 1
 	return rank }
 
 @(overload="write")
-_matrix_write :: proc(mx: ^Matrix($T), index2: [2]u32, value: T) {
+matrix_write :: proc(mx: ^Matrix($T), index2: [2]u32, value: T) {
 	mx.backing[index2_to_index(mx.shape, index2)] = value }
 
 @(overload="read")
-_matrix_read :: proc(mx: ^Matrix($T), index2: [2]u32) -> T {
+matrix_read :: proc(mx: ^Matrix($T), index2: [2]u32) -> T {
 	return mx.backing[index2_to_index(mx.shape, index2)] }
 
 @(overload="aprint")
-_aprint_matrix :: proc(mx: ^Matrix($T), allocator := context.allocator) -> string {
+aprint_matrix :: proc(mx: ^Matrix($T), allocator := context.allocator) -> string {
 	sb := strings.builder_make(allocator)
 	for i in 0 ..< mx.shape.x {
 		for j in 0 ..< mx.shape.y do fmt.sbprintf(&sb, "%v ", _matrix_read(mx, { i, j }))

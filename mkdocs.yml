@@ -37,16 +37,22 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
 
 extra_javascript:
   - https://unpkg.com/@highlightjs/cdn-assets@11/highlight.min.js
   - https://unpkg.com/highlightjs-odinlang@1.4.0/dist/odin.min.js
   - https://unpkg.com/@highlightjs/cdn-assets@11/languages/glsl.min.js
   - scripts/highlight.js
+  - scripts/katex.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
 
 extra_css:
   - https://unpkg.com/@highlightjs/cdn-assets@11/styles/intellij-light.css
-  - https://unpkg.com/@highlightjs/cdn-assets@11/styles/base16/black-metal-bathory.css
+  - https://unpkg.com/@highlightjs/cdn-assets@11/styles/base16/bright.css
+  - https://unpkg.com/katex@0/dist/katex.min.css
 
 nav:
   - Overview: index.md
@@ -57,10 +63,17 @@ nav:
   - Roadmap: roadmap.md
   - Odin API:
     - bs:
+      - util: bs_util.md
       - bit_array: bs_bit_array.md
       - bit_matrix: bs_bit_matrix.md
+      - bit_tmatrix: bs_bit_tmatrix.md
       - matrix: bs_matrix.md
+      - setoid: bs_setoid.md
       - poset: bs_poset.md
+      - graph: bs_graph.md
+      - digraph: bs_digraph.md
+    - wd:
+      - core: wd_core.md
   - GLSL API:
     - clip: clip.md
     - msaa: msaa.md

@@ -23,7 +23,7 @@ ui_pan_control :: proc(id: ID, dest_rect: Rect, src_rect: Rect, initial_position
 	if input_query(.Mouse_Left, .RELEASED) do state.panning = false
 	if state.panning {
 		state.position -= (src_rect.size / dest_rect.size) * engine.input_manager.mouse_delta
-		set_cursor(.Move) }
+		wd_set_cursor(.Move) }
 	if !ok || reset do state.position = initial_position
 	engine.ui_manager.pan_controls[id] = state
 	return state.position }
@@ -51,8 +51,8 @@ ui_extended_button_control :: proc(id: ID, rect: Rect) -> (actions: bit_set[UI_A
 	if hovered do actions += { .HOVER }
 	if pressed do actions += { .PRESS }
 	if hovered {
-		if disabled do set_cursor(.Disabled)
-		else do set_cursor(.Hand) }
+		if disabled do wd_set_cursor(.Disabled)
+		else do wd_set_cursor(.Hand) }
 	return actions }
 
 ui_basic_button_control :: proc(rect: Rect) -> (actions: bit_set[UI_Action]) {
@@ -62,6 +62,6 @@ ui_basic_button_control :: proc(rect: Rect) -> (actions: bit_set[UI_Action]) {
 	if hovered do actions += { .HOVER }
 	if pressed do actions += { .PRESS }
 	if hovered {
-		if disabled do set_cursor(.Disabled)
-		else do set_cursor(.Hand) }
+		if disabled do wd_set_cursor(.Disabled)
+		else do wd_set_cursor(.Hand) }
 	return actions }

@@ -3,7 +3,7 @@
 - Matrix
 - Tensor
 
-- Graph is a set with labeled edges. Poset (partially ordered set) is a graph with no labels. Graph is represented by adjacency matrix, while poset is represented by an incidence matrix.
+- Graph is a set with labeled edges. Poset (partially ordered set) is a graph with no labels.
 
 - Generic multi-dimensional array (tensor) type.
 - Permuter layout algorithm.
@@ -56,7 +56,6 @@
 - Move "Tree" and all related types and procedures from "scene" into "base_tree"
 - Create a "DGraph" (dependency graph) type and procedures in "base_depgraph"
 - Test the font renderer with a multicolored font
-- Add a procedure in the checker to make sure all structs with "singleton" tag are instantited only once
 - Neon shadows
 - Neon spacing
 - Implement the "render_buffer" param on every render command, to select where the render is targeted at.

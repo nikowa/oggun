@@ -13,7 +13,7 @@ Raw_Input_Manager :: struct {
 // }
 
 raw_input_init :: proc() {
-	when WINDOW_VARIANT == .GLFW {
+	when WINDOW_BACKEND == .GLFW {
 		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.CURSOR, glfw.CURSOR_DISABLED)
 		assert(auto_cast glfw.RawMouseMotionSupported())
 		glfw.SetInputMode(auto_cast engine.window_manager.handle, glfw.RAW_MOUSE_MOTION, auto_cast true) }

@@ -11,14 +11,24 @@ import "core:math"
 
 // (TODO): Prefix all procedures in this with "wnd_"
 
-// WINDOW_VARIANT: Window_Variant : .Win32
-WINDOW_VARIANT: Window_Variant : .GLFW
+Window_Backend :: enum {
+	Win32,
+	GLFW }
 
 Window_Config :: struct #all_or_none {
 	position: [2]f32,
 	size: [2]f32,
 	fullscreen: bool,
 	cursor: Cursor }
+
+Cursor :: enum {
+	Arrow,
+	Hand,
+	Move,
+	Disabled }
+
+// WINDOW_BACKEND: Window_Backend : .Win32
+WINDOW_BACKEND: Window_Backend : #config(WINDOW_BACKEND, Window_Backend.GLFW)
 
 DEV_WINDOW_CONFIG: Window_Config : {
 	position = [2]f32{ -480, -270 },
@@ -33,13 +43,7 @@ DEFAULT_WINDOW_CONFIG: Window_Config : {
 	fullscreen = false,
 	cursor = .Arrow }
 
-Cursor :: enum {
-	Arrow,
-	Hand,
-	Move,
-	Disabled }
-
-when WINDOW_VARIANT == .GLFW do Window_Manager :: struct {
+when WINDOW_BACKEND == .GLFW do Window_Manager :: struct {
 	handle: rawptr,
 	using window_config: Window_Config,
 	cursors: [len(Cursor)]glfw.CursorHandle }
@@ -49,13 +53,9 @@ else do Window_Manager :: struct {
 	cursors: [len(Cursor)]win32.HCURSOR,
 	device_context: win32.HDC }
 
-Window_Variant :: enum {
-	Win32,
-	GLFW }
-
 wd_init :: proc(window_config: Window_Config) {
 	engine.window_manager.window_config = window_config
-	when WINDOW_VARIANT == .GLFW {
+	when WINDOW_BACKEND == .GLFW {
 		assert(cast(bool)glfw.Init())
 		glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
 		glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 6)
@@ -75,7 +75,7 @@ wd_init :: proc(window_config: Window_Config) {
 		gl.load_up_to(4, 6, glfw.gl_set_proc_address)
 		glfw.FocusWindow(handle)
 		width, height := glfw.GetFramebufferSize(handle)
-		wnd_update_size()
+		wd_update_size()
 		engine.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
 		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
@@ -215,10 +215,10 @@ wd_init :: proc(window_config: Window_Config) {
 		// os.exit(0)
 	}
 	// log.info(string(gl.GetString(gl.VERSION)))
-	wnd_set_pos(window_config.position)
+	wd_set_pos(window_config.position)
 }
 
-wnd_customize :: proc(header_color, border_color: Color) {
+wd_customize :: proc(header_color, border_color: Color) {
 	header_colorref := gx_color_to_win32_color(header_color)
 	win32.DwmSetWindowAttribute(
 		hWnd=cast(win32.HWND)engine.window_manager.handle,
@@ -232,9 +232,9 @@ wnd_customize :: proc(header_color, border_color: Color) {
 		pvAttribute=&border_colorref,
 		cbAttribute=size_of(win32.COLORREF)) }
 
-wnd_update_size :: proc() {
+wd_update_size :: proc() {
 	if engine.window_manager.handle == nil do return
-	when WINDOW_VARIANT == .GLFW {
+	when WINDOW_BACKEND == .GLFW {
 		width, height := glfw.GetFramebufferSize(cast(glfw.WindowHandle)engine.window_manager.handle)
 		engine.window_manager.size = { cast(f32)width, cast(f32)height } }
 	else {
@@ -269,9 +269,9 @@ wnd_update_size :: proc() {
 	if gl.Viewport != nil do gl.Viewport(0, 0, cast(i32)engine.window_manager.size.x, cast(i32)engine.window_manager.size.y)
 	log.info("Window size:", engine.window_manager.size) }
 
-wnd_get_display_size :: proc() -> [2]f32 {
+wd_get_display_size :: proc() -> [2]f32 {
 	if cast(rawptr)engine.window_manager.handle == nil do return DEFAULT_WINDOW_CONFIG.size
-	when WINDOW_VARIANT == .GLFW {
+	when WINDOW_BACKEND == .GLFW {
 		display: glfw.MonitorHandle = glfw.GetPrimaryMonitor()
 		video_mode: ^glfw.VidMode = glfw.GetVideoMode(display)
 		return { cast(f32)video_mode.width, cast(f32)video_mode.height } }
@@ -285,13 +285,13 @@ wnd_get_display_size :: proc() -> [2]f32 {
 		    f32(monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top) } }
 	return {} }
 
-wnd_set_pos :: proc(position: [2]f32) {
+wd_set_pos :: proc(position: [2]f32) {
 	engine.window_manager.position = position
-	display_size: [2]f32 = wnd_get_display_size()
+	display_size: [2]f32 = wd_get_display_size()
 	position_normalized: [2]i32 = {
 		i32(engine.window_manager.position.x + display_size.x / 2 - engine.window_manager.size.x / 2),
 		i32(-engine.window_manager.position.y + display_size.y / 2 - engine.window_manager.size.y / 2) }
-	when WINDOW_VARIANT == .GLFW {
+	when WINDOW_BACKEND == .GLFW {
 		glfw.SetWindowPos(
 			window=cast(glfw.WindowHandle)engine.window_manager.handle,
 			xpos=position_normalized.x, ypos=position_normalized.y) }
@@ -426,7 +426,7 @@ WIN32_KEY_MAP: [512]Input = {
 	win32.VK_MENU = Input.Left_Alt,
 	win32.VK_LWIN = Input.Left_Super }
 
-when WINDOW_VARIANT == .Win32 {
+when WINDOW_BACKEND == .Win32 {
 
 	win32_dummy_window_proc :: proc "stdcall" (handle: win32.HWND, message: u32, w_param: uintptr, l_param: int) -> int {
 		return win32.DefWindowProcW(handle, message, w_param, l_param) }
@@ -441,7 +441,7 @@ when WINDOW_VARIANT == .Win32 {
 			size: [2]f32 = {
 				cast(f32)win32.GET_X_LPARAM(l_param),
 				cast(f32)win32.GET_Y_LPARAM(l_param) }
-			wnd_update_size()
+			wd_update_size()
 			fmt.println("WM_SIZE", size)
 		case win32.WM_CONTEXTMENU:
 			fmt.println("WM_CONTEXTMENU")
@@ -502,8 +502,8 @@ when WINDOW_VARIANT == .Win32 {
 
 }
 
-window_tick :: proc() {
-	when WINDOW_VARIANT == .GLFW {
+wd_tick :: proc() {
+	when WINDOW_BACKEND == .GLFW {
 		glfw.PollEvents()
 		glfw.SwapBuffers(cast(glfw.WindowHandle)engine.window_manager.handle) }
 	else {
@@ -512,15 +512,15 @@ window_tick :: proc() {
 			win32.TranslateMessage(&message)
 			win32.DispatchMessageW(&message) }
 		win32.SwapBuffers(engine.window_manager.device_context) }
-	set_cursor_immediate(engine.window_manager.cursor)
-	set_cursor(.Arrow) }
+	wd_set_cursor_immediate(engine.window_manager.cursor)
+	wd_set_cursor(.Arrow) }
 
-set_cursor :: proc(cursor: Cursor) {
+wd_set_cursor :: proc(cursor: Cursor) {
 	engine.window_manager.cursor = cursor }
 
-set_cursor_immediate :: proc(cursor: Cursor) {
+wd_set_cursor_immediate :: proc(cursor: Cursor) {
 	// (TEMP):
-	when WINDOW_VARIANT == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)engine.window_manager.handle, engine.window_manager.cursors[int(cursor)])
+	when WINDOW_BACKEND == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)engine.window_manager.handle, engine.window_manager.cursors[int(cursor)])
 	else do win32.SetCursor(engine.window_manager.cursors[int(cursor)])
 }
 
@@ -562,4 +562,4 @@ glfw_scroll_callback :: proc "c" (window: glfw.WindowHandle, dx, dy: f64) {
 glfw_window_size_callback :: proc "c" (window: glfw.WindowHandle, width, height: i32) {
 	context = runtime.default_context()
 	context.logger = log.create_console_logger()
-	wnd_update_size() }
+	wd_update_size() }

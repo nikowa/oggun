@@ -38,7 +38,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	// BORDER_COLOR :: oggun.COLOR_BRAND_STROKE_1_NORMAL_LIGHT
 
 	// // DICK
-	// wnd_customize(BORDER_COLOR, BORDER_COLOR)
+	// wd_customize(BORDER_COLOR, BORDER_COLOR)
 
 	image: Image_Asset
 	init_image(&image, { url = "image:kitten-1.png" })

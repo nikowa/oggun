@@ -3,7 +3,7 @@ function setHighlightTheme() {
 	const isDark = scheme === "slate";
 
 	const lightLink = document.querySelector('link[href*="intellij-light.css"]');
-	const darkLink  = document.querySelector('link[href*="black-metal-bathory.css"]');
+	const darkLink  = document.querySelector('link[href*="bright.css"]');
 
 	if (!lightLink || !darkLink) return;
 

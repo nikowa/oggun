@@ -27,7 +27,7 @@ W :: 3
 QUAD_VERTS_LEN :: 6
 POINT_VERTS_LEN :: 2
 
-BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
+GRAPHICS_BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
 
 Graphics_Backend :: enum {
 	WGPU,
@@ -42,8 +42,7 @@ DEFAULT_GRAPHICS_CONFIG: Graphics_Config : {
 
 MSAA :: enum { Off, X2, X4, X8, X16 }
 
-@(tag="singleton")
-Graphics_Manager :: struct {
+when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
 	command_buffer: Command_Buffer,
 	window_closed: bool,
@@ -97,6 +96,7 @@ Graphics_Manager :: struct {
 // 	cubemap:                         Cubemap
 	clip_stack: [dynamic]Clip,
 	depth_stack: [dynamic]f32 }
+else do Graphics_Manager :: struct { }
 
 Clip :: struct {
 	rect: Rect,
@@ -130,8 +130,8 @@ Render_Buffer :: struct {
 
 graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) {
 	engine.graphics_manager.graphics_config = graphics_config
-	wnd_update_size()
-	when BACKEND == .OpenGL do init_opengl()
+	wd_update_size()
+	when GRAPHICS_BACKEND == .OpenGL do init_opengl()
 	command_buffer_init(&engine.graphics_manager.command_buffer)
 // 	width:         i32
 // 	height:        i32
@@ -1184,8 +1184,8 @@ tick_graphics_manager_end :: proc() {
 // 	// set_blend(false)
 // 	// get_hovered_index()
 // 	// cap_fps()
-	when WINDOW_VARIANT == .GLFW {
-		// (TODO): This should be in "window_tick"
+	when WINDOW_BACKEND == .GLFW {
+		// (TODO): This should be in "wd_tick"
 		if glfw.WindowShouldClose(cast(glfw.WindowHandle)engine.window_manager.handle) do engine.graphics_manager.window_closed = true }
 
 // 	// TODO: Add a dr_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //

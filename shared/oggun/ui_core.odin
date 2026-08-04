@@ -1029,8 +1029,8 @@ ui_set_theme :: proc(theme: ^UI_Theme) {
 	engine.ui_manager.icons_text_style = default_text_style(font_group = engine.ui_manager.icons_font_group, color = fg_color, font_size = 24)
 	background_color := ui_get_background_color()[0]
 	set_clear_color(background_color)
-	wnd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK)
-	// wnd_customize(RED, RED)
+	wd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK)
+	// wd_customize(RED, RED)
 }
 
 ui_get_background_color :: proc() -> UI_Color {

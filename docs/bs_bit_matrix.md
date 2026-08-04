@@ -113,3 +113,30 @@ aprint :: proc(
 ```
 
 Pretty-print the matrix.
+
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>

@@ -40,6 +40,44 @@ main :: proc() {
 			track_temp_allocations=true,
 			temp_allocator_cap=1000 * mem.Megabyte))
 
+	og.index2_to_index_triangular(8, { 0, 0 })
+	og.index2_to_index_triangular(8, { 1, 0 })
+	og.index2_to_index_triangular(8, { 2, 0 })
+	og.index2_to_index_triangular(8, { 3, 0 })
+	og.index2_to_index_triangular(8, { 4, 0 })
+	og.index2_to_index_triangular(8, { 5, 0 })
+	og.index2_to_index_triangular(8, { 6, 0 })
+	og.index2_to_index_triangular(8, { 7, 0 })
+	og.index2_to_index_triangular(8, { 1, 1 })
+	og.index2_to_index_triangular(8, { 2, 1 })
+	og.index2_to_index_triangular(8, { 3, 1 })
+	og.index2_to_index_triangular(8, { 4, 1 })
+	og.index2_to_index_triangular(8, { 5, 1 })
+	og.index2_to_index_triangular(8, { 6, 1 })
+	og.index2_to_index_triangular(8, { 7, 1 })
+	og.index2_to_index_triangular(8, { 2, 2 })
+	og.index2_to_index_triangular(8, { 3, 2 })
+	og.index2_to_index_triangular(8, { 4, 2 })
+	og.index2_to_index_triangular(8, { 5, 2 })
+	og.index2_to_index_triangular(8, { 6, 2 })
+	og.index2_to_index_triangular(8, { 7, 2 })
+	og.index2_to_index_triangular(8, { 3, 3 })
+	og.index2_to_index_triangular(8, { 4, 3 })
+	og.index2_to_index_triangular(8, { 5, 3 })
+	og.index2_to_index_triangular(8, { 6, 3 })
+	og.index2_to_index_triangular(8, { 7, 3 })
+	og.index2_to_index_triangular(8, { 4, 4 })
+	og.index2_to_index_triangular(8, { 5, 4 })
+	og.index2_to_index_triangular(8, { 6, 4 })
+	og.index2_to_index_triangular(8, { 7, 4 })
+	og.index2_to_index_triangular(8, { 5, 5 })
+	og.index2_to_index_triangular(8, { 6, 5 })
+	og.index2_to_index_triangular(8, { 7, 5 })
+	og.index2_to_index_triangular(8, { 6, 6 })
+	og.index2_to_index_triangular(8, { 7, 6 })
+	og.index2_to_index_triangular(8, { 7, 7 })
+
+	when false {
 	settings: Settings = {
 		player_name = "Destroyer",
 		resolution = { 1920, 1080 },
@@ -96,4 +134,6 @@ main :: proc() {
 
 			// Metrics //
 			{ og.gx_depth_scope(0.0); og.ui_metrics_widget() } } }
+
+	}
 	return }
