@@ -63,7 +63,8 @@ mt_test_coverage :: proc(directory_path: string, files: []string={}, silent: boo
 	return data.tested_procs[:], untested_procs[:] }
 
 mt_list_untested :: proc(oggun_directory_path, project_path: string, prefix: string=".og", files: []string={}) {
-	log.infof("Checking %s %s.", project_path, oggun_directory_path)
+	context.logger.options = {}
+	log.infof("Checking %s.", project_path)
 	tested, untested := mt_test_coverage(oggun_directory_path, files=files, silent=false)
 	file_infos, err := os.read_directory_by_path(project_path, -1, context.allocator)
 	Data :: struct { untested_procs: []string, prefix: string }

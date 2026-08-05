@@ -18,7 +18,7 @@ make_bit_array :: proc { make_bit_array_allocate, make_bit_array_view }
 
 make_bit_array_allocate :: proc(#any_int len: u32, allocator := context.allocator, loc := #caller_location) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
 	array.len = u32(len)
-	array.buffer, err = make([]Backing_Type, len / BIT_ARRAY_W + 1, allocator)
+	array.buffer, err = make([]Backing_Type, (len % BIT_ARRAY_W == 0) ? (len / BIT_ARRAY_W) : len / BIT_ARRAY_W + 1, allocator)
 	return array, err }
 
 make_bit_array_view :: proc(#any_int len: u32, buffer: []Backing_Type) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
@@ -50,8 +50,13 @@ aprint_bit_array :: proc(array: ^Bit_Array, split_words := false, allocator := c
 		fmt.sbprint(&sb, bit_array_read_bit(array, i)) }
 	return strings.to_string(sb) }
 
-delete_bit_array :: proc(array: ^Bit_Array) {
-	delete(array.buffer) }
+delete_bit_array :: proc(array: ^Bit_Array, allocator := context.allocator) {
+	delete(array.buffer, allocator)
+	array.len = 0 }
+
+bit_array_equal :: proc(array0, array1: ^Bit_Array) -> bool {
+	if array0.len != array1.len do return false
+	return slice.equal(array0.buffer, array1.buffer) }
 
 bit_array_set :: proc(array: ^Bit_Array, #any_int j: u32) {
 	array.buffer[j / BIT_ARRAY_W] |= 0b1 << (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W)) }

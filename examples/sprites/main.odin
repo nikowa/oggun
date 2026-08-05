@@ -77,9 +77,6 @@ main :: proc() {
 	// og.index2_to_index_triangular(8, { 7, 6 })
 	// og.index2_to_index_triangular(8, { 7, 7 })
 
-	ba := og.make_bit_array_allocate(256)
-	log.info(og.aprint_bit_array(&ba))
-
 	when false {
 	settings: Settings = {
 		player_name = "Destroyer",

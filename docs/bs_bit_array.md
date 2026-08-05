@@ -1,5 +1,8 @@
 # bs/bit_array
 
+**test coverage** 100%
+
+
 ### `Bit_Array`
 
 ```odin
@@ -88,8 +91,18 @@ Pretty-prints the array.
 
 ```odin
 delete_bit_array :: proc(
-	array: ^Bit_Array)
+	array: ^Bit_Array,
+	allocator := context.allocator)
 ```
+
+### `equals`
+
+```odin
+bit_array_equal :: proc(
+	array0, array1: ^Bit_Array) -> bool
+```
+
+Compares two bit arrays.
 
 ### `set`
 
