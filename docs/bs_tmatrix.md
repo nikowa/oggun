@@ -1,68 +1,74 @@
-# bs/matrix
+# bs/tmatrix
 
-### `Matrix`
+### `TMatrix`
 
 ```odin
-Matrix :: struct($T: typeid) {
-	shape: [2]u32,
+TMatrix :: struct($T: typeid) {
+	shape: u32,
 	backing: []T }
 ```
 
-A generic matrix.
+A generic triangular matrix. All the cells below the main diagonal are `0`. This takes approximately half as much memory as a regular matrix.
 
 ### `make`
 
 ```odin
-make_matrix :: proc(
+make_tmatrix :: proc(
 	$T: typeid,
-	shape: [2]u32,
+	shape: u32,
 	allocator := context.allocator,
 	loc := #caller_location) -> (
-	mx: Matrix(T),
+	mx: TMatrix(T),
 	err: runtime.Allocator_Error) #optional_allocator_error
 ```
+
+Creates a new `TMatrix`.
 
 ### `clone`
 
 ```odin
-matrix_clone :: proc(
-	mx: ^Matrix($T),
+tmatrix_clone :: proc(
+	mx: ^TMatrix($T),
 	allocator := context.allocator) -> (
-	Matrix(T),
+	TMatrix(T),
 	runtime.Allocator_Error) #optional_allocator_error
 ```
+
+Creates a new `TMatrix` by copying an existing one.
 
 ### `size`
 
 ```odin
-matrix_size :: proc(
-	mx: ^Matrix($T)) -> u32
+tmatrix_size :: proc(
+	mx: ^TMatrix($T)) -> u32
 ```
+
+Counts the number of cells.
 
 ### `fill_random`
 
 ```odin
-matrix_fill_random :: proc(
-	mx: ^Matrix($T))
+tmatrix_fill_random :: proc(
+	mx: ^TMatrix($T))
 ```
 
-Fills the matrix with random bits.
+Fills all cells in and above the main diagonal with random bits.
 
 ### `fill`
 
 ```odin
-matrix_fill :: proc(
-	mx: ^Matrix($T),
+tmatrix_fill :: proc(
+	mx: ^TMatrix($T),
 	value: u8)
 ```
 
-Sets all cells to the given value.
+Sets all cells in and above the main diagonal with the given value.
 
 ### `rank`
 
 ```odin
-matrix_rank :: proc(
-	mx: ^Matrix($T),
+tmatrix_rank :: proc(
+	mx: ^TMatrix($T),
 	value: u8) -> (
 	rank: u32)
 ```
@@ -72,15 +78,15 @@ Counts the number of occurrences of the given value.
 ### `write`
 
 ```odin
-matrix_write :: proc(
-	mx: ^Matrix($T),
+tmatrix_write :: proc(
+	mx: ^TMatrix($T),
 	index2: [2]u32,
 	value: u8)
 ```
 
 ```odin
-matrix_write :: proc(
-	mx: ^Matrix($T),
+tmatrix_write :: proc(
+	mx: ^TMatrix($T),
 	first_index2: [2]u32,
 	last_index2: [2]u32,
 	value: Backing_Type)
@@ -91,14 +97,14 @@ Writes the given value to a given cell or range of cells.
 ### `read`
 
 ```odin
-matrix_read :: proc(
-	mx: ^Matrix($T),
+tmatrix_read :: proc(
+	mx: ^TMatrix($T),
 	index2: [2]u32) -> u8
 ```
 
 ```odin
-matrix_read :: proc(
-	mx: ^Matrix($T),
+tmatrix_read :: proc(
+	mx: ^TMatrix($T),
 	first_index2: [2]u32,
 	last_index2: [2]u32) -> Backing_Type
 ```
@@ -108,8 +114,8 @@ Retreive the value of a given cell or range of cells.
 ### `aprint`
 
 ```odin
-aprint_matrix :: proc(
-	mx: ^Matrix($T),
+aprint_tmatrix :: proc(
+	mx: ^TMatrix($T),
 	allocator := context.allocator) -> string
 ```
 

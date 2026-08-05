@@ -7,7 +7,7 @@ Graph :: struct($Label: typeid) {
 	adjacency_matrix: Matrix(Label) }
 ```
 
-A `Graph` is a labeled undirected graph, with labels of type `Label`.
+A `Graph` is equivalent to a labeled undirected graph. `Label({})` must not be a valid label.
 
 | shallow size | $24$ |
 |--|--|
@@ -17,10 +17,11 @@ A `Graph` is a labeled undirected graph, with labels of type `Label`.
 
 ```odin
 make_graph :: proc(
+	$Label: typeid,
 	order: u32,
 	allocator := context.allocator,
 	loc := #caller_location) -> (
-	graph: Graph($Label),
+	graph: Graph(Label),
 	err: runtime.Allocator_Error) #optional_allocator_error
 ```
 

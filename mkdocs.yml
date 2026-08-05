@@ -68,6 +68,7 @@ nav:
       - bit_matrix: bs_bit_matrix.md
       - bit_tmatrix: bs_bit_tmatrix.md
       - matrix: bs_matrix.md
+      - tmatrix: bs_tmatrix.md
       - setoid: bs_setoid.md
       - poset: bs_poset.md
       - graph: bs_graph.md

@@ -14,62 +14,65 @@ Bit_Array :: struct {
 	len: u32,
 	buffer: []Backing_Type }
 
-make_bit_array :: proc(#any_int len: u32, allocator := context.allocator, loc := #caller_location) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
+make_bit_array :: proc { make_bit_array_allocate, make_bit_array_view }
+
+make_bit_array_allocate :: proc(#any_int len: u32, allocator := context.allocator, loc := #caller_location) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
 	array.len = u32(len)
 	array.buffer, err = make([]Backing_Type, len / BIT_ARRAY_W + 1, allocator)
 	return array, err }
 
-_clone_bit_array :: proc(array: ^Bit_Array, allocator := context.allocator) -> (Bit_Array, runtime.Allocator_Error) #optional_allocator_error {
+make_bit_array_view :: proc(#any_int len: u32, buffer: []Backing_Type) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
+	if slice.length(buffer) == 0 do return {}, .Out_Of_Memory
+	array.len = u32(len)
+	array.buffer = buffer
+	return array, nil }
+
+clone_bit_array :: proc(array: ^Bit_Array, allocator := context.allocator) -> (Bit_Array, runtime.Allocator_Error) #optional_allocator_error {
 	buffer, err := slice.clone(array.buffer, allocator)
 	return { len = array.len, buffer = buffer }, err }
 
-_bit_array_fill_random :: proc(array: ^Bit_Array) {
-	for i in 0 ..< array.len do _bit_array_write_bit(array, i, cast(u8)rand.uint32_max(2)) }
+bit_array_fill_random :: proc(array: ^Bit_Array) {
+	for i in 0 ..< array.len do bit_array_write_bit(array, i, cast(u8)rand.uint32_max(2)) }
 
-_bit_array_fill :: proc(array: ^Bit_Array, value: u8) {
+bit_array_fill :: proc(array: ^Bit_Array, value: u8) {
 	word: Backing_Type = (value == 0) ? Backing_Type(0) : ~Backing_Type(0)
 	for i in 0 ..< len(array.buffer) do array.buffer[i] = word }
 
-_bit_array_rank :: proc(array: ^Bit_Array, value: u8) -> (rank: u32) {
-	if value == 1 do for i in 0 ..< array.len do rank += cast(u32)_bit_array_read_bit(array, i)
-	else do for i in 0 ..< array.len do rank += 1 - cast(u32)_bit_array_read_bit(array, i)
+bit_array_rank :: proc(array: ^Bit_Array, value: u8) -> (rank: u32) {
+	if value == 1 do for i in 0 ..< array.len do rank += cast(u32)bit_array_read_bit(array, i)
+	else do for i in 0 ..< array.len do rank += 1 - cast(u32)bit_array_read_bit(array, i)
 	return rank }
 
-_aprint_bit_array :: proc(array: ^Bit_Array, allocator := context.allocator) -> string {
-	sb := strings.builder_make_len_cap(0, cast(int)array.len, allocator)
-	for i in 0 ..< array.len do fmt.sbprint(&sb, _bit_array_read_bit(array, i))
-	return strings.to_string(sb) }
-
-_aprint_bit_array_ext :: proc(array: ^Bit_Array, allocator := context.allocator) -> string {
+aprint_bit_array :: proc(array: ^Bit_Array, split_words := false, allocator := context.allocator) -> string {
 	sb := strings.builder_make_len_cap(0, int(array.len + (array.len / cast(u32)BIT_ARRAY_W)), allocator)
 	for i in 0 ..< array.len {
-		if cast(u32)i % BIT_ARRAY_W == 0 do fmt.sbprint(&sb, ' ')
-		fmt.sbprint(&sb, _bit_array_read_bit(array, i)) }
+		if split_words do if cast(u32)i % BIT_ARRAY_W == 0 do fmt.sbprint(&sb, ' ')
+		fmt.sbprint(&sb, bit_array_read_bit(array, i)) }
 	return strings.to_string(sb) }
 
 delete_bit_array :: proc(array: ^Bit_Array) {
 	delete(array.buffer) }
 
-_bit_array_set :: proc(array: ^Bit_Array, #any_int j: u32) {
+bit_array_set :: proc(array: ^Bit_Array, #any_int j: u32) {
 	array.buffer[j / BIT_ARRAY_W] |= 0b1 << (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W)) }
 
-// bit_array_zero :: proc { _bit_array_zero_bit, _bit_array_zero_chunk }
+bit_array_zero :: proc { bit_array_zero_bit, bit_array_zero_chunk }
 
-_bit_array_zero_bit :: proc(array: ^Bit_Array, #any_int j: u32) {
+bit_array_zero_bit :: proc(array: ^Bit_Array, #any_int j: u32) {
 	array.buffer[j / BIT_ARRAY_W] &= ~ (0b1 << (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W))) }
 
-_bit_array_zero_chunk :: proc(array: ^Bit_Array, range: [2]u32) {
+bit_array_zero_chunk :: proc(array: ^Bit_Array, range: [2]u32) {
 	n := range[1] - range[0]
 	mask: Backing_Type = ((0b1 << n) - 1) << (BIT_ARRAY_W - n - (range[0]  % BIT_ARRAY_W))
 	array.buffer[range[0] / BIT_ARRAY_W] &= ~ mask }
 
-// bit_array_read :: proc { _bit_array_read_bit, _bit_array_read_chunk }
+bit_array_read :: proc { bit_array_read_bit, bit_array_read_chunk }
 
-_bit_array_read_bit :: proc(array: ^Bit_Array, #any_int j: u32) -> u8 {
+bit_array_read_bit :: proc(array: ^Bit_Array, #any_int j: u32) -> u8 {
 	runtime.bounds_check_error_loc(index=cast(int)j, count=cast(int)array.len)
 	return u8(0b1 & (array.buffer[j / BIT_ARRAY_W] >> (BIT_ARRAY_W - 1 - (j % BIT_ARRAY_W)))) }
 
-@private __bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]u32) -> (result: Backing_Type) {
+@private _bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]u32) -> (result: Backing_Type) {
 	n := range[1] - range[0]
 	assert(n <= BIT_ARRAY_W)
 	assert(range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W)
@@ -78,34 +81,34 @@ _bit_array_read_bit :: proc(array: ^Bit_Array, #any_int j: u32) -> u8 {
 	if n < BIT_ARRAY_W do result %= (cast(Backing_Type)0b1 << n)
 	return result }
 
-_bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]u32) -> Backing_Type {
+bit_array_read_chunk :: proc(array: ^Bit_Array, range: [2]u32) -> Backing_Type {
 	runtime.bounds_check_error_loc(index=cast(int)range[1]-1, count=cast(int)array.len)
 	assert(range[1] - range[0] <= BIT_ARRAY_W)
 	if range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W {
-		return __bit_array_read_chunk(array, range) }
+		return _bit_array_read_chunk(array, range) }
 	else {
 		hi_range: [2]u32 = { range[0], range[1] - range[1] % BIT_ARRAY_W }
 		lo_range: [2]u32 = { range[1] - range[1] % BIT_ARRAY_W, range[1] }
-		hi := __bit_array_read_chunk(array, hi_range)
-		lo := __bit_array_read_chunk(array, lo_range)
+		hi := _bit_array_read_chunk(array, hi_range)
+		lo := _bit_array_read_chunk(array, lo_range)
 		return (hi << (lo_range[1] - lo_range[0])) | lo } }
 
-// bit_array_write :: proc { _bit_array_write_bit, _bit_array_write_chunk }
+bit_array_write :: proc { bit_array_write_bit, bit_array_write_chunk }
 
-_bit_array_write_bit :: proc(array: ^Bit_Array, #any_int j: u32, value: u8) {
+bit_array_write_bit :: proc(array: ^Bit_Array, #any_int j: u32, value: u8) {
 	runtime.bounds_check_error_loc(index=cast(int)j, count=cast(int)array.len)
-	if cast(bool)value do _bit_array_set(array, j)
-	else do _bit_array_zero_bit(array, j) }
+	if cast(bool)value do bit_array_set(array, j)
+	else do bit_array_zero_bit(array, j) }
 
 @private __bit_array_write_chunk :: proc(array: ^Bit_Array, range: [2]u32, value: Backing_Type) {
 	assert(range[1] - range[0] <= BIT_ARRAY_W)
 	assert(range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W)
-	_bit_array_zero_chunk(array, range)
+	bit_array_zero_chunk(array, range)
 	n := range[1] - range[0]
 	i := range[0] / BIT_ARRAY_W
 	array.buffer[i] |= value << ((BIT_ARRAY_W - range[1]) % BIT_ARRAY_W) }
 
-_bit_array_write_chunk :: proc(array: ^Bit_Array, range: [2]u32, value: Backing_Type) {
+bit_array_write_chunk :: proc(array: ^Bit_Array, range: [2]u32, value: Backing_Type) {
 	runtime.bounds_check_error_loc(index=cast(int)range[1]-1, count=cast(int)array.len)
 	assert(range[1] - range[0] <= BIT_ARRAY_W)
 	if range[0] / BIT_ARRAY_W == (range[1] - 1) / BIT_ARRAY_W {
@@ -118,7 +121,7 @@ _bit_array_write_chunk :: proc(array: ^Bit_Array, range: [2]u32, value: Backing_
 		__bit_array_write_chunk(array, hi_range, hi)
 		__bit_array_write_chunk(array, lo_range, lo) } }
 
-// bit_array_or :: proc { _bit_array_or_ref, _bit_array_or_make }
+bit_array_or :: proc { _bit_array_or_ref, _bit_array_or_make }
 
 _bit_array_or_ref :: proc(a, b: Bit_Array, result: ^Bit_Array) {
 	assert(len(a.buffer) == len(b.buffer))
@@ -131,7 +134,7 @@ _bit_array_or_make :: proc(a, b: Bit_Array, allocator := context.allocator) -> (
 	_bit_array_or_ref(a, b, &result)
 	return result }
 
-// bit_array_xor :: proc { _bit_array_xor_ref, _bit_array_xor_make }
+bit_array_xor :: proc { _bit_array_xor_ref, _bit_array_xor_make }
 
 _bit_array_xor_ref :: proc(a, b: Bit_Array, result: ^Bit_Array) {
 	assert(len(a.buffer) == len(b.buffer))
@@ -144,7 +147,7 @@ _bit_array_xor_make :: proc(a, b: Bit_Array, allocator := context.allocator) -> 
 	_bit_array_xor_ref(a, b, &result)
 	return result }
 
-// bit_array_and :: proc { _bit_array_and_ref, _bit_array_and_make }
+bit_array_and :: proc { _bit_array_and_ref, _bit_array_and_make }
 
 _bit_array_and_ref :: proc(a, b: Bit_Array, result: ^Bit_Array) {
 	assert(len(a.buffer) == len(b.buffer))
@@ -157,7 +160,7 @@ _bit_array_and_make :: proc(a, b: Bit_Array, allocator := context.allocator) -> 
 	_bit_array_and_ref(a, b, &result)
 	return result }
 
-// bit_array_and_not :: proc { _bit_array_and_not_ref, _bit_array_and_not_make }
+bit_array_and_not :: proc { _bit_array_and_not_ref, _bit_array_and_not_make }
 
 _bit_array_and_not_ref :: proc(a, b: Bit_Array, result: ^Bit_Array) {
 	assert(len(a.buffer) == len(b.buffer))
@@ -170,7 +173,7 @@ _bit_array_and_not_make :: proc(a, b: Bit_Array, allocator := context.allocator)
 	_bit_array_and_not_ref(a, b, &result)
 	return result }
 
-// bit_array_not :: proc { _bit_array_not_ref, _bit_array_not_make }
+bit_array_not :: proc { _bit_array_not_ref, _bit_array_not_make }
 
 _bit_array_not_ref :: proc(bit_array: Bit_Array, result: ^Bit_Array) {
 	n := len(bit_array.buffer)

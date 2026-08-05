@@ -137,7 +137,7 @@ flowchart LR
 	OggunExe ----> GameExe
 	Odin@{ shape: stadium, label: "odin.exe" }
 	OggunSource@{ shape: stadium, label: "oggun source" }
-	GeneratedOggunSource@{ shape: stadium, label: "generated oggun source" }
+	GeneratedOggunSource@{ shape: stadium, label: "generated source" }
 	GameSource@{ shape: stadium, label: "game source" }
 	GameExe@{ shape: stadium, label: "game.exe" }
 	OggunExe@{ shape: stadium, label: "oggun.exe" }
@@ -180,17 +180,15 @@ flowchart LR
 	Storage@{ shape: cyl }
 ```
 
-`Asset` is a generic class for managing things like images, sounds, models, levels, etc. The purpose of this is to (1) simplify the creation of new types of assets, and (2) allow assets of various kinds to be grouped together such that common operations can be performed on said groups.
+`Asset` is a generic class for managing things like images, sounds, models, levels, etc. The purpose of this is to (1) simplify the creation of new types of assets, and (2) allow heterogenous assets to be managed in bulk. The hot-reloading system makes use of this feature.
 
-## Context Trees
+## Tree Construction Modes
 
-Certain families of objects—eg. entities in a scene, widgets in a GUI, commands in a render graph—naturally form a tree-like structure, where adjacent nodes have a *child*-*parent* relationship, and generally the parent provides some kind of context to the child, such that any procedure that constructs/processes the child requires to know who it's parent is (and who the parent of it's parent is and so on).
+Several problems in game development involve the walking of some kind of virtual or concrete tree—eg. scenes, GUIs, render graphs, etc. Concrete trees are generally more vertsatile, but they add friction. Procedures that operate on trees have three modes of calling.
 
-Procedures that operate on these object have three variants, each having a distinct way of gathering the needed parameters.
-
-1. **immediate mode (IM)** --- All the parameters are given directly to the procedure, such that you don't have to construct a tree or manage any auxiliary state.
-2. **stack-retained mode (SRM)** --- Some of the parameters are gathered from parameter stacks, which represent the chain of nodes from the current object to the root node.
-3. **tree-retained mode (TRM)** --- The procedure is given a pointer to a node in an actual tree and it gathers the parameters by walking the tree.
+1. **immediate mode (IM)** --- The walker sees only the current node. All parameters are given directly to the procedure.
+2. **stack-retained mode (SRM)** --- The walker sees only the currently ancestry chain. Some parameters are gathered from parameter stacks.
+3. **tree-retained mode (TRM)** --- The walker sees the whole tree. The node is passed as a parameter.
 
 Here's an example with `dr_model`:
 

@@ -8,7 +8,7 @@ Bit_Matrix :: struct {
 	backing: Bit_Array }
 ```
 
-### `make_bit_matrix`
+### `make`
 
 ```odin
 make_bit_matrix :: proc(

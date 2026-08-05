@@ -13,11 +13,11 @@ make_bitpacked_array :: proc($Elem_Type: typeid, $elem_size: u32, #any_int len: 
 	return array, err }
 
 clone_bitpacked_array :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), allocator := context.allocator) -> (Bitpacked_Array(Elem_Type, elem_size), runtime.Allocator_Error) #optional_allocator_error {
-	backing, err := _clone_bit_array(&array.backing, allocator)
+	backing, err := clone_bit_array(&array.backing, allocator)
 	return { backing = backing }, err }
 
 bitpacked_array_read :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), #any_int i: u32) -> Elem_Type {
-	return cast(Elem_Type)_bit_array_read_chunk(&array.backing, [2]u32{ i * elem_size, (i + 1) * elem_size }) }
+	return cast(Elem_Type)bit_array_read_chunk(&array.backing, [2]u32{ i * elem_size, (i + 1) * elem_size }) }
 
 bitpacked_array_write :: proc(array: ^Bitpacked_Array($Elem_Type, $elem_size), #any_int i: u32, value: Elem_Type) {
-	_bit_array_write_chunk(&array.backing, [2]u32{ i * elem_size, (i + 1) * elem_size }, cast(Backing_Type)value) }
+	bit_array_write_chunk(&array.backing, [2]u32{ i * elem_size, (i + 1) * elem_size }, cast(Backing_Type)value) }

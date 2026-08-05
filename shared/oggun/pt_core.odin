@@ -124,7 +124,7 @@ pt_graph_init_end :: proc(graph: ^Plot_Graph) {
 	for edge in graph.edges {
 		indexes: [2]u32
 		for i in 0 ..< 2 do indexes[i] = pt_node_index(graph, graph.nodes_map[edge.ids[i]])
-		poset_simple_connect(&graph.graph, indexes[0], indexes[1]) } }
+		poset_connect(&graph.graph, indexes[0], indexes[1]) } }
 
 pt_graph_update :: pt_graph_init_end
 
@@ -142,7 +142,7 @@ pt_append_edge :: proc(graph: ^Plot_Graph, edge: Plot_Edge) -> (ptr: ^Plot_Edge)
 pt_connected :: proc(graph: ^Plot_Graph, nodes: [2]^Plot_Node) -> bool {
 	if nodes[0] == nil || nodes[1] == nil do return false
 	indexes: [2]u32 = { pt_node_index(graph, nodes[0]), pt_node_index(graph, nodes[1]) }
-	return poset_simply_connected(&graph.graph, indexes[0], indexes[1]) }
+	return poset_connected(&graph.graph, indexes[0], indexes[1]) }
 
 PT_Layout_Builder_Variant :: enum {
 	Random,
@@ -243,7 +243,7 @@ pt_eades_layout_process :: proc(data: rawptr, graph: ^Plot_Graph) {
 			builder.forces[i] = 0
 			for &other_node, j in graph.nodes {
 				distance := linalg.distance(node.position.([2]f32), other_node.position.([2]f32))
-				if poset_simply_connected(&graph.graph, cast(u32)i, cast(u32)j) {
+				if poset_connected(&graph.graph, cast(u32)i, cast(u32)j) {
 					builder.forces[i] += spring_force(other_node.position.([2]f32), node.position.([2]f32), distance,  0.0001, 1.0) }
 				// else {
 					builder.forces[i] += repulsion_force(other_node.position.([2]f32), node.position.([2]f32), distance,  0.0000005) } //}

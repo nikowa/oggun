@@ -18,66 +18,62 @@ make_dynamic_bit_array :: proc(#any_int len: u32, #any_int cap: u32, allocator :
 dynamic_bit_array_as_bit_array :: proc(array: ^Dynamic_Bit_Array) -> Bit_Array {
 	return { len = array.len, buffer = array.buffer[:] } }
 
-dynamic_bit_array_fill_random :: proc(array: ^Dynamic_Bit_Array) {
+dynamicbit_array_fill_random :: proc(array: ^Dynamic_Bit_Array) {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	_bit_array_fill_random(&bit_array) }
+	bit_array_fill_random(&bit_array) }
 
-aprint_dynamic_bit_array :: proc(array: ^Dynamic_Bit_Array, allocator := context.allocator) -> string {
+aprint_dynamic_bit_array :: proc(array: ^Dynamic_Bit_Array, split_words := false, allocator := context.allocator) -> string {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	return _aprint_bit_array(&bit_array, allocator) }
-
-aprint_dynamic_bit_array_ext :: proc(array: ^Dynamic_Bit_Array, allocator := context.allocator) -> string {
-	bit_array := dynamic_bit_array_as_bit_array(array)
-	return _aprint_bit_array_ext(&bit_array, allocator) }
+	return aprint_bit_array(&bit_array, split_words, allocator) }
 
 delete_dynamic_bit_array :: proc(array: ^Dynamic_Bit_Array) {
 	delete(array.buffer) }
 
-dynamic_bit_array_set :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32) {
+dynamicbit_array_set :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32) {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	_bit_array_set(&bit_array, j) }
+	bit_array_set(&bit_array, j) }
 
-dynamic_bit_array_zero :: proc { dynamic_bit_array_zero_bit, dynamic_bit_array_zero_chunk }
+dynamic_bit_array_zero :: proc { dynamicbit_array_zero_bit, dynamicbit_array_zero_chunk }
 
-dynamic_bit_array_zero_bit :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32) {
+dynamicbit_array_zero_bit :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32) {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	_bit_array_zero_bit(&bit_array, j) }
+	bit_array_zero_bit(&bit_array, j) }
 
-dynamic_bit_array_zero_chunk :: proc(array: ^Dynamic_Bit_Array, range: [2]u32) {
+dynamicbit_array_zero_chunk :: proc(array: ^Dynamic_Bit_Array, range: [2]u32) {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	_bit_array_zero_chunk(&bit_array, range) }
+	bit_array_zero_chunk(&bit_array, range) }
 
-dynamic_bit_array_read :: proc { dynamic_bit_array_read_bit, dynamic_bit_array_read_chunk }
+dynamic_bit_array_read :: proc { dynamicbit_array_read_bit, dynamicbit_array_read_chunk }
 
-dynamic_bit_array_read_bit :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32) -> u8 {
+dynamicbit_array_read_bit :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32) -> u8 {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	return _bit_array_read_bit(&bit_array, j) }
+	return bit_array_read_bit(&bit_array, j) }
 
-dynamic_bit_array_read_chunk :: proc(array: ^Dynamic_Bit_Array, range: [2]u32) -> Backing_Type {
+dynamicbit_array_read_chunk :: proc(array: ^Dynamic_Bit_Array, range: [2]u32) -> Backing_Type {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	return _bit_array_read_chunk(&bit_array, range) }
+	return bit_array_read_chunk(&bit_array, range) }
 
-dynamic_bit_array_write :: proc { dynamic_bit_array_write_bit, dynamic_bit_array_write_chunk }
+dynamic_bit_array_write :: proc { dynamicbit_array_write_bit, dynamicbit_array_write_chunk }
 
-dynamic_bit_array_write_bit :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32, value: u8) {
+dynamicbit_array_write_bit :: proc(array: ^Dynamic_Bit_Array, #any_int j: u32, value: u8) {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	_bit_array_write_bit(&bit_array, j, value) }
+	bit_array_write_bit(&bit_array, j, value) }
 
-dynamic_bit_array_write_chunk :: proc(array: ^Dynamic_Bit_Array, range: [2]u32, value: Backing_Type) {
+dynamicbit_array_write_chunk :: proc(array: ^Dynamic_Bit_Array, range: [2]u32, value: Backing_Type) {
 	bit_array := dynamic_bit_array_as_bit_array(array)
-	_bit_array_write_chunk(&bit_array, range, value) }
+	bit_array_write_chunk(&bit_array, range, value) }
 
 dynamic_bit_array_append :: proc { dynamic_bit_array_append_bit, dynamic_bit_array_append_chunk }
 
 dynamic_bit_array_append_bit :: proc(array: ^Dynamic_Bit_Array, value: u8) {
 	if len_to_wordlen(u32(array.len + 1)) > len_to_wordlen(array.len) do resize(&array.buffer, len_to_wordlen(array.len + 1))
 	array.len += 1
-	dynamic_bit_array_write_bit(array, array.len - 1, value) }
+	dynamicbit_array_write_bit(array, array.len - 1, value) }
 
 dynamic_bit_array_append_chunk :: proc(array: ^Dynamic_Bit_Array, value: Backing_Type, #any_int len: u32) {
 	if len_to_wordlen(u32(array.len) + len) > len_to_wordlen(array.len) do resize(&array.buffer, len_to_wordlen(u32(array.len) + len))
 	array.len += u32(len)
-	dynamic_bit_array_write_chunk(array, { u32(array.len) - len, u32(array.len) }, value) }
+	dynamicbit_array_write_chunk(array, { u32(array.len) - len, u32(array.len) }, value) }
 
 dynamic_bit_arena_resize :: proc(array: ^Dynamic_Bit_Array, #any_int new_size: u32) {
 	if len_to_wordlen(new_size) > len_to_wordlen(array.len) do resize(&array.buffer, len_to_wordlen(new_size))

@@ -10,7 +10,7 @@ Bit_TMatrix :: struct {
 
 A triangular bit matrix. All the cells below the main diagonal are `0`. This takes approximately half as much memory as a regular matrix.
 
-### `make_bit_tmatrix`
+### `make`
 
 ```odin
 make_bit_tmatrix :: proc(
@@ -21,7 +21,7 @@ make_bit_tmatrix :: proc(
 	err: runtime.Allocator_Error) #optional_allocator_error
 ```
 
-### `clone_bit_tmatrix`
+### `clone`
 
 ```odin
 clone_bit_tmatrix :: proc(
@@ -31,14 +31,14 @@ clone_bit_tmatrix :: proc(
 	runtime.Allocator_Error) #optional_allocator_error
 ```
 
-### `bit_tmatrix_size`
+### `size`
 
 ```odin
 bit_tmatrix_size :: proc(
 	bit_tmatrix: ^Bit_TMatrix) -> u32
 ```
 
-### `bit_tmatrix_fill_random`
+### `fill_random`
 
 ```odin
 bit_tmatrix_fill_random :: proc(
@@ -47,7 +47,7 @@ bit_tmatrix_fill_random :: proc(
 
 Fills the matrix with random bits.
 
-### `bit_tmatrix_fill`
+### `fill`
 
 ```odin
 bit_tmatrix_fill :: proc(
@@ -57,7 +57,7 @@ bit_tmatrix_fill :: proc(
 
 Sets all cells to the given value.
 
-### `bit_tmatrix_rank`
+### `rank`
 
 ```odin
 bit_tmatrix_rank :: proc(
@@ -68,7 +68,7 @@ bit_tmatrix_rank :: proc(
 
 Counts the number of occurrences of the given value.
 
-### `bit_tmatrix_write`
+### `write`
 
 ```odin
 bit_tmatrix_write :: proc(
@@ -79,7 +79,7 @@ bit_tmatrix_write :: proc(
 
 Writes the given value to a given cell or range of cells.
 
-### `bit_tmatrix_read`
+### `read`
 
 ```odin
 bit_tmatrix_read :: proc(
@@ -89,7 +89,7 @@ bit_tmatrix_read :: proc(
 
 Retreive the value of a given cell or range of cells.
 
-### `bit_tmatrix_aprint`
+### `aprint`
 
 ```odin
 bit_tmatrix_aprint :: proc(

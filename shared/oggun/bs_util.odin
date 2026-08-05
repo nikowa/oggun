@@ -374,3 +374,9 @@ index2_to_index_triangular :: proc(shape: u32, index2: [2]u32) -> u32 {
 
 index2_triangulate :: proc(index2: [2]u32) -> [2]u32 {
 	return { max(index2.x, index2.y), min(index2.x, index2.y) } }
+
+triangular_size :: proc(shape: u32) -> (size: u32) {
+	return shape * (shape + 1) / 2 }
+
+triangular_size_complement :: proc(shape: u32) -> (size: u32) {
+	return shape * (shape - 1) / 2 }

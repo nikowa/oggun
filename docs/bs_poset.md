@@ -13,7 +13,7 @@ A `Poset` is equivalent to an unlabeled directed graph.
 |--|--|
 | deep size | $24 + \text{order}^2 / 8$ |
 
-### `make_poset`
+### `make`
 
 ```odin
 make_poset :: proc(
@@ -45,7 +45,7 @@ Counts the number of vertices.
 ### `connect`
 
 ```odin
-connect :: proc(
+poset_connect :: proc(
 	poset: ^Poset,
 	vert0, vert1: u32)
 ```
@@ -55,7 +55,7 @@ Adds an edge from `vert0` to `vert1`.
 ### `biconnect`
 
 ```odin
-biconnect :: proc(
+poset_biconnect :: proc(
 	poset: ^Poset,
 	vert0, vert1: u32)
 ```
@@ -65,7 +65,7 @@ Adds an edge from `vert0` to `vert1` and an edge from `vert1` to `vert0`.
 ### `disconnect`
 
 ```odin
-disconnect :: proc(
+poset_disconnect :: proc(
 	poset: ^Poset,
 	vert0, vert1: u32)
 ```
@@ -75,7 +75,7 @@ Removes the edge from `vert0` to `vert1`, if it exists.
 ### `bidisconnect`
 
 ```odin
-bidisconnect :: proc(
+poset_bidisconnect :: proc(
 	poset: ^Poset,
 	vert0, vert1: u32)
 ```
@@ -85,7 +85,7 @@ Removes the edge from `vert0` to `vert1` and the egde from `vert1` to `vert0`, i
 ### `connected`
 
 ```odin
-connected :: proc(
+poset_connected :: proc(
 	poset: ^Poset,
 	vert0, vert1: u32) -> bool
 ```
@@ -95,7 +95,7 @@ Checks if there is an edge from `vert0` to `vert1`.
 ### `biconnected`
 
 ```odin
-biconnected :: proc(
+poset_biconnected :: proc(
 	poset: ^Poset,
 	vert0, vert1: u32) -> bool
 ```
@@ -105,7 +105,7 @@ Checks if there is an edge from `vert0` to `vert1` or from `vert1` to `vert0`.
 ### `neighbors`
 
 ```odin
-neighbors :: proc(
+poset_neighbors :: proc(
 	poset: ^Poset,
 	vert: u32,
 	allocator := context.allocator) -> []u32
@@ -116,7 +116,7 @@ Creates a list of the neighbors of `vert`.
 ### `outneighbors`
 
 ```odin
-outneighbors :: proc(
+poset_outneighbors :: proc(
 	poset: ^Poset,
 	vert: u32,
 	allocator := context.allocator) -> []u32
@@ -127,7 +127,7 @@ Creates a list of all verts that are the destination of an edge starting at `ver
 ### `inneighbors`
 
 ```odin
-inneighbors :: proc(
+poset_inneighbors :: proc(
 	poset: ^Poset,
 	vert: u32,
 	allocator := context.allocator) -> []u32
@@ -138,7 +138,7 @@ Creates a list of all verts that are the source of an edge ending at `vert`.
 ### `outdegree`
 
 ```odin
-outdegree :: proc(
+poset_outdegree :: proc(
 	poset: ^Poset,
 	vert: u32,
 	allocator := context.allocator) -> (degree: u32)
@@ -149,7 +149,7 @@ Counts the number of edges starting at `vert`.
 ### `indegree`
 
 ```odin
-indegree :: proc(
+poset_indegree :: proc(
 	poset: ^Poset,
 	vert: u32,
 	allocator := context.allocator) -> (
