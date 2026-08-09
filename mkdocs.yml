@@ -39,6 +39,7 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.blocks.caption
 
 extra_javascript:
   - https://unpkg.com/@highlightjs/cdn-assets@11/highlight.min.js
@@ -73,8 +74,13 @@ nav:
       - poset: bs_poset.md
       - graph: bs_graph.md
       - digraph: bs_digraph.md
+      - rect: bs_rect.md
+    - ui:
+      - rect: ui_rect.md
     - wd:
       - core: wd_core.md
+    - am:
+      - core: am_core.md
   - GLSL API:
     - clip: clip.md
     - msaa: msaa.md

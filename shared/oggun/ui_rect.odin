@@ -40,29 +40,34 @@ ui_rect_unlerp :: proc(r: Rect, p: [2]f32) -> (t: [2]f32) {
 		math.unlerp(rect_left(r), rect_right(r), p.x),
 		math.unlerp(rect_bottom(r), rect_top(r), p.y) } }
 
-ui_rect_fit :: proc(rect, container: Rect, fit: UI_Fit) -> (result: Rect) {
+ui_rect_unlerp_centered :: proc(r: Rect, p: [2]f32) -> (t: [2]f32) {
+	return {
+		math.unlerp(r.position.x, rect_right(r), p.x),
+		math.unlerp(r.position.y, rect_top(r), p.y) } }
+
+ui_rect_fit :: proc(rect: Rect, size: [2]f32, fit: UI_Fit) -> (result: Rect) {
 	switch fit {
 	case .NONE:
-		return { container.position, rect.size }
+		return { rect.position, size }
 	case .FILL:
-		return container
+		return rect
 	case .COVER:
+		aspect_ratio: f32 = size.x / size.y
 		rect_ratio: f32 = rect.size.x / rect.size.y
-		container_ratio: f32 = container.size.x / container.size.y
-		result = container
-		if container_ratio < rect_ratio do result.size.x = rect_ratio * result.size.y
-		else do result.size.y = result.size.x / rect_ratio
+		result = rect
+		if rect_ratio < aspect_ratio do result.size.x = aspect_ratio * result.size.y
+		else do result.size.y = result.size.x / aspect_ratio
 		return result
 	case .CONTAIN:
+		aspect_ratio: f32 = size.x / size.y
 		rect_ratio: f32 = rect.size.x / rect.size.y
-		container_ratio: f32 = container.size.x / container.size.y
-		result = container
-		if container_ratio > rect_ratio do result.size.x = rect_ratio * result.size.y
-		else do result.size.y = result.size.x / rect_ratio
+		result = rect
+		if rect_ratio > aspect_ratio do result.size.x = aspect_ratio * result.size.y
+		else do result.size.y = result.size.x / aspect_ratio
 		return result
 	case .SCALE_DOWN:
-		variant_a := ui_rect_fit(rect, container, .CONTAIN)
-		variant_b := ui_rect_fit(rect, container, .NONE)
+		variant_a := ui_rect_fit(rect, size, .CONTAIN)
+		variant_b := ui_rect_fit(rect, size, .NONE)
 		if variant_a.size.x < variant_b.size.x do return variant_a
 		else do return variant_b }
 	return result }
@@ -258,9 +263,6 @@ ui_rect_grid_make :: proc(rect_in: Rect, size: [2]int, allocator := context.allo
 		rect.size.y = rect_height }
 	return rects_out }
 
-ui_rect_grid_index :: proc(size: [2]int, i, j: int) -> int {
-	return j * size.x + i }
-
 ui_rect_mirror_x :: proc { ui_rect_mirror_x_centered, ui_rect_mirror_x_offset/*, rects_mirror_x_offset_make, rects_mirror_x_centered_make, rects_mirror_x_offset_edit, rects_mirror_x_centered_edit*/ }
 
 ui_rect_mirror_x_centered :: proc(rect_in: Rect) -> (result: Rect) {
@@ -387,6 +389,8 @@ ui_rect_position_bottom :: proc(rect_in: Rect, target: f32) -> (result: Rect) {
 	result.position.y = target + size_y / 2
 	result.size.y = size_y
 	return result }
+
+// (TODO): Add "ui_rect_position_left" and "ui_rect_position_right". //
 
 rect_clamp :: proc { rect_clamp_point, rect_clamp_rect }
 

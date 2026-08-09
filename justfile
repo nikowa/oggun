@@ -6,8 +6,8 @@ default: current
 audit: lib
 	oggun audit bs_bit_array.odin
 
-current: example_sprites
-	examples/sprites.exe
+current: example_collage
+	examples/collage.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\" -ignore-unknown-attributes"
 
@@ -25,6 +25,9 @@ check: lib
 	odin check examples/neon {{check_flags}}
 	odin check examples/sprites {{check_flags}}
 	odin check examples/sync {{check_flags}}
+	odin check examples/graph {{check_flags}}
+	odin check examples/prop {{check_flags}}
+	odin check examples/modes {{check_flags}}
 	odin check examples/graph {{check_flags}}
 
 test: lib
@@ -64,4 +67,7 @@ example_prop: lib
 example_modes: lib
 	odin build examples/modes -out:examples/modes.exe {{flags}}
 
-examples: example_input example_gui example_neon example_sprites example_sync example_graph
+example_collage: lib
+	odin build examples/collage -out:examples/collage.exe {{flags}}
+
+examples: example_input example_gui example_neon example_sprites example_sync example_graph example_collage

@@ -6,7 +6,7 @@ Setoid :: struct {
 	adjacency_matrix: Bit_Matrix }
 
 make_setoid :: proc(order: u32, allocator := context.allocator, loc := #caller_location) -> (setoid: Setoid, err: runtime.Allocator_Error) #optional_allocator_error {
-	adjacency_matrix: Bit_Matrix; adjacency_matrix, err = make_square_bit_matrix(order, allocator, loc)
+	adjacency_matrix: Bit_Matrix; adjacency_matrix, err = make_bit_matrix({ order, order }, allocator, loc)
 	return { adjacency_matrix = adjacency_matrix }, err }
 
 setoid_size :: proc(setoid: ^Setoid) -> (size: u32) {

@@ -226,6 +226,104 @@ bit_array_not :: proc(
 	allocator := context.allocator) -> (result: Bit_Array)
 ```
 
+### `copy`
+
+```odin
+bit_array_copy :: proc(
+	dest, src: ^Bit_Array)
+```
+
+Copies one array into another array.
+
+### `copy_range`
+
+```odin
+bit_array_copy_range :: proc(
+	dest, src: ^Bit_Array,
+	dest_range, src_range: [2]u32)
+```
+
+Copies a range of one array into a range of another array.
+
+### `resize`
+
+```odin
+bit_array_resize :: proc(
+	bit_array: ^Bit_Array,
+	len: u32,
+	allocator := context.allocator,
+	loc := #caller_location) -> (err: runtime.Allocator_Error)
+```
+
+Resizes the given array. If the backing buffer is insufficient or excessive, it is reallocated.
+
+### `extend`
+
+```odin
+bit_array_extend :: proc(
+	bit_array: ^Bit_Array,
+	pre, post: u32,
+	allocator := context.allocator,
+	loc := #caller_location) -> (err: runtime.Allocator_Error)
+```
+
+Extends the given array by prepending `pre` number of zeroes and appending `post` number of zeroes.
+
+### `slice`
+
+```odin
+bit_array_slice :: proc(
+	array: ^Bit_Array,
+	range: [2]u32,
+	allocator := context.allocator,
+	loc := #caller_location) -> (
+	array: Bit_Array,
+	err: runtime.Allocator_Error) #optional_allocator_error
+```
+
+Creates a new array by copying an range of bits from `array`.
+
+### `cat`
+
+```odin
+bit_array_cat :: proc(
+	array0, array1: ^Bit_Array,
+	allocator := context.allocator,
+	loc := #caller_location) -> (
+	array: Bit_Array,
+	err: runtime.Allocator_Error) #optional_allocator_error
+```
+
+Creates a new array by concatenating two existing arrays.
+
+### `stack`
+
+```odin
+bit_array_stack :: proc(
+	arrays, []^Bit_Array,
+	orientation: Orientation,
+	allocator := context.allocator,
+	loc := #caller_location) -> (
+	array: Bit_Array,
+	err: runtime.Allocator_Error) #optional_allocator_error
+```
+
+Creates a `Bit_Matrix` by stacking several `Bit_Array`s. If `orientation` is `.Horizontal`, the arrays are treated as rows; and if it's `.Vertical`, they are treated as columns.
+
+### `split`
+
+```odin
+bit_array_split :: proc(
+	array: ^Bit_Array,
+	index: u32,
+	allocator := context.allocator,
+	loc := #caller_location) -> (
+	array0, array1: Bit_Array,
+	err: runtime.Allocator_Error) #optional_allocator_error
+```
+
+Splits an array in two, such that the 2nd array start at `index`.
+
 <pre>
 
 

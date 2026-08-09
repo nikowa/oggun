@@ -1,25 +1,25 @@
 package oggun
 
-when OGGUN_EXE {
+// when OGGUN_EXE {
 clone :: proc {
 	clone_bit_array,
-	_clone_bit_matrix }
+	clone_bit_matrix }
 
 fill_random :: proc {
 	bit_array_fill_random,
-	_bit_matrix_fill_random }
+	bit_matrix_fill_random }
 
 fill :: proc {
 	bit_array_fill,
-	_bit_matrix_fill }
+	bit_matrix_fill }
 
 rank :: proc {
 	bit_array_rank,
-	_bit_matrix_rank }
+	bit_matrix_rank }
 
 aprint :: proc {
 	aprint_bit_array,
-	_aprint_bit_matrix }
+	aprint_bit_matrix }
 
 set :: proc {
 	bit_array_set }
@@ -31,14 +31,14 @@ zero :: proc {
 read :: proc {
 	bit_array_read_bit,
 	bit_array_read_chunk,
-	_bit_matrix_read_bit,
-	_bit_matrix_read_interval }
+	bit_matrix_read_bit,
+	bit_matrix_read_interval }
 
 write :: proc {
 	bit_array_write_bit,
 	bit_array_write_chunk,
-	_bit_matrix_write_bit,
-	_bit_matrix_write_interval }
+	bit_matrix_write_bit,
+	bit_matrix_write_interval }
 
 or :: proc {
 	_bit_array_or_ref,
@@ -61,5 +61,5 @@ not :: proc {
 	_bit_array_not_make }
 
 size :: proc {
-	_bit_matrix_size }
-}
+	bit_matrix_size }
+// }

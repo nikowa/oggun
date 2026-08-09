@@ -1,65 +1,65 @@
 package oggun
 
-when ! OGGUN_EXE {
-clone :: proc {
-	clone_bit_array,
-	_clone_bit_matrix }
+// when ! OGGUN_EXE {
+// clone :: proc {
+// 	clone_bit_array,
+// 	_clone_bit_matrix }
 
-fill_random :: proc {
-	bit_array_fill_random,
-	_bit_matrix_fill_random }
+// fill_random :: proc {
+// 	bit_array_fill_random,
+// 	_bit_matrix_fill_random }
 
-fill :: proc {
-	bit_array_fill,
-	_bit_matrix_fill }
+// fill :: proc {
+// 	bit_array_fill,
+// 	_bit_matrix_fill }
 
-rank :: proc {
-	bit_array_rank,
-	_bit_matrix_rank }
+// rank :: proc {
+// 	bit_array_rank,
+// 	_bit_matrix_rank }
 
-aprint :: proc {
-	aprint_bit_array,
-	_aprint_bit_matrix }
+// aprint :: proc {
+// 	aprint_bit_array,
+// 	_aprint_bit_matrix }
 
-set :: proc {
-	bit_array_set }
+// set :: proc {
+// 	bit_array_set }
 
-zero :: proc {
-	bit_array_zero_bit,
-	bit_array_zero_chunk }
+// zero :: proc {
+// 	bit_array_zero_bit,
+// 	bit_array_zero_chunk }
 
-read :: proc {
-	bit_array_read_bit,
-	bit_array_read_chunk,
-	_bit_matrix_read_bit,
-	_bit_matrix_read_interval }
+// read :: proc {
+// 	bit_array_read_bit,
+// 	bit_array_read_chunk,
+// 	_bit_matrix_read_bit,
+// 	_bit_matrix_read_interval }
 
-write :: proc {
-	bit_array_write_bit,
-	bit_array_write_chunk,
-	_bit_matrix_write_bit,
-	_bit_matrix_write_interval }
+// write :: proc {
+// 	bit_array_write_bit,
+// 	bit_array_write_chunk,
+// 	_bit_matrix_write_bit,
+// 	_bit_matrix_write_interval }
 
-or :: proc {
-	_bit_array_or_ref,
-	_bit_array_or_make }
+// or :: proc {
+// 	_bit_array_or_ref,
+// 	_bit_array_or_make }
 
-xor :: proc {
-	_bit_array_xor_ref,
-	_bit_array_xor_make }
+// xor :: proc {
+// 	_bit_array_xor_ref,
+// 	_bit_array_xor_make }
 
-and :: proc {
-	_bit_array_and_ref,
-	_bit_array_and_make }
+// and :: proc {
+// 	_bit_array_and_ref,
+// 	_bit_array_and_make }
 
-and_not :: proc {
-	_bit_array_and_not_ref,
-	_bit_array_and_not_make }
+// and_not :: proc {
+// 	_bit_array_and_not_ref,
+// 	_bit_array_and_not_make }
 
-not :: proc {
-	_bit_array_not_ref,
-	_bit_array_not_make }
+// not :: proc {
+// 	_bit_array_not_ref,
+// 	_bit_array_not_make }
 
-size :: proc {
-	_bit_matrix_size }
-}
+// size :: proc {
+// 	_bit_matrix_size }
+// }

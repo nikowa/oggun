@@ -260,7 +260,7 @@ pt_node_positions :: proc(graph: ^Plot_Graph, allocator := context.allocator) ->
 pt_fit_post_process :: proc(graph: ^Plot_Graph) {
 	points := pt_node_positions(graph)
 	domain := points_bounding_rect(points)
-	range := ui_rect_margins(ui_rect_fit(domain, graph.plot_rect, .CONTAIN), Ratio(0.1))
+	range := ui_rect_margins(ui_rect_fit(domain, graph.plot_rect.size, .CONTAIN), Ratio(0.1))
 	for &node, i in graph.nodes do node.position = rect_to_rect_map(domain, range, node.position.([2]f32)) }
 
 pt_eades_layout_post_process :: proc(data: rawptr, graph: ^Plot_Graph) {
@@ -315,9 +315,9 @@ pt_permuter_layout_initialize :: proc(data: rawptr, graph: ^Plot_Graph) {
 	builder.grid_x = { 0, rows - 1 }
 	builder.grid_y = { 0, cols - 1 }
 	builder.occupancy = make_bit_matrix({ cast(u32)rows, cast(u32)cols }, builder.allocator)
-	_bit_matrix_fill(&builder.occupancy, 1)
-	log.infof("\n%s", _aprint_bit_matrix(&builder.occupancy))
-	log.info(_bit_matrix_rank(&builder.occupancy, 0), _bit_matrix_rank(&builder.occupancy, 1), _bit_matrix_size(&builder.occupancy))
+	bit_matrix_fill(&builder.occupancy, 1)
+	log.infof("\n%s", aprint_bit_matrix(&builder.occupancy))
+	log.info(bit_matrix_rank(&builder.occupancy, 0), bit_matrix_rank(&builder.occupancy, 1), bit_matrix_size(&builder.occupancy))
 	// (NOTE): Objective function is "pt_total_edge_length"
 	// for step in 0 ..< 100 {
 		// DICK

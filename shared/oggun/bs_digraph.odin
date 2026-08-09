@@ -6,7 +6,7 @@ Digraph :: struct($Label: typeid) {
 	adjacency_matrix: Matrix(Label) }
 
 make_digraph :: proc($Label: typeid, order: u32, allocator := context.allocator, loc := #caller_location) -> (digraph: Digraph(Label), err: runtime.Allocator_Error) #optional_allocator_error {
-	adjacency_matrix: Matrix($Label); adjacency_matrix, err = make_square_bit_matrix(order, allocator, loc)
+	adjacency_matrix: Matrix($Label); adjacency_matrix, err = make_bit_matrix({ order, order }, allocator, loc)
 	return { order = order, size = 0, adjacency_matrix = adjacency_matrix }, err }
 
 digraph_size :: proc(digraph: ^Digraph($Label)) -> (size: u32) {

@@ -14,11 +14,14 @@ Bit_Array :: struct {
 	len: u32,
 	buffer: []Backing_Type }
 
+@private buffer_size :: proc(#any_int len: u32) -> int {
+	return int((len % BIT_ARRAY_W == 0) ? (len / BIT_ARRAY_W) : len / BIT_ARRAY_W + 1) }
+
 make_bit_array :: proc { make_bit_array_allocate, make_bit_array_view }
 
 make_bit_array_allocate :: proc(#any_int len: u32, allocator := context.allocator, loc := #caller_location) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
 	array.len = u32(len)
-	array.buffer, err = make([]Backing_Type, (len % BIT_ARRAY_W == 0) ? (len / BIT_ARRAY_W) : len / BIT_ARRAY_W + 1, allocator)
+	array.buffer, err = make([]Backing_Type, buffer_size(len), allocator)
 	return array, err }
 
 make_bit_array_view :: proc(#any_int len: u32, buffer: []Backing_Type) -> (array: Bit_Array, err: runtime.Allocator_Error) #optional_allocator_error {
@@ -188,3 +191,16 @@ _bit_array_not_make :: proc(bit_array: Bit_Array, allocator := context.allocator
 	result = make_bit_array(bit_array.len, allocator)
 	_bit_array_not_ref(bit_array, &result)
 	return result }
+
+bit_array_copy :: proc(dest, src: ^Bit_Array) {
+	copy(dest.buffer, src.buffer[0 : min(len(dest.buffer), len(src.buffer))]) }
+
+bit_array_copy_range :: proc(dest, src: ^Bit_Array, dest_range, src_range: [2]u32) {
+	// (TODO)
+}
+
+bit_array_resize :: proc(array: ^Bit_Array, len: u32, allocator := context.allocator, loc := #caller_location) -> (err: runtime.Allocator_Error) {
+	// (TODO):
+	// buffer_size(len)
+	return nil
+}
