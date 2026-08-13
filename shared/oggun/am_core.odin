@@ -55,8 +55,8 @@ Asset_Command :: enum {
 	Query_Location,
 	Import,
 	Export,
-	Load,
-	Save,
+	Serialize,   // prev Save
+	Deserialize, // prev Load
 	Upload,
 	Download }
 
@@ -155,7 +155,7 @@ am_tick :: proc() {
 		asset_kind, ok := engine.asset_manager.asset_kinds[asset.derived_type]
 		assert(ok)
 		asset_kind.command(asset, .Import, true)
-		asset_kind.command(asset, .Load, true)
+		asset_kind.command(asset, .Deserialize, true)
 		asset_kind.command(asset, .Upload, true) } }
 
 am_make_entry :: proc(url: URL, data: []u8, modification_time: time.Time = { }) -> (entry: Entry) {

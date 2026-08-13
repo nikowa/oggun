@@ -39,7 +39,7 @@ main :: proc() {
 entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	entry: ^as.Entry
 	ok: bool
-	image: gx.Image_Asset
+	image: gx.Texture
 	model: gx.Model
 	err: os.Error
 	model_node: ^scn.Model_Node
@@ -72,8 +72,8 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 		autosave_cap = as.DEFAULT_AUTOSAVE_CAP }, context.allocator)
 	gx.graphics_init(&graphics_manager, &asset_manager, gx.DEFAULT_GRAPHICS_CONFIG, "Oggun")
 	// gx.graphics_init(&graphics_manager, &asset_manager, { window_size = { 1920, 1080 } }, "Oggun")
-	gx.init_image(&asset_manager, &image, { url = "image:kitten.png" })
-	assert(as.asset_commands(&asset_manager, gx.Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	gx.texture_init(&asset_manager, &image, { url = "image:kitten.png" })
+	assert(as.asset_commands(&asset_manager, gx.Texture, &image.asset, { .Import, .Deserialize, .Upload }))
 	model, err = gx.load_model(as.relpath_to_path("data/castle.glb", context.allocator), "model:castle", context.allocator)
 	gx.upload_model(&model)
 	explosion_effect: gx.Effect
@@ -115,7 +115,7 @@ entry_point :: proc(thread_data: ^bs.Thread_Data) {
 	if err != nil do log.error(err)
 	input.input_init(&input_manager, graphics_manager.window)
 	as.init_string_asset(&asset_manager, &string_asset, { "string:test-string.txt", as.String_Asset })
-	assert(as.asset_commands(&asset_manager, as.String_Asset, &string_asset, { .Import, .Load }))
+	assert(as.asset_commands(&asset_manager, as.String_Asset, &string_asset, { .Import, .Deserialize }))
 	// log.info(la.quaternion_from_euler_angles_f32(0, 0, 0, .XYZ))
 	for ! graphics_manager.window_closed {
 		time = bs.read_stopwatch(&stopwatch)

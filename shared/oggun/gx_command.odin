@@ -5,6 +5,7 @@ import "core:slice"
 import "core:math/linalg"
 import gl "vendor:OpenGL"
 import "core:container/intrusive/list"
+import "core:log"
 
 // Phases of command processing:
 // (1) all commands are stored in a dynamic array
@@ -148,6 +149,8 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(6, buffers[6], 4, gl.FLOAT, clip)
 	upload_vertex_buffer_data(7, buffers[7], 1, gl.FLOAT, clip_radius)
 
+	// if command.target_texture != nil do select_render_buffer(command.target_texture.render_buffer)
+	// else do select_render_buffer(nil)
 	polygon_mode(.Fill)
 	render_triangles(cast(i32)n) }
 
@@ -188,6 +191,7 @@ gx_submit_line :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(4, buffers[4], 4, gl.FLOAT, clip)
 	upload_vertex_buffer_data(5, buffers[5], 1, gl.FLOAT, clip_radius)
 
+	select_render_buffer(nil)
 	// (TODO): Make sure "polygon_mode" before every draw call. //
 	// TEMP
 	gx_set_line_thickness(8)
@@ -234,6 +238,7 @@ gx_submit_arc :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(5, buffers[5], 4, gl.FLOAT, clip)
 	upload_vertex_buffer_data(6, buffers[6], 1, gl.FLOAT, clip_radius)
 
+	select_render_buffer(nil)
 	polygon_mode(.Fill)
 	render_triangles(cast(i32)n) }
 
@@ -268,6 +273,7 @@ gx_submit_image :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(6, buffers[2], 4, gl.FLOAT, clip)
 	upload_vertex_buffer_data(7, buffers[3], 1, gl.FLOAT, clip_radius)
 
+	select_render_buffer(nil)
 	bind_texture(0, command.image.handle)
 	polygon_mode(.Fill)
 	texture_filtering(gl.NEAREST)
@@ -324,6 +330,7 @@ gx_submit_text :: proc(_command: Command, index: int) {
 	upload_vertex_buffer_data(8, buffers[8], 4, gl.FLOAT, clip)
 	upload_vertex_buffer_data(9, buffers[9], 1, gl.FLOAT, clip_radius)
 
+	select_render_buffer(nil)
 	bind_texture(0, command.font.bitmap_image.handle)
 	bind_texture(1, command.font.bitmap_image_bold.handle)
 	texture_filtering(gl.NEAREST)

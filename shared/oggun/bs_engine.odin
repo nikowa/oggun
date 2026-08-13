@@ -62,6 +62,7 @@ Engine :: struct {
 	tracking_temp_allocator: mem.Tracking_Allocator }
 
 engine: ^Engine
+oggun: ^Engine
 
 MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
 
@@ -103,6 +104,8 @@ ptr_is_temp :: proc(ptr: rawptr) -> bool {
 		input_config: Input_Config = DEFAULT_INPUT_CONFIG,
 		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) -> runtime.Context {
 	engine = new(Engine)
+	oggun = new(Engine)
+	assert(engine != nil)
 	engine.engine_config = engine_config
 	context.logger = log.create_console_logger()
 	mem.arena_init(&engine.temp_arena, make([]u8, engine.temp_allocator_cap))

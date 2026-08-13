@@ -16,8 +16,8 @@ An asset can have up to five representations. None of these is mandatory.
  - `Query_Location` --- Checks which locations Updates the `location` field with the current locationns of the asset.
  - `Import` --- Produces a database representation from a source representation.
  - `Export` --- Produces a source representation from a database representation.
- - `Load` --- Produces a default representation from a database representation.
- - `Save` --- Produces a database representation from a default representation.
+ - `Deserialize` --- Produces a default representation from a database representation.
+ - `Serialize` --- Produces a database representation from a default representation.
  - `Upload` --- Produces a GPU representation from a default representation.
  - `Download` --- Produces a representation from a GPU representation.
 
@@ -57,8 +57,8 @@ my_asset_command :: proc(
 	case .Query_Location: ...
 	case .Import: ...
 	case .Export: ...
-	case .Load: ...
-	case .Save: ...
+	case .Deserialize: ...
+	case .Serialize: ...
 	case .Upload: ...
 	case .Download: ...
 	return false }
@@ -132,8 +132,8 @@ Asset_Command :: enum {
 	Query_Location,
 	Import,
 	Export,
-	Load,
-	Save,
+	Deserialize,
+	Serialize,
 	Upload,
 	Download }
 ```
@@ -359,7 +359,7 @@ watch_assets :: proc(
 ```
 
 <details><summary>Description</summary>
-Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Load</code> command, with <code>watch=true</code>.
+Check all registered assets for updates. If the source is more recent than the database entry, the asset will be imported; If the database entry is more recent than the asset object, the asset will be loaded. Internally, it works by executing the <code>.Import</code> command and then the <code>.Deserialize</code> command, with <code>watch=true</code>.
 </details>
 
 #### `asset_manager_autosave`

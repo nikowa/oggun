@@ -40,9 +40,9 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	// // DICK
 	// wd_customize(BORDER_COLOR, BORDER_COLOR)
 
-	image: Image_Asset
-	init_image(&image, { url = "image:kitten-1.png" })
-	assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	image: Texture
+	texture_init(&image, { url = "image:kitten-1.png" })
+	assert(am_commands(Texture, &image.asset, { .Import, .Deserialize, .Upload }))
 
 	text: string = "*Consistent* color usage creates *visual* _continuity_ throughout experiences and even across products. The *easiest* way to guarantee _uniform_ color usage is to use Fluent's design token system. Each value in the Fluent _palettes_ is stored as a *context-agnostic* global token. Alias tokens then provide the _context_ that makes it *easy* to choose the right color without having to hunt down *hex* codes."
 
@@ -50,7 +50,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 
 	string_asset := new(String_Asset)
 	am_init_string_asset(string_asset, { url="string:test_string.txt" })
-	assert(am_commands(String_Asset, &string_asset.asset, { .Import, .Load }))
+	assert(am_commands(String_Asset, &string_asset.asset, { .Import, .Deserialize }))
 	assert(! ptr_is_temp(raw_data(string_asset.str)))
 
 	context = engine_end_init()
@@ -180,7 +180,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 			// Test string //
 			// assert(am_command(String_Asset, &string_asset.asset, .Import, watch=true))
 			// assert(! ptr_is_temp(raw_data(string_asset.str)))
-			// assert(am_command(String_Asset, &string_asset.asset, .Load, watch=true))
+			// assert(am_command(String_Asset, &string_asset.asset, .Deserialize, watch=true))
 			// // log.warn(string_asset.str)
 			// assert(! ptr_is_temp(raw_data(string_asset.str)))
 			// dr_text_box(string_asset.str, { { 0, 0 }, { 120, 20 } }, h_align=.CENTER, v_align=.CENTER)

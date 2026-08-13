@@ -29,15 +29,22 @@ Draw_Rect_Params :: struct {
 	clip: Clip }
 
 Draw_Rect_Group_Params :: struct {
-	render_buffer: Maybe(^Render_Buffer) }
+	target_texture: ^Texture }
 
 // (TODO): Change "stroke" to u8
-dr_rect :: proc(rect: Rect, fill_color: Color = BLACK, stroke_color: Color = GRAY, radius: f32 = 0.0, stroke: f32 = 0.0, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+dr_rect :: proc(
+	rect: Rect,
+	fill_color: Color = BLACK,
+	stroke_color: Color = GRAY,
+	radius: f32 = 0.0,
+	stroke: f32 = 0.0,
+	target_texture: ^Texture = nil,
+	integer: bool = true) {
 	// (TODO): Test culling. Add culling to other primitives. //
 	clip := gx_clip_get()
 	if gx_rect_cull(rect, clip) do return
 	command: Draw_Rect_Command = {
-		render_buffer = render_buffer,
+		target_texture = target_texture,
 		rect = integer ? rect_round(rect) : rect,
 		// rect = integer ? rect_round_offset(rect, { 0.5, 0.5 }) : rect,
 		fill_color = fill_color,
@@ -143,9 +150,9 @@ dr_image_Params :: struct {
 
 dr_image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
-	image: ^Image_Asset }
+	image: ^Texture }
 
-dr_image :: proc(image: ^Image_Asset, rect: Rect, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+dr_image :: proc(image: ^Texture, rect: Rect, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
 	command: Draw_Image_Command = {
 		render_buffer = render_buffer,
 		image = image,

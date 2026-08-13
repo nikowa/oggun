@@ -34,7 +34,7 @@ am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = f
 			assert(am_entry_integrity(entry)) }
 		asset.location += { .Database }
 		return true
-	case .Load:
+	case .Deserialize:
 		if .Database not_in asset.location {
 			log.errorf("Failed to load string %s because it hasn't been imported.", asset.url)
 			return false }
@@ -43,7 +43,7 @@ am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = f
 		string_asset.str = strings.clone_from_bytes(entry.data, engine.backing_allocator)
 		asset.location += { .Main_Memory }
 		return true
-	case .Export, .Save, .Upload, .Download:
+	case .Export, .Serialize, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for asset kind \"string\".", command)
 		return false }
 	return false }

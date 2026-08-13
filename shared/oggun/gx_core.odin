@@ -259,8 +259,8 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		// graphics_manager.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 		// DICK
 		engine.graphics_manager.canvas_rb = make_render_buffer(engine.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
-		am_register_asset_kind(Image_Asset, { command = image_asset_command })
-		am_register_asset_kind(Material_Asset, { command = image_asset_command }) }
+		am_register_asset_kind(Texture, { command = texture_command })
+		am_register_asset_kind(Material_Asset, { command = texture_command }) }
 	else {
 		log.warn("No asset manager.") }
 	zero_stopwatch(&engine.graphics_manager.stopwatch)
@@ -343,7 +343,7 @@ make_render_buffer :: proc(size: [2]f32, internal_formats: []i32, formats: []u32
 // 	n_surf_displaced = [3]f32{ buffer[0], buffer[1], buffer[2] }
 // 	return d_surf, d_surf_displaced, d_surfer, n_surf, n_surf_displaced }
 
-
+// (TODO): size should be [2]u32
 init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]f32, internal_formats: []i32, formats: []u32, data_types: []u32, samples: int = 1, depth_component: bool = true) {
 	assert(render_buffer != nil)
 	assert(!((size.x == 0) || (size.y == 0) || (len(internal_formats) == 0) || (len(internal_formats) != len(formats))))

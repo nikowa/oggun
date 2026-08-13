@@ -122,7 +122,7 @@ parse :: proc(file_content: []byte, opt := Options{}, allocator := context.alloc
         data.extras = extras
     }
 
-    // Load remaining binary chunks.
+    // Deserialize remaining binary chunks.
     for buf_idx := 0; opt.is_glb && buf_idx < len(data.buffers) && int(content_index) < len(file_content); buf_idx += 1 {
         chunk_header := (cast(^GLB_Chunk_Header)(raw_data(file_content[content_index:content_index + GLB_CHUNK_HEADER_SIZE])))
         content_index += GLB_CHUNK_HEADER_SIZE

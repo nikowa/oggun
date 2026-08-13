@@ -23,8 +23,8 @@ DEFAULT_FONT_CONFIG: Font_Config : {
 
 Font :: struct {
 	using font_config: Font_Config,
-	bitmap_image: ^Image_Asset,
-	bitmap_image_bold: ^Image_Asset,
+	bitmap_image: ^Texture,
+	bitmap_image_bold: ^Texture,
 	positions_string: String_Asset,
 	symbol_size: [2]f32,
 	bearings: [256]u8,
@@ -64,18 +64,18 @@ symbol_size_from_text_style :: proc(text_style: Text_Style, symbol: u8) -> [2]f3
 
 font_init :: proc(font: ^Font, config: Font_Config) {
 	font.font_config = config
-	font.bitmap_image = new(Image_Asset)
-	init_image(font.bitmap_image, { url = auto_cast fmt.aprintf("image:%s.png", font.name) })
+	font.bitmap_image = new(Texture)
+	texture_init(font.bitmap_image, { url = auto_cast fmt.aprintf("image:%s.png", font.name) })
 	bold_url: URL = cast(URL)fmt.aprintf("image:%s-bold.png", font.name)
 	bold_path: string = am_path_from_url(bold_url, context.allocator)
 	// fmt.println(bold_path)
 	if os.exists(bold_path) {
-		font.bitmap_image_bold = new(Image_Asset)
-		init_image(font.bitmap_image_bold, { url = bold_url })
+		font.bitmap_image_bold = new(Texture)
+		texture_init(font.bitmap_image_bold, { url = bold_url })
 	} else {
 		font.bitmap_image_bold = font.bitmap_image }
-	assert(am_commands(Image_Asset, &font.bitmap_image.asset, { .Import, .Load, .Upload }))
-	// assert(am_commands(Image_Asset, &font.bitmap_image_bold.asset, { .Import, .Load, .Upload }))
+	assert(am_commands(Texture, &font.bitmap_image.asset, { .Import, .Deserialize, .Upload }))
+	// assert(am_commands(Texture, &font.bitmap_image_bold.asset, { .Import, .Deserialize, .Upload }))
 	if font.default_advance == 0 do font.default_advance = u8(font.bitmap_image.height / 16)
 	font.symbol_size = { f32(font.bitmap_image.width / 16), f32(font.bitmap_image.height / 16) }
 	font.bearings = font.default_bearing
@@ -83,7 +83,7 @@ font_init :: proc(font: ^Font, config: Font_Config) {
 	baf_path: string = fmt.aprintf("string:%s.baf", font.name)
 	if os.exists(am_path_from_url(cast(URL)baf_path, context.temp_allocator)) {
 	am_init_string_asset(&font.positions_string, { auto_cast baf_path, String_Asset })
-	assert(am_commands(String_Asset, &font.positions_string.asset, { .Import, .Load }))
+	assert(am_commands(String_Asset, &font.positions_string.asset, { .Import, .Deserialize }))
 	lines: []string = strings.split_lines(font.positions_string.str)
 	for line in lines {
 		// (TODO): This can be simplified a little. Why is "line" split twice? //

@@ -22,9 +22,19 @@ main :: proc() {
 			track_temp_allocations=true,
 			temp_allocator_cap=1000 * mem.Megabyte))
 
-	mountain_image: og.Image_Asset
-	og.init_image(&mountain_image, { url = "image:mountain.png" })
-	assert(og.am_commands(og.Image_Asset, &mountain_image.asset, { .Import, .Load, .Upload }))
+	// Calculate rects //
+	rect_screen := og.ui_rect_screen()
+	card_rect := og.ui_rect_margins_variate(rect_screen,
+		west=og.Ratio(0.3), east=og.Ratio(0.3),
+		north=og.Ratio(0.1), south=og.Ratio(0.1))
+
+	// Create images //
+	mountain_texture: og.Texture
+	og.texture_init(&mountain_texture, { url = "image:mountain.png" })
+	assert(og.am_commands(og.Texture, &mountain_texture.asset, { .Import, .Deserialize, .Upload }))
+
+	card_texture: og.Texture = { width = cast(int)card_rect.size.x, height = cast(int)card_rect.size.y }
+	og.texture_init(&card_texture, {}, { .Allocate_Empty, .Allocate_Render_Buffer })
 
 	font: og.Font
 	og.font_init(&font, { name = "terminus", default_bearing = 0, default_advance = 0 })
@@ -37,12 +47,6 @@ main :: proc() {
 		time := og.read_stopwatch(&stopwatch)
 		if og.engine_tick() {
 
-			// Calculate rects //
-			rect_screen := og.ui_rect_screen()
-			card_rect := og.ui_rect_margins_variate(rect_screen,
-				west=og.Ratio(0.3), east=og.Ratio(0.3),
-				north=og.Ratio(0.1), south=og.Ratio(0.1))
-
 			// Create images //
 			// 1. Create image of size "card_rect.size"
 			// 2. Fill with black.
@@ -50,8 +54,10 @@ main :: proc() {
 			// 4. Blend shader.
 
 			og.dr_rect(rect_screen, 0xE0A887FF)
+			og.dr_rect(card_rect, 0xFF0000FF, target_texture=&card_texture)
+			og.dr_image(&card_texture, card_rect)
 
-			{ og.gx_depth_scope(0.5); og.dr_image(&mountain_image, card_rect, integer=false) }
+			{ og.gx_depth_scope(0.5); og.dr_image(&mountain_texture, card_rect, integer=false) }
 
 			{ og.gx_depth_scope(0.0); og.ui_metrics_widget() } } }
 	return }

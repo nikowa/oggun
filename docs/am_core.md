@@ -29,6 +29,79 @@ Asset_Manager :: struct {
 	... }
 ```
 
+### `Asset_Command`
+
+```odin
+Asset_Command :: enum {
+	Validate,
+	Query_Location,
+	Serialize,
+	Deserialize,
+	Read,
+	Write,
+	Deserialize,
+	Serialize,
+	Upload,
+	Download }
+```
+
+See [asset flowchart](../architecture/#asset-flowchart).
+
+### `Asset_Location`
+
+```odin
+Asset_Location :: bit_set[Asset_Location_Field]
+```
+
+### `Asset_Location_Field`
+
+```odin
+Asset_Location_Field :: enum {
+	Source_Directory,
+	Database_File,
+	Database,
+	Main_Memory,
+	GPU_Memory }
+```
+
+### `Asset_Command_Proc`
+
+```odin
+Asset_Command_Proc :: #type proc(
+	asset: ^Asset,
+	command: Asset_Command,
+	watch: bool = false) -> (ok: bool)
+```
+
+The type of the generic asset command procedure.
+
+### `Asset_Config`
+
+```odin
+Asset_Config :: struct {
+	url: URL,
+	derived_type: typeid }
+```
+
+The configuration parameters of `Asset`. `url` is the asset's identifier.
+
+### `Asset`
+
+```odin
+Asset :: struct {
+	using asset_config: Asset_Config,
+	... }
+```
+
+Abstract class from which asset classes are derived.
+
+### `Asset_Kind`
+
+```odin
+Asset_Kind :: struct {
+	command: Asset_Command_Proc }
+```
+
 ### `DEFAULT_ASSET_MANAGER_CONFIG`
 
 ```odin
@@ -39,3 +112,43 @@ DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
 	autosave_cap = 10,
 	watch = true }
 ```
+
+### `DEFAULT_URL`
+
+```odin
+DEFAULT_URL :: "unknown:unnamed"
+```
+
+### `DEFAULT_ASSET_CONFIG`
+
+```odin
+DEFAULT_ASSET_CONFIG: Asset_Config : {
+	url = DEFAULT_URL,
+	derived_type = string }
+```
+
+<pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>

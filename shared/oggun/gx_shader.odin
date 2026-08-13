@@ -201,7 +201,7 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, con
 	am_init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
 	am_init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
 	append(&engine.graphics_manager.shaders, shader) or_return
-	assert(am_commands(Shader_Asset, shader, { .Import, .Load }))
+	assert(am_commands(Shader_Asset, shader, { .Import, .Deserialize }))
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -415,13 +415,13 @@ shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool 
 		assert(am_command(String_Asset, &shader_asset.frag_asset, .Import))
 		asset.location += { .Database }
 		return true
-	case .Load:
+	case .Deserialize:
 		if watch do if ! shader_outdated(shader_asset) do return
-		assert(am_command(String_Asset, &shader_asset.vert_asset, .Load))
-		assert(am_command(String_Asset, &shader_asset.frag_asset, .Load))
+		assert(am_command(String_Asset, &shader_asset.vert_asset, .Deserialize))
+		assert(am_command(String_Asset, &shader_asset.frag_asset, .Deserialize))
 		err := compile_shader(shader_asset)
 		return err == nil
-	case .Export, .Save, .Upload, .Download:
+	case .Export, .Serialize, .Upload, .Download:
 		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)
 		return false }
 	return false }

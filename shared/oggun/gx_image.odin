@@ -2,7 +2,7 @@
 package oggun
 import "base:runtime"
 import "core:os"
-import "core:image"
+import im "core:image"
 import "core:image/png"
 import "core:image/jpeg"
 import "core:bytes"
@@ -11,19 +11,30 @@ import "core:log"
 import "core:time"
 import gl "vendor:OpenGL"
 
-Image_Asset :: struct {
+Texture :: struct {
 	using asset: Asset,
-	using image: image.Image,
+	using image: im.Image,
 	modification_time: time.Time,
 	gpu_modification_time: time.Time,
-	handle: u32 }
+	handle: u32,
+	render_buffer: ^Render_Buffer }
 
-init_image :: proc(image: ^Image_Asset, config: Asset_Config) {
+Texture_Create_Flag :: enum {
+	Allocate_Empty,
+	Allocate_Render_Buffer }
+
+Texture_Create_Flags :: bit_set[Texture_Create_Flag]
+
+DEFAULT_IMAGE_SIZE: [2]int : { 1024, 1024 }
+
+texture_init :: proc(texture: ^Texture, config: Asset_Config, flags: Texture_Create_Flags = {}) {
 	config := config
-	config.derived_type = Image_Asset
-	am_init_asset(Image_Asset, &image.asset, config) }
+	config.derived_type = Texture
+	if .Allocate_Empty in flags do _texture_allocate_empty(texture)
+	if .Allocate_Render_Buffer in flags do _texture_allocate_render_buffer(texture)
+	am_init_asset(Texture, &texture.asset, config) }
 
-image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
+image_equiv :: proc(a: ^Texture, b: ^Texture) -> bool {
 	return (a.url == b.url) &&
 		(a.width == b.width) &&
 		(a.channels == b.channels) &&
@@ -32,7 +43,7 @@ image_equiv :: proc(a: ^Image_Asset, b: ^Image_Asset) -> bool {
 		(a.metadata == b.metadata) &&
 		(a.which == b.which) }
 
-image_modification_time :: proc(image: ^Image_Asset, location: Asset_Location_Field) -> (modification_time: time.Time) {
+image_modification_time :: proc(image: ^Texture, location: Asset_Location_Field) -> (modification_time: time.Time) {
 	switch location {
 	case .Source_Directory:
 		path := am_path_from_url(image.url, context.temp_allocator)
@@ -51,20 +62,40 @@ image_modification_time :: proc(image: ^Image_Asset, location: Asset_Location_Fi
 		return image.gpu_modification_time }
 	return {} }
 
+texture_is_empty :: proc(image: ^Texture) -> bool {
+	return len(image.pixels.buf) == 0 }
+
+_texture_allocate_empty :: proc(texture: ^Texture) {
+	width: int = (texture.width != 0) ? texture.width : DEFAULT_IMAGE_SIZE.x
+	height: int = (texture.height != 0) ? texture.height : DEFAULT_IMAGE_SIZE.y
+	// channels: int = (texture.channels != 0) ? texture.channels : 4
+	texture.image = make_image(width, height, 4) }
+
+_texture_allocate_render_buffer :: proc(texture: ^Texture) {
+	texture.render_buffer = new(Render_Buffer)
+	texture.render_buffer^ = make_render_buffer({ cast(f32)texture.width, cast(f32)texture.height }, { gl.RGBA8 }, { gl.RGBA }, { gl.UNSIGNED_BYTE }) }
+
 @private
-image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
-	img := am_asset_base(asset, Image_Asset, "asset")
+texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+	image := am_asset_base(asset, Texture, "asset")
+	// #partial switch command {
+	// case .Download, .Upload, .Serialize, .Deserialize, .Export, .Import:
+	// 	if texture_is_empty(image) {
+	// 		width: int = (image.width != 0) ? image.width : DEFAULT_IMAGE_SIZE.x
+	// 		height: int = (image.height != 0) ? image.height : DEFAULT_IMAGE_SIZE.y
+	// 		image.image = make_image(width, height) } }
 	switch command {
 	case .Validate:
 	case .Query_Location:
 		path := am_path_from_url(asset.url, context.temp_allocator)
 		if os.exists(path) do asset.location += { .Source_Directory }
 	case .Import:
+		if image.url == "" do return false
 		err: os.Error
-		path := am_path_from_url(img.url, context.allocator)
+		path := am_path_from_url(image.url, context.allocator)
 		modification_time, _ := os.modification_time_by_path(path)
-		if time.diff(img.modification_time, modification_time) <= 0 do return true
-		loader_proc: image.Loader_Proc
+		if time.diff(image.modification_time, modification_time) <= 0 do return true
+		loader_proc: im.Loader_Proc
 		switch ext := os.ext(path); ext {
 		case ".png": loader_proc = png.load_from_bytes
 		case ".jpg", ".jpeg": loader_proc = jpeg.load_from_bytes
@@ -72,66 +103,69 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 		bytes: []u8
 		if bytes, err = os.read_entire_file(path, context.allocator); err != nil {
 			return false }
-		image_temp, image_err := loader_proc(bytes, image.Options{}, context.allocator)
+		image_temp, image_err := loader_proc(bytes, im.Options{}, context.allocator)
 		if image_err != nil {
 			log.errorf("Image error: %v.", image_err); return false }
-		img.image = image_temp^
+		image.image = image_temp^
 		free(image_temp)
-		bytes, _ = image_serialize(img, context.allocator)
-		am_add_or_update_entry(am_make_entry(img.url, bytes, modification_time))
+		bytes, _ = image_serialize(image, context.allocator)
+		am_add_or_update_entry(am_make_entry(image.url, bytes, modification_time))
 		asset.location += { .Database, .Main_Memory }
-		img.modification_time = modification_time
+		image.modification_time = modification_time
 		return true
 	case .Export:
-	case .Load:
-		return image_asset_command(asset, .Import, watch)
-	case .Save:
+		if image.url == "" do return false
+	case .Deserialize:
+		if image.url == "" do return false
+		return texture_command(asset, .Import, watch)
+	case .Serialize:
+		if image.url == "" do return false
 	case .Upload:
-		if img.handle != 0 do download_image(img)
-		gl.GenTextures(1, &img.handle)
-		gl.BindTexture(gl.TEXTURE_2D, img.handle)
+		if image.handle != 0 do download_image(image)
+		gl.GenTextures(1, &image.handle)
+		gl.BindTexture(gl.TEXTURE_2D, image.handle)
 		internal_format: i32
 		data_format: u32
 		data_format_type: u32
-		switch img.channels {
+		switch image.channels {
 		case 1:
-			switch img.depth {
+			switch image.depth {
 			case 8:
 				internal_format = gl.R8
 				data_format = gl.RED
 			case:
-				log.errorf("Unsupported data format for texture %s.", img.url)
+				log.errorf("Unsupported data format for texture %s.", image.url)
 				return false }
 		case 3:
-			switch img.depth {
+			switch image.depth {
 			case 8:
 				internal_format = gl.RGB8
 				data_format = gl.RGB
 			case:
-				log.errorf("Unsupported data format for texture %s.", img.url)
+				log.errorf("Unsupported data format for texture %s.", image.url)
 				return false }
 		case 4:
-			switch img.depth {
+			switch image.depth {
 			case 8:
 				internal_format = gl.RGBA8
 				data_format = gl.RGBA
 			case:
-				log.errorf("Unsupported internal format for texture %s.", img.url)
+				log.errorf("Unsupported internal format for texture %s.", image.url)
 				return false }
 		case:
-			log.errorf("Unsupported channel count for texture %s.", img.url)
+			log.errorf("Unsupported channel count for texture %s.", image.url)
 			return false }
 		data_format_type = gl.UNSIGNED_BYTE
-		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)img.width, cast(i32)img.height, 0, data_format, data_format_type, &img.pixels.buf[0])
+		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)image.width, cast(i32)image.height, 0, data_format, data_format_type, &image.pixels.buf[0])
 		texture_wrapping(gl.REPEAT)
 		texture_filtering(gl.NEAREST)
-		img.gpu_modification_time = img.modification_time
+		image.gpu_modification_time = image.modification_time
 		asset.location += { .GPU_Memory }
 		return true
 	case .Download: }
 	return false }
 
-// import_or_retreive_image :: proc(database: ^Asset_Manager, url: URL, allocator: runtime.Allocator) -> (image: Image_Asset, err: os.Error) {
+// import_or_retreive_image :: proc(database: ^Asset_Manager, url: URL, allocator: runtime.Allocator) -> (image: Texture, err: os.Error) {
 // 	entry: ^Entry
 // 	ok: bool
 // 	path: string
@@ -151,7 +185,7 @@ image_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool =
 // 	return image, os.General_Error.None }
 
 @(require_results)
-image_serialize :: proc(image: ^Image_Asset, allocator: runtime.Allocator) -> (image_bytes: []u8, err: os.Error) {
+image_serialize :: proc(image: ^Texture, allocator: runtime.Allocator) -> (image_bytes: []u8, err: os.Error) {
 	buffer: bytes.Buffer
 	n: int
 
@@ -161,7 +195,7 @@ image_serialize :: proc(image: ^Image_Asset, allocator: runtime.Allocator) -> (i
 	return slice.clone(bytes.buffer_to_bytes(&buffer), allocator), os.General_Error.None }
 
 @(require_results)
-image_deserialize :: proc(image_bytes: []u8, allocator: runtime.Allocator) -> (image: Image_Asset, err: os.Error) {
+image_deserialize :: proc(image_bytes: []u8, allocator: runtime.Allocator) -> (image: Texture, err: os.Error) {
 	reader: bytes.Reader
 	n: int
 
@@ -172,9 +206,15 @@ image_deserialize :: proc(image_bytes: []u8, allocator: runtime.Allocator) -> (i
 	bytes.reader_read_slice(&reader, image.pixels.buf[:]) or_return
 	return image, os.General_Error.None }
 
-download_image :: proc(image: ^Image_Asset) {
+download_image :: proc(image: ^Texture) {
 	gl.DeleteTextures(1, &image.handle)
 	image.handle = 0 }
 
-image_loaded :: proc(image: ^Image_Asset) -> bool {
+image_loaded :: proc(image: ^Texture) -> bool {
 	return image.handle != 0 }
+
+make_image :: proc(#any_int width: int, #any_int height: int, $channels: int, allocator := context.allocator) -> (image: im.Image) {
+	pixels := make([][channels]u8, width * height, allocator)
+	ok: bool; image, ok = im.pixels_to_image(pixels, width, height)
+	assert(ok)
+	return image }

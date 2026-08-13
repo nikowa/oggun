@@ -75,8 +75,8 @@ package tests
 // @(test)
 // image_test :: proc(t_context: ^tst.T) {
 // 	allocator: rt.Allocator
-// 	image: gx.Image_Asset
-// 	deserialized_image: gx.Image_Asset
+// 	image: gx.Texture
+// 	deserialized_image: gx.Texture
 // 	relpath: string
 // 	path: string
 // 	url: as.URL

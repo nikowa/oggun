@@ -108,7 +108,7 @@ dr_icon_extended :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, color:
 	ui_text_style_scope(icons_text_style)
 	dr_text_symbol_rect(cast(u8)icon, { position, UI_ICON_SIZE }, angle = angle) }
 
-dr_avatar :: proc(position: [2]f32, name: string="", image: ^Image_Asset=nil, icon: UI_Icon=.Person) {
+dr_avatar :: proc(position: [2]f32, name: string="", image: ^Texture=nil, icon: UI_Icon=.Person) {
 	avatar_rect: Rect = { position, UI_AVATAR_SIZE }
 	theme := engine.ui_manager.theme
 	fill_color: Color = theme[UI_Theme_Key.NEUTRAL_BACKGROUND_2][UI_Variant.SELECTED]

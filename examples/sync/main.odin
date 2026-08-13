@@ -14,8 +14,8 @@ import "core:mem"
 
 stopwatch: time.Stopwatch
 screen_rect: oggun.Rect
-images: [dynamic]^oggun.Image_Asset
-background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: oggun.Image_Asset
+images: [dynamic]^oggun.Texture
+background_image, car_image, tree_image, aardvark_image, meerkat_image, zebra_image: oggun.Texture
 font_group: oggun.Font_Group
 
 main :: proc() {
@@ -99,7 +99,7 @@ dr_entity :: proc(entity: ^Entity) {
 
 	screen_position: [2]f32
 	screen_position = entity.position * screen_rect.size / 2
-	image: ^Image_Asset
+	image: ^Texture
 	image_size: [2]f32
 	label: string
 	#partial switch variant in entity.variant {
@@ -123,20 +123,20 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 		engine_config=default_engine_config(game_name="Sync Example", temp_allocator_cap=1000 * mem.Megabyte))
 	screen_rect = ui_rect_screen()
 
-	init_image(&background_image, { url = "image:savanna-background.png" })
+	texture_init(&background_image, { url = "image:savanna-background.png" })
 	append(&images, &background_image)
-	init_image(&car_image, { url = "image:car.png" })
+	texture_init(&car_image, { url = "image:car.png" })
 	append(&images, &car_image)
-	init_image(&tree_image, { url = "image:tree.png" })
+	texture_init(&tree_image, { url = "image:tree.png" })
 	append(&images, &tree_image)
-	init_image(&aardvark_image, { url = "image:aardvark.png" })
+	texture_init(&aardvark_image, { url = "image:aardvark.png" })
 	append(&images, &aardvark_image)
-	init_image(&meerkat_image, { url = "image:meerkat.png" })
+	texture_init(&meerkat_image, { url = "image:meerkat.png" })
 	append(&images, &meerkat_image)
-	init_image(&zebra_image, { url = "image:zebra.png" })
+	texture_init(&zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(am_commands(Image_Asset, &image.asset, { .Import, .Load, .Upload }))
+	for &image in images do assert(am_commands(Texture, &image.asset, { .Import, .Deserialize, .Upload }))
 
 	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
 	text_style: oggun.Text_Style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)
