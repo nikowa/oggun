@@ -17,16 +17,16 @@ UI_Pan_Control :: struct {
 	panning: bool }
 
 ui_pan_control :: proc(id: ID, dest_rect: Rect, src_rect: Rect, initial_position: [2]f32={ 0, 0 }, reset: bool=false) -> [2]f32 {
-	state, ok := engine.ui_manager.pan_controls[id]
+	control, ok := state.ui_manager.pan_controls[id]
 	hovered := ui_rect_hovered(dest_rect)
-	if hovered && input_query(.Mouse_Left, .PRESSED) do state.panning = true
-	if input_query(.Mouse_Left, .RELEASED) do state.panning = false
-	if state.panning {
-		state.position -= (src_rect.size / dest_rect.size) * engine.input_manager.mouse_delta
+	if hovered && input_query(.Mouse_Left, .PRESSED) do control.panning = true
+	if input_query(.Mouse_Left, .RELEASED) do control.panning = false
+	if control.panning {
+		control.position -= (src_rect.size / dest_rect.size) * state.input_manager.mouse_delta
 		wd_set_cursor(.Move) }
-	if !ok || reset do state.position = initial_position
-	engine.ui_manager.pan_controls[id] = state
-	return state.position }
+	if !ok || reset do control.position = initial_position
+	state.ui_manager.pan_controls[id] = control
+	return control.position }
 
 ui_scroll_control :: ui_zoom_control
 
@@ -34,13 +34,13 @@ UI_Zoom_Control :: f32
 UI_DEFAULT_ZOOM_CONTROL: UI_Zoom_Control : math.F32_MAX
 
 ui_zoom_control :: proc(id: ID, rect: Rect, initial_value: f32=1, range: [2]f32={ 0, 1 }, speed: f32=1.0, reset: bool=false) -> f32 {
-	state, ok := engine.ui_manager.zoom_controls[id]
+	control, ok := state.ui_manager.zoom_controls[id]
 	hovered := ui_rect_hovered(rect)
-	if hovered do state -= speed * 0.05 * engine.input_manager.scroll_delta
-	state = clamp(state, range[0], range[1])
-	if !ok || reset do state = initial_value
-	engine.ui_manager.zoom_controls[id] = state
-	return state }
+	if hovered do control -= speed * 0.05 * state.input_manager.scroll_delta
+	control = clamp(control, range[0], range[1])
+	if !ok || reset do control = initial_value
+	state.ui_manager.zoom_controls[id] = control
+	return control }
 
 ui_button_control :: proc { ui_basic_button_control, ui_extended_button_control }
 

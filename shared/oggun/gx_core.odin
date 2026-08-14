@@ -129,10 +129,10 @@ Render_Buffer :: struct {
 // 	buffers:                  [][]u8 }
 
 graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) {
-	engine.graphics_manager.graphics_config = graphics_config
+	state.graphics_manager.graphics_config = graphics_config
 	wd_update_size()
 	when GRAPHICS_BACKEND == .OpenGL do init_opengl()
-	command_buffer_init(&engine.graphics_manager.command_buffer)
+	command_buffer_init(&state.graphics_manager.command_buffer)
 // 	width:         i32
 // 	height:        i32
 // 	ok:            bool
@@ -162,7 +162,7 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 
 
 
-	engine.graphics_manager.active_resolution = engine.window_manager.size
+	state.graphics_manager.active_resolution = state.window_manager.size
 
 
 // 	draw.default_sb, ok = make_scene_buffer_static(draw.resolution)
@@ -225,24 +225,24 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 // 	load_models_from_gltf(draw, working_directory_path, "beach")
 // 	bake_models(draw, cache)
 // 	init_cubemap(&draw.cubemap, { 512, 512 })
-	if engine.asset_manager.initialized {
+	if state.asset_manager.initialized {
 		am_register_asset_kind(Shader_Asset, { command = shader_asset_command })
-		engine.graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
-		init_shader_asset(&engine.graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }) or_return
-		init_shader_asset(&engine.graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }) or_return
+		state.graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
+		init_shader_asset(&state.graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }) or_return
+		init_shader_asset(&state.graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }) or_return
 		// (TEMP):
-		init_shader_asset(&engine.graphics_manager.arc_shader, { "shader:arc", Shader_Asset }, { "string:varc.glsl", "string:farc.glsl" }) or_return
-		init_shader_asset(&engine.graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }) or_return
-		init_shader_asset(&engine.graphics_manager.text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }) or_return
-		init_shader_asset(&engine.graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }) or_return
-		init_shader_asset(&engine.graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }) or_return
-		init_shader_asset(&engine.graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }) or_return
-		assert(am_command(Shader_Asset, &engine.graphics_manager.rect_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &engine.graphics_manager.line_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &engine.graphics_manager.image_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &engine.graphics_manager.model_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &engine.graphics_manager.mesh_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &engine.graphics_manager.buffer_shader.asset, .Import))
+		init_shader_asset(&state.graphics_manager.arc_shader, { "shader:arc", Shader_Asset }, { "string:varc.glsl", "string:farc.glsl" }) or_return
+		init_shader_asset(&state.graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }) or_return
+		init_shader_asset(&state.graphics_manager.text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }) or_return
+		init_shader_asset(&state.graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }) or_return
+		init_shader_asset(&state.graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }) or_return
+		init_shader_asset(&state.graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }) or_return
+		assert(am_command(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Import))
+		assert(am_command(Shader_Asset, &state.graphics_manager.line_shader.asset, .Import))
+		assert(am_command(Shader_Asset, &state.graphics_manager.image_shader.asset, .Import))
+		assert(am_command(Shader_Asset, &state.graphics_manager.model_shader.asset, .Import))
+		assert(am_command(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Import))
+		assert(am_command(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Import))
 		// graphics_manager.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 		// graphics_manager.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 		// graphics_manager.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
@@ -258,21 +258,23 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		// graphics_manager.sdf_shader                  = make_shader_asset(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 		// graphics_manager.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 		// DICK
-		engine.graphics_manager.canvas_rb = make_render_buffer(engine.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
+		state.graphics_manager.canvas_rb = make_render_buffer(state.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 		am_register_asset_kind(Texture, { command = texture_command })
 		am_register_asset_kind(Material_Asset, { command = texture_command }) }
 	else {
 		log.warn("No asset manager.") }
-	zero_stopwatch(&engine.graphics_manager.stopwatch)
-	engine.graphics_manager.clip_stack = make([dynamic]Clip)
-	engine.graphics_manager.depth_stack = make([dynamic]f32)
+	zero_stopwatch(&state.graphics_manager.stopwatch)
+	state.graphics_manager.clip_stack = make([dynamic]Clip)
+	state.graphics_manager.depth_stack = make([dynamic]f32)
 	return nil }
 
 select_render_buffer :: proc(render_buffer: ^Render_Buffer) {
-	if render_buffer == nil { select_frame_buffer(0) }
-	engine.graphics_manager.active_resolution = render_buffer.size
+	if render_buffer == nil {
+		select_frame_buffer(0)
+		return }
+	state.graphics_manager.active_resolution = render_buffer.size
 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
-	gl.Viewport(0, 0, cast(i32)engine.graphics_manager.active_resolution.x, cast(i32)engine.graphics_manager.active_resolution.y) }
+	gl.Viewport(0, 0, cast(i32)state.graphics_manager.active_resolution.x, cast(i32)state.graphics_manager.active_resolution.y) }
 
 clear_render_buffer :: proc(render_buffer: ^Render_Buffer) {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, cast(u32)render_buffer.frame_buffer_handle)
@@ -280,9 +282,9 @@ clear_render_buffer :: proc(render_buffer: ^Render_Buffer) {
 	gl.Clear(gl.DEPTH_BUFFER_BIT) }
 
 select_frame_buffer :: proc(frame_buffer_handle: u32) {
-	engine.graphics_manager.active_resolution = engine.window_manager.size
+	state.graphics_manager.active_resolution = state.window_manager.size
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
-	gl.Viewport(0, 0, cast(i32)engine.window_manager.size.x, cast(i32)engine.window_manager.size.y) }
+	gl.Viewport(0, 0, cast(i32)state.window_manager.size.x, cast(i32)state.window_manager.size.y) }
 
 clear_frame_buffer :: proc(frame_buffer_handle: u32) {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frame_buffer_handle)
@@ -679,8 +681,8 @@ delete_buffers :: proc(buffers: [$N]u32) {
 
 render_render_buffer :: proc(render_buffer: ^Render_Buffer, channel: u32) {
 	using Buffer_Shader_Uniforms
-	use_shader(&engine.graphics_manager.buffer_shader)
-	set_shader_param(RES, linalg.array_cast(engine.graphics_manager.active_resolution, f32))
+	use_shader(&state.graphics_manager.buffer_shader)
+	set_shader_param(RES, linalg.array_cast(state.graphics_manager.active_resolution, f32))
 	bind_texture(0, render_buffer.texture_handles[cast(int)channel])
 	texture_filtering(gl.NEAREST)
 	polygon_mode(.Fill)
@@ -1108,16 +1110,16 @@ tick_graphics_manager :: proc() {
 tick_graphics_manager_begin :: proc() {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	clear_frame_buffer(0)
-	engine.graphics_manager.time = read_stopwatch(&engine.graphics_manager.stopwatch)
-	select_render_buffer(&engine.graphics_manager.canvas_rb)
-	clear_render_buffer(&engine.graphics_manager.canvas_rb)
+	state.graphics_manager.time = read_stopwatch(&state.graphics_manager.stopwatch)
+	select_render_buffer(&state.graphics_manager.canvas_rb)
+	clear_render_buffer(&state.graphics_manager.canvas_rb)
 	set_depth_test(true) }
 
 tick_graphics_manager_end :: proc() {
-	command_buffer_submit(&engine.graphics_manager.command_buffer)
+	command_buffer_submit(&state.graphics_manager.command_buffer)
 	set_depth_test(false)
 	select_frame_buffer(0)
-	if engine.graphics_manager.buffer_shader.handle != 0 do render_render_buffer(&engine.graphics_manager.canvas_rb, 0)
+	if state.graphics_manager.buffer_shader.handle != 0 do render_render_buffer(&state.graphics_manager.canvas_rb, 0)
 
 // 	if .MODELS in draw.dr_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.dr_mask {
@@ -1186,13 +1188,13 @@ tick_graphics_manager_end :: proc() {
 // 	// cap_fps()
 	when WINDOW_BACKEND == .GLFW {
 		// (TODO): This should be in "wd_tick"
-		if glfw.WindowShouldClose(cast(glfw.WindowHandle)engine.window_manager.handle) do engine.graphics_manager.window_closed = true }
+		if glfw.WindowShouldClose(cast(glfw.WindowHandle)state.window_manager.handle) do state.graphics_manager.window_closed = true }
 
 // 	// TODO: Add a dr_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //
 // 	watch_models(draw, "beach")
 // 	{ lock_guard(&physics.lock); physics.d_surf, physics.d_surf_displaced, physics.d_surfer, physics.n_surf, physics.n_surf_displaced = read_physics_render_buffer(draw) }
 // 	{ lock_guard(&input.lock); if key_was_pressed(input, .J) do recompile_shaders(unwrap(draw), working_directory_path) }
-	engine.graphics_manager.frame_count += 1 }
+	state.graphics_manager.frame_count += 1 }
 	// DICK
 
 

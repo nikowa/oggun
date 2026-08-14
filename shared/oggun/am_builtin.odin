@@ -28,7 +28,7 @@ am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = f
 		entry, existed := am_get_or_add_entry(asset.url)
 		if ! existed || am_entry_was_modified(entry) {
 			path := am_path_from_url(asset.url, context.temp_allocator)
-			bytes: []u8; bytes, err = os.read_entire_file_from_path(path, engine.backing_allocator)
+			bytes: []u8; bytes, err = os.read_entire_file_from_path(path, state.backing_allocator)
 			modification_time, _ := os.modification_time_by_path(path)
 			am_add_or_update_entry(am_make_entry(asset.url, bytes, modification_time))
 			assert(am_entry_integrity(entry)) }
@@ -40,7 +40,7 @@ am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = f
 			return false }
 		entry := am_get_entry(asset.url)
 		if watch do if string_asset.str == cast(string)entry.data do return true
-		string_asset.str = strings.clone_from_bytes(entry.data, engine.backing_allocator)
+		string_asset.str = strings.clone_from_bytes(entry.data, state.backing_allocator)
 		asset.location += { .Main_Memory }
 		return true
 	case .Export, .Serialize, .Upload, .Download:

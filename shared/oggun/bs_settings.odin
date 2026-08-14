@@ -23,7 +23,7 @@ DEFAULT_SETTINGS_MANAGER_CONFIG: Settings_Manager_Config : {
 
 settings_manager_init :: proc(settings_manager: ^Settings_Manager, config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) {
 	settings_manager.settings_manager_config = config
-	directory_path, _ := os.join_path({ os.user_data_dir(context.temp_allocator) or_else "", engine.game_name }, context.temp_allocator)
+	directory_path, _ := os.join_path({ os.user_data_dir(context.temp_allocator) or_else "", state.game_name }, context.temp_allocator)
 	if ! os.exists(directory_path) do assert(os.make_directory(directory_path) == nil)
 	path_base, _ := os.join_path({ directory_path, settings_manager.settings_name }, context.temp_allocator)
 	settings_manager.path, _ = os.join_filename(path_base, "ini", context.allocator)

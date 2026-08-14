@@ -62,8 +62,8 @@ DEFAULT_CAMERA_CONFIG: Camera_Config : {
 
 sn_camera_2d_tick :: proc(camera: ^Camera_2D) {
 	if ! tick_safe(camera) do return
-	// if camera.last_tick == engine.tick_count do return
-	// camera.last_tick = engine.tick_count
+	// if camera.last_tick == state.tick_count do return
+	// camera.last_tick = state.tick_count
 	camera.rect = sn_camera_2d_rect(camera)
 	camera.view_matrix =
 		matrix3_rotate_f32(camera.rotation) *

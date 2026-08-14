@@ -15,10 +15,10 @@ ui_metrics_widget :: proc() {
 	dr_text_box(fmt.aprintf("FPS: %d", cast(int)get_frame_rate()), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
 	metrics_rect = ui_rect_translate(metrics_rect, { 0, 14 })
 
-	if engine.track_backing_allocations {
-		dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(engine.tracking_allocator.current_memory_allocated)), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
+	if state.track_backing_allocations {
+		dr_text_box(fmt.aprintf("Backing Allocator: %s", aprint_size_symbolic(state.tracking_allocator.current_memory_allocated)), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
 		metrics_rect = ui_rect_translate(metrics_rect, { 0, 14 }) }
 
-	if engine.track_temp_allocations {
-		dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(engine.tracking_temp_allocator.current_memory_allocated)), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
+	if state.track_temp_allocations {
+		dr_text_box(fmt.aprintf("Temp Allocator: %s", aprint_size_symbolic(state.tracking_temp_allocator.current_memory_allocated)), metrics_rect, bg_color, h_align=.LEFT, v_align=.BOTTOM)
 		metrics_rect = ui_rect_translate(metrics_rect, { 0, 14 }) } }

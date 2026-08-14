@@ -105,19 +105,19 @@ Entry :: struct {
 	hash: u32 }
 
 am_init :: proc(config: Asset_Manager_Config) {
-	engine.asset_manager.config = config
-	engine.asset_manager.entries_map = make_map(map[URL]^Entry)
-	engine.asset_manager.asset_kinds = make(map[typeid]Asset_Kind)
-	engine.asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32)
+	state.asset_manager.config = config
+	state.asset_manager.entries_map = make_map(map[URL]^Entry)
+	state.asset_manager.asset_kinds = make(map[typeid]Asset_Kind)
+	state.asset_manager.assets = make_dynamic_array_len_cap([dynamic]^Asset, 0, 32)
 	am_register_builtin_kinds()
-	engine.asset_manager.initialized = true }
+	state.asset_manager.initialized = true }
 
 am_verify_watch_no_leak :: proc(Asset_Type: typeid, asset: ^Asset, command: Asset_Command) -> (ok: bool) {
 	// (TODO): Implement this. //
 	return true }
 
 am_command :: proc(Asset_Type: typeid, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
-	asset_kind, registered := engine.asset_manager.asset_kinds[Asset_Type]
+	asset_kind, registered := state.asset_manager.asset_kinds[Asset_Type]
 	if ! registered do log.errorf("Type %v not registered!", Asset_Type)
 	when ODIN_DEBUG do asset_kind.command(asset, .Validate, false)
 	assert(asset_kind.command != nil)
@@ -135,7 +135,7 @@ am_init_asset :: proc(Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
 @private
 _am_init_asset_begin :: proc(Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
 	asset.asset_config = config
-	append(&engine.asset_manager.assets, asset) }
+	append(&state.asset_manager.assets, asset) }
 
 @private
 _am_init_asset_end :: proc(Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
@@ -147,12 +147,12 @@ am_asset_base :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 
 am_register_asset_kind :: proc($Type: typeid, kind: Asset_Kind) {
 	// log.info("Registering type ", type_info_of(Type).id)
-	engine.asset_manager.asset_kinds[Type] = kind }
+	state.asset_manager.asset_kinds[Type] = kind }
 
 am_tick :: proc() {
-	if ! engine.asset_manager.watch do return
-	for asset in engine.asset_manager.assets {
-		asset_kind, ok := engine.asset_manager.asset_kinds[asset.derived_type]
+	if ! state.asset_manager.watch do return
+	for asset in state.asset_manager.assets {
+		asset_kind, ok := state.asset_manager.asset_kinds[asset.derived_type]
 		assert(ok)
 		asset_kind.command(asset, .Import, true)
 		asset_kind.command(asset, .Deserialize, true)
@@ -174,7 +174,7 @@ am_get_entry :: proc(url: URL) -> (entry: ^Entry) {
 	return nil }
 
 am_iterator :: proc() -> list.Iterator(Entry) {
-	return list.iterator_head(engine.asset_manager.entries, Entry, "node") }
+	return list.iterator_head(state.asset_manager.entries, Entry, "node") }
 
 am_get_or_add_entry :: proc(url: URL) -> (entry: ^Entry, existed: bool) {
 	entry = am_get_entry(url)
@@ -183,10 +183,10 @@ am_get_or_add_entry :: proc(url: URL) -> (entry: ^Entry, existed: bool) {
 	return entry, existed }
 
 am_contains_entry :: proc(url: URL) -> bool {
-	return url in engine.asset_manager.entries_map }
+	return url in state.asset_manager.entries_map }
 
 am_log :: proc() {
-	log.infof("Asset_Manager %s:", engine.asset_manager.relpath)
+	log.infof("Asset_Manager %s:", state.asset_manager.relpath)
 	iterator := am_iterator()
 	i: int = 0
 	for entry in list.iterate_next(&iterator) {
@@ -197,16 +197,16 @@ am_entry_integrity :: proc(entry: ^Entry) -> (ok: bool) {
 	ok = entry.hash == am_entry_hash(entry)
 	return ok }
 
-// (TODO): Have only 1 backing allocator: "engine.allocator"
+// (TODO): Have only 1 backing allocator: "state.allocator"
 am_add_entry :: proc(config: Entry_Config) -> (entry: ^Entry) {
 	// (TODO): There is no point in checking if the entry exists. THere is "am_get_or_add_entry" for that.
 	if am_contains_entry(config.url) do return am_get_entry(config.url)
-	entry = new(Entry, engine.backing_allocator)
+	entry = new(Entry, state.backing_allocator)
 	entry.config = config
-	list.push_back(&engine.asset_manager.entries, &entry.node)
-	engine.asset_manager.modification_time = time.now()
+	list.push_back(&state.asset_manager.entries, &entry.node)
+	state.asset_manager.modification_time = time.now()
 	am_entry_update_hash(entry)
-	map_insert(&engine.asset_manager.entries_map, entry.url, entry)
+	map_insert(&state.asset_manager.entries_map, entry.url, entry)
 	return entry }
 
 am_add_or_update_entry :: proc(entry_config: Entry_Config) -> (entry: ^Entry) {
@@ -216,8 +216,8 @@ am_add_or_update_entry :: proc(entry_config: Entry_Config) -> (entry: ^Entry) {
 	else do return am_add_entry(entry_config) }
 
 am_remove_entry :: proc(entry: ^Entry) {
-	list.remove(&engine.asset_manager.entries, &entry.node)
-	delete_key(&engine.asset_manager.entries_map, entry.url)
+	list.remove(&state.asset_manager.entries, &entry.node)
+	delete_key(&state.asset_manager.entries_map, entry.url)
 	free(entry) }
 
 am_clone_entry :: proc(entry: ^Entry, allocator: runtime.Allocator) -> (entry_clone: Entry) {
@@ -227,7 +227,7 @@ am_clone_entry :: proc(entry: ^Entry, allocator: runtime.Allocator) -> (entry_cl
 	return entry_clone }
 
 am_relpath_to_source_path :: proc(relpath: string, allocator: runtime.Allocator) -> (path: string) {
-	path, _ = os.join_path({ relpath_to_path(engine.asset_manager.source_directory_relpath, allocator), relpath }, allocator = allocator)
+	path, _ = os.join_path({ relpath_to_path(state.asset_manager.source_directory_relpath, allocator), relpath }, allocator = allocator)
 	return path }
 
 am_read_or_init :: proc(config: Asset_Manager_Config) {
@@ -236,7 +236,7 @@ am_read_or_init :: proc(config: Asset_Manager_Config) {
 
 am_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
 	am_init(config)
-	engine.asset_manager.config = config
+	state.asset_manager.config = config
 	path := relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, context.allocator)
 	compressed_data, err := os.read_entire_file_from_path(path, allocator = context.temp_allocator)
 	assert(err == nil)
@@ -246,7 +246,7 @@ am_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
 	binary_header: _Asset_Manager_Binary_Header
 	bytes.reader_read_ptr(&reader, &binary_header, size_of(binary_header))
 	assert(binary_header.magic_number == MAGIC_NUMBER)
-	engine.asset_manager.last_autosave_time = binary_header.last_autosave_time
+	state.asset_manager.last_autosave_time = binary_header.last_autosave_time
 	log.warn("Reading Asset_Manager.")
 	for i in 0 ..< binary_header.n_entries {
 		entry: Entry
@@ -263,7 +263,7 @@ am_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
 		// log.infof("Reading entry \"%s\".", entry.url)
 		am_add_entry(entry)
 		if ! am_entry_integrity(&entry) do log.errorf("Entry %s is invalid.", entry.url) }
-	engine.asset_manager.modification_time = binary_header.modification_time
+	state.asset_manager.modification_time = binary_header.modification_time
 	am_register_builtin_kinds() }
 
 am_write :: proc(allocator: runtime.Allocator, relpath_override: string = "") {
@@ -275,8 +275,8 @@ am_write :: proc(allocator: runtime.Allocator, relpath_override: string = "") {
 	log.warn("Writing Asset_Manager.")
 	bytes.buffer_init_allocator(&buffer, 0, 32 * mem.Megabyte, allocator = allocator)
 	binary_header.magic_number = MAGIC_NUMBER
-	binary_header.last_autosave_time = engine.asset_manager.last_autosave_time
-	binary_header.n_entries = cast(u32)list_len(engine.asset_manager.entries, Entry, "node")
+	binary_header.last_autosave_time = state.asset_manager.last_autosave_time
+	binary_header.n_entries = cast(u32)list_len(state.asset_manager.entries, Entry, "node")
 	_, err = bytes.buffer_write_ptr(&buffer, &binary_header, size_of(binary_header)); assert(err == nil)
 	iterator := am_iterator()
 	i: int = 0
@@ -290,7 +290,7 @@ am_write :: proc(allocator: runtime.Allocator, relpath_override: string = "") {
 		data_len: u32 = cast(u32)len(entry.data)
 		_, err = bytes.buffer_write_ptr(&buffer, &data_len, size_of(data_len)); assert(err == nil)
 		_, err = bytes.buffer_write_slice(&buffer, entry.data); assert(err == nil) }
-	path = relpath_to_path((relpath_override != "") ? relpath_override : engine.asset_manager.relpath, context.temp_allocator)
+	path = relpath_to_path((relpath_override != "") ? relpath_override : state.asset_manager.relpath, context.temp_allocator)
 	data: []u8 = compress(buffer.buf[:], context.temp_allocator)
 	assert(os.write_entire_file_from_bytes(path, data) == nil) }
 
@@ -305,7 +305,7 @@ am_relpath_from_url :: proc(url: URL, allocator: runtime.Allocator, loc := #call
 	url_components: []string = am_url_split(url, allocator, loc=loc)
 	working_directory, _ := os.get_executable_directory(allocator)
 	filename := url_components[1]
-	path, _ = os.join_path({ engine.asset_manager.source_directory_relpath, filename }, allocator)
+	path, _ = os.join_path({ state.asset_manager.source_directory_relpath, filename }, allocator)
 	return path }
 
 am_path_from_url :: proc(url: URL, allocator: runtime.Allocator, loc := #caller_location) -> (path: string) {
@@ -323,7 +323,7 @@ am_entry_was_modified :: proc(entry: ^Entry) -> (outdated: bool) {
 	return outdated }
 
 am_entry_hash :: proc(entry: ^Entry) -> (hashed: u32) {
-	digest := hash.hash_bytes(.Insecure_MD5, entry.data, engine.backing_allocator)
+	digest := hash.hash_bytes(.Insecure_MD5, entry.data, state.backing_allocator)
 	return slice.reinterpret([]u32, digest)[0] }
 
 am_entry_update_hash :: proc(entry: ^Entry) {
@@ -334,7 +334,7 @@ am_update_entry :: proc(entry: ^Entry, config: Entry_Config) {
 	// if len(entry.data) > 0 do delete(entry.data)
 	entry.config = config
 	am_entry_update_hash(entry)
-	engine.asset_manager.modification_time = time.now() }
+	state.asset_manager.modification_time = time.now() }
 
 am_autosave :: proc() {
 	time_now: time.Time
@@ -351,16 +351,16 @@ am_autosave :: proc() {
 		return true }
 
 	time_now = time.now()
-	if time.diff(engine.asset_manager.last_autosave_time, time_now) > engine.asset_manager.autosave_interval {
+	if time.diff(state.asset_manager.last_autosave_time, time_now) > state.asset_manager.autosave_interval {
 		relpath = fmt.tprintf("cache/Data-%d.bin", time.time_to_unix_nano(time_now))
-		log.infof("Autosaving %s to %s.", engine.asset_manager.relpath, relpath)
+		log.infof("Autosaving %s to %s.", state.asset_manager.relpath, relpath)
 		am_write(context.temp_allocator, relpath)
-		engine.asset_manager.last_autosave_time = time_now
+		state.asset_manager.last_autosave_time = time_now
 		file_infos, err = os.read_directory_by_path(relpath_to_path("cache", context.temp_allocator), -1, context.temp_allocator)
 		file_info_oldest.creation_time = { bits.I64_MAX }
 		n_autosaves = 0
 		for file_info in file_infos do if file_name_is_autosave(file_info.name) do n_autosaves += 1
-		if n_autosaves <= engine.asset_manager.autosave_cap do return
+		if n_autosaves <= state.asset_manager.autosave_cap do return
 		for file_info in file_infos {
 			if ! file_name_is_autosave(file_info.name) do continue
 			if time.diff(file_info_oldest.creation_time, file_info.creation_time) < 0 do file_info_oldest = file_info }

@@ -21,10 +21,10 @@ dr_button :: proc(rect: Rect, text: string, icon: UI_Icon = .None) {
 	hover: bool = ui_rect_hovered(rect)
 	press: bool = hover && input_query(.Mouse_Left, .DOWN)
 
-	theme := engine.ui_manager.theme
+	theme := state.ui_manager.theme
 	ui_fill_color: UI_Color = theme[UI_Theme_Key.NEUTRAL_BACKGROUND_2]
 	stroke_neon_color: UI_Color = theme[UI_Theme_Key.NEUTRAL_STROKE_1]
-	text_style: Text_Style = engine.ui_manager.text_style
+	text_style: Text_Style = state.ui_manager.text_style
 	appearance := ui_appearance_get()
 	#partial switch appearance {
 	case .PRIMARY:
@@ -100,7 +100,7 @@ dr_icon_basic :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, color: Co
 
 dr_icon_extended :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, color: Color=WHITE, bold: bool=false, bolder: bool=false, scale: f32=1.0) {
 	// dr_rect_outline({ position, UI_ICON_SIZE }, RED)
-	icons_text_style := engine.ui_manager.icons_text_style
+	icons_text_style := state.ui_manager.icons_text_style
 	icons_text_style.color = color
 	icons_text_style.bold = bold
 	icons_text_style.italic = bolder
@@ -110,7 +110,7 @@ dr_icon_extended :: proc(icon: UI_Icon, position: [2]f32, angle: f32=0.0, color:
 
 dr_avatar :: proc(position: [2]f32, name: string="", image: ^Texture=nil, icon: UI_Icon=.Person) {
 	avatar_rect: Rect = { position, UI_AVATAR_SIZE }
-	theme := engine.ui_manager.theme
+	theme := state.ui_manager.theme
 	fill_color: Color = theme[UI_Theme_Key.NEUTRAL_BACKGROUND_2][UI_Variant.SELECTED]
 	if image != nil {
 		// gx_clip_scope({ rect = avatar_rect, radius = 16 })
@@ -139,7 +139,7 @@ dr_avatar :: proc(position: [2]f32, name: string="", image: ^Texture=nil, icon: 
 }
 
 dr_badge :: proc(position: [2]f32, size: UI_Size=.S, color: UI_Theme_Key, text: string="", icon: UI_Icon=.None, h_align: UI_H_Align=.CENTER) {
-	theme := engine.ui_manager.theme
+	theme := state.ui_manager.theme
 	appearance := ui_appearance_get()
 	text_style := ui_text_style_get()
 	gx_depth_scope_dec(0.01)

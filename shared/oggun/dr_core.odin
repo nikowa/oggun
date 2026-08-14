@@ -53,7 +53,7 @@ dr_rect :: proc(
 		stroke = stroke,
 		depth = gx_depth_get(),
 		clip = clip }
-	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 dr_rect_outline :: proc(rect: Rect, color: Color = BLACK, integer: bool = true) {
 	a: [2]f32 = { rect.position.x - rect.size.x / 2, rect.position.y - rect.size.y / 2 }
@@ -88,7 +88,7 @@ dr_line :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
 		color = color,
 		depth = gx_depth_get(),
 		clip = gx_clip_get() }
-	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 // Draw_Hermite_Command :: struct {
 // 	using params: Draw_Hermite_Params,
@@ -111,7 +111,7 @@ dr_line :: proc(points: [2][2]f32, color: Color, integer: bool = true) {
 // 		color = color,
 // 		depth = gx_depth_get(),
 // 		clip = gx_clip_get() }
-// 	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+// 	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 Draw_Arc_Command :: struct {
 	using params: Draw_Arc_Params,
@@ -136,7 +136,7 @@ dr_arc :: proc(center: [2]f32, radius: f32, angle_range: [2]f32, color: Color, i
 		color = color,
 		depth = gx_depth_get(),
 		clip = gx_clip_get() }
-	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 Draw_Image_Command :: struct {
 	using base: Generic_Command,
@@ -159,7 +159,7 @@ dr_image :: proc(image: ^Texture, rect: Rect, render_buffer: Maybe(^Render_Buffe
 		rect = integer ? rect_round(rect) : rect,
 		depth = gx_depth_get(),
 		clip = gx_clip_get() }
-	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 Draw_Text_Command :: struct {
 	using base: Generic_Command,
@@ -191,7 +191,7 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset:
 		group_params_size = size_of(Draw_Text_Group_Params),
 		font = font,
 		symbol_size = rect.size,
-		res = engine.graphics_manager.active_resolution,
+		res = state.graphics_manager.active_resolution,
 		scale_factor = scale_factor,
 		color = color,
 		clip = gx_clip_get() }
@@ -203,7 +203,7 @@ dr_text_symbol_rect :: proc(symbol: u8, rect: Rect, angle: f32 = 0.0, uv_offset:
 	command.bold = bold
 	command.angle = angle
 	command.uv_offset = uv_offset
-	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 dr_text_symbol :: proc(symbol: u8, position: [2]f32, angle: f32 = 0.0, integer: bool = true) {
 	using style := ui_text_style_get()
@@ -212,7 +212,7 @@ dr_text_symbol :: proc(symbol: u8, position: [2]f32, angle: f32 = 0.0, integer: 
 	command: Draw_Text_Command = {
 		group_params_size = size_of(Draw_Text_Group_Params),
 		font = font,
-		res = engine.graphics_manager.active_resolution,
+		res = state.graphics_manager.active_resolution,
 		scale_factor = scale_factor,
 		color = color,
 		clip = gx_clip_get() }
@@ -227,7 +227,7 @@ dr_text_symbol :: proc(symbol: u8, position: [2]f32, angle: f32 = 0.0, integer: 
 	command.bold = bold
 	command.angle = angle
 	command.uv_offset = { 0, 0 }
-	command_buffer_record(&engine.graphics_manager.command_buffer, { base = command }) }
+	command_buffer_record(&state.graphics_manager.command_buffer, { base = command }) }
 
 // (TODO): "integer" should also be a stack parameter. //
 dr_text_line :: proc(text: string, position: [2]f32, pivot: bit_set[Compass] = { .South }, desired_width: Maybe(f32) = nil, integer: bool = true) -> f32 {

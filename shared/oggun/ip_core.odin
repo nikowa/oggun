@@ -171,31 +171,31 @@ bits_array_xor :: proc(array_result, array_a, array_b: ^bit_array.Bit_Array) {
 	for index in INDEX_KEY_MIN ..< INDEX_MOUSE_MAX + 1 {
 		a := bit_array.get(array_a, index)
 		b := bit_array.get(array_b, index)
-		bit_array.set(array_result, index, a ~ b, engine.backing_allocator) } }
+		bit_array.set(array_result, index, a ~ b, state.backing_allocator) } }
 
 @(private="file")
 bits_array_copy :: proc(array_dst, array_src: ^bit_array.Bit_Array) {
 	for index in INDEX_KEY_MIN ..< INDEX_MOUSE_MAX + 1 {
-		bit_array.set(array_dst, index, bit_array.get(array_src, index), engine.backing_allocator) } }
+		bit_array.set(array_dst, index, bit_array.get(array_src, index), state.backing_allocator) } }
 
 // (TODO): Record a mouse release event when the window loses focus, ie. when the mouse leaves the window. //
 
 input_manager_tick :: proc() {
-	engine.input_manager.mouse_delta = engine.input_manager.mouse_position - engine.input_manager.old_mouse_position
-	engine.input_manager.old_mouse_position = engine.input_manager.mouse_position
-	engine.input_manager.scroll_delta = engine.input_manager.scroll - engine.input_manager.old_scroll
-	engine.input_manager.old_scroll = engine.input_manager.scroll
-	bit_array.clear(&engine.input_manager._inputs_switched)
-	bits_array_xor(&engine.input_manager._inputs_switched, &engine.input_manager._inputs_pressed, &engine.input_manager._old_inputs_pressed)
-	bits_array_copy(&engine.input_manager._old_inputs_pressed, &engine.input_manager._inputs_pressed) }
+	state.input_manager.mouse_delta = state.input_manager.mouse_position - state.input_manager.old_mouse_position
+	state.input_manager.old_mouse_position = state.input_manager.mouse_position
+	state.input_manager.scroll_delta = state.input_manager.scroll - state.input_manager.old_scroll
+	state.input_manager.old_scroll = state.input_manager.scroll
+	bit_array.clear(&state.input_manager._inputs_switched)
+	bits_array_xor(&state.input_manager._inputs_switched, &state.input_manager._inputs_pressed, &state.input_manager._old_inputs_pressed)
+	bits_array_copy(&state.input_manager._old_inputs_pressed, &state.input_manager._inputs_pressed) }
 
 input_record_key :: proc(input: Input, action: Action) {
 	if input == .None do return
 	#partial switch action {
 	case .Press:
-		bit_array.set(&engine.input_manager._inputs_pressed, cast(uint)input, true, engine.backing_allocator)
+		bit_array.set(&state.input_manager._inputs_pressed, cast(uint)input, true, state.backing_allocator)
 	case .Release:
-		bit_array.set(&engine.input_manager._inputs_pressed, cast(uint)input, false, engine.backing_allocator) } }
+		bit_array.set(&state.input_manager._inputs_pressed, cast(uint)input, false, state.backing_allocator) } }
 
 // @(private="file")
 // focus_callback :: proc "c" (window: glfw.WindowHandle, focused: i32) {
@@ -203,10 +203,10 @@ input_record_key :: proc(input: Input, action: Action) {
 // 	input_manager.focused = true }
 
 input_record_mouse_position :: proc(position: [2]f32) {
-	engine.input_manager.mouse_position = position }
+	state.input_manager.mouse_position = position }
 
 input_record_scroll :: proc(scroll_delta: f32) {
-	engine.input_manager.scroll += scroll_delta }
+	state.input_manager.scroll += scroll_delta }
 
 // DICK
 // Input.Mouse_Left
@@ -218,15 +218,15 @@ input_record_scroll :: proc(scroll_delta: f32) {
 
 input_query :: proc(input: Input, $variant: Query_Variant) -> bool {
 	input_down :: proc(input: Input) -> bool {
-		return bit_array.get(&engine.input_manager._inputs_pressed, cast(uint)input) }
+		return bit_array.get(&state.input_manager._inputs_pressed, cast(uint)input) }
 	input_up :: proc(input: Input) -> bool {
 		return !input_down(input) }
 	input_switched :: proc(input: Input) -> bool {
-		return bit_array.get(&engine.input_manager._inputs_switched, cast(uint)input) }
+		return bit_array.get(&state.input_manager._inputs_switched, cast(uint)input) }
 	input_pressed :: proc(input: Input) -> bool {
-		return bit_array.get(&engine.input_manager._inputs_pressed, cast(uint)input) && bit_array.get(&engine.input_manager._inputs_switched, cast(uint)input) }
+		return bit_array.get(&state.input_manager._inputs_pressed, cast(uint)input) && bit_array.get(&state.input_manager._inputs_switched, cast(uint)input) }
 	input_released :: proc(input: Input) -> bool {
-		return (! bit_array.get(&engine.input_manager._inputs_pressed, cast(uint)input)) && bit_array.get(&engine.input_manager._inputs_switched, cast(uint)input) }
+		return (! bit_array.get(&state.input_manager._inputs_pressed, cast(uint)input)) && bit_array.get(&state.input_manager._inputs_switched, cast(uint)input) }
 	switch variant {
 	case .UP:       return input_up(input)
 	case .DOWN:     return input_down(input)
@@ -240,16 +240,16 @@ input_query :: proc(input: Input, $variant: Query_Variant) -> bool {
 // 	return state, just_switched }
 
 input_init :: proc(input_config: Input_Config) {
-	engine.input_manager.input_config = input_config
-	init_bits_array(&engine.input_manager._inputs_pressed)
-	init_bits_array(&engine.input_manager._old_inputs_pressed)
-	init_bits_array(&engine.input_manager._inputs_switched)
+	state.input_manager.input_config = input_config
+	init_bits_array(&state.input_manager._inputs_pressed)
+	init_bits_array(&state.input_manager._old_inputs_pressed)
+	init_bits_array(&state.input_manager._inputs_switched)
 
-	assert(bit_array.set(&engine.input_manager._inputs_pressed, INDEX_MOUSE_MAX, true))
-	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, true))
-	assert(bit_array.set(&engine.input_manager._inputs_pressed, INDEX_MOUSE_MAX, false))
-	assert(bit_array.set(&engine.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, false))
+	assert(bit_array.set(&state.input_manager._inputs_pressed, INDEX_MOUSE_MAX, true))
+	assert(bit_array.set(&state.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, true))
+	assert(bit_array.set(&state.input_manager._inputs_pressed, INDEX_MOUSE_MAX, false))
+	assert(bit_array.set(&state.input_manager._old_inputs_pressed, INDEX_MOUSE_MAX, false))
 
 	if input_config.raw_input {
-		engine.input_manager._raw_input_manager = new(Raw_Input_Manager)
+		state.input_manager._raw_input_manager = new(Raw_Input_Manager)
 		raw_input_init() } }

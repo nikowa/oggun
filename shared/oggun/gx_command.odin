@@ -79,7 +79,7 @@ command_submit :: proc(command: Command, index: int) {
 	case Draw_Rect_Command:  gx_submit_rect(command, index)
 	case Draw_Line_Command:  gx_submit_line(command, index)
 	case Draw_Arc_Command:   gx_submit_arc(command, index) }
-	engine.graphics_manager.command_buffer.commands[index].submitted = true }
+	state.graphics_manager.command_buffer.commands[index].submitted = true }
 
 command_buffer_submit :: proc(command_buffer: ^Command_Buffer) {
 	// log.infof("Submitting %v commands.", len(command_buffer.commands))
@@ -111,10 +111,10 @@ gx_submit_rect :: proc(_command: Command, index: int) {
 
 	command := _command.base.(Draw_Rect_Command)
 
-	use_shader(&engine.graphics_manager.rect_shader)
-	set_shader_param(RES, engine.graphics_manager.active_resolution)
+	use_shader(&state.graphics_manager.rect_shader)
+	set_shader_param(RES, state.graphics_manager.active_resolution)
 
-	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Rect_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&state.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Rect_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(8)
 	defer delete_buffers(buffers)
@@ -159,10 +159,10 @@ gx_submit_line :: proc(_command: Command, index: int) {
 
 	command := _command.base.(Draw_Line_Command)
 
-	use_shader(&engine.graphics_manager.line_shader)
-	set_shader_param(RES, engine.graphics_manager.active_resolution)
+	use_shader(&state.graphics_manager.line_shader)
+	set_shader_param(RES, state.graphics_manager.active_resolution)
 
-	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Line_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&state.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Line_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(6)
 	defer delete_buffers(buffers)
@@ -203,10 +203,10 @@ gx_submit_arc :: proc(_command: Command, index: int) {
 
 	command := _command.base.(Draw_Arc_Command)
 
-	use_shader(&engine.graphics_manager.arc_shader)
-	set_shader_param(RES, engine.graphics_manager.active_resolution)
+	use_shader(&state.graphics_manager.arc_shader)
+	set_shader_param(RES, state.graphics_manager.active_resolution)
 
-	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Arc_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&state.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Arc_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(7)
 	defer delete_buffers(buffers)
@@ -248,10 +248,10 @@ gx_submit_image :: proc(_command: Command, index: int) {
 	command := _command.base.(Draw_Image_Command)
 
 	assert(image_loaded(command.image))
-	use_shader(&engine.graphics_manager.image_shader)
-	set_shader_param(RES, linalg.array_cast(engine.graphics_manager.active_resolution, f32))
+	use_shader(&state.graphics_manager.image_shader)
+	set_shader_param(RES, linalg.array_cast(state.graphics_manager.active_resolution, f32))
 
-	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Image_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&state.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Image_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(4)
 	defer delete_buffers(buffers)
@@ -284,12 +284,12 @@ gx_submit_text :: proc(_command: Command, index: int) {
 
 	command := _command.base.(Draw_Text_Command)
 
-	use_shader(&engine.graphics_manager.text_shader)
-	set_shader_param(RES, engine.graphics_manager.active_resolution)
+	use_shader(&state.graphics_manager.text_shader)
+	set_shader_param(RES, state.graphics_manager.active_resolution)
 	set_shader_param(SYMBOL_SIZE, command.symbol_size == {} ? command.font.symbol_size : command.symbol_size)
-	set_shader_param(TIME, engine.graphics_manager.time)
+	set_shader_param(TIME, state.graphics_manager.time)
 
-	commands := command_buffer_get_group(&engine.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
+	commands := command_buffer_get_group(&state.graphics_manager.command_buffer, index, proc(_command_0, _command_1: Command) -> (ok: bool) { return commands_compare_params(Draw_Text_Command, _command_0, _command_1) })
 
 	buffers := make_buffers(10)
 	defer delete_buffers(buffers)

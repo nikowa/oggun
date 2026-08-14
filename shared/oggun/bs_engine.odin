@@ -61,8 +61,7 @@ Engine :: struct {
 	tracking_allocator: mem.Tracking_Allocator,
 	tracking_temp_allocator: mem.Tracking_Allocator }
 
-engine: ^Engine
-oggun: ^Engine
+state: ^Engine
 
 MAGIC_NUMBER :: 0b10110011_00001011_01010011_10001101
 
@@ -92,8 +91,8 @@ ptr_is_nil :: proc(ptr: ^$T) -> bool {
 	return (ptr == nil) || (ptr == nil_stub) }
 
 ptr_is_temp :: proc(ptr: rawptr) -> bool {
-	return (cast(uintptr)ptr >= cast(uintptr)slice.first_ptr(engine.temp_arena.data)) &&
-	       (cast(uintptr)ptr <= cast(uintptr)slice.last_ptr(engine.temp_arena.data)) }
+	return (cast(uintptr)ptr >= cast(uintptr)slice.first_ptr(state.temp_arena.data)) &&
+	       (cast(uintptr)ptr <= cast(uintptr)slice.last_ptr(state.temp_arena.data)) }
 
 @require_results engine_begin_init :: proc(
 		engine_config: Engine_Config = DEFAULT_ENGINE_CONFIG,
@@ -103,69 +102,68 @@ ptr_is_temp :: proc(ptr: rawptr) -> bool {
 		tick_config: Tick_Manager_Config = DEFAULT_TICK_MANAGER_CONFIG,
 		input_config: Input_Config = DEFAULT_INPUT_CONFIG,
 		settings_config: Settings_Manager_Config = DEFAULT_SETTINGS_MANAGER_CONFIG) -> runtime.Context {
-	engine = new(Engine)
-	oggun = new(Engine)
-	assert(engine != nil)
-	engine.engine_config = engine_config
+	state = new(Engine)
+	assert(state != nil)
+	state.engine_config = engine_config
 	context.logger = log.create_console_logger()
-	mem.arena_init(&engine.temp_arena, make([]u8, engine.temp_allocator_cap))
-	context.temp_allocator = mem.arena_allocator(&engine.temp_arena)
+	mem.arena_init(&state.temp_arena, make([]u8, state.temp_allocator_cap))
+	context.temp_allocator = mem.arena_allocator(&state.temp_arena)
 	allocator := context.allocator
 	temp_allocator := context.temp_allocator
-	if engine.log_backing_allocations {
-		log.log_allocator_init(&engine.log_allocator, level=.Debug, size_fmt=.Human, allocator=allocator)
-		allocator = log.log_allocator(&engine.log_allocator) }
-	if engine.log_temp_allocations {
-		log.log_allocator_init(&engine.log_temp_allocator, level=.Debug, size_fmt=.Human, allocator=temp_allocator)
-		temp_allocator = log.log_allocator(&engine.log_temp_allocator) }
-	if engine.track_backing_allocations {
-		mem.tracking_allocator_init(&engine.tracking_allocator, allocator)
-		allocator = mem.tracking_allocator(&engine.tracking_allocator) }
-	if engine.track_temp_allocations {
-		mem.tracking_allocator_init(&engine.tracking_temp_allocator, temp_allocator)
-		temp_allocator = mem.tracking_allocator(&engine.tracking_temp_allocator) }
+	if state.log_backing_allocations {
+		log.log_allocator_init(&state.log_allocator, level=.Debug, size_fmt=.Human, allocator=allocator)
+		allocator = log.log_allocator(&state.log_allocator) }
+	if state.log_temp_allocations {
+		log.log_allocator_init(&state.log_temp_allocator, level=.Debug, size_fmt=.Human, allocator=temp_allocator)
+		temp_allocator = log.log_allocator(&state.log_temp_allocator) }
+	if state.track_backing_allocations {
+		mem.tracking_allocator_init(&state.tracking_allocator, allocator)
+		allocator = mem.tracking_allocator(&state.tracking_allocator) }
+	if state.track_temp_allocations {
+		mem.tracking_allocator_init(&state.tracking_temp_allocator, temp_allocator)
+		temp_allocator = mem.tracking_allocator(&state.tracking_temp_allocator) }
 	context.allocator = allocator
 	context.temp_allocator = temp_allocator
-	if engine.backing_allocator == {} do engine.backing_allocator = context.allocator
+	if state.backing_allocator == {} do state.backing_allocator = context.allocator
 	am_init(asset_config)
 	wd_init(window_config)
 	graphics_init(graphics_config)
 	ui_init()
 	input_init(input_config)
-	settings_manager_init(&engine.settings_manager, settings_config)
-	tick_manager_init(&engine.tick_manager, tick_config)
-	zero_stopwatch(&engine.stopwatch)
+	settings_manager_init(&state.settings_manager, settings_config)
+	tick_manager_init(&state.tick_manager, tick_config)
+	zero_stopwatch(&state.stopwatch)
 	return context }
 
 engine_end_init :: proc() -> runtime.Context {
 	// (NOTE): During the game loop, all allocation will use the temp allocator by default. Non-transient allocations should
-	// explicitly use "engine.backing_allocator".
-	engine.backing_allocator = context.allocator
+	// explicitly use "state.backing_allocator".
+	state.backing_allocator = context.allocator
 	context.allocator = context.temp_allocator
 	return context }
 
 engine_running :: proc() -> bool {
-	return ! engine.graphics_manager.window_closed }
+	return ! state.graphics_manager.window_closed }
 
 @(deferred_none=engine_tick_end)
 engine_tick :: proc() -> bool {
 	return engine_tick_begin() }
 
 engine_tick_begin :: proc() -> bool {
-	if tick_manager_tick(&engine.tick_manager) {
+	if tick_manager_tick(&state.tick_manager) {
 		am_tick()
 		wd_tick()
 		tick_graphics_manager()
 		input_manager_tick()
-		engine.ticked = true
-		engine.tick_count += 1
+		state.ticked = true
+		state.tick_count += 1
 		return true }
 	return false }
 
 engine_tick_end :: proc() {
-	if engine.ticked {
-		tick_manager_reset(&engine.tick_manager)
-		engine.ticked = false }
+	if state.ticked {
+		tick_manager_reset(&state.tick_manager)
+		state.ticked = false }
 	free_all(context.allocator) }
 
 start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
@@ -197,4 +195,4 @@ start :: proc(entry_point: Entry_Point, n_workers_override: Maybe(u32) = nil) {
 		else do worker_proc(data) } }
 
 get_frame_rate :: proc() -> f32 {
-	return engine.tick_manager.frame_rate }
+	return state.tick_manager.frame_rate }

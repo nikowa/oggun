@@ -54,7 +54,7 @@ else do Window_Manager :: struct {
 	device_context: win32.HDC }
 
 wd_init :: proc(window_config: Window_Config) {
-	engine.window_manager.window_config = window_config
+	state.window_manager.window_config = window_config
 	when WINDOW_BACKEND == .GLFW {
 		assert(cast(bool)glfw.Init())
 		glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
@@ -65,21 +65,21 @@ wd_init :: proc(window_config: Window_Config) {
 		handle: glfw.WindowHandle = glfw.CreateWindow(
 			width   = cast(i32)window_config.size.x,
 			height  = cast(i32)window_config.size.y,
-			title   = strings.clone_to_cstring(engine.game_name),
+			title   = strings.clone_to_cstring(state.game_name),
 			monitor = nil,
 			share   = nil)
 		assert(handle != nil)
-		engine.window_manager.handle = auto_cast handle
+		state.window_manager.handle = auto_cast handle
 		glfw.MakeContextCurrent(handle)
 		glfw.SwapInterval(0)
 		gl.load_up_to(4, 6, glfw.gl_set_proc_address)
 		glfw.FocusWindow(handle)
 		width, height := glfw.GetFramebufferSize(handle)
 		wd_update_size()
-		engine.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
-		engine.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
-		engine.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
-		engine.window_manager.cursors[int(Cursor.Move)] = glfw.CreateStandardCursor(glfw.RESIZE_ALL_CURSOR)
+		state.window_manager.cursors[int(Cursor.Arrow)] = glfw.CreateStandardCursor(glfw.ARROW_CURSOR)
+		state.window_manager.cursors[int(Cursor.Hand)] = glfw.CreateStandardCursor(glfw.POINTING_HAND_CURSOR)
+		state.window_manager.cursors[int(Cursor.Disabled)] = glfw.CreateStandardCursor(glfw.NOT_ALLOWED_CURSOR)
+		state.window_manager.cursors[int(Cursor.Move)] = glfw.CreateStandardCursor(glfw.RESIZE_ALL_CURSOR)
 		glfw.SetInputMode(handle, glfw.CURSOR, glfw.CURSOR_NORMAL)
 		// glfw.SetWindowFocusCallback(draw.window, focus_callback)
 		glfw.SetKeyCallback(handle, glfw_key_callback)
@@ -102,10 +102,10 @@ wd_init :: proc(window_config: Window_Config) {
 			hInst=nil, name=string_to_cstring16(icon_path), type=win32.IMAGE_ICON, cx=0, cy=0, fuLoad=win32.LR_LOADFROMFILE)
 		assert(cast(win32.HANDLE)icon != win32.INVALID_HANDLE)
 		// fmt.println(win32_get_last_error())
-		engine.window_manager.cursors[int(Cursor.Arrow)] = win32.LoadCursorA(nil, win32.IDC_ARROW)
-		engine.window_manager.cursors[int(Cursor.Hand)] = win32.LoadCursorA(nil, win32.IDC_HAND)
-		engine.window_manager.cursors[int(Cursor.Disabled)] = win32.LoadCursorA(nil, win32.IDC_NO)
-		engine.window_manager.cursors[int(Cursor.Move)] = win32.LoadCursorA(nil, win32.IDC_SIZEALL)
+		state.window_manager.cursors[int(Cursor.Arrow)] = win32.LoadCursorA(nil, win32.IDC_ARROW)
+		state.window_manager.cursors[int(Cursor.Hand)] = win32.LoadCursorA(nil, win32.IDC_HAND)
+		state.window_manager.cursors[int(Cursor.Disabled)] = win32.LoadCursorA(nil, win32.IDC_NO)
+		state.window_manager.cursors[int(Cursor.Move)] = win32.LoadCursorA(nil, win32.IDC_SIZEALL)
 		// win32.SetProcessDpiAwarenessContext(win32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
 		// win32.SetProcessDpiAwareness(win32.PROCESS_DPI_AWARENESS.PROCESS_PER_MONITOR_DPI_AWARE)
 
@@ -113,13 +113,13 @@ wd_init :: proc(window_config: Window_Config) {
 		CLASS_NAME: cstring16 : "Oggun Window"
 		window_class: win32.WNDCLASSEXW = {
 			cbSize=size_of(win32.WNDCLASSEXW), style=win32.CS_OWNDC|win32.CS_DROPSHADOW|win32.CS_HREDRAW|win32.CS_VREDRAW, lpfnWndProc=win32_window_proc,
-			hInstance=cast(win32.HANDLE)instance, hIcon=icon, hCursor=engine.window_manager.cursors[int(Cursor.Arrow)],
+			hInstance=cast(win32.HANDLE)instance, hIcon=icon, hCursor=state.window_manager.cursors[int(Cursor.Arrow)],
 			lpszClassName=CLASS_NAME }
 		win32.RegisterClassExW(&window_class)
-		engine.window_manager.handle = cast(win32.HWND)win32.CreateWindowExW(
+		state.window_manager.handle = cast(win32.HWND)win32.CreateWindowExW(
 			dwExStyle=win32.WS_EX_ACCEPTFILES|win32.WS_EX_OVERLAPPEDWINDOW,
 			lpClassName=CLASS_NAME,
-			lpWindowName=string_to_cstring16(engine.game_name),
+			lpWindowName=string_to_cstring16(state.game_name),
 			dwStyle=win32.WS_VISIBLE|win32.WS_OVERLAPPEDWINDOW,
 			X=win32.CW_USEDEFAULT, Y=win32.CW_USEDEFAULT,
 			nWidth=cast(i32)window_config.size.x,
@@ -128,13 +128,13 @@ wd_init :: proc(window_config: Window_Config) {
 			hMenu=nil,
 			hInstance=cast(win32.HANDLE)instance,
 			lpParam=nil)
-		assert(cast(win32.HANDLE)engine.window_manager.handle != win32.INVALID_HANDLE)
-		engine.window_manager.device_context = win32.GetDC(cast(win32.HWND)engine.window_manager.handle)
-		assert(cast(win32.HANDLE)engine.window_manager.device_context != win32.INVALID_HANDLE)
+		assert(cast(win32.HANDLE)state.window_manager.handle != win32.INVALID_HANDLE)
+		state.window_manager.device_context = win32.GetDC(cast(win32.HWND)state.window_manager.handle)
+		assert(cast(win32.HANDLE)state.window_manager.device_context != win32.INVALID_HANDLE)
 		// (TEMP):
 		// corner_preference: win32.DWM_WINDOW_CORNER_PREFERENCE = .DONOTROUND
 		// win32.DwmSetWindowAttribute(
-		// 	hWnd=cast(win32.HWND)engine.window_manager.handle,
+		// 	hWnd=cast(win32.HWND)state.window_manager.handle,
 		// 	dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
 		// 	pvAttribute=&corner_preference, cbAttribute=size_of(win32.DWM_WINDOW_CORNER_PREFERENCE))
 
@@ -189,19 +189,19 @@ wd_init :: proc(window_config: Window_Config) {
 			win32.WGL_SAMPLES_ARB,        0,
 			0 }
 		n_formats: u32
-		assert(cast(bool)win32.wglChoosePixelFormatARB(engine.window_manager.device_context, &pixel_attribs[0], nil, 1, &pixel_format, &n_formats))
+		assert(cast(bool)win32.wglChoosePixelFormatARB(state.window_manager.device_context, &pixel_attribs[0], nil, 1, &pixel_format, &n_formats))
 		assert(n_formats == 1)
 		pixel_format_descriptor: win32.PIXELFORMATDESCRIPTOR
-		assert(win32.DescribePixelFormat(engine.window_manager.device_context, pixel_format, size_of(pixel_format_descriptor), &pixel_format_descriptor) != 0)
-		assert(cast(bool)win32.SetPixelFormat(engine.window_manager.device_context, pixel_format, &pixel_format_descriptor))
+		assert(win32.DescribePixelFormat(state.window_manager.device_context, pixel_format, size_of(pixel_format_descriptor), &pixel_format_descriptor) != 0)
+		assert(cast(bool)win32.SetPixelFormat(state.window_manager.device_context, pixel_format, &pixel_format_descriptor))
 		context_attribs: []i32 = {
 			win32.WGL_CONTEXT_MAJOR_VERSION_ARB, 4, // use constant
 			win32.WGL_CONTEXT_MINOR_VERSION_ARB, 6, // use constant
 			win32.WGL_CONTEXT_PROFILE_MASK_ARB,  win32.WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 			win32.WGL_CONTEXT_FLAGS_ARB,         win32.WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 			0 }
-		opengl_context := win32.wglCreateContextAttribsARB(engine.window_manager.device_context, nil, &context_attribs[0])
-		// opengl_context := win32.wglCreateContext(engine.window_manager.device_context)
+		opengl_context := win32.wglCreateContextAttribsARB(state.window_manager.device_context, nil, &context_attribs[0])
+		// opengl_context := win32.wglCreateContext(state.window_manager.device_context)
 		assert(cast(win32.HANDLE)opengl_context != win32.INVALID_HANDLE)
 
 		win32.wglMakeCurrent(nil, nil)
@@ -209,7 +209,7 @@ wd_init :: proc(window_config: Window_Config) {
 		win32.ReleaseDC(dummy_window_handle, dummy_device_context)
 		win32.DestroyWindow(dummy_window_handle)
 
-		win32.wglMakeCurrent(engine.window_manager.device_context, opengl_context)
+		win32.wglMakeCurrent(state.window_manager.device_context, opengl_context)
 		assert(win32.wglGetCurrentContext() != nil)
 		gl.load_up_to(4, 6, win32.gl_set_proc_address)
 		// os.exit(0)
@@ -221,63 +221,63 @@ wd_init :: proc(window_config: Window_Config) {
 wd_customize :: proc(header_color, border_color: Color) {
 	header_colorref := gx_color_to_win32_color(header_color)
 	win32.DwmSetWindowAttribute(
-		hWnd=cast(win32.HWND)engine.window_manager.handle,
+		hWnd=cast(win32.HWND)state.window_manager.handle,
 		dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_CAPTION_COLOR,
 		pvAttribute=&header_colorref,
 		cbAttribute=size_of(win32.COLORREF))
 	border_colorref := gx_color_to_win32_color(border_color)
 	win32.DwmSetWindowAttribute(
-		hWnd=cast(win32.HWND)engine.window_manager.handle,
+		hWnd=cast(win32.HWND)state.window_manager.handle,
 		dwAttribute=cast(u32)win32.DWMWINDOWATTRIBUTE.DWMWA_BORDER_COLOR,
 		pvAttribute=&border_colorref,
 		cbAttribute=size_of(win32.COLORREF)) }
 
 wd_update_size :: proc() {
-	if engine.window_manager.handle == nil do return
+	if state.window_manager.handle == nil do return
 	when WINDOW_BACKEND == .GLFW {
-		width, height := glfw.GetFramebufferSize(cast(glfw.WindowHandle)engine.window_manager.handle)
-		engine.window_manager.size = { cast(f32)width, cast(f32)height } }
+		width, height := glfw.GetFramebufferSize(cast(glfw.WindowHandle)state.window_manager.handle)
+		state.window_manager.size = { cast(f32)width, cast(f32)height } }
 	else {
 		client_rect: win32.RECT
-		win32.GetClientRect(cast(win32.HWND)engine.window_manager.handle, &client_rect)
+		win32.GetClientRect(cast(win32.HWND)state.window_manager.handle, &client_rect)
 		// point_0: win32.POINT = { client_rect.right, client_rect.bottom }
 		// point_1: win32.POINT = { client_rect.left, client_rect.top }
-		// win32.ClientToScreen(cast(win32.HWND)engine.window_manager.handle, &point_1)
+		// win32.ClientToScreen(cast(win32.HWND)state.window_manager.handle, &point_1)
 		// log.warn(point_0)
-		// win32.ClientToScreen(cast(win32.HWND)engine.window_manager.handle, &point_0)
+		// win32.ClientToScreen(cast(win32.HWND)state.window_manager.handle, &point_0)
 		// log.warn(point_0)
 		// size: [2]f32 = { f32(point_0.x - point_1.x), f32(point_0.y - point_1.y) }
-		engine.window_manager.size = {
+		state.window_manager.size = {
 			f32(client_rect.right - client_rect.left),
 			f32(client_rect.bottom - client_rect.top) + 1 } // (NOTE): Rects do not render properly unless 1 is added here. //
-		// monitor := win32.MonitorFromWindow(cast(win32.HWND)engine.window_manager.handle, {})
+		// monitor := win32.MonitorFromWindow(cast(win32.HWND)state.window_manager.handle, {})
 		// monitor_dpi: [2]u32
 		// win32.GetDpiForMonitor(monitor, .MDT_EFFECTIVE_DPI, &monitor_dpi.x, &monitor_dpi.y)
-		// dpi: f32 = cast(f32)win32.GetDpiForWindow(cast(win32.HWND)engine.window_manager.handle)
+		// dpi: f32 = cast(f32)win32.GetDpiForWindow(cast(win32.HWND)state.window_manager.handle)
 		// dpi_aware: f32 = cast(f32)win32.GetDpiFromDpiAwarenessContext(win32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-		// log.error(win32.GetWindowDpiAwarenessContext(cast(win32.HWND)engine.window_manager.handle))
+		// log.error(win32.GetWindowDpiAwarenessContext(cast(win32.HWND)state.window_manager.handle))
 		// // DICK
-		// caps: f32 = cast(f32)win32.GetDeviceCaps(engine.window_manager.device_context, 10)
+		// caps: f32 = cast(f32)win32.GetDeviceCaps(state.window_manager.device_context, 10)
 		// log.error(dpi, dpi_aware, monitor_dpi, caps, size)
 		window_info: win32.WINDOWINFO
-		win32.GetWindowInfo(cast(win32.HWND)engine.window_manager.handle, &window_info)
+		win32.GetWindowInfo(cast(win32.HWND)state.window_manager.handle, &window_info)
 		log.warn(window_info)
-		// engine.window_manager.size *= dpi
-		// engine.window_manager.size = { 1676, 954 }
-		// engine.window_manager.size = size
+		// state.window_manager.size *= dpi
+		// state.window_manager.size = { 1676, 954 }
+		// state.window_manager.size = size
 		}
-	if gl.Viewport != nil do gl.Viewport(0, 0, cast(i32)engine.window_manager.size.x, cast(i32)engine.window_manager.size.y)
-	log.info("Window size:", engine.window_manager.size) }
+	if gl.Viewport != nil do gl.Viewport(0, 0, cast(i32)state.window_manager.size.x, cast(i32)state.window_manager.size.y)
+	log.info("Window size:", state.window_manager.size) }
 
 wd_get_display_size :: proc() -> [2]f32 {
-	if cast(rawptr)engine.window_manager.handle == nil do return DEFAULT_WINDOW_CONFIG.size
+	if cast(rawptr)state.window_manager.handle == nil do return DEFAULT_WINDOW_CONFIG.size
 	when WINDOW_BACKEND == .GLFW {
 		display: glfw.MonitorHandle = glfw.GetPrimaryMonitor()
 		video_mode: ^glfw.VidMode = glfw.GetVideoMode(display)
 		return { cast(f32)video_mode.width, cast(f32)video_mode.height } }
 	else {
 		monitor: win32.HMONITOR = win32.MonitorFromWindow(
-			hwnd=cast(win32.HWND)engine.window_manager.handle, dwFlags=win32.Monitor_From_Flags.MONITOR_DEFAULTTONEAREST)
+			hwnd=cast(win32.HWND)state.window_manager.handle, dwFlags=win32.Monitor_From_Flags.MONITOR_DEFAULTTONEAREST)
 		monitor_info: win32.MONITORINFO = { cbSize = size_of(win32.MONITORINFO) }
 		win32.GetMonitorInfoW(monitor, &monitor_info)
 		return {
@@ -286,18 +286,18 @@ wd_get_display_size :: proc() -> [2]f32 {
 	return {} }
 
 wd_set_pos :: proc(position: [2]f32) {
-	engine.window_manager.position = position
+	state.window_manager.position = position
 	display_size: [2]f32 = wd_get_display_size()
 	position_normalized: [2]i32 = {
-		i32(engine.window_manager.position.x + display_size.x / 2 - engine.window_manager.size.x / 2),
-		i32(-engine.window_manager.position.y + display_size.y / 2 - engine.window_manager.size.y / 2) }
+		i32(state.window_manager.position.x + display_size.x / 2 - state.window_manager.size.x / 2),
+		i32(-state.window_manager.position.y + display_size.y / 2 - state.window_manager.size.y / 2) }
 	when WINDOW_BACKEND == .GLFW {
 		glfw.SetWindowPos(
-			window=cast(glfw.WindowHandle)engine.window_manager.handle,
+			window=cast(glfw.WindowHandle)state.window_manager.handle,
 			xpos=position_normalized.x, ypos=position_normalized.y) }
 	else {
 		win32.SetWindowPos(
-			hWnd=cast(win32.HWND)engine.window_manager.handle, hWndInsertAfter=win32.HWND_TOP,
+			hWnd=cast(win32.HWND)state.window_manager.handle, hWndInsertAfter=win32.HWND_TOP,
 			X=position_normalized.x, Y=position_normalized.y,
 			cx=0, cy=0, uFlags=win32.SWP_NOSIZE|win32.SWP_NOZORDER) } }
 
@@ -465,9 +465,9 @@ when WINDOW_BACKEND == .Win32 {
 			position: [2]f32 = {
 				cast(f32)win32.GET_X_LPARAM(l_param),
 				cast(f32)win32.GET_Y_LPARAM(l_param) }
-			engine.input_manager.mouse_position = {
-				- engine.window_manager.size.x / 2 + position.x,
-				engine.window_manager.size.y / 2 - position.y }
+			state.input_manager.mouse_position = {
+				- state.window_manager.size.x / 2 + position.x,
+				state.window_manager.size.y / 2 - position.y }
 			return 0
 		case win32.WM_KEYDOWN:
 			input_record_key(WIN32_KEY_MAP[w_param], .Press)
@@ -482,7 +482,7 @@ when WINDOW_BACKEND == .Win32 {
 			// win32.ReleaseDC(window, wcx.device_context);
 			// win32.wglDeleteContext(wcx.opengl_context);
 			// win32.PostQuitMessage(0);
-			engine.graphics_manager.window_closed = true
+			state.graphics_manager.window_closed = true
 			return 0
 			// DICK
 		}
@@ -505,23 +505,23 @@ when WINDOW_BACKEND == .Win32 {
 wd_tick :: proc() {
 	when WINDOW_BACKEND == .GLFW {
 		glfw.PollEvents()
-		glfw.SwapBuffers(cast(glfw.WindowHandle)engine.window_manager.handle) }
+		glfw.SwapBuffers(cast(glfw.WindowHandle)state.window_manager.handle) }
 	else {
 		message: win32.MSG
 		for cast(bool)win32.PeekMessageW(&message, nil, 0, 0, win32.PM_REMOVE) {
 			win32.TranslateMessage(&message)
 			win32.DispatchMessageW(&message) }
-		win32.SwapBuffers(engine.window_manager.device_context) }
-	wd_set_cursor_immediate(engine.window_manager.cursor)
+		win32.SwapBuffers(state.window_manager.device_context) }
+	wd_set_cursor_immediate(state.window_manager.cursor)
 	wd_set_cursor(.Arrow) }
 
 wd_set_cursor :: proc(cursor: Cursor) {
-	engine.window_manager.cursor = cursor }
+	state.window_manager.cursor = cursor }
 
 wd_set_cursor_immediate :: proc(cursor: Cursor) {
 	// (TEMP):
-	when WINDOW_BACKEND == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)engine.window_manager.handle, engine.window_manager.cursors[int(cursor)])
-	else do win32.SetCursor(engine.window_manager.cursors[int(cursor)])
+	when WINDOW_BACKEND == .GLFW do glfw.SetCursor(cast(glfw.WindowHandle)state.window_manager.handle, state.window_manager.cursors[int(cursor)])
+	else do win32.SetCursor(state.window_manager.cursors[int(cursor)])
 }
 
 glfw_key_callback :: proc "c" (window: glfw.WindowHandle, key, scancode, action, mods: i32) {
@@ -535,7 +535,7 @@ glfw_mouse_position_callback :: proc "c" (window: glfw.WindowHandle, x, y: f64) 
 	@(static) called: bool = false
 	width, height: i32 = glfw.GetWindowSize(window)
 	mouse_position := [2]f32{ - f32(width) / 2 + f32(x), - f32(height) / 2 + f32(height) - f32(y) }
-	if called do engine.input_manager.mouse_delta += mouse_position - engine.input_manager.mouse_position
+	if called do state.input_manager.mouse_delta += mouse_position - state.input_manager.mouse_position
 	// if (abs(input_manager.mouse_delta.x) > 100) && (abs(input_manager.mouse_delta.y) > 100) { input_manager.mouse_delta = { 0, 0 } }
 	input_record_mouse_position(mouse_position)
 	called = true }

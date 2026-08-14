@@ -1008,25 +1008,25 @@ ui_init :: proc() {
 			VARIANT_3 = 0xdc626dff,
 			VARIANT_4 = 0xdc626dff } }
 
-	font_group_init(&engine.ui_manager.font_group,
+	font_group_init(&state.ui_manager.font_group,
 		normal = default_font_config(name = "terminus"),
 		bold = default_font_config(name = "terminus-bold"),
 		italic = default_font_config(name = "terminus-italic"))
-	font_group_init(&engine.ui_manager.icons_font_group,
+	font_group_init(&state.ui_manager.icons_font_group,
 		normal = default_font_config(name = "icons"),
 		bold = default_font_config(name = "icons-bold"),
 		italic = default_font_config(name = "icons-bolder"))
 	ui_set_theme(ui_theme_ms_dark)
 
-	engine.ui_manager.anim_transitions = make(map[runtime.Source_Code_Location]UI_Anim_Transition)
-	engine.ui_manager.pan_controls = make(map[ID]UI_Pan_Control) }
+	state.ui_manager.anim_transitions = make(map[runtime.Source_Code_Location]UI_Anim_Transition)
+	state.ui_manager.pan_controls = make(map[ID]UI_Pan_Control) }
 
 ui_set_theme :: proc(theme: ^UI_Theme) {
-	engine.ui_manager.theme = theme
-	engine.ui_manager.text_style.color = ui_get_text_color()[0]
-	fg_color := engine.ui_manager.theme[UI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
-	engine.ui_manager.text_style = default_text_style(font_group = engine.ui_manager.font_group, color = fg_color, font_size = 8)
-	engine.ui_manager.icons_text_style = default_text_style(font_group = engine.ui_manager.icons_font_group, color = fg_color, font_size = 24)
+	state.ui_manager.theme = theme
+	state.ui_manager.text_style.color = ui_get_text_color()[0]
+	fg_color := state.ui_manager.theme[UI_Theme_Key.NEUTRAL_FOREGROUND_1][0]
+	state.ui_manager.text_style = default_text_style(font_group = state.ui_manager.font_group, color = fg_color, font_size = 8)
+	state.ui_manager.icons_text_style = default_text_style(font_group = state.ui_manager.icons_font_group, color = fg_color, font_size = 24)
 	background_color := ui_get_background_color()[0]
 	set_clear_color(background_color)
 	wd_customize(background_color, COLOR_NEUTRAL_STROKE_1_HOVER_DARK)
@@ -1034,10 +1034,10 @@ ui_set_theme :: proc(theme: ^UI_Theme) {
 }
 
 ui_get_background_color :: proc() -> UI_Color {
-	return engine.ui_manager.theme[UI_Theme_Key.NEUTRAL_BACKGROUND_3] }
+	return state.ui_manager.theme[UI_Theme_Key.NEUTRAL_BACKGROUND_3] }
 
 ui_get_text_color :: proc() -> UI_Color {
-	return engine.ui_manager.theme[UI_Theme_Key.NEUTRAL_FOREGROUND_1] }
+	return state.ui_manager.theme[UI_Theme_Key.NEUTRAL_FOREGROUND_1] }
 
 ui_theme_ms_light: ^UI_Theme
 ui_theme_ms_dark: ^UI_Theme
@@ -1060,7 +1060,7 @@ CHEVRON_ANIM_SPEED :: 6
 
 ui_chevron_begin :: proc(position: [2]f32, header: string, panel_size: [2]f32, location := #caller_location) -> (panel: Rect) {
 	rect: Rect = { position, UI_ICON_SIZE }
-	ui_text_style_scope(engine.ui_manager.text_style)
+	ui_text_style_scope(state.ui_manager.text_style)
 	width := dr_text_line(header, position + { UI_ICON_SIZE.x / 2 + UI_SPACING_XS, 0 }, pivot={ .West })
 	icon_rect: Rect = { position, UI_ICON_SIZE }
 	button_rect := ui_rect_extend_variate(icon_rect, east=Interval(width + UI_SPACING_XS))
@@ -1099,14 +1099,14 @@ ui_accordion_end :: proc(accordion: ^Accordion) {
 		last_open_location: runtime.Source_Code_Location
 		last_open_location_state: UI_Anim_Transition
 		for location in accordion.locations {
-			state := engine.ui_manager.anim_transitions[location] or_continue
-			if state.direction == false {
-				if last_open_location_state.action_time < state.action_time {
+			transition := state.ui_manager.anim_transitions[location] or_continue
+			if transition.direction == false {
+				if last_open_location_state.action_time < transition.action_time {
 					last_open_location = location
-					last_open_location_state = engine.ui_manager.anim_transitions[location] } } }
+					last_open_location_state = state.ui_manager.anim_transitions[location] } } }
 		if last_open_location != {} do for location in accordion.locations {
-			state := engine.ui_manager.anim_transitions[location] or_continue
-			if state.direction == false {
+			transition := state.ui_manager.anim_transitions[location] or_continue
+			if transition.direction == false {
 				if location != last_open_location do ui_anim_transition([2]f32{ 0, 1 }, 0, CHEVRON_ANIM_SPEED, true, true, location=location) } } }
 	if ! accordion.collapsible {
 		// Count how many are closed. If there are 0 closed, open the one with the most recent action. //
@@ -1221,13 +1221,13 @@ ui_measure_text_box :: proc(text: string, width: f32) -> (total_height: f32) {
 // (TODO): Add these to the generator. //
 ui_text_style_store :: proc() {
 	// (TODO): Enabling these causes weird things to happen. //
-	delete(engine.ui_manager.text_style_stack_store)
-	engine.ui_manager.text_style_stack_store = clone_dynamic_array(engine.ui_manager.text_style_stack, engine.backing_allocator)
+	delete(state.ui_manager.text_style_stack_store)
+	state.ui_manager.text_style_stack_store = clone_dynamic_array(state.ui_manager.text_style_stack, state.backing_allocator)
 	}
 
 ui_text_style_restore :: proc() {
-	delete(engine.ui_manager.text_style_stack)
-	engine.ui_manager.text_style_stack = clone_dynamic_array(engine.ui_manager.text_style_stack_store, engine.backing_allocator)
+	delete(state.ui_manager.text_style_stack)
+	state.ui_manager.text_style_stack = clone_dynamic_array(state.ui_manager.text_style_stack_store, state.backing_allocator)
 	}
 
 @(deferred_none=ui_text_style_restore)

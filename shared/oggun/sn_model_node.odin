@@ -16,7 +16,7 @@ render_model_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node)
 	using Model_Shader_Uniforms
 	assert(node != nil)
 	model_node := node_object(node, Model_Node, "node")
-	use_shader(&engine.graphics_manager.model_shader)
+	use_shader(&state.graphics_manager.model_shader)
 	translate_matrix, rotate_matrix, scale_matrix, node_matrix := node_transforms(&model_node.node)
 	set_shader_param(MODEL_MATRIX, &node_matrix)
 	set_shader_param(CAMERA_POSITION_MATRIX, &camera_node.view_matrix)

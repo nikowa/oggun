@@ -62,7 +62,7 @@ dr_model_im :: proc(element: Scene_Element, model: ^Model) {
 _dr_model_im :: proc(element: Scene_Element, model: ^Model) {
 	using Model_Shader_Uniforms
 	element := element
-	use_shader(&engine.graphics_manager.model_shader)
+	use_shader(&state.graphics_manager.model_shader)
 	set_shader_param(MODEL_MATRIX, &element.transformer.total)
 	set_shader_param(CAMERA_POSITION_MATRIX, &element.camera.view_matrix)
 	set_shader_param(CAMERA_PROJECTION_MATRIX, &element.camera.projection_matrix)

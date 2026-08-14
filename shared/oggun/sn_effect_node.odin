@@ -25,7 +25,7 @@ render_effect_node :: proc(scene: ^Scene, camera_node: ^Camera_Node, node: ^Node
 	set_shader_param(CAMERA_PROJECTION_MATRIX, &camera_node.projection_matrix)
 	set_shader_param(CAMERA_FAR_CLIP, camera_node.far_clip)
 	// (TODO): Make a singular "time" param in "Engine".
-	set_shader_param(TIME, engine.graphics_manager.time)
+	set_shader_param(TIME, state.graphics_manager.time)
 	// (TODO): How is this a different camera node from the camera node set in the DL?
 	set_shader_param(CAMERA_POSITION, camera_node.node.translate)
 	set_shader_param(ID, effect_node.node.id)

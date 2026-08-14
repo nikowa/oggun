@@ -173,8 +173,8 @@ mt_generate_stack :: proc(generator: ^Generator, name: string, type: string, def
 
 	fmt.sbprintfln(&generator.builder, `
 %s_%s_get :: proc() -> %s {{
-	if len(engine.%s.%s_stack) == 0 do return %s
-	return engine.%s.%s_stack[len(engine.%s.%s_stack) - 1] }}`,
+	if len(state.%s.%s_stack) == 0 do return %s
+	return state.%s.%s_stack[len(state.%s.%s_stack) - 1] }}`,
 		prefix, name, type, field, name, default, field, name, field, name)
 
 	fmt.sbprintfln(&generator.builder, `
@@ -185,12 +185,12 @@ mt_generate_stack :: proc(generator: ^Generator, name: string, type: string, def
 
 	fmt.sbprintfln(&generator.builder, `
 %s_%s_push :: proc(%s: %s) {{
-	append(&engine.%s.%s_stack, %s) }}`,
+	append(&state.%s.%s_stack, %s) }}`,
 		prefix, name, name, type, field, name, name)
 
 	fmt.sbprintfln(&generator.builder, `
 %s_%s_pop :: proc() -> (res: %s, ok: bool) {{
-	return pop_safe(&engine.%s.%s_stack) }}`,
+	return pop_safe(&state.%s.%s_stack) }}`,
 		prefix, name, type, field, name) }
 
 mt_generate_overloaded :: proc(oggun_path: string, package_path: string) {
@@ -202,7 +202,7 @@ mt_generate_stacks :: proc(oggun_path: string) {
 	mt_generate_stack(generator, "disabled", "bool", "false", "ui_manager")
 	mt_generate_stack(generator, "button_shape", "UI_Button_Shape", ".ROUNDED", "ui_manager")
 	mt_generate_stack(generator, "appearance", "UI_Appearance", ".DEFAULT", "ui_manager")
-	mt_generate_stack(generator, "text_style", "Text_Style", "engine.ui_manager.text_style", "ui_manager")
+	mt_generate_stack(generator, "text_style", "Text_Style", "state.ui_manager.text_style", "ui_manager")
 	mt_generator_commit(generator, oggun_path)
 	generator = mt_get_generator("gx")
 	mt_generate_stack(generator, "clip", "Clip", "{ ui_rect_screen(), 0 }", "graphics_manager")

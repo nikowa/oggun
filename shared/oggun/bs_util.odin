@@ -301,8 +301,8 @@ loc_id :: proc(location := #caller_location) -> ID {
 
 // (TODO): Apply this wherever possible. //
 tick_safe :: proc(x: ^$T) -> bool {
-	if x.last_tick == engine.tick_count do return false
-	x.last_tick = engine.tick_count
+	if x.last_tick == state.tick_count do return false
+	x.last_tick = state.tick_count
 	return true }
 
 skip_space :: proc(str: string, idx: ^int) {

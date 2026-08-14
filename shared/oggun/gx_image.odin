@@ -50,7 +50,7 @@ image_modification_time :: proc(image: ^Texture, location: Asset_Location_Field)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database_File:
-		path := relpath_to_path(engine.asset_manager.relpath, context.temp_allocator)
+		path := relpath_to_path(state.asset_manager.relpath, context.temp_allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database:

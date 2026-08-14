@@ -4,10 +4,10 @@ import "core:math"
 import "core:math/linalg"
 
 ui_rect_screen :: proc() -> Rect {
-	return make_rect(0.0, 0.0, engine.graphics_manager.active_resolution.x, engine.graphics_manager.active_resolution.y) }
+	return make_rect(0.0, 0.0, state.graphics_manager.active_resolution.x, state.graphics_manager.active_resolution.y) }
 
 ui_rect_hovered :: proc(r: Rect) -> bool {
-	return rect_contains_point(r, engine.input_manager.mouse_position) }
+	return rect_contains_point(r, state.input_manager.mouse_position) }
 
 ui_rect_sect :: proc(a, b: Rect) -> (c: Rect) {
 	a_left, a_right, a_bottom, a_top := rect_sides(a)

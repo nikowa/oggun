@@ -200,7 +200,7 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, con
 	shader.shader_config = config
 	am_init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
 	am_init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
-	append(&engine.graphics_manager.shaders, shader) or_return
+	append(&state.graphics_manager.shaders, shader) or_return
 	assert(am_commands(Shader_Asset, shader, { .Import, .Deserialize }))
 	return os.General_Error.None }
 
