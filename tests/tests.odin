@@ -91,11 +91,11 @@ package tests
 // 	path = as.relpath_to_path(relpath, allocator)
 // 	image, err = gx.load_image_from_path(path, url, allocator)
 // 	tst.expect(t_context, err == nil)
-// 	bytes, err = gx.image_serialize(&image, allocator)
+// 	bytes, err = gx.texture_serialize(&image, allocator)
 // 	tst.expect(t_context, err == nil)
-// 	deserialized_image, err = gx.image_deserialize(bytes, allocator)
+// 	deserialized_image, err = gx.texture_deserialize(bytes, allocator)
 // 	tst.expect(t_context, err == nil)
-// 	tst.expect(t_context, gx.image_equiv(&image, &deserialized_image))
+// 	tst.expect(t_context, gx.texture_equals(&image, &deserialized_image))
 // 	tst.expect(t_context, b.equal(image.pixels.buf[:], deserialized_image.pixels.buf[:]))
 
 // 	// database test //

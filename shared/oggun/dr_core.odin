@@ -29,7 +29,7 @@ Draw_Rect_Params :: struct {
 	clip: Clip }
 
 Draw_Rect_Group_Params :: struct {
-	target_texture: ^Texture }
+	output_textureset: ^Textureset }
 
 // (TODO): Change "stroke" to u8
 dr_rect :: proc(
@@ -38,13 +38,13 @@ dr_rect :: proc(
 	stroke_color: Color = GRAY,
 	radius: f32 = 0.0,
 	stroke: f32 = 0.0,
-	target_texture: ^Texture = nil,
+	output_textureset: ^Textureset = nil,
 	integer: bool = true) {
 	// (TODO): Test culling. Add culling to other primitives. //
 	clip := gx_clip_get()
 	if gx_rect_cull(rect, clip) do return
 	command: Draw_Rect_Command = {
-		target_texture = target_texture,
+		output_textureset = output_textureset,
 		rect = integer ? rect_round(rect) : rect,
 		// rect = integer ? rect_round_offset(rect, { 0.5, 0.5 }) : rect,
 		fill_color = fill_color,
@@ -140,15 +140,15 @@ dr_arc :: proc(center: [2]f32, radius: f32, angle_range: [2]f32, color: Color, i
 
 Draw_Image_Command :: struct {
 	using base: Generic_Command,
-	using params: dr_image_Params,
-	using group_params: dr_image_Group_Params }
+	using params: Draw_Image_Params,
+	using group_params: Draw_Image_Group_Params }
 
-dr_image_Params :: struct {
+Draw_Image_Params :: struct {
 	rect: Rect,
 	depth: f32,
 	clip: Clip }
 
-dr_image_Group_Params :: struct {
+Draw_Image_Group_Params :: struct {
 	render_buffer: Maybe(^Render_Buffer),
 	image: ^Texture }
 

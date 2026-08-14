@@ -247,7 +247,10 @@ gx_submit_image :: proc(_command: Command, index: int) {
 
 	command := _command.base.(Draw_Image_Command)
 
-	assert(image_loaded(command.image))
+	// (TODO): Call .Query_Location on all assets in bulk at the start of frame. //
+	texture_command(&command.image.asset, .Query_Location)
+	if .GPU_Memory not_in command.image.asset.location do return
+
 	use_shader(&state.graphics_manager.image_shader)
 	set_shader_param(RES, linalg.array_cast(state.graphics_manager.active_resolution, f32))
 

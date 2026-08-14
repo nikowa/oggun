@@ -54,8 +54,8 @@ main :: proc() {
 			// 4. Blend shader.
 
 			og.dr_rect(rect_screen, 0xE0A887FF)
-			og.dr_rect(card_rect, 0xFF0000FF, target_texture=&card_texture)
-			og.dr_image(&card_texture, card_rect)
+			// og.dr_rect(card_rect, 0xFF0000FF, target_texture=&card_texture)
+			// og.dr_image(&card_texture, card_rect)
 
 			{ og.gx_depth_scope(0.5); og.dr_image(&mountain_texture, card_rect, integer=false) }
 

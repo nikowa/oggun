@@ -84,7 +84,8 @@ nav:
     - am:
       - core: am_core.md
     - gx:
-      - image: gx_image.md
+      - texture: gx_texture.md
+      - textureset: gx_textureset.md
   - GLSL API:
     - clip: clip.md
     - msaa: msaa.md
