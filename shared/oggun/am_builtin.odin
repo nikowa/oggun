@@ -12,7 +12,7 @@ am_init_string_asset :: proc(string_asset: ^String_Asset, config: Asset_Config) 
 	config.derived_type = String_Asset
 	am_init_asset(String_Asset, &string_asset.asset, config) }
 
-am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+am_string_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
 	string_asset := am_asset_base(asset, String_Asset, "asset")
 	switch command {
 	case .Validate:

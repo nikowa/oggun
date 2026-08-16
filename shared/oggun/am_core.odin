@@ -60,16 +60,16 @@ Asset_Command :: enum {
 	Upload,
 	Download }
 
-Asset_Location :: bit_set[Asset_Location_Field]
+Asset_Locations :: bit_set[Asset_Location]
 
-Asset_Location_Field :: enum {
+Asset_Location :: enum {
 	Source_Directory,
 	Database_File,
 	Database,
 	Main_Memory,
 	GPU_Memory }
 
-Asset_Command_Proc :: #type proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool)
+Asset_Command_Proc :: #type proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool)
 
 Asset_Config :: struct {
 	url: URL,
@@ -84,7 +84,7 @@ DEFAULT_ASSET_CONFIG: Asset_Config : {
 // (NOTE): All types that derive from asset must be remain at the same memory address after initialization by "am_init_asset".
 Asset :: struct {
 	using asset_config: Asset_Config,
-	location: Asset_Location }
+	location: Asset_Locations }
 
 Asset_Kind :: struct {
 	command: Asset_Command_Proc }

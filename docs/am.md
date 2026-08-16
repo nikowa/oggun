@@ -138,16 +138,16 @@ Asset_Command :: enum {
 	Download }
 ```
 
+#### `Asset_Locations`
+
+```c
+Asset_Locations :: bit_set[Asset_Location]
+```
+
 #### `Asset_Location`
 
 ```c
-Asset_Location :: bit_set[Asset_Location_Field]
-```
-
-#### `Asset_Location_Field`
-
-```c
-Asset_Location_Field :: enum {
+Asset_Location :: enum {
 	Source_Directory,
 	Database_File,
 	Database,
@@ -178,7 +178,7 @@ Asset_Config :: struct {
 ```c
 Asset :: struct {
 	using asset_config: Asset_Config,
-	location: Asset_Location }
+	location: Asset_Locations }
 ```
 
 #### `Asset_Kind`

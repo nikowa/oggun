@@ -397,7 +397,7 @@ shader_outdated :: proc(shader_asset: ^Shader_Asset) -> (outdated: bool) {
 	latest_modification_time: time.Time = time_max(vert_entry.modification_time, frag_entry.modification_time)
 	return time.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
-shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
 	shader_asset := am_asset_base(asset, Shader_Asset, "asset")
 	switch command {
 	case .Validate:

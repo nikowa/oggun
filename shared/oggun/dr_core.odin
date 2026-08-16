@@ -149,12 +149,12 @@ Draw_Image_Params :: struct {
 	clip: Clip }
 
 Draw_Image_Group_Params :: struct {
-	render_buffer: Maybe(^Render_Buffer),
+	output_textureset: ^Textureset,
 	image: ^Texture }
 
-dr_image :: proc(image: ^Texture, rect: Rect, render_buffer: Maybe(^Render_Buffer) = nil, integer: bool = true) {
+dr_image :: proc(image: ^Texture, rect: Rect, output_textureset: ^Textureset = nil, integer: bool = true) {
 	command: Draw_Image_Command = {
-		render_buffer = render_buffer,
+		output_textureset = output_textureset,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
 		depth = gx_depth_get(),

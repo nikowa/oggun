@@ -47,16 +47,16 @@ Asset_Command :: enum {
 
 See [asset flowchart](../architecture/#asset-flowchart).
 
+### `Asset_Locations`
+
+```odin
+Asset_Locations :: bit_set[Asset_Location]
+```
+
 ### `Asset_Location`
 
 ```odin
-Asset_Location :: bit_set[Asset_Location_Field]
-```
-
-### `Asset_Location_Field`
-
-```odin
-Asset_Location_Field :: enum {
+Asset_Location :: enum {
 	Source_Directory,
 	Database_File,
 	Database,

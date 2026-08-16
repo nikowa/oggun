@@ -20,10 +20,16 @@ Texture :: struct #packed {
 	handle: u32,
 	render_buffer: ^Render_Buffer }
 
+// Pixel_Type :: enum {
+// 	FLOAT,
+// 	UINT }
+
 Texture_Shape :: struct #packed {
 	size: [2]u32,
 	channels: u8,
-	depth: u8 }
+	depth: u8,
+	// type: Pixel_Type
+}
 
 Texture_Create_Flag :: enum {
 	Allocate_Empty,
@@ -38,13 +44,13 @@ texture_init :: proc(texture: ^Texture, config: Asset_Config, shape: Texture_Sha
 	config.derived_type = Texture
 	texture.shape = shape
 	if .Allocate_Empty in flags do texture_allocate_data(texture)
-	if .Allocate_Render_Buffer in flags do _texture_allocate_render_buffer(texture)
+	if .Allocate_Render_Buffer in flags do texture_allocate_render_buffer(texture)
 	am_init_asset(Texture, &texture.asset, config) }
 
 texture_equals :: proc(texture0: ^Texture, texture1: ^Texture) -> bool {
 	return (texture0.shape == texture1.shape) && slice.equal(texture0.bytes, texture1.bytes) }
 
-texture_modification_time :: proc(texture: ^Texture, location: Asset_Location_Field) -> (modification_time: time.Time) {
+texture_modification_time :: proc(texture: ^Texture, location: Asset_Location) -> (modification_time: time.Time) {
 	switch location {
 	case .Source_Directory:
 		path := am_path_from_url(texture.url, context.temp_allocator)
@@ -67,14 +73,19 @@ texture_is_empty :: proc(texture: ^Texture) -> bool {
 	return len(texture.bytes) == 0 }
 
 texture_allocate_data :: proc(texture: ^Texture) {
-	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * texture.size * texture.channels)) }
+	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels)) }
 
-_texture_allocate_render_buffer :: proc(texture: ^Texture) {
+texture_allocate_render_buffer :: proc(texture: ^Texture) {
 	texture.render_buffer = new(Render_Buffer)
-	texture.render_buffer^ = make_render_buffer({ cast(f32)texture.size.x, cast(f32)texture.size.y }, { gl.RGBA8 }, { gl.RGBA }, { gl.UNSIGNED_BYTE }) }
+	// (TODO): Why are render-buffers per-texture instead of per-textureset? What is a render-buffer really? //
+	texture.render_buffer^ = make_render_buffer(
+		auto_cast texture.size,
+		{ texture_shape_to_gl_internal_format(texture.shape) },
+		{ texture_shape_to_gl_format(texture.shape) },
+		{ gl.UNSIGNED_INT }) }
 
 image_as_bytes :: proc(image: ^im.Image) -> []u8 {
-	shrink(image.pixels.buf)
+	shrink(&image.pixels.buf)
 	return image.pixels.buf[:] }
 
 image_shape :: proc(image: ^im.Image) -> Texture_Shape {
@@ -83,7 +94,7 @@ image_shape :: proc(image: ^im.Image) -> Texture_Shape {
 		depth = auto_cast image.depth,
 		channels = auto_cast image.channels } }
 
-texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
 	texture := am_asset_base(asset, Texture, "asset")
 	// #partial switch command {
 	// case .Download, .Upload, .Serialize, .Deserialize, .Export, .Import:
@@ -110,13 +121,13 @@ texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = fal
 		switch ext := os.ext(path); ext {
 		case ".png": loader_proc = png.load_from_bytes
 		case ".jpg", ".jpeg": loader_proc = jpeg.load_from_bytes
-		case: log.errorf("Unrecognized texture extension \"%s\".", ext); return false }
+		case: log.errorf("Unrecognized texture extension \"%s\".", ext, location=location); return false }
 		bytes: []u8
 		if bytes, err = os.read_entire_file(path, context.allocator); err != nil {
 			return false }
 		image_temp, image_err := loader_proc(bytes, im.Options{}, context.allocator)
 		if image_err != nil {
-			log.errorf("Image error: %v.", image_err); return false }
+			log.errorf("Image error: %v.", image_err, location=location); return false }
 		texture.bytes = image_as_bytes(image_temp)
 		texture.shape = image_shape(image_temp)
 		free(image_temp)
@@ -148,7 +159,7 @@ texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = fal
 				internal_format = gl.R8
 				data_format = gl.RED
 			case:
-				log.errorf("Unsupported data format for texture %s.", texture.url)
+				log.errorf("Unsupported data format for texture %s.", texture.url, location=location)
 				return false }
 		case 3:
 			switch texture.depth {
@@ -156,7 +167,7 @@ texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = fal
 				internal_format = gl.RGB8
 				data_format = gl.RGB
 			case:
-				log.errorf("Unsupported data format for texture %s.", texture.url)
+				log.errorf("Unsupported data format for texture %s.", texture.url, location=location)
 				return false }
 		case 4:
 			switch texture.depth {
@@ -164,13 +175,13 @@ texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = fal
 				internal_format = gl.RGBA8
 				data_format = gl.RGBA
 			case:
-				log.errorf("Unsupported internal format for texture %s.", texture.url)
+				log.errorf("Unsupported internal format for texture %s.", texture.url, location=location)
 				return false }
 		case:
-			log.errorf("Unsupported channel count for texture %s.", image.url)
+			log.errorf("Unsupported channel count for texture %s.", texture.url, location=location)
 			return false }
 		data_format_type = gl.UNSIGNED_BYTE
-		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)texture.size.x, cast(i32)texture.size.y, 0, data_format, data_format_type, &texture.pixels.buf[0])
+		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)texture.size.x, cast(i32)texture.size.y, 0, data_format, data_format_type, &texture.bytes[0])
 		texture_wrapping(gl.REPEAT)
 		texture_filtering(gl.NEAREST)
 		texture.gpu_modification_time = texture.modification_time
@@ -205,7 +216,7 @@ texture_serialize :: proc(texture: ^Texture, allocator: runtime.Allocator) -> (i
 
 	bytes.buffer_init_allocator(&buffer, 0, 100_000, context.temp_allocator)
 	bytes.buffer_write_ptr(&buffer, texture, size_of(texture^)) or_return
-	bytes.buffer_write_slice(&buffer, bytes.buffer_to_bytes(&texture.pixels)) or_return
+	bytes.buffer_write_slice(&buffer, texture.bytes) or_return
 	return slice.clone(bytes.buffer_to_bytes(&buffer), allocator), os.General_Error.None }
 
 @require_results
@@ -215,10 +226,40 @@ texture_deserialize :: proc(image_bytes: []u8, allocator: runtime.Allocator) -> 
 
 	bytes.reader_init(&reader, image_bytes)
 	bytes.reader_read_ptr(&reader, &texture, size_of(texture)) or_return
-	n = len(texture.pixels.buf)
-	texture.pixels.buf = make_dynamic_array_len_cap([dynamic]u8, n, n, allocator) or_return
-	bytes.reader_read_slice(&reader, texture.pixels.buf[:]) or_return
+	n = len(texture.bytes)
+	texture.bytes = make([]u8, n, allocator) or_return
+	bytes.reader_read_slice(&reader, texture.bytes) or_return
 	return texture, os.General_Error.None }
+
+texture_shape_to_gl_format :: proc(shape: Texture_Shape) -> u32 {
+	switch shape.channels {
+	case 1: return gl.RED
+	case 2: return gl.RG
+	case 3: return gl.RGB
+	case 4: return gl.RGBA }
+	return 0 }
+
+texture_shape_to_gl_internal_format :: proc(shape: Texture_Shape) -> i32 {
+	switch shape.depth {
+	case 1:
+		switch shape.channels {
+		case 1: return gl.R8
+		case 2: return gl.RG8
+		case 3: return gl.RGB8
+		case 4: return gl.RGBA8 }
+	case 2:
+		switch shape.channels {
+		case 1: return gl.R16F
+		case 2: return gl.RG16F
+		case 3: return gl.RGB16F
+		case 4: return gl.RGBA16F }
+	case 4:
+		switch shape.channels {
+		case 1: return gl.R16F
+		case 2: return gl.RG32F
+		case 3: return gl.RGB32F
+		case 4: return gl.RGBA32F } }
+	return 0 }
 
 // make_image :: proc(#any_int width: int, #any_int height: int, channels: int, allocator := context.allocator) -> (image: im.Image) {
 // 	if (channels < 1) || (channels > 4) do log.errorf("Invalid channel-count: %d", channels)

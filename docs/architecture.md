@@ -182,6 +182,25 @@ flowchart LR
 
 `Asset` is a generic class for managing things like images, sounds, models, levels, etc. The purpose of this is to (1) simplify the creation of new types of assets, and (2) allow heterogenous assets to be managed in bulk. The hot-reloading system makes use of this feature.
 
+```odin
+Asset_Command_Proc :: #type proc(
+	asset: ^Asset,
+	op: Asset_Op,
+	dest: Asset_Location,
+	src: Asset_Location,
+	watch: bool = false) -> (ok: bool)
+```
+
+```odin
+Asset_Op :: enum {
+	Make,
+	Delete,
+	Initialize,
+	Exists,
+	Translate,
+	Outdated }
+```
+
 ## Tree Construction Modes
 
 Several problems in game development involve the walking of some kind of virtual or concrete tree—eg. scenes, GUIs, render graphs, etc. Concrete trees are generally more vertsatile, but they add friction. Procedures that operate on trees have three modes of calling.

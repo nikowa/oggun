@@ -26,7 +26,7 @@ textureset_init_from_shape :: proc(textureset: ^Textureset, config: Asset_Config
 	textures := make([]^Texture, n, context.temp_allocator)
 	for i in 0 ..< n {
 		textures[i] = new(Texture)
-		texture_init(textures[i], { url = cast(URL)fmt.aprintf("%s-%d", config.url, i, allocator) }, shape[i], flags) }
+		texture_init(textures[i], { url = cast(URL)fmt.aprintf("%s-%d", config.url, i, allocator=allocator) }, shape[i], flags) }
 	textureset_init_from_textures(textureset, config, textures) }
 
 textureset_init_from_textures :: proc(textureset: ^Textureset, config: Asset_Config, textures: []^Texture) {
@@ -37,15 +37,17 @@ textureset_init_from_textures :: proc(textureset: ^Textureset, config: Asset_Con
 
 textureset_shape :: proc(textureset: ^Textureset, allocator := context.allocator) -> (shape: Textureset_Shape) {
 	shape = make([]Texture_Shape, len(textureset.textures), allocator)
-	for &shape, i in shape do shape[i] = textureset.textures[i]
+	for &texture_shape, i in shape do texture_shape = textureset.textures[i]
 	return shape }
 
 textureset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
 	textureset := am_asset_base(asset, Textureset, "asset")
 	switch command {
 	case .Query_Location, .Import, .Deserialize, .Upload:
-		ok = am_command(Texture, &textureset.base_color.asset, command)
-		asset.location += textureset.base_color.asset.location
+		ok = true
+		for &texture in textureset.textures do ok &= am_command(Texture, &texture.asset, command)
+		// (TODO): Update `asset.location`.
+		// asset.location += textureset.asset.location
 		return ok
 	case .Validate, .Export, .Serialize, .Download:
 		if ! watch do log.errorf("Command %v not implemented for asset kind \"Textureset\".", command)

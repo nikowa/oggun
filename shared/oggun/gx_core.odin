@@ -260,17 +260,19 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		// graphics_manager.sdf_shader                  = make_shader_asset(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 		// graphics_manager.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 		// DICK
-		textureset_init(
-			textureset=&state.graphics_manager.canvas_textureset,
-			config={ url="textureset:canvas" },
-			shape={
-				{ size=cast([2]u32)state.window_manager.size, channels=4, depth=1 },
-				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=4 },
-				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=4 } },
-			flags={ .Allocate_Empty, .Allocate_Render_Buffer })
-		// state.graphics_manager.canvas_rb = make_render_buffer(state.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 		am_register_asset_kind(Texture, { command = texture_command })
-		am_register_asset_kind(Textureset, { command = texture_command }) }
+		am_register_asset_kind(Textureset, { command = texture_command })
+		// TEMP
+		// textureset_init(
+		// 	textureset=&state.graphics_manager.canvas_textureset,
+		// 	config={ url="textureset:canvas" },
+		// 	shape={
+		// 		{ size=cast([2]u32)state.window_manager.size, channels=4, depth=1 },
+		// 		{ size=cast([2]u32)state.window_manager.size, channels=1, depth=4 },
+		// 		{ size=cast([2]u32)state.window_manager.size, channels=1, depth=4 } },
+		// 	flags={ .Allocate_Empty, .Allocate_Render_Buffer })
+		// state.graphics_manager.canvas_rb = make_render_buffer(state.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
+		}
 	else {
 		log.warn("No asset manager.") }
 	zero_stopwatch(&state.graphics_manager.stopwatch)
@@ -1122,15 +1124,19 @@ tick_graphics_manager_begin :: proc() {
 	clear_frame_buffer(0)
 	state.graphics_manager.time = read_stopwatch(&state.graphics_manager.stopwatch)
 	// (TODO): Push-pop textureset to a stack. //
-	select_render_buffer(&state.graphics_manager.canvas_rb)
-	clear_render_buffer(&state.graphics_manager.canvas_rb)
+	// select_render_buffer(&state.graphics_manager.canvas_rb)
+	// DICK
+	// clear_render_buffer(&state.graphics_manager.canvas_rb)
+	// TEMP
+	// clear_render_buffer(state.graphics_manager.canvas_textureset.textures[0].render_buffer)
 	set_depth_test(true) }
 
 tick_graphics_manager_end :: proc() {
 	command_buffer_submit(&state.graphics_manager.command_buffer)
 	set_depth_test(false)
 	select_frame_buffer(0)
-	if state.graphics_manager.buffer_shader.handle != 0 do render_render_buffer(&state.graphics_manager.canvas_rb, 0)
+	// TEMP
+	// if state.graphics_manager.buffer_shader.handle != 0 do render_render_buffer(state.graphics_manager.canvas_textureset.textures[0].render_buffer, 0)
 
 // 	if .MODELS in draw.dr_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.dr_mask {

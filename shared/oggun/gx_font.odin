@@ -76,8 +76,8 @@ font_init :: proc(font: ^Font, config: Font_Config) {
 		font.bitmap_image_bold = font.bitmap_image }
 	assert(am_commands(Texture, &font.bitmap_image.asset, { .Import, .Deserialize, .Upload }))
 	// assert(am_commands(Texture, &font.bitmap_image_bold.asset, { .Import, .Deserialize, .Upload }))
-	if font.default_advance == 0 do font.default_advance = u8(font.bitmap_image.height / 16)
-	font.symbol_size = { f32(font.bitmap_image.width / 16), f32(font.bitmap_image.height / 16) }
+	if font.default_advance == 0 do font.default_advance = u8(font.bitmap_image.size.y / 16)
+	font.symbol_size = { f32(font.bitmap_image.size.x / 16), f32(font.bitmap_image.size.y / 16) }
 	font.bearings = font.default_bearing
 	font.advances = font.default_advance
 	baf_path: string = fmt.aprintf("string:%s.baf", font.name)

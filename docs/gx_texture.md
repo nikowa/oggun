@@ -77,7 +77,7 @@ texture_equals :: proc(
 ```odin
 texture_modification_time :: proc(
 	texture: ^Texture,
-	location: Asset_Location_Field) -> (modification_time: time.Time)
+	location: Asset_Location) -> (modification_time: time.Time)
 ```
 
 ### **command**

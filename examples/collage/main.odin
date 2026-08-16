@@ -33,8 +33,9 @@ main :: proc() {
 	og.texture_init(&mountain_texture, { url = "image:mountain.png" })
 	assert(og.am_commands(og.Texture, &mountain_texture.asset, { .Import, .Deserialize, .Upload }))
 
-	card_texture: og.Texture = { width = cast(int)card_rect.size.x, height = cast(int)card_rect.size.y }
-	og.texture_init(&card_texture, {}, { .Allocate_Empty, .Allocate_Render_Buffer })
+	card_shape: og.Texture_Shape = { size = auto_cast card_rect.size, depth = 1, channels = 4 }
+	card_texture: og.Texture = { shape = card_shape }
+	og.texture_init(&card_texture, {}, card_shape, { .Allocate_Empty, .Allocate_Render_Buffer })
 
 	font: og.Font
 	og.font_init(&font, { name = "terminus", default_bearing = 0, default_advance = 0 })
