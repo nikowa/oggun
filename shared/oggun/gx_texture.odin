@@ -73,7 +73,7 @@ texture_is_empty :: proc(texture: ^Texture) -> bool {
 	return len(texture.bytes) == 0 }
 
 texture_allocate_data :: proc(texture: ^Texture) {
-	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels)) }
+	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8)) }
 
 texture_allocate_render_buffer :: proc(texture: ^Texture) {
 	texture.render_buffer = new(Render_Buffer)
@@ -159,7 +159,7 @@ texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = fal
 				internal_format = gl.R8
 				data_format = gl.RED
 			case:
-				log.errorf("Unsupported data format for texture %s.", texture.url, location=location)
+				log.errorf("Unsupported data format %v for texture %s.", texture.shape, texture.url, location=location)
 				return false }
 		case 3:
 			switch texture.depth {
@@ -167,7 +167,7 @@ texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = fal
 				internal_format = gl.RGB8
 				data_format = gl.RGB
 			case:
-				log.errorf("Unsupported data format for texture %s.", texture.url, location=location)
+				log.errorf("Unsupported data format %v for texture %s.", texture.shape, texture.url, location=location)
 				return false }
 		case 4:
 			switch texture.depth {
@@ -241,19 +241,19 @@ texture_shape_to_gl_format :: proc(shape: Texture_Shape) -> u32 {
 
 texture_shape_to_gl_internal_format :: proc(shape: Texture_Shape) -> i32 {
 	switch shape.depth {
-	case 1:
+	case 8:
 		switch shape.channels {
 		case 1: return gl.R8
 		case 2: return gl.RG8
 		case 3: return gl.RGB8
 		case 4: return gl.RGBA8 }
-	case 2:
+	case 16:
 		switch shape.channels {
 		case 1: return gl.R16F
 		case 2: return gl.RG16F
 		case 3: return gl.RGB16F
 		case 4: return gl.RGBA16F }
-	case 4:
+	case 32:
 		switch shape.channels {
 		case 1: return gl.R16F
 		case 2: return gl.RG32F

@@ -261,16 +261,15 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		// graphics_manager.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 		// DICK
 		am_register_asset_kind(Texture, { command = texture_command })
-		am_register_asset_kind(Textureset, { command = texture_command })
-		// TEMP
-		// textureset_init(
-		// 	textureset=&state.graphics_manager.canvas_textureset,
-		// 	config={ url="textureset:canvas" },
-		// 	shape={
-		// 		{ size=cast([2]u32)state.window_manager.size, channels=4, depth=1 },
-		// 		{ size=cast([2]u32)state.window_manager.size, channels=1, depth=4 },
-		// 		{ size=cast([2]u32)state.window_manager.size, channels=1, depth=4 } },
-		// 	flags={ .Allocate_Empty, .Allocate_Render_Buffer })
+		am_register_asset_kind(Textureset, { command = textureset_command })
+		textureset_init(
+			textureset=&state.graphics_manager.canvas_textureset,
+			config={ url="textureset:canvas" },
+			shape={
+				{ size=cast([2]u32)state.window_manager.size, channels=4, depth=8 },
+				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8 },
+				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8} },
+			flags={ .Allocate_Empty, .Allocate_Render_Buffer })
 		// state.graphics_manager.canvas_rb = make_render_buffer(state.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 		}
 	else {

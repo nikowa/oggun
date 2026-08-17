@@ -124,6 +124,8 @@ ptr_is_temp :: proc(ptr: rawptr) -> bool {
 		temp_allocator = mem.tracking_allocator(&state.tracking_temp_allocator) }
 	context.allocator = allocator
 	context.temp_allocator = temp_allocator
+	// (TODO): This solves the allocation problem. //
+	// context.temp_allocator = context.allocator
 	if state.backing_allocator == {} do state.backing_allocator = context.allocator
 	am_init(asset_config)
 	wd_init(window_config)

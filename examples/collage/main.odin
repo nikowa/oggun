@@ -20,7 +20,7 @@ main :: proc() {
 			game_name="Sprites Example",
 			track_backing_allocations=true,
 			track_temp_allocations=true,
-			temp_allocator_cap=1000 * mem.Megabyte))
+			temp_allocator_cap=100 * mem.Megabyte))
 
 	// Calculate rects //
 	rect_screen := og.ui_rect_screen()
@@ -33,7 +33,7 @@ main :: proc() {
 	og.texture_init(&mountain_texture, { url = "image:mountain.png" })
 	assert(og.am_commands(og.Texture, &mountain_texture.asset, { .Import, .Deserialize, .Upload }))
 
-	card_shape: og.Texture_Shape = { size = auto_cast card_rect.size, depth = 1, channels = 4 }
+	card_shape: og.Texture_Shape = { size = auto_cast card_rect.size, depth = 8, channels = 4 }
 	card_texture: og.Texture = { shape = card_shape }
 	og.texture_init(&card_texture, {}, card_shape, { .Allocate_Empty, .Allocate_Render_Buffer })
 

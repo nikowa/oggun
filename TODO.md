@@ -1,4 +1,6 @@
 
+- Figure out which of the allocations in log (made by the temp allocator) should not be temporary allocations.
+
 - Replace "state.graphics_manager.canvas_rb" with a canvas image asset.
 - Rename "engine" to "oggun"
 - Rename "dr_image" to "dr_texture"

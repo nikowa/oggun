@@ -23,7 +23,7 @@ textureset_init :: proc { textureset_init_from_shape, textureset_init_from_textu
 
 textureset_init_from_shape :: proc(textureset: ^Textureset, config: Asset_Config, shape: Textureset_Shape, flags: Texture_Create_Flags = {}, allocator := context.allocator) {
 	n := len(shape)
-	textures := make([]^Texture, n, context.temp_allocator)
+	textures := make([]^Texture, n)
 	for i in 0 ..< n {
 		textures[i] = new(Texture)
 		texture_init(textures[i], { url = cast(URL)fmt.aprintf("%s-%d", config.url, i, allocator=allocator) }, shape[i], flags) }
@@ -40,7 +40,7 @@ textureset_shape :: proc(textureset: ^Textureset, allocator := context.allocator
 	for &texture_shape, i in shape do texture_shape = textureset.textures[i]
 	return shape }
 
-textureset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+textureset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
 	textureset := am_asset_base(asset, Textureset, "asset")
 	switch command {
 	case .Query_Location, .Import, .Deserialize, .Upload:
