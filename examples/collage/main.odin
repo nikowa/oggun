@@ -31,7 +31,8 @@ main :: proc() {
 	// Create images //
 	mountain_texture: og.Texture
 	og.texture_init(&mountain_texture, { url = "image:mountain.png" })
-	assert(og.am_commands(og.Texture, &mountain_texture.asset, { .Import, .Deserialize, .Upload }))
+	assert(og.am_op(og.Texture, &mountain_texture.asset, .Translate, .RAM, .Source))
+	assert(og.am_op(og.Texture, &mountain_texture.asset, .Translate, .VRAM, .RAM))
 
 	card_shape: og.Texture_Shape = { size = auto_cast card_rect.size, depth = 8, channels = 4 }
 	card_texture: og.Texture = { shape = card_shape }

@@ -50,26 +50,26 @@ Asset_Manager :: struct {
 	assets: [dynamic]^Asset,
 	asset_kinds: map[typeid]Asset_Kind }
 
-Asset_Command :: enum {
-	Validate,
-	Query_Location,
-	Import,
-	Export,
-	Serialize,   // prev Save
-	Deserialize, // prev Load
-	Upload,
-	Download }
+Asset_Op :: enum {
+    Make,
+    Delete,
+    Initialize,
+    Exists,
+    Translate,
+    Outdated }
 
 Asset_Locations :: bit_set[Asset_Location]
 
 Asset_Location :: enum {
-	Source_Directory,
-	Database_File,
+	None,
+	Source,
+	Storage,
 	Database,
-	Main_Memory,
-	GPU_Memory }
+	RAM,
+	VRAM }
 
-Asset_Command_Proc :: #type proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool)
+Asset_Op_Proc :: #type proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src: Asset_Location = .None, arg: rawptr = nil, location := #caller_location) -> (ok: bool)
+// runtime.Source_Code_Location
 
 Asset_Config :: struct {
 	url: URL,
@@ -83,11 +83,10 @@ DEFAULT_ASSET_CONFIG: Asset_Config : {
 
 // (NOTE): All types that derive from asset must be remain at the same memory address after initialization by "am_init_asset".
 Asset :: struct {
-	using asset_config: Asset_Config,
-	location: Asset_Locations }
+	using asset_config: Asset_Config }
 
 Asset_Kind :: struct {
-	command: Asset_Command_Proc }
+	op: Asset_Op_Proc }
 
 Entry_Config :: struct {
 	url: URL,
@@ -112,21 +111,33 @@ am_init :: proc(config: Asset_Manager_Config) {
 	am_register_builtin_kinds()
 	state.asset_manager.initialized = true }
 
-am_verify_watch_no_leak :: proc(Asset_Type: typeid, asset: ^Asset, command: Asset_Command) -> (ok: bool) {
+am_verify_watch_no_leak :: proc(Asset_Type: typeid, asset: ^Asset, op: Asset_Op) -> (ok: bool) {
 	// (TODO): Implement this. //
 	return true }
 
-am_command :: proc(Asset_Type: typeid, asset: ^Asset, command: Asset_Command, watch: bool = false) -> (ok: bool) {
+// (TODO): Can I rework this to take just a pointer to the derived asset type? //
+am_op :: proc(Asset_Type: typeid, asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src: Asset_Location = .None, arg: rawptr = nil, location := #caller_location) -> (ok: bool) {
 	asset_kind, registered := state.asset_manager.asset_kinds[Asset_Type]
 	if ! registered do log.errorf("Type %v not registered!", Asset_Type)
-	when ODIN_DEBUG do asset_kind.command(asset, .Validate, false)
-	assert(asset_kind.command != nil)
-	return asset_kind.command(asset, command, watch) }
+	// when ODIN_DEBUG do asset_kind.op(asset, .Validate, false)
+	assert(asset_kind.op != nil)
+	return asset_kind.op(asset, op, dest, src, arg, location) }
 
-am_commands :: proc(Asset_Type: typeid, asset: ^Asset, commands: []Asset_Command, watch: bool = false) -> (ok: bool) {
-	ok = true
-	for command in commands do ok &&= am_command(Asset_Type, asset, command, watch)
-	return ok }
+// am_download :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .RAM, .VRAM) }
+
+// am_upload :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .VRAM, .RAM) }
+
+// am_serialize :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .Database, .RAM) }
+
+// am_deserialize :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .RAM, .Database) }
+
+// am_export :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .Source, .RAM) }
+
+// am_import :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .RAM, .Source) }
+
+// am_write :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .Storage, .Database) }
+
+// am_read :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .Database, .Storage) }
 
 @(deferred_in=_am_init_asset_end)
 am_init_asset :: proc(Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
@@ -139,7 +150,8 @@ _am_init_asset_begin :: proc(Asset_Type: typeid, asset: ^Asset, config: Asset_Co
 
 @private
 _am_init_asset_end :: proc(Asset_Type: typeid, asset: ^Asset, config: Asset_Config) {
-	am_commands(Asset_Type, asset, { .Validate, .Query_Location }) }
+	// am_ops(Asset_Type, asset, { .Validate, .Query_Location })
+}
 
 am_asset_base :: proc(asset: ^Asset, $T: typeid, $field_name: string) -> (^T) {
 	offset: uintptr = offset_of_by_string(T, field_name)
@@ -154,9 +166,9 @@ am_tick :: proc() {
 	for asset in state.asset_manager.assets {
 		asset_kind, ok := state.asset_manager.asset_kinds[asset.derived_type]
 		assert(ok)
-		asset_kind.command(asset, .Import, true)
-		asset_kind.command(asset, .Deserialize, true)
-		asset_kind.command(asset, .Upload, true) } }
+		if asset_kind.op(asset, .Outdated, .RAM, .Source) do asset_kind.op(asset, .Translate, .RAM, .Source)
+		if asset_kind.op(asset, .Outdated, .RAM, .Database) do asset_kind.op(asset, .Translate, .RAM, .Database)
+		if asset_kind.op(asset, .Outdated, .VRAM, .RAM) do asset_kind.op(asset, .Translate, .VRAM, .RAM) } }
 
 am_make_entry :: proc(url: URL, data: []u8, modification_time: time.Time = { }) -> (entry: Entry) {
 	entry = Entry{ url = url, data = data, modification_time = modification_time }
@@ -230,11 +242,11 @@ am_relpath_to_source_path :: proc(relpath: string, allocator: runtime.Allocator)
 	path, _ = os.join_path({ relpath_to_path(state.asset_manager.source_directory_relpath, allocator), relpath }, allocator = allocator)
 	return path }
 
-am_read_or_init :: proc(config: Asset_Manager_Config) {
-	if os.exists(relpath_to_path(config.relpath, context.temp_allocator)) do am_read(config)
+am_database_read_or_init :: proc(config: Asset_Manager_Config) {
+	if os.exists(relpath_to_path(config.relpath, context.temp_allocator)) do am_database_read(config)
 	else do am_init(config) }
 
-am_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
+am_database_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
 	am_init(config)
 	state.asset_manager.config = config
 	path := relpath_to_path((relpath_override != "") ? relpath_override : config.relpath, context.allocator)
@@ -266,7 +278,7 @@ am_read :: proc(config: Asset_Manager_Config, relpath_override: string = "") {
 	state.asset_manager.modification_time = binary_header.modification_time
 	am_register_builtin_kinds() }
 
-am_write :: proc(allocator: runtime.Allocator, relpath_override: string = "") {
+am_database_write :: proc(allocator: runtime.Allocator, relpath_override: string = "") {
 	err: io.Error
 	buffer: bytes.Buffer
 	binary_header: _Asset_Manager_Binary_Header
@@ -354,7 +366,7 @@ am_autosave :: proc() {
 	if time.diff(state.asset_manager.last_autosave_time, time_now) > state.asset_manager.autosave_interval {
 		relpath = fmt.tprintf("cache/Data-%d.bin", time.time_to_unix_nano(time_now))
 		log.infof("Autosaving %s to %s.", state.asset_manager.relpath, relpath)
-		am_write(context.temp_allocator, relpath)
+		am_database_write(context.temp_allocator, relpath)
 		state.asset_manager.last_autosave_time = time_now
 		file_infos, err = os.read_directory_by_path(relpath_to_path("cache", context.temp_allocator), -1, context.temp_allocator)
 		file_info_oldest.creation_time = { bits.I64_MAX }
@@ -365,3 +377,6 @@ am_autosave :: proc() {
 			if ! file_name_is_autosave(file_info.name) do continue
 			if time.diff(file_info_oldest.creation_time, file_info.creation_time) < 0 do file_info_oldest = file_info }
 		os.remove(file_info_oldest.fullpath) } }
+
+am_error_not_implemented :: proc(op: Asset_Op, dest: Asset_Location, src: Asset_Location, location: runtime.Source_Code_Location) {
+	log.errorf("Op %v not implemented for %v -> %v.", op, src, dest) }

@@ -13,6 +13,9 @@ A `Graph` is equivalent to a labeled undirected graph. `Label({})` must not be a
 |--|--|
 | deep size | $24 + \text{size}(\text{Label}) \cdot (\text{order}^2 + \text{order}) / 2$ |
 
+!!! tip "Feature Suggestion"
+	Implement a shortest path algorithm and use it to extend the `.Translate` asset op, allowing translations between non-adjacent representations.
+
 ### `make`
 
 ```odin

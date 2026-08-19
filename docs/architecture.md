@@ -1,6 +1,6 @@
-# Architecture
+# **Architecture**
 
-## Modules Diagram
+## **Modules Diagram**
 
 There are 3 primary layers: Base, Core, and App. Each depends on the layers below it. The App layer is split into Game and Tool. Each layer can be extended by an Ext layer without changing the behavior of the other layers below it.
 
@@ -78,13 +78,13 @@ flowchart TD
 	Tool ----- ToolExt
 ```
 
-## Modules Listing
+## **Modules Listing**
 
-### Base
+### **Base**
 
 - [x] **bs** — General purpose DSA.
 
-### Core
+### **Core**
 
 - [x] **wd** — Window system.
 - [x] **gx** — Graphics system.
@@ -98,7 +98,7 @@ flowchart TD
 - [ ] **ms** — Mesh processing.
 - [ ] **px** — Physics system.
 
-### App/Game
+### **App/Game**
 
 Auxiliary components for game development
 
@@ -109,14 +109,14 @@ Auxiliary components for game development
 - [ ] **sm** — State machine.
 - [ ] **ai** — Game AI.
 
-### App/Tool
+### **App/Tool**
 
 Auxiliary components for application & tool development
 
 - [x] **pt** — Plotting utils.
 - [ ] **ti** — Tools UI.
 
-## Compilation Process
+## **Compilation Process**
 
 
 ```mermaid
@@ -153,55 +153,7 @@ odin run <oggun-path> -- <package-path> [build-args]
 oggun build <package-path> [build-args]
 ```
 
-## Asset Flowchart
-
-```mermaid
----
-config:
-	flowchart:
-		nodeSpacing: 5
-		rankSpacing: 80
-		subGraphTitleMargin: { "top": 0, "bottom": 15 }
-		padding: 8
----
-flowchart LR
-	GPU -- download --> Memory
-	Memory -- upload --> GPU
-	Memory -- serialize --> Database
-	Database -- deserialize --> Memory
-	Source -- import --> Memory
-	Memory -- export --> Source
-	Database -- write --> Storage
-	Storage -- read --> Database
-	GPU@{ shape: notch-rect }
-	Memory@{ shape: das }
-	Database@{ shape: das }
-	Source@{ shape: cyl }
-	Storage@{ shape: cyl }
-```
-
-`Asset` is a generic class for managing things like images, sounds, models, levels, etc. The purpose of this is to (1) simplify the creation of new types of assets, and (2) allow heterogenous assets to be managed in bulk. The hot-reloading system makes use of this feature.
-
-```odin
-Asset_Command_Proc :: #type proc(
-	asset: ^Asset,
-	op: Asset_Op,
-	dest: Asset_Location,
-	src: Asset_Location,
-	watch: bool = false) -> (ok: bool)
-```
-
-```odin
-Asset_Op :: enum {
-	Make,
-	Delete,
-	Initialize,
-	Exists,
-	Translate,
-	Outdated }
-```
-
-## Tree Construction Modes
+## **Tree Construction Modes**
 
 Several problems in game development involve the walking of some kind of virtual or concrete tree—eg. scenes, GUIs, render graphs, etc. Concrete trees are generally more vertsatile, but they add friction. Procedures that operate on trees have three modes of calling.
 

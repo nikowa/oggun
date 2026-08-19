@@ -5,7 +5,9 @@ import "core:fmt"
 
 Textureset :: struct {
 	using asset: Asset,
-	textures: []^Texture }
+	textures: []^Texture,
+	// render_buffer: ^Render_Buffer
+}
 
 Textureset_Shape :: []Texture_Shape
 
@@ -40,16 +42,17 @@ textureset_shape :: proc(textureset: ^Textureset, allocator := context.allocator
 	for &texture_shape, i in shape do texture_shape = textureset.textures[i]
 	return shape }
 
-textureset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
+textureset_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src: Asset_Location = .None, arg: rawptr = nil, location := #caller_location) -> (ok: bool) {
 	textureset := am_asset_base(asset, Textureset, "asset")
-	switch command {
-	case .Query_Location, .Import, .Deserialize, .Upload:
-		ok = true
-		for &texture in textureset.textures do ok &= am_command(Texture, &texture.asset, command)
-		// (TODO): Update `asset.location`.
-		// asset.location += textureset.asset.location
+	ni: bool = false
+	ok = true
+	#partial switch op {
+	case .Make, .Delete, .Initialize, .Exists, .Translate:
+		for &texture in textureset.textures do ok &= am_op(Texture, &texture.asset, op, dest, src, arg, location)
 		return ok
-	case .Validate, .Export, .Serialize, .Download:
-		if ! watch do log.errorf("Command %v not implemented for asset kind \"Textureset\".", command)
-		return false }
+	case .Outdated:
+		for &texture in textureset.textures do ok |= am_op(Texture, &texture.asset, op, dest, src, arg, location)
+		return ok
+	case: ni = true }
+	if ni do am_error_not_implemented(op, dest, src, location)
 	return false }

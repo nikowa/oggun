@@ -90,7 +90,7 @@ main :: proc() {
 	og.texture_init(&images[2], { url = "image:kitten-3.png" })
 	og.texture_init(&images[3], { url = "image:kitten-4.png" })
 	og.texture_init(&images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(og.am_commands(og.Texture, &image.asset, { .Import, .Deserialize, .Upload }))
+	for &image in images do assert(og.am_ops(og.Texture, &image.asset, { .Import, .Deserialize, .Upload }))
 	N :: 10000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)

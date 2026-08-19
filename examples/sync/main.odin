@@ -136,7 +136,7 @@ entry_point :: proc(thread_data: ^oggun.Thread_Data) {
 	texture_init(&zebra_image, { url = "image:zebra.png" })
 	append(&images, &zebra_image)
 
-	for &image in images do assert(am_commands(Texture, &image.asset, { .Import, .Deserialize, .Upload }))
+	for &image in images do assert(am_ops(Texture, &image.asset, { .Import, .Deserialize, .Upload }))
 
 	font_group_init(&font_group, normal = default_font_config(name = "terminus"))
 	text_style: oggun.Text_Style = default_text_style(font_group = font_group, color = WHITE, tracking = 0)

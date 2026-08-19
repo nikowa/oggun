@@ -74,8 +74,11 @@ font_init :: proc(font: ^Font, config: Font_Config) {
 		texture_init(font.bitmap_image_bold, { url = bold_url })
 	} else {
 		font.bitmap_image_bold = font.bitmap_image }
-	assert(am_commands(Texture, &font.bitmap_image.asset, { .Import, .Deserialize, .Upload }))
-	// assert(am_commands(Texture, &font.bitmap_image_bold.asset, { .Import, .Deserialize, .Upload }))
+	assert(am_op(Texture, &font.bitmap_image.asset, .Translate, .RAM, .Source))
+	assert(am_op(Texture, &font.bitmap_image.asset, .Translate, .Database, .RAM))
+	assert(am_op(Texture, &font.bitmap_image.asset, .Translate, .VRAM, .RAM))
+
+	// assert(am_ops(Texture, &font.bitmap_image_bold.asset, { .Import, .Deserialize, .Upload }))
 	if font.default_advance == 0 do font.default_advance = u8(font.bitmap_image.size.y / 16)
 	font.symbol_size = { f32(font.bitmap_image.size.x / 16), f32(font.bitmap_image.size.y / 16) }
 	font.bearings = font.default_bearing
@@ -83,7 +86,7 @@ font_init :: proc(font: ^Font, config: Font_Config) {
 	baf_path: string = fmt.aprintf("string:%s.baf", font.name)
 	if os.exists(am_path_from_url(cast(URL)baf_path, context.temp_allocator)) {
 	am_init_string_asset(&font.positions_string, { auto_cast baf_path, String_Asset })
-	assert(am_commands(String_Asset, &font.positions_string.asset, { .Import, .Deserialize }))
+	assert(am_op(String_Asset, &font.positions_string.asset, .Translate, .RAM, .Source))
 	lines: []string = strings.split_lines(font.positions_string.str)
 	for line in lines {
 		// (TODO): This can be simplified a little. Why is "line" split twice? //

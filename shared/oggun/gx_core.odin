@@ -228,7 +228,7 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 // 	bake_models(draw, cache)
 // 	init_cubemap(&draw.cubemap, { 512, 512 })
 	if state.asset_manager.initialized {
-		am_register_asset_kind(Shader_Asset, { command = shader_asset_command })
+		am_register_asset_kind(Shader_Asset, { op = shader_op })
 		state.graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
 		init_shader_asset(&state.graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }) or_return
 		init_shader_asset(&state.graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }) or_return
@@ -239,12 +239,12 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		init_shader_asset(&state.graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }) or_return
 		init_shader_asset(&state.graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }) or_return
 		init_shader_asset(&state.graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }) or_return
-		assert(am_command(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &state.graphics_manager.line_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &state.graphics_manager.image_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &state.graphics_manager.model_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Import))
-		assert(am_command(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Import))
+		assert(am_op(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.line_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.image_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.model_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Translate, .RAM, .Source))
 		// graphics_manager.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 		// graphics_manager.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 		// graphics_manager.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")
@@ -260,8 +260,8 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		// graphics_manager.sdf_shader                  = make_shader_asset(draw, working_directory_path, "sdf",                  SDF_Shader,                  "vframe",   "fsdf")
 		// graphics_manager.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 		// DICK
-		am_register_asset_kind(Texture, { command = texture_command })
-		am_register_asset_kind(Textureset, { command = textureset_command })
+		am_register_asset_kind(Texture, { op = texture_op })
+		am_register_asset_kind(Textureset, { op = textureset_op })
 		textureset_init(
 			textureset=&state.graphics_manager.canvas_textureset,
 			config={ url="textureset:canvas" },

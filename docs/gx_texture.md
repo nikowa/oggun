@@ -83,7 +83,7 @@ texture_modification_time :: proc(
 ### **command**
 
 ```odin
-texture_command :: proc(
+texture_op :: proc(
 	asset: ^Asset,
 	command: Asset_Command,
 	watch: bool = false) -> (ok: bool)

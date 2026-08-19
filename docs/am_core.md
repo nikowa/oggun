@@ -1,6 +1,49 @@
 # am/core
 
-### `URL`
+## **Overview**
+
+```mermaid
+---
+config:
+	flowchart:
+		nodeSpacing: 5
+		rankSpacing: 80
+		subGraphTitleMargin: { "top": 0, "bottom": 15 }
+		padding: 8
+---
+flowchart LR
+	VRAM -- download --> RAM
+	RAM -- upload --> VRAM
+	RAM -- serialize --> Database
+	Database -- deserialize --> RAM
+	Source -- import --> RAM
+	RAM -- export --> Source
+	Database -- write --> Storage
+	Storage -- read --> Database
+	VRAM@{ shape: notch-rect }
+	RAM@{ shape: das }
+	Database@{ shape: das }
+	Source@{ shape: cyl }
+	Storage@{ shape: cyl }
+```
+
+**Asset** is an abstract class for things that have multiple representations in your game project (eg. images, sounds, models, levels, etc). The main purpose is to allow heterogenous assets to be processed in bulk by generic procedures. The hot-reloading system makes use of this feature.
+
+- **Make** — Allocate the `dest` representation.
+- **Delete** — Deallocate the `dest` representation.
+- **Initialize** — Initialize the `dest` representation.
+- **Exists** — Check if the `dest` representation is allocated.
+- **Translate** — Convert the `src` representation to the `dest` representation.
+- **Outdated** — Check if the `dest` representation is older than the `src` representation.
+
+!!! tip "Feature Suggestion"
+	Add a **Pull** op which takes one argument, `dest`, and searches for the nearest upstream representation, and translates from that representation to `dest`.
+
+---
+
+## **Types**
+
+### **URL**
 
 ```odin
 URL :: distinct string
@@ -8,7 +51,7 @@ URL :: distinct string
 
 Every asset has a distinct URL, which it's identified by.
 
-### `Asset_Manager_Config`
+### **Asset_Manager_Config**
 
 ```odin
 Asset_Manager_Config :: struct {
@@ -21,7 +64,7 @@ Asset_Manager_Config :: struct {
 
 The configuration parameters of `Asset_Manager`. `relpath` is the path where the database binary will be stored. `source_directory_relpath` is the path to the root directory for asset source files. `watch` enables hot-reloading.
 
-### `Asset_Manager`
+### **Asset_Manager**
 
 ```odin
 Asset_Manager :: struct {
@@ -29,53 +72,52 @@ Asset_Manager :: struct {
 	... }
 ```
 
-### `Asset_Command`
+### **Asset_Op**
 
 ```odin
-Asset_Command :: enum {
-	Validate,
-	Query_Location,
-	Serialize,
-	Deserialize,
-	Read,
-	Write,
-	Deserialize,
-	Serialize,
-	Upload,
-	Download }
+Asset_Op :: enum {
+	Make,
+	Delete,
+	Initialize,
+	Exists,
+	Translate,
+	Outdated }
 ```
 
 See [asset flowchart](../architecture/#asset-flowchart).
 
-### `Asset_Locations`
+### **Asset_Locations**
 
 ```odin
 Asset_Locations :: bit_set[Asset_Location]
 ```
 
-### `Asset_Location`
+### **Asset_Location**
 
 ```odin
 Asset_Location :: enum {
-	Source_Directory,
-	Database_File,
+	Source,
+	Storage,
 	Database,
-	Main_Memory,
-	GPU_Memory }
+	RAM,
+	VRAM }
 ```
 
-### `Asset_Command_Proc`
+### **Asset_Op_Proc**
 
 ```odin
-Asset_Command_Proc :: #type proc(
+Asset_Op_Proc :: #type proc(
 	asset: ^Asset,
-	command: Asset_Command,
-	watch: bool = false) -> (ok: bool)
+	op: Asset_Op,
+	dest: Asset_Location = .None,
+	src: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> (ok: bool)
 ```
 
 The type of the generic asset command procedure.
 
-### `Asset_Config`
+### **Asset_Config**
 
 ```odin
 Asset_Config :: struct {
@@ -85,7 +127,7 @@ Asset_Config :: struct {
 
 The configuration parameters of `Asset`. `url` is the asset's identifier.
 
-### `Asset`
+### **Asset**
 
 ```odin
 Asset :: struct {
@@ -95,14 +137,18 @@ Asset :: struct {
 
 Abstract class from which asset classes are derived.
 
-### `Asset_Kind`
+### **Asset_Kind**
 
 ```odin
 Asset_Kind :: struct {
-	command: Asset_Command_Proc }
+	command: Asset_Op_Proc }
 ```
 
-### `DEFAULT_ASSET_MANAGER_CONFIG`
+---
+
+## **Constants**
+
+### **DEFAULT_ASSET_MANAGER_CONFIG**
 
 ```odin
 DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
@@ -113,13 +159,13 @@ DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
 	watch = true }
 ```
 
-### `DEFAULT_URL`
+### **DEFAULT_URL**
 
 ```odin
 DEFAULT_URL :: "unknown:unnamed"
 ```
 
-### `DEFAULT_ASSET_CONFIG`
+### **DEFAULT_ASSET_CONFIG**
 
 ```odin
 DEFAULT_ASSET_CONFIG: Asset_Config : {
@@ -127,28 +173,23 @@ DEFAULT_ASSET_CONFIG: Asset_Config : {
 	derived_type = string }
 ```
 
-<pre>
+---
 
+## **Procedures**
 
+### **am_op**
 
+```odin
+am_op :: proc(
+	Asset_Type: typeid,
+	asset: ^Asset,
+	op: Asset_Op,
+	dest: Asset_Location = .None,
+	src: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> (ok: bool)
+```
 
+Invokes the asset op proc of the given asset type, with the given arguments.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</pre>
+<div style="height: 100vh;"></div>

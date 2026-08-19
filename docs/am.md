@@ -4,11 +4,11 @@
 
 An asset can have up to five representations. None of these is mandatory.
 
- - `Source_Directory` --- The source file from which the asset is imported.
- - `Database_File` --- The binary file where the database stores its contents.
+ - `Source` --- The source file from which the asset is imported.
+ - `Storage` --- The binary file where the database stores its contents.
  - `Database` --- The in-memory contents of the database.
- - `Main_Memory` --- The primary in-memory representation of the asset.
- - `GPU_Memory` --- The GPU representation of the asset.
+ - `RAM` --- The primary in-memory representation of the asset.
+ - `VRAM` --- The GPU representation of the asset.
 
 ### Asset commands
 
@@ -43,7 +43,7 @@ init_my_asset :: proc(
 	... }
 ```
 
-3. Define an `Asset_Command_Proc` procedure for your custom asset type.
+3. Define an `Asset_Op_Proc` procedure for your custom asset type.
 
 ```c
 my_asset_command :: proc(
@@ -148,17 +148,17 @@ Asset_Locations :: bit_set[Asset_Location]
 
 ```c
 Asset_Location :: enum {
-	Source_Directory,
-	Database_File,
+	Source,
+	Storage,
 	Database,
-	Main_Memory,
-	GPU_Memory }
+	RAM,
+	VRAM }
 ```
 
-#### `Asset_Command_Proc`
+#### `Asset_Op_Proc`
 
 ```c
-Asset_Command_Proc :: #type proc(
+Asset_Op_Proc :: #type proc(
 	manager: ^Asset_Manager,
 	asset: ^Asset,
 	command: Asset_Command,
@@ -185,7 +185,7 @@ Asset :: struct {
 
 ```c
 Asset_Kind :: struct {
-	command: Asset_Command_Proc }
+	command: Asset_Op_Proc }
 ```
 
 #### `String_Asset`

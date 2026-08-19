@@ -76,7 +76,7 @@ Returns the shape of a textureset. Each texture contains its own shape field. Th
 ### **command**
 
 ```odin
-textureset_command :: proc(
+textureset_op :: proc(
 	asset: ^Asset,
 	command: Asset_Command,
 	watch: bool = false) -> (ok: bool)

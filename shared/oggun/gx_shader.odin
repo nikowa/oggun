@@ -201,7 +201,7 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, con
 	am_init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
 	am_init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
 	append(&state.graphics_manager.shaders, shader) or_return
-	assert(am_commands(Shader_Asset, shader, { .Import, .Deserialize }))
+	assert(am_op(Shader_Asset, shader, .Translate, .RAM, .Source))
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -397,31 +397,29 @@ shader_outdated :: proc(shader_asset: ^Shader_Asset) -> (outdated: bool) {
 	latest_modification_time: time.Time = time_max(vert_entry.modification_time, frag_entry.modification_time)
 	return time.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
-shader_asset_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
-	shader_asset := am_asset_base(asset, Shader_Asset, "asset")
-	switch command {
-	case .Validate:
-		return true
-	case .Query_Location:
-		assert(am_command(String_Asset, &shader_asset.vert_asset, .Query_Location))
-		assert(am_command(String_Asset, &shader_asset.frag_asset, .Query_Location))
-		assert(.Source_Directory in shader_asset.vert_asset.location)
-		assert(.Source_Directory in shader_asset.frag_asset.location)
-	case .Import:
-		if watch do if ! shader_outdated(shader_asset) do return
-		// If one of the strings' modification times are newer than the shader's modification time, update the shader with
-		// the new strings.
-		assert(am_command(String_Asset, &shader_asset.vert_asset, .Import))
-		assert(am_command(String_Asset, &shader_asset.frag_asset, .Import))
-		asset.location += { .Database }
-		return true
-	case .Deserialize:
-		if watch do if ! shader_outdated(shader_asset) do return
-		assert(am_command(String_Asset, &shader_asset.vert_asset, .Deserialize))
-		assert(am_command(String_Asset, &shader_asset.frag_asset, .Deserialize))
-		err := compile_shader(shader_asset)
-		return err == nil
-	case .Export, .Serialize, .Upload, .Download:
-		if ! watch do log.errorf("Command %v not implemented for \"Shader_Asset\".", command)
-		return false }
+shader_op :: proc(base: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src: Asset_Location = .None, arg: rawptr = nil, location := #caller_location) -> (ok: bool) {
+	this := am_asset_base(base, Shader_Asset, "asset")
+	ni: bool = false
+	#partial switch op {
+	case .Exists:
+		#partial switch dest {
+		case .RAM: return am_op(String_Asset, &this.vert_asset, .Exists, .RAM) && am_op(String_Asset, &this.frag_asset, .Exists, .RAM)
+		case .VRAM: return this.handle != 0
+		case: ni = true }
+	case .Translate:
+		vector: [2]Asset_Location = { src, dest }
+		switch vector {
+		case { .Source, .RAM }:
+			return am_op(String_Asset, &this.vert_asset, .Translate, .RAM, .Source) &&
+			       am_op(String_Asset, &this.frag_asset, .Translate, .RAM, .Source)
+		case { .Database, .RAM }:
+			return am_op(String_Asset, &this.vert_asset, .Translate, .RAM, .Database) &&
+			       am_op(String_Asset, &this.frag_asset, .Translate, .RAM, .Database)
+		case { .VRAM, .RAM }:
+			err := compile_shader(this)
+			return err == nil
+		case: ni = true }
+	// Use "shader_outdated" proc for .Outdated op. //
+	case: ni = true }
+	if ni do am_error_not_implemented(op, dest, src, location)
 	return false }

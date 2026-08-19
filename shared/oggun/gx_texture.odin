@@ -19,6 +19,7 @@ Texture :: struct #packed {
 	gpu_modification_time: time.Time,
 	handle: u32,
 	render_buffer: ^Render_Buffer }
+// (TODO): Render-buffers should be per-textureset instead of per-texture? //
 
 // Pixel_Type :: enum {
 // 	FLOAT,
@@ -51,33 +52,33 @@ texture_equals :: proc(texture0: ^Texture, texture1: ^Texture) -> bool {
 	return (texture0.shape == texture1.shape) && slice.equal(texture0.bytes, texture1.bytes) }
 
 texture_modification_time :: proc(texture: ^Texture, location: Asset_Location) -> (modification_time: time.Time) {
-	switch location {
-	case .Source_Directory:
+	#partial switch location {
+	case .Source:
 		path := am_path_from_url(texture.url, context.temp_allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
-	case .Database_File:
+	case .Storage:
 		path := relpath_to_path(state.asset_manager.relpath, context.temp_allocator)
 		modification_time, _ := os.modification_time_by_path(path)
 		return modification_time
 	case .Database:
 		entry := am_get_entry(texture.url)
 		return (entry != nil) ? entry.modification_time : {}
-	case .Main_Memory:
+	case .RAM:
 		return texture.modification_time
-	case .GPU_Memory:
+	case .VRAM:
 		return texture.gpu_modification_time }
 	return {} }
 
 texture_is_empty :: proc(texture: ^Texture) -> bool {
 	return len(texture.bytes) == 0 }
 
+// (TODO): Replace this with .Make command on .RAM. //
 texture_allocate_data :: proc(texture: ^Texture) {
 	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8)) }
 
 texture_allocate_render_buffer :: proc(texture: ^Texture) {
 	texture.render_buffer = new(Render_Buffer)
-	// (TODO): Why are render-buffers per-texture instead of per-textureset? What is a render-buffer really? //
 	texture.render_buffer^ = make_render_buffer(
 		auto_cast texture.size,
 		{ texture_shape_to_gl_internal_format(texture.shape) },
@@ -94,100 +95,111 @@ image_shape :: proc(image: ^im.Image) -> Texture_Shape {
 		depth = auto_cast image.depth,
 		channels = auto_cast image.channels } }
 
-texture_command :: proc(asset: ^Asset, command: Asset_Command, watch: bool = false, location := #caller_location) -> (ok: bool) {
+texture_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src: Asset_Location = .None, arg: rawptr = nil, location := #caller_location) -> (ok: bool) {
 	texture := am_asset_base(asset, Texture, "asset")
-	// #partial switch command {
+	// #partial switch op {
 	// case .Download, .Upload, .Serialize, .Deserialize, .Export, .Import:
 	// 	if texture_is_empty(image) {
 	// 		width: int = (image.size.x != 0) ? image.size.x : DEFAULT_IMAGE_SIZE.x
 	// 		height: int = (image.size.y != 0) ? image.size.y : DEFAULT_IMAGE_SIZE.y
 	// 		image.image = make_image(width, height) } }
-	switch command {
-	case .Validate:
-	case .Query_Location:
-		// (TODO): Unfinished.
-		path := am_path_from_url(asset.url, context.temp_allocator)
-		if os.exists(path) do asset.location += { .Source_Directory }
-		else do asset.location += { .Source_Directory }
-		if texture.handle != 0 do asset.location += { .GPU_Memory }
-		else do asset.location -= { .GPU_Memory }
-	case .Import:
-		if texture.url == "" do return false
-		err: os.Error
-		path := am_path_from_url(texture.url, context.allocator)
-		modification_time, _ := os.modification_time_by_path(path)
-		if time.diff(texture.modification_time, modification_time) <= 0 do return true
-		loader_proc: im.Loader_Proc
-		switch ext := os.ext(path); ext {
-		case ".png": loader_proc = png.load_from_bytes
-		case ".jpg", ".jpeg": loader_proc = jpeg.load_from_bytes
-		case: log.errorf("Unrecognized texture extension \"%s\".", ext, location=location); return false }
-		bytes: []u8
-		if bytes, err = os.read_entire_file(path, context.allocator); err != nil {
-			return false }
-		image_temp, image_err := loader_proc(bytes, im.Options{}, context.allocator)
-		if image_err != nil {
-			log.errorf("Image error: %v.", image_err, location=location); return false }
-		texture.bytes = image_as_bytes(image_temp)
-		texture.shape = image_shape(image_temp)
-		free(image_temp)
-		bytes, _ = texture_serialize(texture, context.allocator)
-		am_add_or_update_entry(am_make_entry(texture.url, bytes, modification_time))
-		asset.location += { .Database, .Main_Memory }
-		texture.modification_time = modification_time
-		return true
-	case .Export:
-		if texture.url == "" do return false
-	case .Deserialize:
-		if texture.url == "" do return false
-		return texture_command(asset, .Import, watch)
-	case .Serialize:
-		if texture.url == "" do return false
-	case .Upload:
-		if texture.handle != 0 {
-			gl.DeleteTextures(1, &texture.handle)
-			texture.handle = 0 }
-		gl.GenTextures(1, &texture.handle)
-		gl.BindTexture(gl.TEXTURE_2D, texture.handle)
-		internal_format: i32
-		data_format: u32
-		data_format_type: u32
-		switch texture.channels {
-		case 1:
-			switch texture.depth {
-			case 8:
-				internal_format = gl.R8
-				data_format = gl.RED
+	ni: bool = false
+	#partial switch op {
+	case .Make:
+		#partial switch dest {
+		case .RAM: texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8))
+		case: ni = true }
+	case .Delete:
+		#partial switch dest {
+		case .RAM: delete(texture.bytes)
+		case: ni = true }
+	case .Initialize:
+		#partial switch dest {
+		case .RAM: slice.zero(texture.bytes)
+		case: ni = true }
+	case .Exists:
+		#partial switch dest {
+		case .Source:
+			path := am_path_from_url(asset.url, context.temp_allocator)
+			return os.exists(path)
+		case .RAM:
+			return len(texture.bytes) > 0
+		case .VRAM:
+			return texture.handle != 0
+		case: ni = true }
+	case .Translate:
+		vector: [2]Asset_Location = { src, dest }
+		switch vector {
+		case { .Source, .RAM }:
+			if texture.url == "" do return false
+			path := am_path_from_url(texture.url, context.allocator)
+			modification_time, _ := os.modification_time_by_path(path)
+			if time.diff(texture.modification_time, modification_time) <= 0 do return true
+			loader_proc: im.Loader_Proc
+			switch ext := os.ext(path); ext {
+			case ".png": loader_proc = png.load_from_bytes
+			case ".jpg", ".jpeg": loader_proc = jpeg.load_from_bytes
+			case: log.errorf("Unrecognized texture extension \"%s\".", ext, location=location); return false }
+			bytes, err := os.read_entire_file(path, context.allocator)
+			assert(err != nil)
+			image_temp, image_err := loader_proc(bytes, im.Options{}, context.allocator)
+			if image_err != nil {
+				log.errorf("Image error: %v.", image_err, location=location); return false }
+			texture.bytes = image_as_bytes(image_temp)
+			texture.shape = image_shape(image_temp)
+			free(image_temp)
+			texture.modification_time = modification_time
+			return true
+		case { .Database, .RAM }:
+			bytes, _ := texture_serialize(texture, context.allocator)
+			am_add_or_update_entry(am_make_entry(texture.url, bytes, texture.modification_time))
+			return true
+		case { .RAM, .VRAM }:
+			if texture.handle != 0 {
+				gl.DeleteTextures(1, &texture.handle)
+				texture.handle = 0 }
+			gl.GenTextures(1, &texture.handle)
+			gl.BindTexture(gl.TEXTURE_2D, texture.handle)
+			internal_format: i32
+			data_format: u32
+			data_format_type: u32
+			switch texture.channels {
+			case 1:
+				switch texture.depth {
+				case 8:
+					internal_format = gl.R8
+					data_format = gl.RED
+				case:
+					log.errorf("Unsupported data format %v for texture %s.", texture.shape, texture.url, location=location)
+					return false }
+			case 3:
+				switch texture.depth {
+				case 8:
+					internal_format = gl.RGB8
+					data_format = gl.RGB
+				case:
+					log.errorf("Unsupported data format %v for texture %s.", texture.shape, texture.url, location=location)
+					return false }
+			case 4:
+				switch texture.depth {
+				case 8:
+					internal_format = gl.RGBA8
+					data_format = gl.RGBA
+				case:
+					log.errorf("Unsupported internal format for texture %s.", texture.url, location=location)
+					return false }
 			case:
-				log.errorf("Unsupported data format %v for texture %s.", texture.shape, texture.url, location=location)
+				log.errorf("Unsupported channel count for texture %s.", texture.url, location=location)
 				return false }
-		case 3:
-			switch texture.depth {
-			case 8:
-				internal_format = gl.RGB8
-				data_format = gl.RGB
-			case:
-				log.errorf("Unsupported data format %v for texture %s.", texture.shape, texture.url, location=location)
-				return false }
-		case 4:
-			switch texture.depth {
-			case 8:
-				internal_format = gl.RGBA8
-				data_format = gl.RGBA
-			case:
-				log.errorf("Unsupported internal format for texture %s.", texture.url, location=location)
-				return false }
-		case:
-			log.errorf("Unsupported channel count for texture %s.", texture.url, location=location)
-			return false }
-		data_format_type = gl.UNSIGNED_BYTE
-		gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)texture.size.x, cast(i32)texture.size.y, 0, data_format, data_format_type, &texture.bytes[0])
-		texture_wrapping(gl.REPEAT)
-		texture_filtering(gl.NEAREST)
-		texture.gpu_modification_time = texture.modification_time
-		asset.location += { .GPU_Memory }
-		return true
-	case .Download: }
+			data_format_type = gl.UNSIGNED_BYTE
+			gl.TexImage2D(gl.TEXTURE_2D, 0, internal_format, cast(i32)texture.size.x, cast(i32)texture.size.y, 0, data_format, data_format_type, &texture.bytes[0])
+			texture_wrapping(gl.REPEAT)
+			texture_filtering(gl.NEAREST)
+			texture.gpu_modification_time = texture.modification_time
+			return true
+		case: ni = true }
+	case: ni = true }
+	if ni do am_error_not_implemented(op, dest, src, location)
 	return false }
 
 // import_or_retreive_image :: proc(database: ^Asset_Manager, url: URL, allocator: runtime.Allocator) -> (image: Texture, err: os.Error) {
