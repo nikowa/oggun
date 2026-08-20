@@ -240,11 +240,26 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		init_shader_asset(&state.graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }) or_return
 		init_shader_asset(&state.graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }) or_return
 		assert(am_op(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Translate, .VRAM, .RAM))
+
 		assert(am_op(Shader_Asset, &state.graphics_manager.line_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.line_shader.asset, .Translate, .VRAM, .RAM))
+
 		assert(am_op(Shader_Asset, &state.graphics_manager.image_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.image_shader.asset, .Translate, .VRAM, .RAM))
+
+		assert(am_op(Shader_Asset, &state.graphics_manager.text_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.text_shader.asset, .Translate, .VRAM, .RAM))
+
 		assert(am_op(Shader_Asset, &state.graphics_manager.model_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.model_shader.asset, .Translate, .VRAM, .RAM))
+
 		assert(am_op(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Translate, .VRAM, .RAM))
+
 		assert(am_op(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Translate, .VRAM, .RAM))
+
 		// graphics_manager.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 		// graphics_manager.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
 		// graphics_manager.upscale_pass1_shader        = make_shader_asset(draw, working_directory_path, "buffer",               Upscale_Pass1_Shader,        "vfill",    "fupscale-pass1")

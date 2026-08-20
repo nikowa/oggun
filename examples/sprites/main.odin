@@ -32,6 +32,7 @@ Settings :: struct {
 	fullscreen: bool }
 
 main :: proc() {
+	// (TODO): Is this necessary? Doesn't "engine_begin_init" already initialize a logger? //
 	context.logger = log.create_console_logger()
 	context = og.engine_begin_init(
 		engine_config=og.default_engine_config(
@@ -39,6 +40,7 @@ main :: proc() {
 			track_backing_allocations=true,
 			track_temp_allocations=true,
 			temp_allocator_cap=1000 * mem.Megabyte))
+	context.logger = log.nil_logger()
 
 	// og.index2_to_index_triangular(8, { 0, 0 })
 	// og.index2_to_index_triangular(8, { 1, 0 })
@@ -77,12 +79,12 @@ main :: proc() {
 	// og.index2_to_index_triangular(8, { 7, 6 })
 	// og.index2_to_index_triangular(8, { 7, 7 })
 
-	when false {
+	when true {
 	settings: Settings = {
 		player_name = "Destroyer",
 		resolution = { 1920, 1080 },
 		fullscreen = true }
-	og.settings_manager_write(&og.engine.settings_manager, &settings)
+	og.settings_manager_write(&og.state.settings_manager, &settings)
 
 	images: [5]og.Texture
 	og.texture_init(&images[0], { url = "image:kitten-1.png" })
@@ -90,7 +92,9 @@ main :: proc() {
 	og.texture_init(&images[2], { url = "image:kitten-3.png" })
 	og.texture_init(&images[3], { url = "image:kitten-4.png" })
 	og.texture_init(&images[4], { url = "image:kitten-5.png" })
-	for &image in images do assert(og.am_ops(og.Texture, &image.asset, { .Import, .Deserialize, .Upload }))
+	for &image in images {
+		assert(og.am_op(og.Texture, &image.asset, .Translate, .RAM, .Source))
+		assert(og.am_op(og.Texture, &image.asset, .Translate, .VRAM, .RAM)) }
 	N :: 10000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)
@@ -115,7 +119,7 @@ main :: proc() {
 			// Sprites //
 			image_index: int = 0
 			for &sprite, i in sprites {
-				sprite.position += og.engine.tick_manager.delta_time * sprite.speed * sprite.direction
+				sprite.position += og.state.tick_manager.delta_time * sprite.speed * sprite.direction
 				if sprite.position.x > 1 {
 					sprite.position.x = 1
 					sprite.direction.x *= -1 }
@@ -128,7 +132,7 @@ main :: proc() {
 				if sprite.position.y < 0 {
 					sprite.position.y = 0
 					sprite.direction.y *= -1 }
-				sprite_rect: og.Rect = { og.engine.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
+				sprite_rect: og.Rect = { og.state.graphics_manager.active_resolution * (sprite.position - { 0.5, 0.5 }), { 80, 80 } }
 				{ og.gx_depth_scope(sprite.depth); og.dr_image(&images[image_index], sprite_rect, integer=false) }
 				if i > splits[image_index] do image_index += 1 }
 

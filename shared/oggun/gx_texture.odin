@@ -141,7 +141,6 @@ texture_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, sr
 			case ".jpg", ".jpeg": loader_proc = jpeg.load_from_bytes
 			case: log.errorf("Unrecognized texture extension \"%s\".", ext, location=location); return false }
 			bytes, err := os.read_entire_file(path, context.allocator)
-			assert(err != nil)
 			image_temp, image_err := loader_proc(bytes, im.Options{}, context.allocator)
 			if image_err != nil {
 				log.errorf("Image error: %v.", image_err, location=location); return false }

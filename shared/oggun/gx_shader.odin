@@ -248,7 +248,8 @@ compile_shader :: proc(shader_asset: ^Shader_Asset, allocator := context.allocat
 	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
-	shader_asset.last_modification_time = time_max(am_get_entry(shader_asset.vert_asset.url).modification_time, am_get_entry(shader_asset.frag_asset.url).modification_time)
+	// (TODO): Modification time should not be required by the Asset abstract class. The only requirement should be an "Outdated" op. It can be implemented in various ways, which may or may not involve modification time variables.
+	// shader_asset.last_modification_time = time_max(am_get_entry(shader_asset.vert_asset.url).modification_time, am_get_entry(shader_asset.frag_asset.url).modification_time)
 	return os.General_Error.None }
 
 
@@ -415,7 +416,7 @@ shader_op :: proc(base: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src:
 		case { .Database, .RAM }:
 			return am_op(String_Asset, &this.vert_asset, .Translate, .RAM, .Database) &&
 			       am_op(String_Asset, &this.frag_asset, .Translate, .RAM, .Database)
-		case { .VRAM, .RAM }:
+		case { .RAM, .VRAM }:
 			err := compile_shader(this)
 			return err == nil
 		case: ni = true }

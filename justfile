@@ -6,8 +6,8 @@ default: current
 audit: lib
 	oggun audit bs_bit_array.odin
 
-current: example_collage
-	examples/collage.exe
+current: example_sprites
+	examples/sprites.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\" -ignore-unknown-attributes"
 
