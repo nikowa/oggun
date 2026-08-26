@@ -47,9 +47,16 @@ texture_sequence_op :: proc(base: ^Asset, op: Asset_Op, dest: Asset_Location = .
 	ni: bool = false
 	ok = true
 	#partial switch op {
-	case .Make, .Delete, .Initialize, .Exists, .Translate:
+	case .Make:
 		for &texture in this.textures do ok &= am_op(Texture, &texture.asset, op, dest, src, arg, location)
 		if dest == .VRAM do texture_sequence_allocate_render_buffer(this)
+		return ok
+	case .Exists:
+		for &texture in this.textures do ok &= am_op(Texture, &texture.asset, op, dest, src, arg, location)
+		if dest == .VRAM do ok &= (this.render_buffer.frame_buffer_handle != 0 && this.render_buffer.render_buffer_handle != 0)
+		return ok
+	case .Delete, .Initialize, .Translate:
+		for &texture in this.textures do ok &= am_op(Texture, &texture.asset, op, dest, src, arg, location)
 		return ok
 	case .Outdated:
 		for &texture in this.textures do ok |= am_op(Texture, &texture.asset, op, dest, src, arg, location)

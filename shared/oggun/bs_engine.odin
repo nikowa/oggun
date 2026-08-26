@@ -49,12 +49,12 @@ Engine :: struct {
 	tick_count: uint,
 	stopwatch: time.Stopwatch,
 	temp_arena: mem.Arena,
-	asset_manager: Asset_Manager,
-	input_manager: Input_Manager,
-	graphics_manager: Graphics_Manager,
-	window_manager: Window_Manager,
-	tick_manager: Tick_Manager,
-	ui_manager: UI_Manager,
+	asset_manager: Asset_Manager,       // assets
+	input_manager: Input_Manager,       // input
+	graphics_manager: Graphics_Manager, // graphics
+	window_manager: Window_Manager,     // window
+	tick_manager: Tick_Manager,         // ticker
+	ui_manager: UI_Manager,             // user_interface
 	settings_manager: Settings_Manager,
 	log_allocator: log.Log_Allocator,
 	log_temp_allocator: log.Log_Allocator,

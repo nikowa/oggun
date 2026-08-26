@@ -284,8 +284,9 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 				{ size=cast([2]u32)state.window_manager.size, channels=4, depth=8 },
 				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8 },
 				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8} })
-		assert(am_op(Texture_Sequence, &state.graphics_manager.canvas_texture_sequence, .Make, .RAM))
-		assert(am_op(Texture_Sequence, &state.graphics_manager.canvas_texture_sequence, .Make, .VRAM))
+		assert(asset_make(&state.graphics_manager.canvas_texture_sequence, .RAM))
+		assert(asset_make(&state.graphics_manager.canvas_texture_sequence, .VRAM))
+		assert(asset_exists(&state.graphics_manager.canvas_texture_sequence, .VRAM))
 
 		// state.graphics_manager.canvas_rb = make_render_buffer(state.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 		}
@@ -419,7 +420,6 @@ init_render_buffer :: proc(render_buffer: ^Render_Buffer, size: [2]f32, internal
 		gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, cast(u32)render_buffer.render_buffer_handle) }
 	assert(gl.CheckFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE)
 	render_buffer.initialized = true }
-
 
 // make_render_buffer_data_static :: proc(size: [2]int, n_buffers: int, depths: []u8, internal_formats: []i32) -> (Render_Buffer_Data, bool) {
 // 	render_buffer_data: Render_Buffer_Data

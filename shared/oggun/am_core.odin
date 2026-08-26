@@ -39,7 +39,7 @@ DEFAULT_ASSET_MANAGER_CONFIG: Asset_Manager_Config : {
 	source_directory_relpath = "../data",
 	autosave_interval = 30 * time.Minute,
 	autosave_cap = 10,
-	watch = true }
+	watch = false }
 
 Asset_Manager :: struct {
 	using config: Asset_Manager_Config,
@@ -210,6 +210,7 @@ am_tick :: proc() {
 	for asset in state.asset_manager.assets {
 		asset_kind, ok := state.asset_manager.asset_kinds[asset.derived_type]
 		assert(ok)
+		// (TODO): These are very slow (particularly on Texture). Figure out why. //
 		if asset_kind.op(asset, .Outdated, .RAM, .Source) do asset_kind.op(asset, .Translate, .RAM, .Source)
 		if asset_kind.op(asset, .Outdated, .RAM, .Database) do asset_kind.op(asset, .Translate, .RAM, .Database)
 		if asset_kind.op(asset, .Outdated, .VRAM, .RAM) do asset_kind.op(asset, .Translate, .VRAM, .RAM) } }
