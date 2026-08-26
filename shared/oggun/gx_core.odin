@@ -58,7 +58,7 @@ when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
 	shaders: [dynamic]^Shader_Asset,
 	// textures:                [dynamic]Texture,
 	// textures_map:                    map[string]^Texture,
-// 	materials:                       [dynamic]Textureset,
+// 	materials:                       [dynamic]Texture_Sequence,
 // 	models_map:                      map[string]^Model,
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
@@ -84,7 +84,7 @@ when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
 // 	chromatic_aberration_shader:     ^Chromatic_Aberration_Shader,
 // 	physics_buffer_internal_formats: []i32,
 // 	physics_buffer_formats:          []u32,
-	canvas_textureset: Textureset,
+	canvas_texture_sequence: Texture_Sequence,
 // 	upscale_sb:                      Render_Buffer,
 // 	physics_rb:                      Render_Buffer,
 // 	dr_mask:                       Draw_Mask,
@@ -152,7 +152,7 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 // 	draw.active_resolution = draw.window_size
 // 	draw.textures = make_dynamic_array_len_cap([dynamic]Texture, len=0, cap=64)
 // 	draw.textures_map = make(map[string]^Texture)
-// 	draw.materials = make_dynamic_array_len_cap([dynamic]Textureset, len=0, cap=32)
+// 	draw.materials = make_dynamic_array_len_cap([dynamic]Texture_Sequence, len=0, cap=32)
 // 	draw.models = make_dynamic_array_len_cap([dynamic]Model, len=0, cap=32)
 // 	draw.models_map = make(map[string]^Model)
 // 	draw.fonts = make_dynamic_array_len_cap([dynamic]Font, len=0, cap=32)
@@ -276,15 +276,17 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 		// graphics_manager.chromatic_aberration_shader = make_shader_asset(draw, working_directory_path, "chromatic-aberration", Chromatic_Aberration_Shader, "vfill",    "fchromatic-aberration")
 		// DICK
 		am_register_asset_kind(Texture, { op = texture_op })
-		am_register_asset_kind(Textureset, { op = textureset_op })
-		textureset_init(
-			textureset=&state.graphics_manager.canvas_textureset,
-			config={ url="textureset:canvas" },
+		am_register_asset_kind(Texture_Sequence, { op = texture_sequence_op })
+		texture_sequence_init(
+			texture_sequence=&state.graphics_manager.canvas_texture_sequence,
+			config={ url="texture_sequence:canvas" },
 			shape={
 				{ size=cast([2]u32)state.window_manager.size, channels=4, depth=8 },
 				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8 },
-				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8} },
-			flags={ .Allocate_Empty, .Allocate_Render_Buffer })
+				{ size=cast([2]u32)state.window_manager.size, channels=1, depth=8} })
+		assert(am_op(Texture_Sequence, &state.graphics_manager.canvas_texture_sequence, .Make, .RAM))
+		assert(am_op(Texture_Sequence, &state.graphics_manager.canvas_texture_sequence, .Make, .VRAM))
+
 		// state.graphics_manager.canvas_rb = make_render_buffer(state.window_manager.size, { gl.RGBA8, gl.R32F, gl.R32UI }, { gl.RGBA, gl.RED, gl.RED_INTEGER }, { gl.UNSIGNED_BYTE, gl.UNSIGNED_BYTE, gl.UNSIGNED_INT }, samples = 1)
 		}
 	else {
@@ -1137,12 +1139,12 @@ tick_graphics_manager_begin :: proc() {
 // 	render_cubemap(draw, &draw.cubemap, camera.position)
 	clear_frame_buffer(0)
 	state.graphics_manager.time = read_stopwatch(&state.graphics_manager.stopwatch)
-	// (TODO): Push-pop textureset to a stack. //
+	// (TODO): Push-pop texture_sequence to a stack. //
 	// select_render_buffer(&state.graphics_manager.canvas_rb)
 	// DICK
 	// clear_render_buffer(&state.graphics_manager.canvas_rb)
 	// TEMP
-	// clear_render_buffer(state.graphics_manager.canvas_textureset.textures[0].render_buffer)
+	// clear_render_buffer(state.graphics_manager.canvas_texture_sequence.textures[0].render_buffer)
 	set_depth_test(true) }
 
 tick_graphics_manager_end :: proc() {
@@ -1150,7 +1152,7 @@ tick_graphics_manager_end :: proc() {
 	set_depth_test(false)
 	select_frame_buffer(0)
 	// TEMP
-	// if state.graphics_manager.buffer_shader.handle != 0 do render_render_buffer(state.graphics_manager.canvas_textureset.textures[0].render_buffer, 0)
+	// if state.graphics_manager.buffer_shader.handle != 0 do render_render_buffer(state.graphics_manager.canvas_texture_sequence.textures[0].render_buffer, 0)
 
 // 	if .MODELS in draw.dr_mask do render_all_model_instances(draw, camera)
 // 	if .EFFECTS in draw.dr_mask {

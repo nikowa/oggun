@@ -1,5 +1,6 @@
 package oggun
 import "base:runtime"
+import "base:intrinsics"
 import "core:time"
 import "core:os"
 import "core:mem"
@@ -122,6 +123,49 @@ am_op :: proc(Asset_Type: typeid, asset: ^Asset, op: Asset_Op, dest: Asset_Locat
 	// when ODIN_DEBUG do asset_kind.op(asset, .Validate, false)
 	assert(asset_kind.op != nil)
 	return asset_kind.op(asset, op, dest, src, arg, location) }
+
+asset_make :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool  {
+	return am_op(Derived, &this.asset, .Make, dest, .None, arg, location) }
+
+asset_delete :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool  {
+	return am_op(Derived, &this.asset, .Delete, dest, .None, arg, location) }
+
+asset_initialize :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool  {
+	return am_op(Derived, &this.asset, .Initialize, dest, .None, arg, location) }
+
+asset_exists :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool  {
+	return am_op(Derived, &this.asset, .Exists, dest, .None, arg, location) }
+
+asset_translate :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	src: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool  {
+	return am_op(Derived, &this.asset, .Translate, dest, src, arg, location) }
+
+asset_outdated :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool  {
+	return am_op(Derived, &this.asset, .Outdated, dest, .None, arg, location) }
 
 // am_download :: proc(Asset_Type: typeid, asset: ^Asset, watch: bool = false) -> (ok: bool) { return am_op(Asset_Type, asset, .Translate, .RAM, .VRAM) }
 

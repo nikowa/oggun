@@ -29,7 +29,7 @@ Draw_Rect_Params :: struct {
 	clip: Clip }
 
 Draw_Rect_Group_Params :: struct {
-	output_textureset: ^Textureset }
+	output_texture_sequence: ^Texture_Sequence }
 
 // (TODO): Change "stroke" to u8
 dr_rect :: proc(
@@ -38,13 +38,13 @@ dr_rect :: proc(
 	stroke_color: Color = GRAY,
 	radius: f32 = 0.0,
 	stroke: f32 = 0.0,
-	output_textureset: ^Textureset = nil,
+	output_texture_sequence: ^Texture_Sequence = nil,
 	integer: bool = true) {
 	// (TODO): Test culling. Add culling to other primitives. //
 	clip := gx_clip_get()
 	if gx_rect_cull(rect, clip) do return
 	command: Draw_Rect_Command = {
-		output_textureset = output_textureset,
+		output_texture_sequence = output_texture_sequence,
 		rect = integer ? rect_round(rect) : rect,
 		// rect = integer ? rect_round_offset(rect, { 0.5, 0.5 }) : rect,
 		fill_color = fill_color,
@@ -149,12 +149,12 @@ Draw_Image_Params :: struct {
 	clip: Clip }
 
 Draw_Image_Group_Params :: struct {
-	output_textureset: ^Textureset,
+	output_texture_sequence: ^Texture_Sequence,
 	image: ^Texture }
 
-dr_image :: proc(image: ^Texture, rect: Rect, output_textureset: ^Textureset = nil, integer: bool = true) {
+dr_image :: proc(image: ^Texture, rect: Rect, output_texture_sequence: ^Texture_Sequence = nil, integer: bool = true) {
 	command: Draw_Image_Command = {
-		output_textureset = output_textureset,
+		output_texture_sequence = output_texture_sequence,
 		image = image,
 		rect = integer ? rect_round(rect) : rect,
 		depth = gx_depth_get(),

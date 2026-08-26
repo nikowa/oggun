@@ -1,5 +1,22 @@
 # bs/setoid
 
+### `Set`
+
+```odin
+Set :: distinct Bit_Array
+```
+
+`Set` is a structural equivalent of `Bit_Array` and a functional equivalent of `SSet` (sparse set). They both represent a set of elements from some universe `universe: []U`. To save space, the universe is stored separately, but it has to be passed to some procedures. The universe has a capacity limit of `65_535`.
+
+```odin
+SSet :: struct($T: typeid) #packed {
+	elements: []T,
+	len: u16,
+	cap: u16 }
+```
+
+`Set` and `SSet` have the same procedures. They both represent a set of elements from some domain.
+
 ### `Setoid`
 
 ```odin

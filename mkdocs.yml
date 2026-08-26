@@ -67,6 +67,7 @@ nav:
   - Odin API:
     - bs:
       - util: bs_util.md
+      - tuple: bs_tuple.md
       - bit_array: bs_bit_array.md
       - bit_matrix: bs_bit_matrix.md
       - bit_tmatrix: bs_bit_tmatrix.md
@@ -85,7 +86,7 @@ nav:
       - core: am_core.md
     - gx:
       - texture: gx_texture.md
-      - textureset: gx_textureset.md
+      - texture_sequence: gx_texture_sequence.md
     - dr:
       - core: dr_core.md
   - GLSL API:

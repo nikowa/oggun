@@ -29,7 +29,7 @@ Draw_Rect_Command :: struct {
 		stroke_color: Color,
 		clip: Clip },
 	using group_params: struct {
-		output_textureset: ^Textureset } }
+		output_texture_sequence: ^Texture_Sequence } }
 ```
 
 ### **Draw_Image_Command**
@@ -42,7 +42,7 @@ Draw_Image_Command :: struct {
 		depth: f32,
 		clip: Clip },
 	using group_params: struct {
-		output_textureset: ^Textureset = nil,
+		output_texture_sequence: ^Texture_Sequence = nil,
 		image: ^Texture } }
 ```
 
@@ -60,7 +60,7 @@ dr_rect :: proc(
 	stroke_color: Color = GRAY,
 	radius: f32 = 0.0,
 	stroke: f32 = 0.0,
-	output_textureset: ^Textureset = nil,
+	output_texture_sequence: ^Texture_Sequence = nil,
 	integer: bool = true)
 ```
 
@@ -70,7 +70,7 @@ dr_rect :: proc(
 dr_image :: proc(
 	image: ^Texture,
 	rect: Rect,
-	output_textureset: ^Textureset,
+	output_texture_sequence: ^Texture_Sequence,
 	integer: bool = true)
 ```
 

@@ -76,6 +76,7 @@ font_init :: proc(font: ^Font, config: Font_Config) {
 		font.bitmap_image_bold = font.bitmap_image }
 	assert(am_op(Texture, &font.bitmap_image.asset, .Translate, .RAM, .Source))
 	// assert(am_op(Texture, &font.bitmap_image.asset, .Translate, .Database, .RAM))
+	assert(am_op(Texture, &font.bitmap_image.asset, .Make, .VRAM))
 	assert(am_op(Texture, &font.bitmap_image.asset, .Translate, .VRAM, .RAM))
 
 	// assert(am_ops(Texture, &font.bitmap_image_bold.asset, { .Import, .Deserialize, .Upload }))

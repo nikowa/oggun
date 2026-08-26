@@ -17,9 +17,9 @@ Texture :: struct #packed {
 	bytes: []u8,
 	modification_time: time.Time,
 	gpu_modification_time: time.Time,
-	handle: u32,
-	render_buffer: ^Render_Buffer }
-// (TODO): Render-buffers should be per-textureset instead of per-texture? //
+	handle: u32 }
+	// render_buffer: ^Render_Buffer
+// (TODO): Render-buffers should be per-texture_sequence instead of per-texture? //
 
 // Pixel_Type :: enum {
 // 	FLOAT,
@@ -32,20 +32,15 @@ Texture_Shape :: struct #packed {
 	// type: Pixel_Type
 }
 
-Texture_Create_Flag :: enum {
-	Allocate_Empty,
-	Allocate_Render_Buffer }
-
-Texture_Create_Flags :: bit_set[Texture_Create_Flag]
-
 DEFAULT_IMAGE_SIZE: [2]u32 : { 1024, 1024 }
 
-texture_init :: proc(texture: ^Texture, config: Asset_Config, shape: Texture_Shape = {}, flags: Texture_Create_Flags = {}) {
+texture_init :: proc(texture: ^Texture, config: Asset_Config, shape: Texture_Shape = {}) {
 	config := config
 	config.derived_type = Texture
 	texture.shape = shape
-	if .Allocate_Empty in flags do texture_allocate_data(texture)
-	if .Allocate_Render_Buffer in flags do texture_allocate_render_buffer(texture)
+	// (TODO): Put these in the ".Make" op.
+	// if .Allocate_Empty in flags do texture_allocate_data(texture)
+	// if .Allocate_Render_Buffer in flags do texture_allocate_render_buffer(texture)
 	am_init_asset(Texture, &texture.asset, config) }
 
 texture_equals :: proc(texture0: ^Texture, texture1: ^Texture) -> bool {
@@ -77,14 +72,6 @@ texture_is_empty :: proc(texture: ^Texture) -> bool {
 texture_allocate_data :: proc(texture: ^Texture) {
 	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8)) }
 
-texture_allocate_render_buffer :: proc(texture: ^Texture) {
-	texture.render_buffer = new(Render_Buffer)
-	texture.render_buffer^ = make_render_buffer(
-		auto_cast texture.size,
-		{ texture_shape_to_gl_internal_format(texture.shape) },
-		{ texture_shape_to_gl_format(texture.shape) },
-		{ gl.UNSIGNED_INT }) }
-
 image_as_bytes :: proc(image: ^im.Image) -> []u8 {
 	shrink(&image.pixels.buf)
 	return image.pixels.buf[:] }
@@ -107,15 +94,28 @@ texture_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, sr
 	#partial switch op {
 	case .Make:
 		#partial switch dest {
-		case .RAM: texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8))
+		case .RAM:
+			texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8))
+			return true
+		case .VRAM:
+			gl.GenTextures(1, &texture.handle)
+			return true
 		case: ni = true }
 	case .Delete:
 		#partial switch dest {
-		case .RAM: delete(texture.bytes)
+		case .RAM:
+			delete(texture.bytes)
+			return true
+		case .VRAM:
+			if texture.handle != 0 do gl.DeleteTextures(1, &texture.handle)
+			texture.handle = 0
+			return true
 		case: ni = true }
 	case .Initialize:
 		#partial switch dest {
-		case .RAM: slice.zero(texture.bytes)
+		case .RAM:
+			slice.zero(texture.bytes)
+			return true
 		case: ni = true }
 	case .Exists:
 		#partial switch dest {
@@ -154,10 +154,9 @@ texture_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, sr
 			am_add_or_update_entry(am_make_entry(texture.url, bytes, texture.modification_time))
 			return true
 		case { .RAM, .VRAM }:
-			if texture.handle != 0 {
-				gl.DeleteTextures(1, &texture.handle)
-				texture.handle = 0 }
-			gl.GenTextures(1, &texture.handle)
+			if texture.handle == 0 {
+				log.errorf("Texture VRAM representation not allocated.", location=location)
+				return false }
 			gl.BindTexture(gl.TEXTURE_2D, texture.handle)
 			internal_format: i32
 			data_format: u32

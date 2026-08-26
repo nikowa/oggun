@@ -93,8 +93,10 @@ main :: proc() {
 	og.texture_init(&images[3], { url = "image:kitten-4.png" })
 	og.texture_init(&images[4], { url = "image:kitten-5.png" })
 	for &image in images {
-		assert(og.am_op(og.Texture, &image.asset, .Translate, .RAM, .Source))
-		assert(og.am_op(og.Texture, &image.asset, .Translate, .VRAM, .RAM)) }
+		// (TODO): Why can we move to RAM without allocating it first? //
+		assert(og.asset_translate(&image, .RAM, .Source))
+		assert(og.asset_make(&image, .VRAM))
+		assert(og.asset_translate(&image, .VRAM, .RAM)) }
 	N :: 10000
 	splits: [5]int
 	for &split in splits do split = rand.int_max(N)

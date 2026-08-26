@@ -192,4 +192,80 @@ am_op :: proc(
 
 Invokes the asset op proc of the given asset type, with the given arguments.
 
+!!! warning "Note"
+	Perhaps reduce the first 2 args to a pointer to the derived type, a la `asset_make` and the like.
+
+### `asset_make`
+
+```odin
+asset_make :: proc(
+	this: ^Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool
+```
+
+Executes the `.Make` op on the given asset.
+
+### `asset_delete`
+
+```odin
+asset_delete :: proc(
+	this: ^Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool
+```
+
+Executes the `.Delete` op on the given asset.
+
+### `asset_initialize`
+
+```odin
+asset_initialize :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool
+```
+
+Executes the `.Initialize` op on the given asset.
+
+### `asset_exists`
+
+```odin
+asset_exists :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool
+```
+
+Executes the `.Exists` op on the given asset.
+
+### `asset_translate`
+
+```odin
+asset_translate :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	src: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool
+```
+
+Executes the `.Translate` op on the given asset.
+
+### `asset_outdated`
+
+```odin
+asset_outdated :: proc(
+	this: ^$Derived,
+	dest: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> bool
+```
+
+Executes the `.Outdated` op on the given asset.
+
 <div style="height: 100vh;"></div>

@@ -25,7 +25,7 @@ Model :: struct {
 	texcoords: [][2]f32,
 	lightmap_texcoords: [][2]f32,
 	base_color: Texture
-// 	material: ^Textureset,
+// 	material: ^Texture_Sequence,
 // 	triangles_map: Texture,
 // thickness_map: Texture
 }
@@ -195,7 +195,7 @@ _load_model_gltf :: proc(
 	// material_name: string
 	// material_name, ok = glb_material.name.?
 	// assert(ok)
-	// // append(&draw.materials, Textureset{ name = material_name })
+	// // append(&draw.materials, Texture_Sequence{ name = material_name })
 	// // material := &draw.materials[len(draw.materials) - 1]
 	// // material.metallic_factor = material_matellic_roughness.metallic_factor
 	// // material.roughness_factor = material_matellic_roughness.roughness_factor
