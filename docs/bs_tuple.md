@@ -32,11 +32,21 @@ TUPLE_UNIVERSE_CAP :: math_bits.U16_MAX
 
 ```odin
 make_tuple :: proc(
-	tuple: Tuple($E),
+	Universe: []$E,
+	#any_int len: u8,
 	allocator := context.allocator,
-	loc := #caller_location) -> (
-	tuple: Tuple(E),
-	err: Allocator_Error) #optional_allocator_error
+	loc := #caller_location) -> (tuple: Tuple(E), err: runtime.Allocator_Error)
+	#optional_allocator_error
+```
+
+```odin
+make_tuple :: proc(
+	Universe: []$E,
+	#any_int len: u8,
+	#any_int cap: u8,
+	allocator := context.allocator,
+	loc := #caller_location) -> (tuple: Tuple(E), err: runtime.Allocator_Error)
+	#optional_allocator_error
 ```
 
 ### `tuple_append`
@@ -45,18 +55,16 @@ make_tuple :: proc(
 tuple_append :: proc(
 	tuple: ^Tuple($E),
 	arg: $E,
-	loc := #caller_location) -> (
-	num_appended: int,
-	err: Allocator_Error) #optional_allocator_error
+	loc := #caller_location) -> (n: int, err: Allocator_Error)
+	#optional_allocator_error
 ```
 
 ```odin
 tuple_append :: proc(
 	tuple: ^Tuple($E),
 	args: ..E,
-	loc := #caller_location) -> (
-	num_appended: int,
-	err: Allocator_Error) #optional_allocator_error
+	loc := #caller_location) -> (n: int, err: Allocator_Error)
+	#optional_allocator_error
 ```
 
 ### `tuple_elem`
@@ -64,9 +72,16 @@ tuple_append :: proc(
 ```odin
 tuple_elem :: proc(
 	tuple: ^Tuple($E),
-	#any_int index: int) -> (
-	elem: ^E,
-	ok: bool) #optional_ok
+	universe: []E,
+	#any_int index: int) -> (elem: ^E, ok: bool)
+	#optional_ok
+```
+
+### `tuple_len`
+
+```odin
+tuple_len :: proc(
+	tuple: ^Tuple($E)) -> int
 ```
 
 <div style="height: 100vh;"></div>

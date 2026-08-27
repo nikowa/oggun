@@ -6,6 +6,7 @@ import gl "vendor:OpenGL"
 
 Texture_Sequence :: struct {
 	using asset: Asset,
+	// (TODO): Use "Tuple" here instead of slice. //
 	textures: []^Texture,
 	render_buffer: ^Render_Buffer }
 
