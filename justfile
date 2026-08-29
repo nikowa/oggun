@@ -4,7 +4,7 @@ set shell := ["powershell.exe", "-c"]
 default: current
 
 audit: lib
-	oggun audit bs_bit_array.odin
+	oggun audit bs_index.odin
 
 current: example_sprites
 	examples/sprites.exe

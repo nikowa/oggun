@@ -1,5 +1,5 @@
 package oggun
-// Generated at 17:25:43 //
+// Generated at 10:51:54 //
 
 
 ui_disabled_get :: proc() -> bool {

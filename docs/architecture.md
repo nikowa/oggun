@@ -1,5 +1,15 @@
 # **Architecture**
 
+## **Conjectures**
+
+### Compactness
+
+Data structures should be as compact as possible, so that a greater fraction of the program's data can fit into the cache. Reducing size should be prioritized over reducing number of procedure steps. The dimensions of these data structures are parametrized and increasing these parameters should exhibit significant decay in cache performance.
+
+### Solid Foundations
+
+Whenever possible, problems that have the same general topology should be solved by common DSAs, which are carefully designed and well tested and optimized. These should cover the whole gamut of problems within the engine and it's intended applications, and nothing else, thus they must necessarily be be more specialized than the general-purpose DSAs provided by the standard library, and as such they should be significantly more performant.
+
 ## **Modules Diagram**
 
 There are 3 primary layers: Base, Core, and App. Each depends on the layers below it. The App layer is split into Game and Tool. Each layer can be extended by an Ext layer without changing the behavior of the other layers below it.

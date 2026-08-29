@@ -380,3 +380,6 @@ triangular_size :: proc(shape: u32) -> (size: u32) {
 
 triangular_size_complement :: proc(shape: u32) -> (size: u32) {
 	return shape * (shape - 1) / 2 }
+
+signed_int_max :: proc($B: typeid) -> B {
+	return transmute(B)(~((~B(1) << (size_of(B) * 8 - 2)))) }

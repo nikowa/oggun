@@ -1,11 +1,16 @@
 package tests
 
 // @require import "asset"
-@require import "bit_array"
-@require import "bitpacked_array"
-@require import "tree"
-@require import "bit_matrix"
-@require import "bit_tmatrix"
+
+// @require import "tuple"
+// @require import "bpointer"
+@require import "index"
+// @require import "bit_array"
+// @require import "bitpacked_array"
+// @require import "tree"
+// @require import "bit_matrix"
+// @require import "bit_tmatrix"
+
 // @require import "base_settings"
 // import rt "base:runtime"
 // import sl "core:slice"

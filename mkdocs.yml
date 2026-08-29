@@ -67,6 +67,7 @@ nav:
   - Odin API:
     - bs:
       - util: bs_util.md
+      - index: bs_index.md
       - tuple: bs_tuple.md
       - bit_array: bs_bit_array.md
       - bit_matrix: bs_bit_matrix.md
@@ -78,6 +79,8 @@ nav:
       - graph: bs_graph.md
       - digraph: bs_digraph.md
       - rect: bs_rect.md
+    - mt:
+      - testing: mt_testing.md
     - ui:
       - rect: ui_rect.md
     - wd:

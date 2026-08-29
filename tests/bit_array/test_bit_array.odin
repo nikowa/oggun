@@ -60,7 +60,7 @@ test :: proc(t: ^testing.T) {
 	// (TODO): This sometimes fails. Figure out why. //
 	lo := rand.int32_range(0, 128)
 	hi := rand.int32_range(lo, min(lo + 8 * size_of(Backing_Type), 129))
-	log.warn(lo, hi)
+	// log.warn(lo, hi)
 	bit_array_zero_chunk(&ba3, [2]u32{ u32(lo), u32(hi) })
 	for i in lo ..< hi do expect(bit_array_read_bit(&ba3, i) == 0)
 

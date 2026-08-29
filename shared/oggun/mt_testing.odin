@@ -12,20 +12,33 @@ import "core:path/filepath"
 import "core:path/slashpath"
 import "core:slice"
 import "core:math"
+import "core:math/rand"
 import "core:testing"
+
+TIntegers :: distinct [][]int
+
+tintegers :: proc(range: [][3]int) -> TIntegers {
+	t := make(TIntegers, len(range))
+	for _, i in range {
+		n := range[i][0]
+		t[i] = make([]int, n)
+		for j in 0 ..< n do t[i][j] = rand.int_range(range[i][1], range[i][2]) }
+	return t }
 
 expect :: proc(cond: bool, loc := #caller_location) {
 	testing.expect(auto_cast context.user_ptr, cond, loc=loc) }
 
-mt_test_coverage :: proc(directory_path: string, files: []string={}, silent: bool=false) -> (tested, untested: []string) {
+mt_test_coverage :: proc(directory_path: string, files: []string={}, prefix: string="", silent: bool=false) -> (tested, untested: []string) {
 	untested_procs := make([dynamic]string)
 	tests_directory_path, _ := os.join_path({ os.dir(os.dir(directory_path)), "tests" }, context.allocator)
 	Data :: struct {
 		procs: [dynamic]string,
-		tested_procs: [dynamic]string }
+		tested_procs: [dynamic]string,
+		prefix: string }
 	data: Data = {
 		procs = make([dynamic]string),
-		tested_procs = make([dynamic]string) }
+		tested_procs = make([dynamic]string),
+		prefix = prefix }
 	file_infos, err := os.read_directory_by_path(directory_path, -1, context.allocator)
 	for file_info in file_infos do if os.ext(file_info.name) == ".odin" {
 		if len(files) > 0 do if ! slice.contains(files, file_info.name) do continue
@@ -52,8 +65,8 @@ mt_test_coverage :: proc(directory_path: string, files: []string={}, silent: boo
 					#partial switch derived in node.derived {
 					case ^ast.Call_Expr:
 						proc_name := mt_node_string(walker, derived.expr.expr_base)
-						// if ! strings.has_prefix(proc_name, "og.") do return true
-						// proc_name = proc_name[3:]
+						// log.warn(proc_name)
+						if data.prefix != "" do if strings.has_prefix(proc_name, data.prefix) do proc_name = proc_name[len(data.prefix):]
 						if slice.contains(data.procs[:], proc_name) do append_deduplicate(&data.tested_procs, proc_name) }
 					return true }) } } }
 	shrink(&data.tested_procs)
@@ -62,10 +75,10 @@ mt_test_coverage :: proc(directory_path: string, files: []string={}, silent: boo
 	if !silent do log.infof("Test coverage: " + ANSI_FG_INTENSE_GREEN + "%v%%" + ANSI_DEFAULT, math.round(f32(len(data.tested_procs)) / f32(len(data.procs)) * 100))
 	return data.tested_procs[:], untested_procs[:] }
 
-mt_list_untested :: proc(oggun_directory_path, project_path: string, prefix: string=".og", files: []string={}) {
+mt_list_untested :: proc(oggun_directory_path, project_path: string, prefix: string="og.", files: []string={}) {
 	context.logger.options = {}
 	log.infof("Checking %s.", project_path)
-	tested, untested := mt_test_coverage(oggun_directory_path, files=files, silent=false)
+	tested, untested := mt_test_coverage(oggun_directory_path, files=files, prefix=prefix, silent=false)
 	file_infos, err := os.read_directory_by_path(project_path, -1, context.allocator)
 	Data :: struct { untested_procs: []string, prefix: string }
 	data: Data = { untested_procs = untested, prefix = prefix }
@@ -86,6 +99,9 @@ mt_list_untested :: proc(oggun_directory_path, project_path: string, prefix: str
 				proc_lit, ok := derived.values[0].derived.(^ast.Proc_Lit)
 				if ! ok do return true
 				proc_name := mt_node_string(walker, derived.names[0])
+				// log.warn(proc_name)
 				if proc_name[0] == '_' do return true
 				if slice.contains(data.untested_procs[:], proc_name) do log.warnf("Proc " + ANSI_FG_INTENSE_RED + "%s" + ANSI_DEFAULT + " is untested.", proc_name) }
 			return true }) } }
+
+//

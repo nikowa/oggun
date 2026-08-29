@@ -83,7 +83,7 @@ main :: proc() {
 		if ! os.exists(project_path) do fmt.eprintfln("Error: %s is not a valid path.", project_path)
 		mt_list_untested(oggun_source_dir, project_path)
 	case "audit":
-		mt_list_untested(oggun_source_dir, oggun_source_dir, prefix="", files=os.args[2:])
+		mt_list_untested(oggun_source_dir, oggun_source_dir, prefix="og.", files=os.args[2:])
 	case "help":
 		if len(os.args) < 3 {
 			fmt.println("Error: No command to provide help for.")
