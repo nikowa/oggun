@@ -8,7 +8,7 @@
 
 ## **Example**
 
-The following example shows how to create an 8-bit index into an array of 100 spiders, how to make it point to the 10-th spider, and how to retreive the 10-th spider using the index.
+The following example shows how to create an 8-bit index into an array of 100 :material-spider:s, how to make it point to the 10-th :material-spider:, and how to retreive the 10-th :material-spider: using the index.
 
 ```odin
 	spiders := make([]Spider, 100)
@@ -22,7 +22,7 @@ The following example shows how to create an 8-bit index into an array of 100 sp
 
 ## **Types**
 
-### **Index**
+### Index
 
 ```odin
 Index :: struct($S: typeid, $B: typeid)
@@ -34,7 +34,7 @@ Index :: struct($S: typeid, $B: typeid)
 
 ## **Procedures**
 
-### **make_index**
+### make_index
 
 ```odin
 make_index :: proc "contextless" (
@@ -42,7 +42,7 @@ make_index :: proc "contextless" (
 	$B: typeid) -> Index(S, B)
 ```
 
-### **index_get**
+### index_get
 
 ```odin
 index_get :: proc "contextless" (
@@ -50,7 +50,7 @@ index_get :: proc "contextless" (
 	array: S) -> (ptr: ^intrinsics.type_elem_type(S), ok: bool)
 ```
 
-### **index_set**
+### index_set
 
 ```odin
 index_set :: proc "contextless" (
@@ -59,14 +59,14 @@ index_set :: proc "contextless" (
 	arg: ^intrinsics.type_elem_type(S)) -> (ok: bool)
 ```
 
-### **index_is_nil**
+### index_is_nil
 
 ```odin
 index_is_nil :: proc "contextless" (
 	ix: ^$I/Index($S, $B)) -> bool
 ```
 
-### **index_set_nil**
+### index_set_nil
 
 ```odin
 index_set_nil :: proc "contextless" (

@@ -1,6 +1,7 @@
 #+feature using-stmt
 package oggun
 import "base:runtime"
+import "base:intrinsics"
 import "core:time"
 import "core:strings"
 import "core:mem"
@@ -381,5 +382,10 @@ triangular_size :: proc(shape: u32) -> (size: u32) {
 triangular_size_complement :: proc(shape: u32) -> (size: u32) {
 	return shape * (shape - 1) / 2 }
 
-signed_int_max :: proc($B: typeid) -> B {
+signed_int_max :: proc($B: typeid) -> B
+	where intrinsics.type_is_integer(B) && ! intrinsics.type_is_unsigned(B) {
 	return transmute(B)(~((~B(1) << (size_of(B) * 8 - 2)))) }
+
+unsigned_int_max :: proc($B: typeid) -> B
+	where intrinsics.type_is_integer(B) && intrinsics.type_is_unsigned(B) {
+	return ~B(0) }

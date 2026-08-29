@@ -2,7 +2,7 @@ package tests
 
 // @require import "asset"
 
-// @require import "tuple"
+@require import "tuple"
 // @require import "bpointer"
 @require import "index"
 // @require import "bit_array"
