@@ -4,7 +4,7 @@ package tests
 
 @require import "tuple"
 // @require import "bpointer"
-@require import "index"
+// @require import "index"
 // @require import "bit_array"
 // @require import "bitpacked_array"
 // @require import "tree"

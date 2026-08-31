@@ -12,17 +12,19 @@ Index :: struct($S: typeid, $B: typeid)
 make_index :: proc "contextless" ($S: typeid, $B: typeid) -> Index(S, B) {
 	return { -1 } }
 
-index_get :: proc "contextless" (ix: ^$I/Index($S, $B), array: S) -> (ptr: ^intrinsics.type_elem_type(S), ok: bool)
+index_get :: proc "contextless" (ix: ^$I/Index($S, $B), universe: S) -> (ptr: ^intrinsics.type_elem_type(S), ok: bool)
 	where intrinsics.type_is_slice(S) && intrinsics.type_is_integer(B) && ! intrinsics.type_is_unsigned(B) {
 	if ix.value == -1 do return nil, false
-	return slice.get_ptr(array, cast(int)ix.value) }
+	return slice.get_ptr(universe, cast(int)ix.value) }
 
-index_set :: proc "contextless" (ix: ^$I/Index($S, $B), array: S, arg: ^intrinsics.type_elem_type(S)) -> (ok: bool)
+// (TODO): Rename to "index_set_by_ptr" and add "index_set_by_index".
+
+index_set :: proc "contextless" (ix: ^$I/Index($S, $B), universe: S, arg: ^intrinsics.type_elem_type(S)) -> (ok: bool)
 	where intrinsics.type_is_slice(S) && intrinsics.type_is_integer(B) && ! intrinsics.type_is_unsigned(B) {
-	if cast(uintptr)arg < cast(uintptr)&array[0] || cast(uintptr)arg > cast(uintptr)&array[len(array) - 1] {
+	if cast(uintptr)arg < cast(uintptr)&universe[0] || cast(uintptr)arg > cast(uintptr)&universe[len(universe) - 1] {
 		ix.value = -1
 		return false }
-	ix.value = cast(B)((cast(uintptr)arg - cast(uintptr)&array[0]) / size_of(intrinsics.type_elem_type(S)))
+	ix.value = cast(B)((cast(uintptr)arg - cast(uintptr)&universe[0]) / size_of(intrinsics.type_elem_type(S)))
 	return true }
 
 index_is_nil :: proc "contextless" (ix: ^$I/Index($S, $B)) -> bool {

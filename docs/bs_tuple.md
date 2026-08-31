@@ -18,10 +18,10 @@ og.tuple_append(&spider_group, 5616, spider_cave)
 og.tuple_append(&spider_group, 3946, spider_cave)
 og.tuple_append(&spider_group, 1082, spider_cave)
 assert(og.tuple_len(&spider_group) == 4)
-assert(og.tuple_elem(&spider_group, 0) == &spider_cave[1512])
-assert(og.tuple_elem(&spider_group, 1) == &spider_cave[5616])
-assert(og.tuple_elem(&spider_group, 2) == &spider_cave[3946])
-assert(og.tuple_elem(&spider_group, 3) == &spider_cave[1082])
+assert(og.tuple_get(&spider_group, 0) == &spider_cave[1512])
+assert(og.tuple_get(&spider_group, 1) == &spider_cave[5616])
+assert(og.tuple_get(&spider_group, 2) == &spider_cave[3946])
+assert(og.tuple_get(&spider_group, 3) == &spider_cave[1082])
 ```
 
 If the spiders were stored in a slice of pointers, each :material-spider: would have taken up 8 bytes. Instead, when you use a tuple, each :material-spider: takes only 1 byte. Also, the `len` component of the tuple scales logarithmically with the size of the spider cave, so the smaller the cave, the smaller each group. If you have dozens or hundreds of groups, you can save several kilobytes by using a smaller integer type for `B`.
@@ -31,7 +31,10 @@ If the spiders were stored in a slice of pointers, each :material-spider: would 
 ### Tuple
 
 ```odin
-Tuple :: struct($E: typeid, $U: typeid, $B: typeid) {
+Tuple :: struct(
+	$E: typeid,
+	$U: typeid,
+	$B: typeid) {
 	indexes: Index([]E, U),
 	len: B }
 ```
@@ -41,7 +44,11 @@ Tuple :: struct($E: typeid, $U: typeid, $B: typeid) {
 ### make_tuple
 
 ```odin
-make_tuple :: proc { make_tuple_len, make_tuple_len_cap }
+make_tuple :: proc {
+	make_tuple_len,
+	make_tuple_len_cap,
+	make_tuple_from_ptrs,
+	make_tuple_from_indexes }
 ```
 
 ### make_tuple_len
@@ -68,6 +75,38 @@ make_tuple_len_cap :: proc(
 	$B: typeid,
 	#any_int len: u8,
 	#any_int cap: u8,
+	allocator := context.allocator,
+	loc := #caller_location) -> (
+	tuple: Tuple(E, U, B),
+	err: runtime.Allocator_Error)
+	#optional_allocator_error
+```
+
+### make_tuple_from_ptrs
+
+```odin
+make_tuple_from_ptrs :: proc(
+	$E: typeid,
+	$U: typeid,
+	$B: typeid,
+	elems: []^E,
+	universe: []E,
+	allocator := context.allocator,
+	loc := #caller_location) -> (
+	tuple: Tuple(E, U, B),
+	err: runtime.Allocator_Error)
+	#optional_allocator_error
+```
+
+### make_tuple_from_indexes
+
+```odin
+make_tuple_from_indexes :: proc(
+	$E: typeid,
+	$U: typeid,
+	$B: typeid,
+	indexes: []U,
+	universe: []E,
 	allocator := context.allocator,
 	loc := #caller_location) -> (
 	tuple: Tuple(E, U, B),
@@ -119,10 +158,10 @@ tuple_append_by_index :: proc(
 	#optional_allocator_error
 ```
 
-### tuple_elem
+### tuple_get
 
 ```odin
-tuple_elem :: proc(
+tuple_get :: proc "contextless" (
 	tuple: ^Tuple($E, $U, $B),
 	universe: []E,
 	#any_int index: u8) -> (
@@ -131,10 +170,38 @@ tuple_elem :: proc(
 	#optional_ok
 ```
 
+### tuple_set
+
+```odin
+tuple_set :: proc {
+	tuple_set_by_index,
+	tuple_set_by_ptr }
+```
+
+### tuple_set_by_index
+
+```odin
+tuple_set_by_index :: proc "contextless" (
+	tuple: ^Tuple($E, $U, $B),
+	#any_int i: u8,
+	index: int,
+	universe: []E)
+```
+
+### tuple_set_by_ptr
+
+```odin
+tuple_set_by_ptr :: proc "contextless" (
+	tuple: ^Tuple($E, $U, $B),
+	#any_int i: u8,
+	arg: ^E,
+	universe: []E)
+```
+
 ### tuple_len
 
 ```odin
-tuple_len :: proc(
+tuple_len :: proc "contextless" (
 	tuple: ^Tuple($E, $U, $B)) ->
 	int
 ```
@@ -142,9 +209,19 @@ tuple_len :: proc(
 ### tuple_cap
 
 ```odin
-tuple_cap :: proc(
+tuple_cap :: proc "contextless" (
 	tuple: ^Tuple($E, $U, $B)) ->
 	int
+```
+
+### tuple_iterate
+
+```odin
+tuple_iterate :: proc "contextless" (
+	tuple: ^Tuple($E, $U, $B),
+	universe: []E, i: ^B) -> (
+	elem: ^E,
+	ok: bool)
 ```
 
 <div style="height: 100vh;"></div>

@@ -1,5 +1,5 @@
 package oggun
-// Generated at 15:44:04 //
+// Generated at 10:20:43 //
 
 
 gx_clip_get :: proc() -> Clip {

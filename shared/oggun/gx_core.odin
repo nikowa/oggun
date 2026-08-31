@@ -56,7 +56,7 @@ when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
 // 	models:                          [dynamic]Model,
 // 	model_instances:                 [dynamic]Model_Instance,
 	shaders: [dynamic]^Shader_Asset,
-	// textures:                [dynamic]Texture,
+	textures: [dynamic]Texture,
 	// textures_map:                    map[string]^Texture,
 // 	materials:                       [dynamic]Texture_Sequence,
 // 	models_map:                      map[string]^Model,

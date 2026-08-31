@@ -3,8 +3,8 @@ set shell := ["powershell.exe", "-c"]
 
 default: current
 
-audit: lib
-	oggun audit bs_tuple.odin
+audit package: lib
+	oggun audit {{package}}.odin
 
 current: example_sprites
 	examples/sprites.exe
@@ -32,7 +32,7 @@ check: lib
 
 test: lib
 	cls
-	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false -ignore-unknown-attributes
+	odin test tests -all-packages -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_TRACK_MEMORY=false -ignore-unknown-attributes -debug
 
 doc:
 	mkdocs serve
