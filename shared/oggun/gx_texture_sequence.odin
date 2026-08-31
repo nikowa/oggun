@@ -79,7 +79,7 @@ texture_sequence_allocate_render_buffer :: proc(this: ^Texture_Sequence) {
 	for i in 0 ..< n {
 		texture := tuple_get(&this.textures, state.graphics_manager.textures[:], auto_cast i)
 		shape := texture.shape
-		internal_formats[i] = texture_shape_to_gl_internal_format(shape)
-		formats[i] = texture_shape_to_gl_format(shape)
+		internal_formats[i] = _texture_shape_to_gl_internal_format(shape)
+		formats[i] = _texture_shape_to_gl_format(shape)
 		data_types[i] = gl.UNSIGNED_INT }
 	this.render_buffer^ = make_render_buffer(auto_cast size, internal_formats, formats, data_types) }

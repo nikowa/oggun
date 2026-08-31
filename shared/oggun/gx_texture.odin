@@ -18,35 +18,24 @@ Texture :: struct #packed {
 	modification_time: time.Time,
 	gpu_modification_time: time.Time,
 	handle: u32 }
-	// render_buffer: ^Render_Buffer
-// (TODO): Render-buffers should be per-texture_sequence instead of per-texture? //
-
-// Pixel_Type :: enum {
-// 	FLOAT,
-// 	UINT }
 
 Texture_Shape :: struct #packed {
 	size: [2]u32,
 	channels: u8,
-	depth: u8,
-	// type: Pixel_Type
-}
+	depth: u8 }
 
-DEFAULT_IMAGE_SIZE: [2]u32 : { 1024, 1024 }
+DEFAULT_TEXTURE_SIZE: [2]u32 : { 1024, 1024 }
 
 texture_init :: proc(texture: ^Texture, config: Asset_Config, shape: Texture_Shape = {}) {
 	config := config
 	config.derived_type = Texture
 	texture.shape = shape
-	// (TODO): Put these in the ".Make" op.
-	// if .Allocate_Empty in flags do texture_allocate_data(texture)
-	// if .Allocate_Render_Buffer in flags do texture_allocate_render_buffer(texture)
 	am_init_asset(Texture, &texture.asset, config) }
 
 texture_equals :: proc(texture0: ^Texture, texture1: ^Texture) -> bool {
 	return (texture0.shape == texture1.shape) && slice.equal(texture0.bytes, texture1.bytes) }
 
-texture_modification_time :: proc(texture: ^Texture, location: Asset_Location) -> (modification_time: time.Time) {
+_texture_modification_time :: proc(texture: ^Texture, location: Asset_Location) -> (modification_time: time.Time) {
 	#partial switch location {
 	case .Source:
 		path := am_path_from_url(texture.url, context.temp_allocator)
@@ -65,18 +54,11 @@ texture_modification_time :: proc(texture: ^Texture, location: Asset_Location) -
 		return texture.gpu_modification_time }
 	return {} }
 
-texture_is_empty :: proc(texture: ^Texture) -> bool {
-	return len(texture.bytes) == 0 }
-
-// (TODO): Replace this with .Make command on .RAM. //
-texture_allocate_data :: proc(texture: ^Texture) {
-	texture.bytes = make([]u8, int(texture.size.x * texture.size.y * auto_cast texture.depth * auto_cast texture.channels / 8)) }
-
-image_as_bytes :: proc(image: ^im.Image) -> []u8 {
+_image_as_bytes :: proc(image: ^im.Image) -> []u8 {
 	shrink(&image.pixels.buf)
 	return image.pixels.buf[:] }
 
-image_shape :: proc(image: ^im.Image) -> Texture_Shape {
+_image_shape :: proc(image: ^im.Image) -> Texture_Shape {
 	return {
 		size = { auto_cast image.width, auto_cast image.height },
 		depth = auto_cast image.depth,
@@ -86,9 +68,9 @@ texture_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, sr
 	texture := am_asset_base(asset, Texture, "asset")
 	// #partial switch op {
 	// case .Download, .Upload, .Serialize, .Deserialize, .Export, .Import:
-	// 	if texture_is_empty(image) {
-	// 		width: int = (image.size.x != 0) ? image.size.x : DEFAULT_IMAGE_SIZE.x
-	// 		height: int = (image.size.y != 0) ? image.size.y : DEFAULT_IMAGE_SIZE.y
+	// 	if len(texture.bytes) == 0 {
+	// 		width: int = (image.size.x != 0) ? image.size.x : DEFAULT_TEXTURE_SIZE.x
+	// 		height: int = (image.size.y != 0) ? image.size.y : DEFAULT_TEXTURE_SIZE.y
 	// 		image.image = make_image(width, height) } }
 	ni: bool = false
 	#partial switch op {
@@ -144,8 +126,8 @@ texture_op :: proc(asset: ^Asset, op: Asset_Op, dest: Asset_Location = .None, sr
 			image_temp, image_err := loader_proc(bytes, im.Options{}, context.allocator)
 			if image_err != nil {
 				log.errorf("Image error: %v.", image_err, location=location); return false }
-			texture.bytes = image_as_bytes(image_temp)
-			texture.shape = image_shape(image_temp)
+			texture.bytes = _image_as_bytes(image_temp)
+			texture.shape = _image_shape(image_temp)
 			free(image_temp)
 			texture.modification_time = modification_time
 			return true
@@ -241,7 +223,7 @@ texture_deserialize :: proc(image_bytes: []u8, allocator: runtime.Allocator) -> 
 	bytes.reader_read_slice(&reader, texture.bytes) or_return
 	return texture, os.General_Error.None }
 
-texture_shape_to_gl_format :: proc(shape: Texture_Shape) -> u32 {
+_texture_shape_to_gl_format :: proc(shape: Texture_Shape) -> u32 {
 	switch shape.channels {
 	case 1: return gl.RED
 	case 2: return gl.RG
@@ -249,7 +231,7 @@ texture_shape_to_gl_format :: proc(shape: Texture_Shape) -> u32 {
 	case 4: return gl.RGBA }
 	return 0 }
 
-texture_shape_to_gl_internal_format :: proc(shape: Texture_Shape) -> i32 {
+_texture_shape_to_gl_internal_format :: proc(shape: Texture_Shape) -> i32 {
 	switch shape.depth {
 	case 8:
 		switch shape.channels {

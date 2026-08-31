@@ -1,8 +1,8 @@
-# **gx/texture**
+# gx/texture
 
----
+## **Types**
 
-### **Texture**
+### Texture
 
 ```odin
 Texture :: struct #packed {
@@ -14,7 +14,7 @@ Texture :: struct #packed {
 
 A texture [asset](../am_core/#asset).
 
-### **Texture_Shape**
+### Texture_Shape
 
 ```odin
 Texture_Shape :: struct #packed {
@@ -24,47 +24,34 @@ Texture_Shape :: struct #packed {
 ```
 
 !!! warning "NOTE"
-	Should there be a format (float, integer, normalized, etc.) field?
+	Should there be a component type (float, integer, normalized, etc.) field?
 
 Describes the size, depth, and number of channels of a texture. This is used for (1) describing how texture data should be interpreted, and (2) constraining texture binding points.
 
-### **Texture_Create_Flag**
+## **Constants**
+
+### DEFAULT_TEXTURE_SIZE
 
 ```odin
-Texture_Create_Flag :: enum {
-	Allocate_Empty,
-	Allocate_Render_Buffer }
+DEFAULT_TEXTURE_SIZE: [2]int : {
+	1024,
+	1024 }
 ```
 
-### **Texture_Create_Flags**
+## **Procedures**
 
-```odin
-Texture_Create_Flags :: bit_set[Texture_Create_Flag]
-```
-
----
-
-### **DEFAULT_IMAGE_SIZE**
-
-```odin
-DEFAULT_IMAGE_SIZE: [2]int : { 1024, 1024 }
-```
-
----
-
-### **init**
+### texture_init
 
 ```odin
 texture_init :: proc(
 	texture: ^Texture,
 	config: Asset_Config,
-	shape: Texture_Shape = {},
-	flags: Texture_Create_Flags = {})
+	shape: Texture_Shape = {})
 ```
 
-Initializes a `Texture` asset.
+Initializes a **Texture** with the given shape.
 
-### **equals**
+### texture_equals
 
 ```odin
 texture_equals :: proc(
@@ -72,56 +59,47 @@ texture_equals :: proc(
 	texture1: ^Texture) -> bool
 ```
 
-### **modification_time**
+Checks if the two **Texture**s are equal, by comparing their shapes and pixels.
 
-```odin
-texture_modification_time :: proc(
-	texture: ^Texture,
-	location: Asset_Location) -> (modification_time: time.Time)
-```
-
-### **command**
+### texture_op
 
 ```odin
 texture_op :: proc(
 	asset: ^Asset,
-	command: Asset_Command,
-	watch: bool = false) -> (ok: bool)
+	op: Asset_Op,
+	dest: Asset_Location = .None,
+	src: Asset_Location = .None,
+	arg: rawptr = nil,
+	location := #caller_location) -> (
+	ok: bool)
 ```
 
-### **is_empty**
+The **Asset** op command of **Texture**. See [am/core](../am_core/) for more info.
+
+### serialize
 
 ```odin
-texture_is_empty :: proc(
-	texture: ^Texture) -> bool
-```
-
-### **serialize**
-
-```odin
+@require_results
 texture_serialize :: proc(
 	texture: ^Texture,
-	allocator: runtime.Allocator) -> (image_bytes: []u8, err: os.Error)
+	allocator: runtime.Allocator) -> (
+	image_bytes: []u8,
+	err: os.Error)
 ```
 
-### **deserialize**
+Serializes a **Texture**. Used by the **Translate** op.
+
+### deserialize
 
 ```odin
+@require_results
 texture_deserialize :: proc(
 	image_bytes: []u8,
-	allocator: runtime.Allocator) -> (texture: Texture, err: os.Error)
+	allocator: runtime.Allocator) -> (
+	texture: Texture,
+	err: os.Error)
 ```
 
-### **make_image**
-
-```odin
-make_image :: proc(
-	width: int,
-	height: int,
-	channels: int,
-	allocator := context.allocator) -> (image: im.Image)
-```
-
-Helper function for image creation.
+Deserializes a **Texture**. Used by the **Translate** op.
 
 <div style="height: 100vh;"></div>
