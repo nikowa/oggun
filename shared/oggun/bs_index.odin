@@ -1,5 +1,6 @@
 #+feature using-stmt
 package oggun
+import "base:runtime"
 import "base:intrinsics"
 import "core:log"
 import "core:fmt"
@@ -19,8 +20,10 @@ index_get :: proc "contextless" (ix: ^$I/Index($S, $B), universe: S) -> (ptr: ^i
 
 // (TODO): Rename to "index_set_by_ptr" and add "index_set_by_index".
 
-index_set :: proc "contextless" (ix: ^$I/Index($S, $B), universe: S, arg: ^intrinsics.type_elem_type(S)) -> (ok: bool)
+index_set :: proc "contextless" (ix: ^$I/Index($S, $B), universe: S, arg: ^intrinsics.type_elem_type(S), loc := #caller_location) -> (ok: bool)
 	where intrinsics.type_is_slice(S) && intrinsics.type_is_integer(B) && ! intrinsics.type_is_unsigned(B) {
+	context = runtime.default_context()
+	assert(len(universe) > 0, loc=loc)
 	if cast(uintptr)arg < cast(uintptr)&universe[0] || cast(uintptr)arg > cast(uintptr)&universe[len(universe) - 1] {
 		ix.value = -1
 		return false }

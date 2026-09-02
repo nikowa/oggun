@@ -40,6 +40,15 @@ DEFAULT_TEXTURE_SIZE: [2]int : {
 
 ## **Procedures**
 
+### **new_texture**
+
+```odin
+new_texture :: proc() ->
+	^Texture
+```
+
+Appends a new texture to `graphics_manager.textures` and returns a pointer to it. Returns `nil` if capacity has been exceeded.
+
 ### **texture_init**
 
 ```odin

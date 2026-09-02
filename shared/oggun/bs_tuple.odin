@@ -42,6 +42,8 @@ delete_tuple :: proc(tuple: ^Tuple($E, $U, $B), allocator := context.allocator, 
 tuple_append :: proc { tuple_append_by_ptr, tuple_append_by_index }
 
 tuple_append_by_ptr :: proc "contextless" (tuple: ^Tuple($E, $U, $B), arg: ^E, universe: []E, loc := #caller_location) -> (n: int, err: runtime.Allocator_Error) #optional_allocator_error {
+	context = runtime.default_context()
+	assert(len(universe) > 0, loc=loc)
 	if cast(int)tuple.len >= len(tuple.indexes) do return 0, .Out_Of_Memory
 	index_set(&tuple.indexes[tuple.len], universe, arg)
 	tuple.len += 1
@@ -76,3 +78,6 @@ tuple_iterate :: proc "contextless" (tuple: ^Tuple($E, $U, $B), universe: []E, i
 	elem, ok = tuple_get(tuple, universe, i^)
 	i^ += 1
 	return elem, ok }
+
+tuple_is_empty :: proc "contextless" (tuple: ^Tuple($E, $U, $B)) -> bool {
+	return cast(int)tuple.len == 0 }

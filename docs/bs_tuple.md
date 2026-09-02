@@ -28,7 +28,7 @@ If the spiders were stored in a slice of pointers, each :material-spider: would 
 
 ## **Types**
 
-### Tuple
+### **Tuple**
 
 ```odin
 Tuple :: struct(
@@ -41,7 +41,7 @@ Tuple :: struct(
 
 ## **Procedures**
 
-### make_tuple
+### **make_tuple**
 
 ```odin
 make_tuple :: proc {
@@ -51,7 +51,7 @@ make_tuple :: proc {
 	make_tuple_from_indexes }
 ```
 
-### make_tuple_len
+### **make_tuple_len**
 
 ```odin
 make_tuple_len :: proc(
@@ -66,7 +66,7 @@ make_tuple_len :: proc(
 	#optional_allocator_error
 ```
 
-### make_tuple_len_cap
+### **make_tuple_len_cap**
 
 ```odin
 make_tuple_len_cap :: proc(
@@ -82,7 +82,7 @@ make_tuple_len_cap :: proc(
 	#optional_allocator_error
 ```
 
-### make_tuple_from_ptrs
+### **make_tuple_from_ptrs**
 
 ```odin
 make_tuple_from_ptrs :: proc(
@@ -98,7 +98,7 @@ make_tuple_from_ptrs :: proc(
 	#optional_allocator_error
 ```
 
-### make_tuple_from_indexes
+### **make_tuple_from_indexes**
 
 ```odin
 make_tuple_from_indexes :: proc(
@@ -114,7 +114,7 @@ make_tuple_from_indexes :: proc(
 	#optional_allocator_error
 ```
 
-### delete_tuple
+### **delete_tuple**
 
 ```odin
 delete_tuple :: proc(
@@ -124,7 +124,7 @@ delete_tuple :: proc(
 	err: runtime.Allocator_Error)
 ```
 
-### tuple_append
+### **tuple_append**
 
 ```odin
 tuple_append :: proc {
@@ -132,7 +132,7 @@ tuple_append :: proc {
 	tuple_append_by_index }
 ```
 
-### tuple_append_by_ptr
+### **tuple_append_by_ptr**
 
 ```odin
 tuple_append_by_ptr :: proc(
@@ -145,7 +145,7 @@ tuple_append_by_ptr :: proc(
 	#optional_allocator_error
 ```
 
-### tuple_append_by_index
+### **tuple_append_by_index**
 
 ```odin
 tuple_append_by_index :: proc(
@@ -158,7 +158,7 @@ tuple_append_by_index :: proc(
 	#optional_allocator_error
 ```
 
-### tuple_get
+### **tuple_get**
 
 ```odin
 tuple_get :: proc "contextless" (
@@ -170,7 +170,7 @@ tuple_get :: proc "contextless" (
 	#optional_ok
 ```
 
-### tuple_set
+### **tuple_set**
 
 ```odin
 tuple_set :: proc {
@@ -178,7 +178,7 @@ tuple_set :: proc {
 	tuple_set_by_ptr }
 ```
 
-### tuple_set_by_index
+### **tuple_set_by_index**
 
 ```odin
 tuple_set_by_index :: proc "contextless" (
@@ -188,7 +188,7 @@ tuple_set_by_index :: proc "contextless" (
 	universe: []E)
 ```
 
-### tuple_set_by_ptr
+### **tuple_set_by_ptr**
 
 ```odin
 tuple_set_by_ptr :: proc "contextless" (
@@ -198,7 +198,7 @@ tuple_set_by_ptr :: proc "contextless" (
 	universe: []E)
 ```
 
-### tuple_len
+### **tuple_len**
 
 ```odin
 tuple_len :: proc "contextless" (
@@ -206,7 +206,7 @@ tuple_len :: proc "contextless" (
 	int
 ```
 
-### tuple_cap
+### **tuple_cap**
 
 ```odin
 tuple_cap :: proc "contextless" (
@@ -214,7 +214,7 @@ tuple_cap :: proc "contextless" (
 	int
 ```
 
-### tuple_iterate
+### **tuple_iterate**
 
 ```odin
 tuple_iterate :: proc "contextless" (
@@ -222,6 +222,14 @@ tuple_iterate :: proc "contextless" (
 	universe: []E, i: ^B) -> (
 	elem: ^E,
 	ok: bool)
+```
+
+### **tuple_is_empty**
+
+```odin
+tuple_is_empty :: proc "contextless" (
+	tuple: ^Tuple($E, $U, $B)) ->
+	bool
 ```
 
 <div style="height: 100vh;"></div>

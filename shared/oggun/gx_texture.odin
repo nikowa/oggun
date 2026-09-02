@@ -26,6 +26,11 @@ Texture_Shape :: struct #packed {
 
 DEFAULT_TEXTURE_SIZE: [2]u32 : { 1024, 1024 }
 
+new_texture :: proc() -> ^Texture {
+	_, err := append(&state.graphics_manager.textures, Texture{ })
+	if err != nil do return nil
+	return &state.graphics_manager.textures[len(state.graphics_manager.textures) - 1] }
+
 texture_init :: proc(texture: ^Texture, config: Asset_Config, shape: Texture_Shape = {}) {
 	config := config
 	config.derived_type = Texture

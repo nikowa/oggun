@@ -25,11 +25,12 @@ Canvas_Texture_Index :: enum {
 
 texture_sequence_init :: proc { texture_sequence_init_from_shape, texture_sequence_init_from_textures }
 
-texture_sequence_init_from_shape :: proc(texture_sequence: ^Texture_Sequence, config: Asset_Config, shape: Texture_Sequence_Shape, allocator := context.allocator) {
+texture_sequence_init_from_shape :: proc(texture_sequence: ^Texture_Sequence, config: Asset_Config, shape: Texture_Sequence_Shape, allocator := context.allocator, loc := #caller_location) {
+	log.info(loc)
 	n := len(shape)
 	textures := make([]^Texture, n)
 	for i in 0 ..< n {
-		textures[i] = new(Texture)
+		textures[i] = new_texture()
 		texture_init(textures[i], { url = cast(URL)fmt.aprintf("%s-%d", config.url, i, allocator=allocator) }, shape[i]) }
 	texture_sequence_init_from_textures(texture_sequence, config, textures) }
 
