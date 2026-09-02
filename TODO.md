@@ -1,4 +1,5 @@
 
+- Rename dr_image to dr_texture
 - Rename "Shader" to "Shader_Sequence"
 
 - Implement the new bit_array functions

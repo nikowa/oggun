@@ -20,22 +20,17 @@ import "core:slice"
 // (3) Load all global illumination maps.
 // What about shadows?
 
-X :: 0
-Y :: 1
-Z :: 2
-W :: 3
+GRAPHICS_BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
 
 QUAD_VERTS_LEN :: 6
 POINT_VERTS_LEN :: 2
-
-GRAPHICS_BACKEND: Graphics_Backend : #config(GRAPHICS_BACKEND, Graphics_Backend.OpenGL)
 
 Graphics_Backend :: enum {
 	WGPU,
 	Vulkan,
 	OpenGL }
 
-Graphics_Config :: struct #all_or_none {
+Graphics_Config :: struct {
 	clear_color: Color }
 
 DEFAULT_GRAPHICS_CONFIG: Graphics_Config : {
@@ -43,8 +38,9 @@ DEFAULT_GRAPHICS_CONFIG: Graphics_Config : {
 
 MSAA :: enum { Off, X2, X4, X8, X16 }
 
-when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
+Graphics_Manager :: struct {
 	using graphics_config: Graphics_Config,
+	using backend: Graphics_Manager_Backend,
 	command_buffer: Command_Buffer,
 	window_closed: bool,
 // 	fullscreen:                      bool,
@@ -96,10 +92,10 @@ when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
 	vertex_buffer: u32,
 // 	cubemap:                         Cubemap
 	clip_stack: [dynamic]Clip,
-	depth_stack: [dynamic]f32,
-	// DICK
-	 }
-else do Graphics_Manager :: struct { }
+	depth_stack: [dynamic]f32 }
+
+when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager_Backend :: struct { }
+else do Graphics_Manager_Backend :: struct { }
 
 Clip :: struct {
 	rect: Rect,
@@ -325,6 +321,9 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 
 		assert(am_op(Shader, &state.graphics_manager.line_shader.asset, .Translate, .RAM, .Source))
 		assert(am_op(Shader, &state.graphics_manager.line_shader.asset, .Translate, .VRAM, .RAM))
+
+		assert(am_op(Shader, &state.graphics_manager.arc_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.arc_shader.asset, .Translate, .VRAM, .RAM))
 
 		assert(am_op(Shader, &state.graphics_manager.image_shader.asset, .Translate, .RAM, .Source))
 		assert(am_op(Shader, &state.graphics_manager.image_shader.asset, .Translate, .VRAM, .RAM))

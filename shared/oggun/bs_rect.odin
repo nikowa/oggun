@@ -66,6 +66,9 @@ rect_from_sides :: proc(left, right, bottom, top: f32) -> Rect {
 rect_sides :: proc(rect: Rect) -> (left, right, bottom, top: f32) {
 	return rect_left(rect), rect_right(rect), rect_bottom(rect), rect_top(rect) }
 
+rect_corners :: proc(rect: Rect) -> [4][2]f32 {
+	return { rect_bottom_left_point(rect), rect_top_left_point(rect), rect_top_right_point(rect), rect_bottom_right_point(rect) } }
+
 rect_contains_point :: proc(rect: Rect, point: [2]f32) -> bool {
 	return in_range(point.x, rect.position.x - rect.size.x / 2, rect.position.x + rect.size.x / 2) &&
 		   in_range(point.y, rect.position.y - rect.size.y / 2, rect.position.y + rect.size.y / 2) }

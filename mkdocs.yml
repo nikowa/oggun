@@ -93,6 +93,7 @@ nav:
     - am:
       - core: am_core.md
     - gx:
+      - core: gx_core.md
       - texture: gx_texture.md
       - texture_sequence: gx_texture_sequence.md
       - shader: gx_shader.md

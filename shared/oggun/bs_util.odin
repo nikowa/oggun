@@ -13,7 +13,14 @@ import "core:fmt"
 import "core:math/linalg"
 import "core:math"
 
+X :: 0
+Y :: 1
+Z :: 2
+W :: 3
+
 ID :: uintptr
+
+LUMBAR :: "The lumbar vertebrae are located between the ribcage and the pelvis and are the largest of the vertebrae. The pedicles are strong, as are the laminae, and the spinous process is thick and broad. The vertebral foramen is large and triangular. The transverse processes are long and narrow and three tubercles can be seen on them. These are a lateral costiform process, a mammillary process and an accessory process. The superior, or upper tubercle is the mammillary process which connects with the superior articular process. The multifidus muscle attaches to the mammillary process and this muscle extends through the length of the vertebral column, giving support. The inferior, or lower tubercle is the accessory process and this is found at the back part of the base of the transverse process. The term lumbosacral is often used to refer to the lumbar and sacral vertebrae together, and sometimes includes their surrounding areas."
 
 Range :: struct($T: typeid) {
 	x: [2]T,

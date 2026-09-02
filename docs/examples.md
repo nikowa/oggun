@@ -40,6 +40,12 @@ Draws a gallery of Windows-11-style widgets. Intended to test UI control and hie
 
 A recreation of Microsoft Paint.
 
+## Primitives
+
+![example-primitives](img/example-primitives.png)
+
+Draws examples of each of the 5 graphics primitives on a single canvas. The graphics primitives are **texture**, **text**, **rect**, **line**, and **arc**. Intended for testing the basic working of the graphics backends.
+
 ## Prop
 
 Renders a high-poly prop with nice lighting.

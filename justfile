@@ -6,8 +6,8 @@ default: current
 audit package: lib
 	oggun audit {{package}}.odin
 
-current: example_mrt
-	examples/mrt.exe
+current: example_primitives
+	examples/primitives.exe
 
 flags := "-subsystem:console -debug -max-error-count:8 -extra-linker-flags:\"/ignore:4099\" -ignore-unknown-attributes"
 
@@ -30,6 +30,7 @@ check: lib
 	odin check examples/modes {{check_flags}}
 	odin check examples/graph {{check_flags}}
 	odin check examples/mrt {{check_flags}}
+	odin check examples/primitives {{check_flags}}
 
 test: lib
 	cls
@@ -74,4 +75,7 @@ example_collage: lib
 example_mrt: lib
 	odin build examples/mrt -out:examples/mrt.exe {{flags}}
 
-examples: example_input example_gui example_neon example_sprites example_sync example_graph example_collage example_mrt
+example_primitives: lib
+	odin build examples/primitives -out:examples/primitives.exe {{flags}}
+
+examples: example_input example_gui example_neon example_sprites example_sync example_graph example_collage example_mrt example_primitives

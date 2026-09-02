@@ -64,6 +64,26 @@ dr_rect :: proc(
 	integer: bool = true)
 ```
 
+### **dr_line**
+
+```odin
+dr_line :: proc(
+	points: [2][2]f32,
+	color: Color,
+	integer: bool = true)
+```
+
+### **dr_arc**
+
+```odin
+dr_arc :: proc(
+	center: [2]f32,
+	radius: f32,
+	angle_range: [2]f32,
+	color: Color,
+	integer: bool = true)
+```
+
 ### **dr_image**
 
 ```odin
@@ -72,6 +92,25 @@ dr_image :: proc(
 	rect: Rect,
 	output_texture_sequence: ^Texture_Sequence,
 	integer: bool = true)
+```
+
+### **dr_text_box**
+
+```odin
+dr_text_box :: proc(
+	text: string,
+	rect: Rect,
+	background_color: Color=0,
+	h_align: UI_H_Align = .CENTER,
+	v_align: UI_V_Align = .CENTER,
+	ratio: f32 = 3.0,
+	origin: bit_set[Compass] = {},
+	margins: f32 = 4,
+	overflow: UI_Overflow = .EXTEND,
+	clamp_rect: Rect = {},
+	integer: bool = true,
+	debug: bool = false) ->
+	Rect
 ```
 
 <div style="height: 100vh;"></div>
