@@ -1,4 +1,6 @@
 
+- Rename "Shader" to "Shader_Sequence"
+
 - Implement the new bit_array functions
 - Figure out which functions from the bit_array module would benefit from alternate variants
 - Cubix -- 3d array

@@ -12,6 +12,7 @@ import "core:log"
 import "core:fmt"
 import "core:math"
 import "core:mem"
+import "core:slice"
 
 // Rendering pipeline:
 // (1) Enable emittance.
@@ -55,29 +56,29 @@ when GRAPHICS_BACKEND == .OpenGL do Graphics_Manager :: struct {
 // 	last_models_write_time:          os.File_Time,
 // 	models:                          [dynamic]Model,
 // 	model_instances:                 [dynamic]Model_Instance,
-	shaders: [dynamic]^Shader_Asset,
+	shaders: [dynamic]^Shader,
 	textures: [dynamic]Texture,
 	// textures_map:                    map[string]^Texture,
 // 	materials:                       [dynamic]Texture_Sequence,
 // 	models_map:                      map[string]^Model,
 // 	fonts:                           [dynamic]Font,
 // 	fonts_map:                       map[string]^Font,
-	image_shader: Shader_Asset,
-	text_shader: Shader_Asset,
-	buffer_shader: Shader_Asset,
+	image_shader: Shader,
+	text_shader: Shader,
+	buffer_shader: Shader,
 // 	upscale_pass1_shader:            ^Upscale_Pass1_Shader,
 // 	upscale_pass2_shader:            ^Upscale_Pass2_Shader,
 // 	blend_shader:                    ^Blend_Shader,
 // 	curvature_shader:                ^Curvature_Shader,
 // 	font_shader:                     ^Font_Shader,
-	rect_shader: Shader_Asset,
-	line_shader: Shader_Asset,
-	arc_shader: Shader_Asset,
+	rect_shader: Shader,
+	line_shader: Shader,
+	arc_shader: Shader,
 // 	point_shader:                    ^Point_Shader,
 // 	line_shader:                     ^Line_Shader,
 // 	physics_shader:                  ^Physics_Shader,
-	model_shader: Shader_Asset,
-	mesh_shader: Shader_Asset,
+	model_shader: Shader,
+	mesh_shader: Shader,
 // 	panel_shader:                    ^Panel_Shader,
 // 	water_effect_shader:             ^Water_Effect_Shader,
 // 	sdf_shader:                      ^SDF_Shader,
@@ -110,12 +111,18 @@ Compass :: enum u8 {
 	North,
 	South }
 
+// (DESC): A render buffer contains:
+// * 1 framebuffer
+// * 1 renderbuffer
 Render_Buffer :: struct {
 	initialized: bool,
 	frame_buffer_handle: u32,
+
+	// (TODO): Тhese are superfluous--they are determined by the shape of the texture sequence. //
 	texture_handles: []u32,
 	texture_formats: []u32,
 	texture_internal_formats: []i32,
+
 	render_buffer_handle: u32,
 	size: [2]f32,
 	n_frames: i16 }
@@ -228,37 +235,111 @@ graphics_init :: proc(graphics_config: Graphics_Config = {}) -> (err: os.Error) 
 // 	bake_models(draw, cache)
 // 	init_cubemap(&draw.cubemap, { 512, 512 })
 	if state.asset_manager.initialized {
-		am_register_asset_kind(Shader_Asset, { op = shader_op })
-		state.graphics_manager.shaders = make([dynamic]^Shader_Asset, 0, 16)
-		init_shader_asset(&state.graphics_manager.rect_shader, { "shader:rect", Shader_Asset }, { "string:vrect.glsl", "string:frect.glsl" }) or_return
-		init_shader_asset(&state.graphics_manager.line_shader, { "shader:line", Shader_Asset }, { "string:vline.glsl", "string:fline.glsl" }) or_return
-		// (TEMP):
-		init_shader_asset(&state.graphics_manager.arc_shader, { "shader:arc", Shader_Asset }, { "string:varc.glsl", "string:farc.glsl" }) or_return
-		init_shader_asset(&state.graphics_manager.image_shader, { "shader:image", Shader_Asset }, { "string:vrect.glsl", "string:fimage.glsl" }) or_return
-		init_shader_asset(&state.graphics_manager.text_shader, { "shader:bitmap-text", Shader_Asset }, { "string:vbitmap-text.glsl", "string:fbitmap-text.glsl" }) or_return
-		init_shader_asset(&state.graphics_manager.model_shader, { "shader:model", Shader_Asset }, { "string:vmodel.glsl", "string:fmodel.glsl" }) or_return
-		init_shader_asset(&state.graphics_manager.mesh_shader, { "shader:mesh", Shader_Asset }, { "string:vmesh.glsl", "string:fmesh.glsl" }) or_return
-		init_shader_asset(&state.graphics_manager.buffer_shader, { "shader:buffer", Shader_Asset }, { "string:vfill.glsl", "string:fbuffer.glsl" }) or_return
-		assert(am_op(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.rect_shader.asset, .Translate, .VRAM, .RAM))
+		am_register_asset_kind(Shader, { op = shader_op })
+		state.graphics_manager.shaders = make([dynamic]^Shader, 0, 16)
+		shader_init(
+			&state.graphics_manager.rect_shader,
+			Asset_Config {
+				"shader:rect",
+				Shader },
+			Shader_Config {
+				"string:vrect.glsl",
+				"string:frect.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.line_shader,
+			Asset_Config {
+				"shader:line",
+				Shader },
+			Shader_Config {
+				"string:vline.glsl",
+				"string:fline.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.arc_shader,
+			Asset_Config {
+				"shader:arc",
+				Shader },
+			Shader_Config {
+				"string:varc.glsl",
+				"string:farc.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.image_shader,
+			Asset_Config {
+				"shader:image",
+				Shader },
+			Shader_Config {
+				"string:vrect.glsl",
+				"string:fimage.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.text_shader,
+			Asset_Config {
+				"shader:bitmap-text",
+				Shader },
+			Shader_Config {
+				"string:vbitmap-text.glsl",
+				"string:fbitmap-text.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.model_shader,
+			Asset_Config {
+				"shader:model",
+				Shader },
+			Shader_Config {
+				"string:vmodel.glsl",
+				"string:fmodel.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.mesh_shader,
+			Asset_Config {
+				"shader:mesh",
+				Shader },
+			Shader_Config {
+				"string:vmesh.glsl",
+				"string:fmesh.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
+		shader_init(
+			&state.graphics_manager.buffer_shader,
+			Asset_Config {
+				"shader:buffer",
+				Shader },
+			Shader_Config {
+				"string:vfill.glsl",
+				"string:fbuffer.glsl",
+				make_texture_sequence_shape({ default_texture_shape() }),
+				make_texture_sequence_shape({ default_texture_shape() }) }) or_return
 
-		assert(am_op(Shader_Asset, &state.graphics_manager.line_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.line_shader.asset, .Translate, .VRAM, .RAM))
+		// (TODO): Add a procedure that executes the same asset op on a slice of assets of the same type. //
 
-		assert(am_op(Shader_Asset, &state.graphics_manager.image_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.image_shader.asset, .Translate, .VRAM, .RAM))
+		assert(am_op(Shader, &state.graphics_manager.rect_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.rect_shader.asset, .Translate, .VRAM, .RAM))
 
-		assert(am_op(Shader_Asset, &state.graphics_manager.text_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.text_shader.asset, .Translate, .VRAM, .RAM))
+		assert(am_op(Shader, &state.graphics_manager.line_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.line_shader.asset, .Translate, .VRAM, .RAM))
 
-		assert(am_op(Shader_Asset, &state.graphics_manager.model_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.model_shader.asset, .Translate, .VRAM, .RAM))
+		assert(am_op(Shader, &state.graphics_manager.image_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.image_shader.asset, .Translate, .VRAM, .RAM))
 
-		assert(am_op(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.mesh_shader.asset, .Translate, .VRAM, .RAM))
+		assert(am_op(Shader, &state.graphics_manager.text_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.text_shader.asset, .Translate, .VRAM, .RAM))
 
-		assert(am_op(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Translate, .RAM, .Source))
-		assert(am_op(Shader_Asset, &state.graphics_manager.buffer_shader.asset, .Translate, .VRAM, .RAM))
+		assert(am_op(Shader, &state.graphics_manager.model_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.model_shader.asset, .Translate, .VRAM, .RAM))
+
+		assert(am_op(Shader, &state.graphics_manager.mesh_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.mesh_shader.asset, .Translate, .VRAM, .RAM))
+
+		assert(am_op(Shader, &state.graphics_manager.buffer_shader.asset, .Translate, .RAM, .Source))
+		assert(am_op(Shader, &state.graphics_manager.buffer_shader.asset, .Translate, .VRAM, .RAM))
 
 		// graphics_manager.model_shader                = make_shader_asset(draw, working_directory_path, "model",                Model_Shader,                "vmodel",   "fmodel")
 		// graphics_manager.buffer_shader               = make_shader_asset(draw, working_directory_path, "buffer",               Buffer_Shader,               "vfill",    "fbuffer")
@@ -636,7 +717,7 @@ render_lines :: proc(count: i32) {
 render_points :: proc(count: i32) {
     gl.DrawArrays(gl.POINTS, 0, count) }
 
-use_shader :: proc(shader: ^Shader_Asset, loc := #caller_location) {
+use_shader :: proc(shader: ^Shader, loc := #caller_location) {
 	assert(shader.handle != 0, loc = loc)
 	gl.UseProgram(shader.handle) }
 
@@ -974,43 +1055,43 @@ render_render_buffer :: proc(render_buffer: ^Render_Buffer, channel: u32) {
 // 	shader.vert_source, shader.frag_source = vert_source, frag_source
 // 	_, err = append(&shaders,&shader.shader)
 // 	if err != .None { return nil }
-// 	ok, err_loc = compile_shader(shader)
+// 	ok, err_loc = _compile_shader(shader)
 // 	if ! ok { return nil }
 // 	init_shader_params(Type, shader)
 // 	return shader }
 
 
-// recompile_shader :: proc(draw: ^Draw, working_directory_path: string, shader: ^Shader, allocator: runtime.Allocator = context.allocator) {
+// re_compile_shader :: proc(draw: ^Draw, working_directory_path: string, shader: ^Shader, allocator: runtime.Allocator = context.allocator) {
 // 	fmt.println("Recompiling shaders")
 // 	new_shader: Shader
 // 	ok:         bool
 
 // 	new_shader = shader^
-// 	ok, _ = compile_shader(draw, working_directory_path, &new_shader, allocator = allocator)
+// 	ok, _ = _compile_shader(draw, working_directory_path, &new_shader, allocator = allocator)
 // 	if ok {
 // 		gl.DeleteProgram(cast(u32)shader.handle)
 // 		shader ^= new_shader } }
 
-// compile_shaders :: proc(draw: ^Draw, working_directory_path: string) {
+// _compile_shaders :: proc(draw: ^Draw, working_directory_path: string) {
 // 	ok:  bool
 // 	loc: runtime.Source_Code_Location
 
 // 	for _, i in draw.shaders {
 // 		if draw.shaders[i].compiled { continue }
-// 		ok, loc = compile_shader(draw, working_directory_path, draw.shaders[i])
+// 		ok, loc = _compile_shader(draw, working_directory_path, draw.shaders[i])
 // 		assert(ok)
 // 		draw.shaders[i].compiled = true } }
 
 
-// recompile_shaders :: proc(draw: ^Draw, working_directory_path: string, names: []string = {}) {
+// re_compile_shaders :: proc(draw: ^Draw, working_directory_path: string, names: []string = {}) {
 // 	if len(names) == 0 {
 // 		for _, i in draw.shaders {
-// 			recompile_shader(draw, working_directory_path, draw.shaders[i]) } }
+// 			re_compile_shader(draw, working_directory_path, draw.shaders[i]) } }
 // 	else {
 // 		for name in names {
 // 			for _, i in draw.shaders {
 // 				if draw.shaders[i].name == name {
-// 					recompile_shader(draw, working_directory_path, draw.shaders[i]) } } } } }
+// 					re_compile_shader(draw, working_directory_path, draw.shaders[i]) } } } } }
 
 Polygon_Mode :: enum {
 	Point = gl.POINT,
@@ -1226,7 +1307,7 @@ tick_graphics_manager_end :: proc() {
 // 	// TODO: Add a dr_util_tick, where non-draw graphics procedures are executed on the OpenGL thread. //
 // 	watch_models(draw, "beach")
 // 	{ lock_guard(&physics.lock); physics.d_surf, physics.d_surf_displaced, physics.d_surfer, physics.n_surf, physics.n_surf_displaced = read_physics_render_buffer(draw) }
-// 	{ lock_guard(&input.lock); if key_was_pressed(input, .J) do recompile_shaders(unwrap(draw), working_directory_path) }
+// 	{ lock_guard(&input.lock); if key_was_pressed(input, .J) do re_compile_shaders(unwrap(draw), working_directory_path) }
 	state.graphics_manager.frame_count += 1 }
 	// DICK
 

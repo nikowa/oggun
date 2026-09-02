@@ -2,6 +2,7 @@
 package oggun
 import "base:runtime"
 import "core:os"
+import "core:slice"
 import gl "vendor:OpenGL"
 
 Effect_Config :: struct {
@@ -15,7 +16,7 @@ DEFAULT_EFFECT_CONFIG: Effect_Config : {
 // Each surface is a normalized UV mesh, from which positions are computed by the vertex shader.
 Effect :: struct {
 	using config: Effect_Config,
-	shader: Shader_Asset,
+	shader: Shader,
 	mesh: Mesh(2) }
 
 init_effect :: proc(effect: ^Effect, config: Effect_Config, vert_url, frag_url: URL, allocator: runtime.Allocator) {
@@ -25,9 +26,18 @@ init_effect :: proc(effect: ^Effect, config: Effect_Config, vert_url, frag_url: 
 	mesh_builder = make_mesh_builder(2, allocator)
 	for res, i in config.surface_res do builder_append_2d_square_grid(&mesh_builder, grid_size = res)
 	effect.mesh = mesh_from_builder(mesh_builder)
-	init_shader_asset(&effect.shader, { config.url, Shader_Asset }, { vert_url, frag_url })
-	am_op(Shader_Asset, &effect.shader.asset, .Translate, .RAM, .Source)
-	am_op(Shader_Asset, &effect.shader.asset, .Translate, .VRAM, .RAM) }
+	shader_init(
+		&effect.shader,
+		{
+			config.url,
+			Shader },
+		{
+			vert_url,
+			frag_url,
+			make_texture_sequence_shape({ default_texture_shape() }),
+			make_texture_sequence_shape({ default_texture_shape() }) })
+	am_op(Shader, &effect.shader.asset, .Translate, .RAM, .Source)
+	am_op(Shader, &effect.shader.asset, .Translate, .VRAM, .RAM) }
 
 upload_effect :: proc(effect: ^Effect) -> bool {
 	if effect.mesh.verts_handle != 0 do download_effect(effect)

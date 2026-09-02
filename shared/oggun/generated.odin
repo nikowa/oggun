@@ -1,7 +1,7 @@
 package oggun
 import "core:time"
 import "base:runtime"
-// Generated at 19:23:42 //
+// Generated at 14:09:26 //
 
 default_asset_manager_config :: proc(
 		relpath: string = DEFAULT_ASSET_MANAGER_CONFIG.relpath,
@@ -112,10 +112,14 @@ default_text_style :: proc(
 default_shader_config :: proc(
 		vert_url: URL = DEFAULT_SHADER_CONFIG.vert_url,
 		frag_url: URL = DEFAULT_SHADER_CONFIG.frag_url,
+		inputs_shape: Texture_Sequence_Shape = DEFAULT_SHADER_CONFIG.inputs_shape,
+		outputs_shape: Texture_Sequence_Shape = DEFAULT_SHADER_CONFIG.outputs_shape,
 ) -> Shader_Config {
 	return {
 		vert_url = vert_url,
-		frag_url = frag_url } }
+		frag_url = frag_url,
+		inputs_shape = inputs_shape,
+		outputs_shape = outputs_shape } }
 
 default_input_config :: proc(
 		raw_input: bool = DEFAULT_INPUT_CONFIG.raw_input,

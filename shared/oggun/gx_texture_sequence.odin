@@ -2,6 +2,7 @@
 package oggun
 import "core:log"
 import "core:fmt"
+import "core:slice"
 import gl "vendor:OpenGL"
 
 Texture_Sequence :: struct {
@@ -83,3 +84,7 @@ texture_sequence_allocate_render_buffer :: proc(this: ^Texture_Sequence) {
 		formats[i] = _texture_shape_to_gl_format(shape)
 		data_types[i] = gl.UNSIGNED_INT }
 	this.render_buffer^ = make_render_buffer(auto_cast size, internal_formats, formats, data_types) }
+
+make_texture_sequence_shape :: proc(texture_shapes: []Texture_Shape, allocator := context.allocator) -> Texture_Sequence_Shape {
+	return slice.clone(texture_shapes, allocator)
+}

@@ -2,7 +2,7 @@
 
 ## **Types**
 
-### Texture
+### **Texture**
 
 ```odin
 Texture :: struct #packed {
@@ -14,7 +14,7 @@ Texture :: struct #packed {
 
 A texture [asset](../am_core/#asset).
 
-### Texture_Shape
+### **Texture_Shape**
 
 ```odin
 Texture_Shape :: struct #packed {
@@ -30,7 +30,7 @@ Describes the size, depth, and number of channels of a texture. This is used for
 
 ## **Constants**
 
-### DEFAULT_TEXTURE_SIZE
+### **DEFAULT_TEXTURE_SIZE**
 
 ```odin
 DEFAULT_TEXTURE_SIZE: [2]int : {
@@ -40,7 +40,7 @@ DEFAULT_TEXTURE_SIZE: [2]int : {
 
 ## **Procedures**
 
-### texture_init
+### **texture_init**
 
 ```odin
 texture_init :: proc(
@@ -51,7 +51,7 @@ texture_init :: proc(
 
 Initializes a **Texture** with the given shape.
 
-### texture_equals
+### **texture_equals**
 
 ```odin
 texture_equals :: proc(
@@ -61,7 +61,7 @@ texture_equals :: proc(
 
 Checks if the two **Texture**s are equal, by comparing their shapes and pixels.
 
-### texture_op
+### **texture_op**
 
 ```odin
 texture_op :: proc(
@@ -76,7 +76,7 @@ texture_op :: proc(
 
 The **Asset** op command of **Texture**. See [am/core](../am_core/) for more info.
 
-### serialize
+### **serialize**
 
 ```odin
 @require_results
@@ -89,7 +89,7 @@ texture_serialize :: proc(
 
 Serializes a **Texture**. Used by the **Translate** op.
 
-### deserialize
+### **deserialize**
 
 ```odin
 @require_results
@@ -101,5 +101,26 @@ texture_deserialize :: proc(
 ```
 
 Deserializes a **Texture**. Used by the **Translate** op.
+
+### **texture_shapes_compatible**
+
+```odin
+texture_shapes_compatible :: proc(
+	shape0: Texture_Shape,
+	shape1: Texture_Shape) ->
+	bool
+```
+
+Checks if two **Texture Shapes** are compatible. That is, if they have the same depth, the same number of channels, and the same size (size is not compared if one of the shapes has no size).
+
+### **default_texture_shape**
+
+```odin
+default_texture_shape :: proc(
+	size: [2]u32 = { 0, 0 },
+	channels: u8 = 4,
+	depth: u8 = 1) ->
+	Texture_Shape
+```
 
 <div style="height: 100vh;"></div>

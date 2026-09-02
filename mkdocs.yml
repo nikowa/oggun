@@ -82,6 +82,7 @@ nav:
       - poset: bs_poset.md
       - graph: bs_graph.md
       - digraph: bs_digraph.md
+      - vtree: bs_vtree.md
       - rect: bs_rect.md
     - mt:
       - testing: mt_testing.md
@@ -94,6 +95,7 @@ nav:
     - gx:
       - texture: gx_texture.md
       - texture_sequence: gx_texture_sequence.md
+      - shader: gx_shader.md
     - dr:
       - core: dr_core.md
   - GLSL API:

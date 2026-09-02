@@ -253,6 +253,17 @@ _texture_shape_to_gl_internal_format :: proc(shape: Texture_Shape) -> i32 {
 		case 4: return gl.RGBA32F } }
 	return 0 }
 
+texture_shapes_compatible :: proc(shape0: Texture_Shape, shape1: Texture_Shape) -> bool {
+	return (shape0.channels == shape1.channels) &&
+	       (shape0.depth == shape1.depth) &&
+	       ((shape0.size == shape1.size) || (shape0.size == 0) || (shape1.size == 0)) }
+
+default_texture_shape :: proc(size: [2]u32 = { 0, 0 }, channels: u8 = 4, depth: u8 = 1) -> Texture_Shape {
+	return {
+		size = size != { 0, 0 } ? size : cast([2]u32)state.graphics_manager.active_resolution,
+		channels = channels,
+		depth = depth } }
+
 // make_image :: proc(#any_int width: int, #any_int height: int, channels: int, allocator := context.allocator) -> (image: im.Image) {
 // 	if (channels < 1) || (channels > 4) do log.errorf("Invalid channel-count: %d", channels)
 // 	switch channels {

@@ -11,21 +11,23 @@ import "core:os"
 import "core:time"
 import "core:io"
 
-GLSL_VERSION_STRING: string : "#version 460 core"
-
-Shader_Config :: struct #all_or_none {
-	vert_url, frag_url: URL }
-	// definitions: []Definition }
+Shader_Config :: struct {
+	vert_url: URL,
+	frag_url: URL,
+	inputs_shape: Texture_Sequence_Shape,
+	outputs_shape: Texture_Sequence_Shape }
 
 DEFAULT_SHADER_CONFIG: Shader_Config : {
 	vert_url = DEFAULT_URL,
-	frag_url = DEFAULT_URL }
+	frag_url = DEFAULT_URL,
+	inputs_shape = {},
+	outputs_shape = {} }
 
-Definition :: struct {
-	identifier: string,
-	replacement: string }
+// Definition :: struct {
+// 	identifier: string,
+// 	replacement: string }
 
-Shader_Asset :: struct {
+Shader :: struct {
 	using asset: Asset,
 	using shader_config: Shader_Config,
 	vert_asset, frag_asset: String_Asset,
@@ -186,7 +188,6 @@ Text_Uniforms :: enum {
 // 	paddling:            i32,
 // 	surfing:             i32 }
 
-
 GLSL_Builder :: struct {
 	string_builder: strings.Builder,
 	includes: [dynamic]string,
@@ -194,14 +195,16 @@ GLSL_Builder :: struct {
 	macros: [dynamic]string,
 	global_variables: [dynamic][2]string }
 
-init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, config: Shader_Config) -> (err: os.Error) {
-	am_init_asset(Shader_Asset, &shader.asset, asset_config)
+GLSL_VERSION_STRING: string : "#version 460 core"
+
+shader_init :: proc(shader: ^Shader, asset_config: Asset_Config, config: Shader_Config) -> (err: os.Error) {
+	am_init_asset(Shader, &shader.asset, asset_config)
 	defer if err != nil do log.errorf("Failed to make shader %s, %s: %v", config.vert_url, config.frag_url, err)
 	shader.shader_config = config
 	am_init_string_asset(&shader.vert_asset, { config.vert_url, String_Asset })
 	am_init_string_asset(&shader.frag_asset, { config.frag_url, String_Asset })
 	append(&state.graphics_manager.shaders, shader) or_return
-	assert(am_op(Shader_Asset, shader, .Translate, .RAM, .Source))
+	assert(am_op(Shader, shader, .Translate, .RAM, .Source))
 	return os.General_Error.None }
 
 // Shader :: struct {
@@ -212,11 +215,11 @@ init_shader_asset :: proc(shader: ^Shader_Asset, asset_config: Asset_Config, con
 
 // watch_shaders :: proc() {
 // 		append(&graphics_context.shaders, &shader.shader) or_return
-// 	compile_shader(graphics_context, database, shader) or_return
+// 	_compile_shader(graphics_context, database, shader) or_return
 
 // }
 
-compile_shader :: proc(shader_asset: ^Shader_Asset, allocator := context.allocator) -> (err: os.Error) {
+_compile_shader :: proc(shader_asset: ^Shader, allocator := context.allocator) -> (err: os.Error) {
 	vert_path, frag_path: string
 	entry: ^Entry
 	ok: bool
@@ -239,21 +242,20 @@ compile_shader :: proc(shader_asset: ^Shader_Asset, allocator := context.allocat
 	for source, i in sources {
 		init_glsl_builder(&builder) or_return
 		fmt.sbprintln(&builder.string_builder, GLSL_VERSION_STRING)
-		loc = preprocess_glsl(working_directory_path, &builder, sources[i]) or_return
+		loc = _preprocess_glsl(working_directory_path, &builder, sources[i]) or_return
 		sources[i] = strings.clone(glsl_builder_to_string(&builder))
 		destroy_glsl_builder(&builder) }
 	handle, ok = gl.load_shaders_source(sources[0], sources[1])
 	if ok do shader_asset.handle = handle
 	compile_message, compile_message_type, link_message, link_message_type = gl.get_last_error_messages()
-	if (compile_message_type != .NONE) && (len(compile_message) > 0) do print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
-	if len(link_message) > 0 do print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
+	if (compile_message_type != .NONE) && (len(compile_message) > 0) do _print_glsl_error(compile_message, compile_message_type, shader_asset, sources[0], sources[1])
+	if len(link_message) > 0 do _print_glsl_error(link_message, compile_message_type, shader_asset, sources[0], sources[1])
 	if ! ok do return io.Error.No_Progress
 	// (TODO): Modification time should not be required by the Asset abstract class. The only requirement should be an "Outdated" op. It can be implemented in various ways, which may or may not involve modification time variables.
 	// shader_asset.last_modification_time = time_max(am_get_entry(shader_asset.vert_asset.url).modification_time, am_get_entry(shader_asset.frag_asset.url).modification_time)
 	return os.General_Error.None }
 
-
-print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader_Asset, vert_string: string, frag_string: string) {
+_print_glsl_error :: proc(message: string, message_type: gl.Shader_Type, shader: ^Shader, vert_string: string, frag_string: string) {
 	content: string
 	bl:      int
 	br:      int
@@ -284,7 +286,7 @@ destroy_glsl_builder :: proc(glsl_builder: ^GLSL_Builder) {
 glsl_builder_to_string :: proc(glsl_builder: ^GLSL_Builder) -> string {
 	return strings.to_string(glsl_builder.string_builder) }
 
-preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, source: string) -> (loc: runtime.Source_Code_Location, err: os.Error) {
+_preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, source: string) -> (loc: runtime.Source_Code_Location, err: os.Error) {
 	lines:         []string
 	line:          string
 	fields:        []string
@@ -355,7 +357,7 @@ preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, 
 				return #location(), os.General_Error.None }
 			if slice.contains(builder.includes[:], incl_source) {
 				continue }
-			preprocess_glsl(working_directory_path, builder, incl_source) or_return }
+			_preprocess_glsl(working_directory_path, builder, incl_source) or_return }
 		else if strings.starts_with(line, "uniform") {
 			already_defined :: proc(builder: ^GLSL_Builder, type: string, name: string) -> (yes: bool, previous_type: string) {
 				for i in 0 ..< len(builder.uniform_variables) {
@@ -391,7 +393,7 @@ preprocess_glsl :: proc(working_directory_path: string, builder: ^GLSL_Builder, 
 		else do fmt.sbprintln(&builder.string_builder, line) }
 	return {}, os.General_Error.None }
 
-shader_outdated :: proc(shader_asset: ^Shader_Asset) -> (outdated: bool) {
+_shader_outdated :: proc(shader_asset: ^Shader) -> (outdated: bool) {
 	outdated = true
 	vert_entry := am_get_entry(shader_asset.vert_asset.url)
 	frag_entry := am_get_entry(shader_asset.frag_asset.url)
@@ -399,7 +401,7 @@ shader_outdated :: proc(shader_asset: ^Shader_Asset) -> (outdated: bool) {
 	return time.diff(shader_asset.last_modification_time, latest_modification_time) > 0 }
 
 shader_op :: proc(base: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src: Asset_Location = .None, arg: rawptr = nil, location := #caller_location) -> (ok: bool) {
-	this := am_asset_base(base, Shader_Asset, "asset")
+	this := am_asset_base(base, Shader, "asset")
 	ni: bool = false
 	#partial switch op {
 	case .Exists:
@@ -417,10 +419,10 @@ shader_op :: proc(base: ^Asset, op: Asset_Op, dest: Asset_Location = .None, src:
 			return am_op(String_Asset, &this.vert_asset, .Translate, .RAM, .Database) &&
 			       am_op(String_Asset, &this.frag_asset, .Translate, .RAM, .Database)
 		case { .RAM, .VRAM }:
-			err := compile_shader(this)
+			err := _compile_shader(this)
 			return err == nil
 		case: ni = true }
-	// Use "shader_outdated" proc for .Outdated op. //
+	// Use "_shader_outdated" proc for .Outdated op. //
 	case: ni = true }
 	if ni do am_error_not_implemented(op, dest, src, location)
 	return false }

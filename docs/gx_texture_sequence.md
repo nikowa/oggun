@@ -43,7 +43,7 @@ The names of the textures in the default canvas `Texture_Sequence`.
 
 ---
 
-### **init**
+### **texture_sequence_init**
 
 ```odin
 texture_sequence_init :: proc(
@@ -63,7 +63,7 @@ texture_sequence_init :: proc(
 
 Initializes a `Texture_Sequence` asset.
 
-### **shape**
+### **texture_sequence_shape**
 
 ```odin
 texture_sequence_shape :: proc(
@@ -73,7 +73,7 @@ texture_sequence_shape :: proc(
 
 Returns the shape of a texture_sequence. Each texture contains its own shape field. The compound shape of a texture_sequence is constructed on-demand, in order to reduce coupling and keep the data structure compact.
 
-### **command**
+### **texture_sequence_op**
 
 ```odin
 texture_sequence_op :: proc(
@@ -83,5 +83,16 @@ texture_sequence_op :: proc(
 ```
 
 The asset command [asset command proc](../am_core/#asset_command_proc) of `Texture_Sequence`.
+
+### **texture_sequence_shape_compatible**
+
+```odin
+texture_sequence_shape_compatible :: proc(
+	texture_sequence: ^Texture_Sequence,
+	shape: Texture_Sequence_Shape) ->
+	bool
+```
+
+Checks if the given **Texture Sequence** is compatible with the given **Texture Sequence Shape**.
 
 <div style="height: 100vh;"></div>
